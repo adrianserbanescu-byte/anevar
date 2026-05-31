@@ -44,6 +44,7 @@ class BuildingData(BaseModel):
     depreciation_points: list[DepreciationPoint] = Field(default_factory=list)
     functional_depreciation: Decimal = Decimal("0")   # C_nf (0 implicit; >0 la credit cu justificare)
     external_depreciation: Decimal = Decimal("0")      # C_ex
+    justificare_depreciere: str = ""
     structura: Optional[str] = None
     finisaje: Optional[str] = None
     clasa_energetica: Optional[str] = None
