@@ -23,10 +23,11 @@ implementare.
 | Dimensiune | Decizie |
 |---|---|
 | Subsistem | Motor matematic de evaluare + generator de raport |
-| Tip proprietate | Apartament rezidențial |
-| Scop raport | Garantare credit ipotecar (bancar) |
-| Metodă de calcul | Grila de comparație directă (SEV 105) |
+| Tip proprietate | **Casă individuală + teren** |
+| Scop raport | Garantare credit ipotecar (bancar) — valoare de piață |
+| Metode de calcul | **Două abordări:** (1) comparație directă (SEV 105) pentru proprietatea întreagă și pentru teren; (2) cost — teren prin comparație + construcție prin **cost de înlocuire net (CIN), metoda costurilor segregate** |
 | Sursă comparabile | Introducere manuală + paste URL (imobiliare.ro / storia.ro) |
+| Sursă costuri construcție | Cataloage IROVAL / MATRIX — costuri unitare introduse manual per element (catalog deținut de evaluator) |
 | Rol AI | Generarea narativului raportului (text profesional) |
 | Strategie AI | API cloud cu anonimizare înainte de trimitere |
 | Format output | Word (.docx) editabil |
@@ -34,15 +35,17 @@ implementare.
 | Form factor | Aplicație web locală (browser, rulează local) |
 | Livrare | Împachetat cu PyInstaller într-un singur `.exe` |
 | GDPR | Toate datele rămân local; date personale anonimizate înainte de orice apel AI |
+| Model de referință | `model_impozitare_Enachescu Cristian Nicolae 2026.pdf` (GBF Valuation) — folosit ca referință de structură/stil și ca sursă a formulelor de cost segregat și depreciere fizică |
 
 ### Non-goals (explicit excluse din MVP)
 
-- Abordarea prin cost (CIN) — apartamentele se evaluează prin comparație; modul separat ulterior
 - Ingestie/OCR documente cadastrale (extras CF, releveu, CPE)
 - Integrare oficială ANCPI / e-Terra API
 - Colector automat de date de piață (scraping zilnic, indici BNR live)
-- Alte tipuri de proprietate (casă+teren, teren, comercial)
-- Alte scopuri (tranzacție, fiscal) — deși arhitectura nu le exclude ulterior
+- Digitizarea completă a catalogului IROVAL (costurile unitare se introduc manual din catalog)
+- Alte tipuri de proprietate (apartament, teren simplu, comercial) — apartamentul devine modul ulterior
+- Alte scopuri (impozitare/fiscal GEV 500, tranzacție) — deși arhitectura nu le exclude ulterior
+- Abordarea prin venit (capitalizare chirie)
 - Variante de template specifice fiecărei bănci
 - Cont online / SaaS / autentificare multi-utilizator
 
@@ -90,10 +93,12 @@ implementare.
 | Componentă | Responsabilitate | Depinde de |
 |---|---|---|
 | Comparable Importer | Aduce comparabilele (manual + parsare URL), normalizează la schemă unică | — |
-| Valuation Engine | Grila de comparație directă, ajustări ierarhice, indicatori de calitate | Comparable, SubjectProperty |
-| Validation | Loops de validare încrucișată (suprafețe, outliers, limite ajustare) | Valuation output |
+| Market Engine | Grila de comparație directă (proprietate întreagă + teren), ajustări ierarhice, indicatori de calitate | Comparable, SubjectProperty |
+| Cost Engine | Cost de înlocuire net (CIN) prin metoda costurilor segregate + depreciere; valoare teren + construcție | SubjectProperty, costuri unitare, comparabile teren |
+| Reconciliation | Reconciliază rezultatul abordării prin piață cu cel prin cost → valoare finală | Market Engine, Cost Engine |
+| Validation | Loops de validare încrucișată (suprafețe, outliers, limite ajustare, depreciere) | Engine outputs |
 | Anonymizer | Mascare date personale înainte de orice apel AI | — |
-| Narrative AI | Generează textul capitolelor din datele calculate | Valuation output, Anonymizer |
+| Narrative AI | Generează textul capitolelor din datele calculate | Engine outputs, Anonymizer |
 | Report Generator | Umple template SEV 103 cu numere + narativ → .docx | toate de mai sus |
 | Storage (SQLite) | Persistă dosarele de evaluare pentru istoric și audit | — |
 
@@ -105,15 +110,25 @@ implementare.
 Dosar evaluare (Evaluation)
 ├── Metadata lucrare      → client, scop (garantare credit), data evaluării,
 │   (EvaluationMeta)         data raportului, evaluator, declarație independență
-├── Proprietate subiect   → adresă, nr cadastral, CF, suprafață utilă,
-│   (SubjectProperty)        nr camere, etaj/total etaje, an construcție,
-│                            finisaje, clasă energetică, sarcini active
-├── Comparabile[]         → sursă (URL/manual), preț, suprafață, etaj,
+├── Proprietate subiect   → adresă, nr cadastral, CF, sarcini active
+│   (SubjectProperty)
+│   ├── Teren             → suprafață teren (mp), categorie (intravilan/extravilan),
+│   │   (LandData)           deschidere, formă, utilități, restricții urbanism (PUG/RLU)
+│   └── Construcție       → Ac (arie construită), Au (arie utilă),
+│       (BuildingData)       Acd (arie construită desfășurată), an PIF/construcție,
+│                            an modernizare, regim înălțime, structură, finisaje,
+│                            clasă energetică, stare
+├── Comparabile piață[]   → sursă (URL/manual), preț, suprafață, tip proprietate,
 │   (Comparable)            finisaje, dată ofertă, tip (ofertă/tranzacție)
+├── Comparabile teren[]   → preț/mp, suprafață, localizare, dată (pentru valoarea terenului)
+│   (LandComparable)
+├── Elemente cost[]       → element (infrastructură/structură/finisaje/instalații/
+│   (CostElement)           învelitoare), cod IROVAL, u.m., cantitate, cost unitar
+│                            (lei/u.m. din catalog), an PIF, durată viață
 ├── Grilă ajustări        → per comparabil × element de comparație:
 │   (AdjustmentGrid)        valoarea ajustării (% sau valorică) + justificare
-├── Rezultat              → preț unitar corectat/comp, valoare selectată,
-│   (ValuationResult)       indicatori calitate, valoare finală rotunjită
+├── Rezultate             → valoare piață, valoare teren, CIB, depreciere, CIN,
+│   (ValuationResults)      valoare prin cost, valoare finală reconciliată, TVA
 └── Narativ[]             → text generat AI per capitol
     (NarrativeSection)
 ```
@@ -122,17 +137,20 @@ Schemele se implementează cu Pydantic. Persistate ca rânduri în SQLite (un do
 
 ---
 
-## 4. Motorul de calcul — grila de comparație directă (SEV 105)
+## 4. Motorul de calcul (casă + teren, garantare credit)
 
-Reproduce exact logica din specificația sursă. Pași deterministi:
+Pentru casă individuală + teren se aplică **două abordări**, apoi se reconciliază. Toate
+calculele sunt deterministe (Python pur, precizie `Decimal`).
 
-### 4.1 Preț unitar brut
+### 4.A Abordarea prin piață — grila de comparație directă (SEV 105)
 
-Pentru fiecare comparabil: `preț / suprafață utilă` (€/mp sau lei/mp, unitate configurabilă).
+Se aplică pe proprietatea întreagă (casă+teren) când există comparabile vândute/oferite de
+proprietăți similare.
 
-### 4.2 Ajustări ierarhice
+**4.A.1 Preț unitar brut** — pentru fiecare comparabil: `preț / suprafață` (€/mp sau lei/mp,
+unitate configurabilă; pentru case raportat de regulă la Acd sau Au).
 
-Aplicate **secvențial** pe prețul curent, în ordinea din specificație:
+**4.A.2 Ajustări ierarhice** — aplicate secvențial pe prețul curent, în ordinea din specificație:
 
 | Ordine | Element de comparație | Tip ajustare | Logică |
 |---|---|---|---|
@@ -141,22 +159,64 @@ Aplicate **secvențial** pe prețul curent, în ordinea din specificație:
 | 3 | Condiții de vânzare (ofertă→tranzacție) | Procentuală | Corecție negativă pentru oferte active |
 | 4 | Evoluția pieței (timp) | Procentuală | Ajustare la condiții curente (indice/dată) |
 | 5 | Localizare | Procentuală | Poziționare spațială |
-| 6 | Caracteristici fizice | Procentuală | Etaj, finisaje, suprafață, stare construcție |
+| 6 | Caracteristici fizice | Procentuală | Suprafață teren, suprafață construită, finisaje, stare, regim înălțime |
 | 7 | Utilități / economice | Valorică / Procentuală | Aducere la paritate pe bază de costuri |
 
-### 4.3 Indicatori de calitate (calculați automat)
+**4.A.3 Indicatori de calitate** (automat):
+- **Ajustare brută** = Σ |corecții| per comparabil
+- **Ajustare netă** = Σ algebrică a corecțiilor
 
-- **Ajustare brută** = Σ |corecții| per comparabil (suma absolută)
-- **Ajustare netă** = Σ algebrică a corecțiilor aplicate
+**4.A.4 Selecția** — se preferă comparabilul cu ajustare brută minimă; valoarea = preț unitar
+corectat × suprafața subiectului.
 
-### 4.4 Selecția valorii finale
+### 4.B Abordarea prin cost (teren prin comparație + construcție prin CIN)
 
-- Se preferă comparabilul cu **ajustare brută minimă** (cel mai similar = cel mai credibil)
-- Valoare finală = preț unitar corectat al acelui comparabil × suprafața subiectului
-- Rotunjire conform practicii profesionale
-- Specificare situație TVA (valoarea exprimată nu conține TVA)
+Reproduce metoda din modelul de referință (GBF / IROVAL).
 
-Motorul este 100% izolat și testabil cu valori cunoscute dintr-un raport de referință.
+**4.B.1 Valoarea terenului** — prin comparația comparabilelor de teren (€/mp ajustat × suprafață
+teren). Dacă nu există comparabile de teren în zonă, se semnalează și se documentează (ca în model).
+
+**4.B.2 Costul de înlocuire brut (CIB) — metoda costurilor segregate:**
+
+```
+CIB = Σ (cantitate_element × cost_unitar_element)      [pe elemente: infrastructură,
+                                                          structură, finisaje, instalații
+                                                          electrice/sanitare/încălzire, învelitoare]
+```
+Costurile unitare provin din cataloagele IROVAL/MATRIX (introduse manual de evaluator).
+
+**4.B.3 Vârsta cronologică ponderată (Vcp)** — media ponderată a vârstelor elementelor,
+ponderată cu costul fiecărui element (elementele cu an PIF/modernizare diferit au vârste diferite).
+
+**4.B.4 Deprecierea fizică (Dfn)** — prin interpolare conform GEV 500 / model de referință:
+
+```
+Dfn = D1 + (D2 − D1) / (V2 − V1) × (Vcp − V1)
+```
+unde `(V1, D1)` și `(V2, D2)` sunt punctele din tabelul de depreciere care încadrează Vcp.
+
+**4.B.5 Depreciere funcțională (C_nf) și externă (C_ex)** — la **garantare credit** pot fi
+nenule (spre deosebire de scopul fiscal, unde sunt 0). Configurabile per dosar, cu valori
+implicite 0 și justificare obligatorie când sunt nenule.
+
+**4.B.6 Costul de înlocuire net (CIN):**
+
+```
+CIN = CIB × (1 − Dfn) × (1 − C_nf) × (1 − C_ex)
+```
+
+**4.B.7 Valoarea prin cost** = Valoare teren + CIN. Tratament TVA documentat separat.
+
+### 4.C Reconcilierea (SEV — concluzia valorii)
+
+- Se compară valoarea din abordarea prin piață cu cea prin cost
+- Evaluatorul selectează valoarea finală (cu ponderare/justificare), conform practicii profesionale
+- Rotunjire; specificarea situației TVA (valoarea exprimată nu conține TVA)
+- Dacă o abordare nu e aplicabilă (ex. lipsă comparabile teren), se documentează motivul și se
+  folosește abordarea disponibilă (exact ca în modelul de referință)
+
+Ambele motoare sunt 100% izolate și testabile cu valori cunoscute. Modelul de referință GBF
+(CIN = 1.307.557,6 lei pentru Acd 351,46 mp) servește drept test de regresie pentru Cost Engine.
 
 ---
 
@@ -167,11 +227,14 @@ Rulate înainte de generarea raportului. Deterministe, separate de AI. Fiecare a
 
 | Verificare | Regulă | Acțiune |
 |---|---|---|
-| Date cadastrale | suprafață utilă > 0; etaj ≤ total etaje; an construcție valid | **Blochează** dacă lipsesc câmpuri obligatorii |
-| Număr minim comparabile | minimum 3 (cerință SEV) | **Blochează** sub 3 |
+| Date cadastrale/fizice | suprafață teren > 0; Au/Acd > 0; Au ≤ Acd; an PIF valid | **Blochează** dacă lipsesc câmpuri obligatorii |
+| Număr minim comparabile | minimum 3 pentru abordarea aplicată (cerință SEV) | **Blochează** sub 3 dacă abordarea e folosită |
 | Outliers | preț unitar brut deviază peste prag de la mediană | **Alertează** (marchează comparabilul) |
 | Limită ajustare brută | ajustare brută per comparabil > 25% | **Alertează** (comparabil slab credibil) |
-| Coerență valoare finală | €/mp final în intervalul comparabilelor | **Alertează** dacă în afara intervalului |
+| Depreciere fizică | Dfn în interval plauzibil (0–100%); Vcp ≤ durata de viață | **Alertează** dacă Vcp > durata de viață sau Dfn în afara intervalului tabelului |
+| Justificare depreciere C_nf/C_ex | dacă nenule, justificare text obligatorie | **Blochează** generarea fără justificare |
+| Coerență valoare finală | valoarea reconciliată în intervalul celor două abordări | **Alertează** dacă în afara intervalului |
+| Cel puțin o abordare | minim o abordare aplicabilă și documentată | **Blochează** dacă nicio abordare nu produce valoare |
 
 Pragurile (% outlier, % limită) sunt configurabile, cu valori implicite din practica ANEVAR.
 
@@ -212,17 +275,20 @@ LLM-ul primește **datele deja calculate** și produce textul profesional pentru
 
 `python-docx` umple un template SEV 103 cu cele 7 capitole obligatorii din specificație:
 
-1. **Sinteza evaluării și certificare** — identificare proprietate, client, scop, tip valoare
-   (Valoarea de Piață, SEV 104), date evaluare/raport/valabilitate, declarație independență
+1. **Sinteza evaluării și certificare** — identificare proprietate (teren + construcție), client,
+   scop, tip valoare (Valoarea de Piață, SEV 104), date evaluare/raport/valabilitate, declarație independență
 2. **Ipoteze generale și speciale** — limitative privind structura, solul; ipoteze speciale
 3. **Prezentarea datelor de piață** — analiză macro + dinamică piață locală
-4. **Descrierea juridică și fizică** — situație juridică (cadastral, CF, sarcini); caracteristici fizice
-5. **Analiza CMBU** — permisibilitate legală, posibilitate fizică, fezabilitate financiară
-6. **Aplicarea metodelor de calcul** — tabelul detaliat al grilei de comparație + justificări
-7. **Reconcilierea și concluzia valorii** — analiză critică, selecția valorii, situație TVA
+4. **Descrierea juridică și fizică** — situație juridică (cadastral, CF, sarcini); descrierea
+   terenului (suprafață, categorie, utilități) și a construcției (Ac/Au/Acd, structură, finisaje, stare)
+5. **Analiza CMBU** — permisibilitate legală (PUG/RLU), posibilitate fizică, fezabilitate financiară
+6. **Aplicarea metodelor de calcul** — (a) tabelul grilei de comparație + justificări;
+   (b) tabelul costurilor segregate (CIB), calculul deprecierii și CIN; valoarea terenului
+7. **Reconcilierea și concluzia valorii** — analiză critică a celor două abordări, selecția
+   valorii finale, situație TVA
 
-Tabelul grilei se inserează cu toate ajustările și indicatorii de calitate. Anonimizare la
-cerere pentru versiunea de arhivă.
+Tabelele (grila de comparație + tabelul costurilor segregate cu depreciere/CIN) se inserează cu
+toate valorile și indicatorii. Anonimizare la cerere pentru versiunea de arhivă.
 
 ---
 
@@ -237,8 +303,10 @@ evaluare-anevar/
 │   │   ├── property.py
 │   │   └── comparable.py
 │   ├── engine/
-│   │   ├── valuation.py         # grila de comparație (determinist)
+│   │   ├── market.py            # grila de comparație (determinist)
 │   │   ├── adjustments.py       # ajustări ierarhice
+│   │   ├── cost.py             # CIB segregat, depreciere, CIN, valoare teren
+│   │   ├── reconciliation.py    # reconciliere piață vs cost
 │   │   └── validation.py        # loops de validare
 │   ├── importers/
 │   │   ├── manual.py
@@ -254,8 +322,10 @@ evaluare-anevar/
 │   │   └── storage.py           # SQLite local
 │   └── web/                     # frontend (HTMX + formulare)
 ├── tests/
-│   ├── test_valuation.py        # grilă de referință cu valori cunoscute
+│   ├── test_market.py           # grilă de referință cu valori cunoscute
 │   ├── test_adjustments.py
+│   ├── test_cost.py            # CIN segregat vs model GBF (1.307.557,6 lei)
+│   ├── test_reconciliation.py
 │   ├── test_validation.py
 │   └── test_anonymizer.py
 ├── build/
@@ -283,15 +353,18 @@ evaluare-anevar/
 
 | Suită | Ce verifică | Prioritate |
 |---|---|---|
-| Motor de calcul | Grilă de referință dintr-un raport ANEVAR real → valoare reprodusă la leu | **Critică** |
+| Cost Engine (CIN) | Reproduce modelul de referință GBF: CIB segregat, Vcp, Dfn, CIN = 1.307.557,6 lei | **Critică** |
+| Market Engine | Grilă de comparație de referință → valoare reprodusă la leu | **Critică** |
 | Ajustări | Fiecare tip de ajustare aplicat corect, în ordinea ierarhică | Înaltă |
-| Validări | Fiecare regulă (sub 3 comp → blocat, outlier → alertă etc.) | Înaltă |
+| Reconciliere | Selecția corectă între cele două abordări; cazul „o abordare lipsă" | Înaltă |
+| Validări | Fiecare regulă (sub 3 comp → blocat, outlier → alertă, depreciere etc.) | Înaltă |
 | Anonymizer | Niciun nume/CF/adresă nu scapă în textul trimis spre API | **Critică** (GDPR) |
 | URL parser | Fixturi HTML salvate (nu live, teste stabile) | Medie |
 | Generare raport | Smoke: dosar complet → .docx valid cu cele 7 capitole | Medie |
 
-Cea mai importantă suită este motorul de calcul — calculele trebuie să fie corecte la leu pentru
-a fi acceptabile în context bancar.
+Cele mai importante suite sunt motoarele de calcul — valorile trebuie reproduse la leu pentru a fi
+acceptabile în context bancar. Modelul de referință GBF (`model_impozitare...2026.pdf`) este testul
+de regresie principal pentru Cost Engine.
 
 ---
 
@@ -311,10 +384,12 @@ a fi acceptabile în context bancar.
 
 ## 12. Etape ulterioare (post-MVP, fiecare cu propriul spec)
 
-1. Abordarea prin cost (CIN) — pentru case + teren
-2. Ingestie/OCR documente cadastrale (extras CF, releveu, CPE)
-3. Integrare oficială ANCPI / e-Terra API
-4. Colector automat de date de piață (indici BNR/ANCPI, scraping programat)
-5. Variante de template pe bănci (BCR, BRD etc.)
-6. Tipuri suplimentare de proprietate și scopuri (fiscal, asigurare)
-7. Opțiune LLM local (Ollama) pentru GDPR total offline
+1. Modul apartament rezidențial (grila de comparație, fără cost)
+2. Scop fiscal / impozitare (GEV 500) — reutilizează Cost Engine cu C_nf = C_ex = 0
+3. Digitizarea catalogului IROVAL (selecție coduri + costuri unitare automate)
+4. Ingestie/OCR documente cadastrale (extras CF, releveu, CPE)
+5. Integrare oficială ANCPI / e-Terra API
+6. Colector automat de date de piață (indici BNR/ANCPI, scraping programat)
+7. Variante de template pe bănci (BCR, BRD etc.)
+8. Tipuri suplimentare (teren simplu, comercial) și abordarea prin venit
+9. Opțiune LLM local (Ollama) pentru GDPR total offline
