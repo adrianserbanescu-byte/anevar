@@ -1,0 +1,10 @@
+# Secrete si date locale - nu se urca niciodata in git
+.env
+*.db
+date/
+__pycache__/
+*.pyc
+.pytest_cache/
+build/
+dist/
+*.spec
