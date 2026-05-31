@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head><meta charset="utf-8"><title>Evaluare ANEVAR</title></head>
+<body>
+<h1>Evaluare imobiliara ANEVAR — casa + teren</h1>
+<form id="f">
+  <h2>Client si lucrare</h2>
+  Nume client: <input name="client_nume" required><br>
+  Adresa: <input name="adresa" required><br>
+  Nr. cadastral: <input name="numar_cadastral" required><br>
+  Carte funciara: <input name="carte_funciara" required><br>
+  Evaluator: <input name="evaluator_nume" required>
+  Legitimatie: <input name="evaluator_legitimatie" required><br>
+  Data evaluarii: <input name="data_evaluarii" value="2026-01-16">
+  Data raportului: <input name="data_raportului" value="2026-01-16"><br>
+  <h2>Teren si constructie</h2>
+  Suprafata teren (mp): <input name="suprafata_teren" value="500"><br>
+  Au (mp): <input name="au" value="100">
+  Acd (mp): <input name="acd" value="120">
+  An referinta: <input name="an_referinta" value="2025"><br>
+  Valoare teren (lei): <input name="valoare_teren" value="100000"><br>
+  <h2>Elemente de cost (un rand per element)</h2>
+  <textarea name="elemente" rows="4" cols="80"
+   placeholder="element;cod;um;cantitate;cost_unitar;an_pif (cate unul pe linie)">Structura;X;mp;120;2000;2015</textarea><br>
+  <h2>Depreciere fizica (puncte varsta;fractie)</h2>
+  <textarea name="depreciere" rows="2" cols="40"
+   placeholder="varsta;fractie">5;0.05
+15;0.15</textarea><br>
+  <button type="submit">Genereaza evaluarea</button>
+</form>
+<pre id="rezultat"></pre>
+<script>
+document.getElementById('f').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const d = Object.fromEntries(new FormData(e.target).entries());
+  const elements = d.elemente.trim().split('\n').filter(Boolean).map(l => {
+    const [element, cod, um, cantitate, cost_unitar, an_pif] = l.split(';');
+    return {element, cod, um, cantitate, cost_unitar, an_pif: parseInt(an_pif)};
+  });
+  const depreciation_points = d.depreciere.trim().split('\n').filter(Boolean).map(l => {
+    const [varsta, depreciere] = l.split(';');
+    return {varsta: parseInt(varsta), depreciere};
+  });
+  const payload = {
+    meta: {client_nume: d.client_nume, adresa: d.adresa,
+           numar_cadastral: d.numar_cadastral, carte_funciara: d.carte_funciara,
+           evaluator_nume: d.evaluator_nume, evaluator_legitimatie: d.evaluator_legitimatie,
+           data_evaluarii: d.data_evaluarii, data_raportului: d.data_raportului},
+    land: {suprafata: d.suprafata_teren},
+    building: {au: d.au, acd: d.acd, an_referinta: parseInt(d.an_referinta),
+               elements, depreciation_points},
+    valoare_teren: d.valoare_teren, metoda: 'cost'
+  };
+  const r = await fetch('/api/evaluare', {method:'POST',
+    headers:{'Content-Type':'application/json'}, body: JSON.stringify(payload)});
+  const res = await r.json();
+  if (res.id) { window.location = '/evaluare/' + res.id; }
+  else { document.getElementById('rezultat').textContent = JSON.stringify(res, null, 2); }
+});
+</script>
+</body>
+</html>

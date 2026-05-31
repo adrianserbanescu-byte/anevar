@@ -5,8 +5,9 @@ import tempfile
 from pathlib import Path
 from typing import Optional
 
-from fastapi import FastAPI, HTTPException
-from fastapi.responses import FileResponse
+from fastapi import FastAPI, HTTPException, Request
+from fastapi.responses import FileResponse, HTMLResponse
+from fastapi.templating import Jinja2Templates
 
 from evaluare.assembler import EvaluationInput, construieste_context
 from evaluare.ai.narrative import NarrativeClient
@@ -19,6 +20,7 @@ DOCX_MIME = "application/vnd.openxmlformats-officedocument.wordprocessingml.docu
 def create_app(storage: Storage, client: Optional[NarrativeClient]) -> FastAPI:
     """Construieste aplicatia cu storage si client AI injectate."""
     app = FastAPI(title="Evaluare ANEVAR")
+    templates = Jinja2Templates(directory=str(Path(__file__).parent / "templates"))
 
     @app.post("/api/evaluare")
     def creeaza_evaluare(inp: EvaluationInput) -> dict:
@@ -52,5 +54,22 @@ def create_app(storage: Storage, client: Optional[NarrativeClient]) -> FastAPI:
         out = Path(tempfile.gettempdir()) / f"raport_{eid}.docx"
         genereaza_raport(ctx, out)
         return FileResponse(str(out), media_type=DOCX_MIME, filename=f"raport_{eid}.docx")
+
+    @app.get("/", response_class=HTMLResponse)
+    def pagina_formular(request: Request) -> HTMLResponse:
+        return templates.TemplateResponse(request, "form.html", {})
+
+    @app.get("/evaluare/{eid}", response_class=HTMLResponse)
+    def pagina_rezultat(request: Request, eid: int) -> HTMLResponse:
+        try:
+            ctx = storage.load(eid)
+        except KeyError:
+            raise HTTPException(status_code=404, detail="Dosar inexistent.")
+        return templates.TemplateResponse(request, "result.html", {
+            "eid": eid,
+            "client_nume": ctx.meta.client_nume,
+            "valoare_finala": str(ctx.reconciled.valoare_finala),
+            "metoda": ctx.reconciled.metoda_selectata,
+        })
 
     return app
