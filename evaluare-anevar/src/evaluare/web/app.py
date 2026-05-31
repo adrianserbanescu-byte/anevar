@@ -1,0 +1,56 @@
+"""Aplicatia web FastAPI: API JSON pentru evaluare + descarcare raport."""
+from __future__ import annotations
+
+import tempfile
+from pathlib import Path
+from typing import Optional
+
+from fastapi import FastAPI, HTTPException
+from fastapi.responses import FileResponse
+
+from evaluare.assembler import EvaluationInput, construieste_context
+from evaluare.ai.narrative import NarrativeClient
+from evaluare.db.storage import Storage
+from evaluare.report.generator import genereaza_raport
+
+DOCX_MIME = "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+
+
+def create_app(storage: Storage, client: Optional[NarrativeClient]) -> FastAPI:
+    """Construieste aplicatia cu storage si client AI injectate."""
+    app = FastAPI(title="Evaluare ANEVAR")
+
+    @app.post("/api/evaluare")
+    def creeaza_evaluare(inp: EvaluationInput) -> dict:
+        ctx = construieste_context(inp, client=client)
+        eid = storage.save(ctx)
+        return {
+            "id": eid,
+            "valoare_finala": str(ctx.reconciled.valoare_finala),
+            "metoda": ctx.reconciled.metoda_selectata,
+        }
+
+    @app.get("/api/evaluare/{eid}")
+    def citeste_evaluare(eid: int) -> dict:
+        try:
+            ctx = storage.load(eid)
+        except KeyError:
+            raise HTTPException(status_code=404, detail="Dosar inexistent.")
+        return {
+            "id": eid,
+            "client_nume": ctx.meta.client_nume,
+            "valoare_finala": str(ctx.reconciled.valoare_finala),
+            "metoda": ctx.reconciled.metoda_selectata,
+        }
+
+    @app.get("/api/evaluare/{eid}/raport.docx")
+    def descarca_raport(eid: int) -> FileResponse:
+        try:
+            ctx = storage.load(eid)
+        except KeyError:
+            raise HTTPException(status_code=404, detail="Dosar inexistent.")
+        out = Path(tempfile.gettempdir()) / f"raport_{eid}.docx"
+        genereaza_raport(ctx, out)
+        return FileResponse(str(out), media_type=DOCX_MIME, filename=f"raport_{eid}.docx")
+
+    return app
