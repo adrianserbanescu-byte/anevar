@@ -86,3 +86,22 @@ def test_evaluate_cost_adds_land_value():
     )
     result = evaluate_cost(building, valoare_teren=Decimal("100000"))
     assert result.valoare_cost == result.cin + Decimal("100000")
+
+
+def test_interpolate_single_point_returns_that_point():
+    points = [DepreciationPoint(varsta=20, depreciere=Decimal("0.40"))]
+    assert interpolate_depreciation(Decimal("5"), points) == Decimal("0.40")
+    assert interpolate_depreciation(Decimal("99"), points) == Decimal("0.40")
+
+
+def test_evaluate_cost_with_no_elements_gives_zero():
+    building = BuildingData(
+        au=Decimal("100"), acd=Decimal("100"), an_referinta=2025,
+        elements=[],
+        depreciation_points=[
+            DepreciationPoint(varsta=10, depreciere=Decimal("0.10")),
+        ],
+    )
+    result = evaluate_cost(building, valoare_teren=None)
+    assert result.cib == Decimal("0")
+    assert result.cin == Decimal("0")

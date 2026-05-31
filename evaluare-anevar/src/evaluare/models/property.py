@@ -30,7 +30,7 @@ class DepreciationPoint(BaseModel):
     """Un punct din tabelul de depreciere fizica (varsta -> fractie depreciere)."""
 
     varsta: int
-    depreciere: Decimal     # fractie, ex. 0.31 pentru 31%
+    depreciere: Decimal = Field(ge=0, le=1)     # fractie, ex. 0.31 pentru 31%
 
 
 class BuildingData(BaseModel):

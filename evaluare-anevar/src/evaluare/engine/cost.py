@@ -1,7 +1,7 @@
 """Abordarea prin cost: CIB segregat, Vcp, depreciere fizica, CIN."""
 from __future__ import annotations
 
-from decimal import Decimal
+from decimal import Decimal, ROUND_HALF_UP
 from typing import Optional
 
 from evaluare.models.property import BuildingData, CostElement, DepreciationPoint
@@ -16,7 +16,7 @@ def compute_cib(elements: list[CostElement]) -> Decimal:
 def compute_vcp(elements: list[CostElement], an_referinta: int) -> Decimal:
     """Varsta cronologica ponderata = sum(varsta_i * cost_i) / sum(cost_i)."""
     total_cost = compute_cib(elements)
-    if total_cost == 0:
+    if total_cost == Decimal("0"):
         return Decimal("0")
     weighted = sum(
         (Decimal(el.varsta(an_referinta)) * el.cost_nou() for el in elements),
@@ -45,7 +45,7 @@ def interpolate_depreciation(
             v1, d1 = Decimal(low.varsta), low.depreciere
             v2, d2 = Decimal(high.varsta), high.depreciere
             return d1 + (d2 - d1) / (v2 - v1) * (vcp - v1)
-    return ordered[-1].depreciere  # nu ar trebui atins
+    raise AssertionError("interpolare: caz logic neatins")
 
 
 def compute_cin(
@@ -62,6 +62,7 @@ def evaluate_cost(
     """Ruleaza abordarea prin cost completa pentru o constructie."""
     cib = compute_cib(building.elements)
     vcp = compute_vcp(building.elements, building.an_referinta)
+    vcp = vcp.quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
     dfn = interpolate_depreciation(vcp, building.depreciation_points)
     cin = compute_cin(
         cib, dfn, building.functional_depreciation, building.external_depreciation
