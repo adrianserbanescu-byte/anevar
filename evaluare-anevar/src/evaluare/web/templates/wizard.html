@@ -84,9 +84,18 @@
   <textarea id="depreciere" rows="2" cols="30">5;0.05
 15;0.15</textarea>
   <small class="hint">Puncte (vârstă;fracție) între care se interpolează deprecierea fizică în funcție de vârsta ponderată.</small>
-  <h3>Atribute pentru potrivire (descoperire)</h3>
-  <small class="hint">Folosite ca să găsim comparabile cât mai apropiate. Suprafața casei (Acd, de mai sus)
-   intră automat ca atribut de potrivire.</small>
+</section>
+
+<!-- PAS 3 -->
+<section id="pas-3" class="pas">
+  <h2>Pas 3 — Comparabile</h2>
+  <p class="rezumat">Cauți comparabile în zona aleasă. Aplicația le <b>rankează după similaritate</b>
+   (an, stare, finisaj, încălzire, suprafață casă, teren); <b>tu bifezi</b> cele potrivite — ele intră
+   în grila de comparație. Poți adăuga și manual.</p>
+
+  <h3>Atribute pentru potrivire</h3>
+  <small class="hint">Descriu casa subiect și sunt folosite ca să găsim comparabile cât mai apropiate.
+   Suprafața casei (Acd) și terenul (din Pas 2) intră automat ca atribute de potrivire.</small>
   <label>An construcție</label><input id="attr_an" value="2013" size="5">
   <label>Stare construcție</label>
   <select id="attr_stare">
@@ -105,18 +114,10 @@
   </select>
   <label>Tip încălzire</label>
   <input id="attr_incalzire" value="centrala_gaz" size="18">
-  <small class="hint">Categorie normalizată: litere mici, <b>cu „_" în loc de spațiu</b> (nu spațiu).
-   Ex.: <code>centrala_gaz</code>, <code>centrala_lemn</code>, <code>pompa_caldura</code>,
-   <code>sobe</code>, <code>centrala_bloc</code>. Familia (partea dinainte de „_", ex. „centrala")
-   contează la potrivire — aceeași familie ≈ potrivire parțială.</small>
-</section>
+  <small class="hint">Categorie normalizată: litere mici, <b>cu „_" în loc de spațiu</b>.
+   Ex.: <code>centrala_gaz</code>, <code>pompa_caldura</code>, <code>sobe</code>. Familia (partea
+   dinainte de „_") contează la potrivire.</small>
 
-<!-- PAS 3 -->
-<section id="pas-3" class="pas">
-  <h2>Pas 3 — Comparabile</h2>
-  <p class="rezumat">Cauți comparabile în zona aleasă. Aplicația le <b>rankează după similaritate</b>
-   (an, stare, finisaj, încălzire, suprafață casă, teren); <b>tu bifezi</b> cele potrivite — ele intră
-   în grila de comparație. Poți adăuga și manual.</p>
   <label>Atribute secundare de verificat (opțional, unul pe linie)</label>
   <textarea id="atribute_secundare" rows="3" cols="40" placeholder="tamplarie: termopan&#10;garaj: da&#10;panouri solare"></textarea>
   <small class="hint">Doar <b>FYI</b> (NU influențează ranking-ul). Pentru fiecare, AI-ul caută în
@@ -125,8 +126,11 @@
   <br><button type="button" id="btn-descopera">Descoperă comparabile în zonă</button>
   <span id="desc_status" class="hint"></span>
   <div id="candidati"></div>
-  <label>Comparabile selectate (pret;suprafata, editabile)</label>
-  <textarea id="comparabile" rows="4" cols="30"></textarea>
+  <label>Comparabile pentru grila de comparație</label>
+  <small class="hint">Aici se adună automat comparabilele <b>bifate</b> mai sus (o linie = un comparabil,
+   format <code>preț;suprafață</code>). Le poți edita sau adăuga manual. Acestea intră în grila de
+   comparație la calcul (Pas 4).</small>
+  <textarea id="comparabile" rows="4" cols="30" placeholder="ex: 250000;120"></textarea>
 </section>
 
 <!-- PAS 4 -->
@@ -152,8 +156,10 @@
 <!-- PAS 5 -->
 <section id="pas-5" class="pas">
   <h2>Pas 5 — Raport</h2>
-  <p class="rezumat">Descarci <b>raportul .docx</b> final (structură SEV 103), editabil înainte de predare.</p>
-  <div id="link-raport"></div>
+  <p class="rezumat">Apeși butonul de mai jos: aplicația <b>generează raportul .docx</b> (structură SEV 103)
+   și îl descarcă. Editabil înainte de predare. (Necesită întâi calculul de la Pas 4.)</p>
+  <button type="button" id="btn-raport">📄 Generează și descarcă raportul .docx</button>
+  <div id="link-raport" class="hint"></div>
 </section>
 
 <div>
@@ -265,9 +271,14 @@ $("btn-calc").addEventListener("click", async ()=>{
       al=res.alerte.map(a=>`<div class="${a.nivel==='blocheaza'?'a-block':'a-warn'}">`
         +`${a.nivel==='blocheaza'?'⛔':'⚠️'} ${a.mesaj}</div>`).join('');
     }
-    $("rezultat-calc").innerHTML=`<p><b>Valoare: ${res.valoare_finala} LEI</b> (${res.metoda})</p>`+al;
-    $("link-raport").innerHTML=`<a href="/api/evaluare/${res.id}/raport.docx">Descarcă raport.docx</a>`;
+    $("rezultat-calc").innerHTML=`<p><b>Valoare: ${res.valoare_finala} LEI</b> (${res.metoda})</p>`+al
+      +'<p class="hint">Mergi la Pas 5 pentru a genera raportul .docx.</p>';
   }catch(e){ $("rezultat-calc").textContent="eroare calcul"; }
+});
+
+$("btn-raport").addEventListener("click", ()=>{
+  if(!evaluareId){ $("link-raport").textContent="Întâi calculează valoarea la Pasul 4."; return; }
+  window.location = "/api/evaluare/"+evaluareId+"/raport.docx";
 });
 
 incarcaLocalitati().then(()=>{ incarca(); populeazaLocalitati(); arata(); });
