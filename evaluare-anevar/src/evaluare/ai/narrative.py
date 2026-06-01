@@ -98,6 +98,39 @@ def generate_narrative(
     return sections
 
 
+class PerplexityNarrativeClient:
+    """Client Perplexity (sonar) cu interfata .complete(system, user).
+
+    API compatibil OpenAI (chat completions). Folosit pentru extractie din text dat,
+    derivare zona si narativ. Constructorul NU face apel (doar retine cheia).
+    """
+
+    def __init__(self, api_key: str, model: str = "sonar", max_tokens: int = 1024):
+        self._key = api_key
+        self._model = model
+        self._max_tokens = max_tokens
+
+    def complete(self, system: str, user: str) -> str:
+        import requests  # import local: nu e necesar in testele cu client fals
+
+        resp = requests.post(
+            "https://api.perplexity.ai/chat/completions",
+            headers={"Authorization": f"Bearer {self._key}",
+                     "Content-Type": "application/json"},
+            json={
+                "model": self._model,
+                "max_tokens": self._max_tokens,
+                "messages": [
+                    {"role": "system", "content": system},
+                    {"role": "user", "content": user},
+                ],
+            },
+            timeout=60,
+        )
+        resp.raise_for_status()
+        return resp.json()["choices"][0]["message"]["content"]
+
+
 class AnthropicNarrativeClient:
     """Client real Claude (Anthropic) cu prompt caching pe blocul de sistem."""
 

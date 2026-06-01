@@ -32,3 +32,19 @@ def test_settings_defaults(monkeypatch):
     monkeypatch.delenv("NARRATIVE_MODEL", raising=False)
     s = Settings.from_env()
     assert s.model == "claude-sonnet-4-6"
+
+
+def test_settings_perplexity_cand_lipseste_anthropic(monkeypatch):
+    monkeypatch.delenv("ANTHROPIC_API_KEY", raising=False)
+    monkeypatch.setenv("PERPLEXITY_API_KEY", "pplx-test")
+    s = Settings.from_env()
+    client = s.narrative_client()
+    assert client is not None
+    assert client.__class__.__name__ == "PerplexityNarrativeClient"
+
+
+def test_anthropic_are_prioritate(monkeypatch):
+    monkeypatch.setenv("ANTHROPIC_API_KEY", "sk-ant-test")
+    monkeypatch.setenv("PERPLEXITY_API_KEY", "pplx-test")
+    s = Settings.from_env()
+    assert s.narrative_client().__class__.__name__ == "AnthropicNarrativeClient"

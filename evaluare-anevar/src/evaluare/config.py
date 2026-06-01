@@ -5,7 +5,9 @@ import os
 from pathlib import Path
 from typing import Optional
 
-from evaluare.ai.narrative import AnthropicNarrativeClient, NarrativeClient
+from evaluare.ai.narrative import (
+    AnthropicNarrativeClient, PerplexityNarrativeClient, NarrativeClient,
+)
 
 
 def load_env_file(path: Path | str = ".env") -> None:
@@ -24,9 +26,12 @@ def load_env_file(path: Path | str = ".env") -> None:
 class Settings:
     """Setarile efective ale aplicatiei, citite din mediu."""
 
-    def __init__(self, api_key: Optional[str], model: str, output_dir: Path, db_path: Path):
-        self.api_key = api_key
+    def __init__(self, api_key: Optional[str], model: str, output_dir: Path, db_path: Path,
+                 perplexity_key: Optional[str] = None, perplexity_model: str = "sonar"):
+        self.api_key = api_key                  # Anthropic
         self.model = model
+        self.perplexity_key = perplexity_key
+        self.perplexity_model = perplexity_model
         self.output_dir = output_dir
         self.db_path = db_path
 
@@ -34,12 +39,18 @@ class Settings:
     def from_env(cls) -> "Settings":
         api_key = os.environ.get("ANTHROPIC_API_KEY") or None
         model = os.environ.get("NARRATIVE_MODEL", "claude-sonnet-4-6")
+        perplexity_key = os.environ.get("PERPLEXITY_API_KEY") or None
+        perplexity_model = os.environ.get("PERPLEXITY_MODEL", "sonar")
         output_dir = Path(os.environ.get("OUTPUT_DIR", "date"))
         db_path = Path(os.environ.get("DB_PATH", "date/evaluari.db"))
-        return cls(api_key=api_key, model=model, output_dir=output_dir, db_path=db_path)
+        return cls(api_key=api_key, model=model, output_dir=output_dir, db_path=db_path,
+                   perplexity_key=perplexity_key, perplexity_model=perplexity_model)
 
     def narrative_client(self) -> Optional[NarrativeClient]:
-        """Clientul AI daca exista cheie; altfel None (fallback fara AI)."""
-        if not self.api_key:
-            return None
-        return AnthropicNarrativeClient(api_key=self.api_key, model=self.model)
+        """Clientul AI: Anthropic daca exista cheie, altfel Perplexity, altfel None (fallback)."""
+        if self.api_key:
+            return AnthropicNarrativeClient(api_key=self.api_key, model=self.model)
+        if self.perplexity_key:
+            return PerplexityNarrativeClient(api_key=self.perplexity_key,
+                                             model=self.perplexity_model)
+        return None
