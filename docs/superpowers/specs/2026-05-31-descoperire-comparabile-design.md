@@ -89,6 +89,10 @@ afișat ca atare (evaluatorul completează manual sau îl ignoră).
 > **REGULĂ FERMĂ:** DOAR cele 5 atribute primare intră în ranking. Toate atributele secundare
 > sunt strict **FYI (informative)** și **NU influențează în niciun fel scorul sau ordinea**
 > candidaților. Ranking-ul = funcție exclusiv de cele 5 primare.
+>
+> **TRANSPARENȚĂ (toate atributele):** pentru **fiecare** atribut — primar SAU secundar — se
+> afișează **valoarea exactă regăsită în anunț** (dovada). La primare, valoarea găsită alimentează
+> scorul ȘI se afișează; la secundare doar se afișează. Ce nu apare în text → „nementionat".
 
 ### 5.1 Atribute primare (scorate, determină ranking-ul)
 
@@ -99,6 +103,12 @@ Ordinea de prioritate (cât mută prețul), **confirmată de evaluator — de re
 3. **Nivel finisaj**
 4. **Tip încălzire**
 5. **Suprafață teren**
+
+Pentru fiecare atribut primar, LLM-ul întoarce **valoarea regăsită în anunț** (ex. an=2008,
+stare=„renovată 2021", finisaj=„lux", încălzire=„centrală pe gaz", teren=450 mp), sau
+„nementionat" dacă lipsește. Această valoare **se afișează** în match breakdown (dovada) **și**
+intră în scorul de similaritate. Un atribut primar „nementionat" e tratat ca necunoscut (nu ca
+nepotrivire) și semnalat evaluatorului spre completare manuală.
 
 Plus filtrul de bază (must-have, nu se scorează — definesc setul de candidați): localitate/zonă,
 tip (casă+teren), suprafață construită aproximativă.
@@ -133,9 +143,10 @@ dacă evaluatorul cere explicit influență pe ranking.)
 - **Doar extracție din text furnizat** (descrierea reală a anunțului descărcat). Niciodată căutare
   sau generare de date despre proprietăți.
 - Prompt: „din acest text de anunț, extrage {atribute}; pentru ce nu apare, întoarce «nementionat»".
-- Întoarce date structurate (JSON validat): pentru fiecare atribut secundar — `stare`
-  (potrivit/diferit/nementionat) **și `valoare_gasita`** (textul exact din anunț pentru
-  potrivit/diferit; `null` pentru nementionat), ca dovadă afișabilă evaluatorului.
+- Întoarce date structurate (JSON validat) cu `valoare_gasita` (textul exact din anunț) pentru
+  **fiecare atribut, primar și secundar**; `null` când nu apare. La cele secundare se adaugă și
+  `stare` (potrivit/diferit/nementionat, prin comparație cu valoarea dorită de evaluator).
+- Toate valorile regăsite sunt afișate evaluatorului ca dovadă — trasabilitate completă.
 - Provider: configurabil prin clientul injectabil existent. Pentru această sarcină (extracție
   ancorată) orice LLM e potrivit, inclusiv Perplexity sonar. Pentru **narativ** se păstrează Claude
   ca implicit (tendința de halucinare a Perplexity e un steag galben pentru proză liberă).
