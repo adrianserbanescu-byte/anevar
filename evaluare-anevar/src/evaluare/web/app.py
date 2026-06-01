@@ -18,6 +18,7 @@ from evaluare.report.generator import genereaza_raport
 from evaluare.discovery.profiles import SubjectProfile
 from evaluare.discovery.orchestrator import descopera
 from evaluare.discovery.scoring import metodologie
+from evaluare.localitati import judete as _judete, localitati as _localitati
 from evaluare.zona import extrage_zona
 
 DOCX_MIME = "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
@@ -139,5 +140,11 @@ def create_app(storage: Storage, client: Optional[NarrativeClient],
     @app.get("/wizard", response_class=HTMLResponse)
     def pagina_wizard(request: Request) -> HTMLResponse:
         return templates.TemplateResponse(request, "wizard.html", {})
+
+    @app.get("/api/localitati")
+    def lista_localitati() -> dict:
+        judete = _judete()
+        return {"judete": judete,
+                "localitati": {j["slug"]: _localitati(j["slug"]) for j in judete}}
 
     return app
