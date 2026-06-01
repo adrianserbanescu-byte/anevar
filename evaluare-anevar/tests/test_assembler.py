@@ -3,7 +3,7 @@ from decimal import Decimal
 from evaluare.models.meta import EvaluationMeta
 from evaluare.models.property import BuildingData, CostElement, DepreciationPoint, LandData
 from evaluare.models.comparable import Adjustment, Comparable
-from evaluare.assembler import EvaluationInput, construieste_context
+from evaluare.assembler import EvaluationInput, construieste_context, valideaza
 
 
 def _meta() -> EvaluationMeta:
@@ -57,3 +57,25 @@ def test_construieste_context_market():
     ctx = construieste_context(inp, client=None)
     assert ctx.market_result is not None
     assert ctx.reconciled.metoda_selectata == "piata"
+
+
+def test_valideaza_piata_sub_3_comparabile_blocheaza():
+    inp = EvaluationInput(
+        meta=_meta(), land=LandData(suprafata=Decimal("500")),
+        building=BuildingData(au=Decimal("100"), acd=Decimal("120"), an_referinta=2025),
+        comparables=[Comparable(pret=Decimal("300000"), suprafata=Decimal("120"))],
+        metoda="piata",
+    )
+    issues = valideaza(inp)
+    assert any(i.nivel == "blocheaza" for i in issues)
+
+
+def test_valideaza_cost_nu_cere_comparabile():
+    inp = EvaluationInput(
+        meta=_meta(), land=LandData(suprafata=Decimal("500")),
+        building=_building_with_elements(), comparables=[],
+        valoare_teren=Decimal("100000"), metoda="cost",
+    )
+    issues = valideaza(inp)
+    # fara comparabile dar metoda cost -> nu blocheaza pe numarul de comparabile
+    assert not any(i.nivel == "blocheaza" and "comparabile" in i.mesaj.lower() for i in issues)

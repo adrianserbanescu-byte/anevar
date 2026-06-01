@@ -67,3 +67,10 @@ def test_get_missing_evaluare_404(tmp_path):
     client = _client(tmp_path)
     resp = client.get("/api/evaluare/9999")
     assert resp.status_code == 404
+
+
+def test_evaluare_returneaza_alerte(tmp_path):
+    client = _client(tmp_path)
+    data = client.post("/api/evaluare", json=_payload()).json()
+    assert "alerte" in data
+    assert isinstance(data["alerte"], list)

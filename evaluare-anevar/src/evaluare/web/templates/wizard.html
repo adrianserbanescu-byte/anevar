@@ -12,6 +12,9 @@
  input,select,textarea{font-size:1em}
  .candidat{border:1px solid #eee;padding:8px;margin:6px 0}
  button{margin-top:10px}
+ .rezumat{color:#444;background:#f4f7f5;border-left:3px solid #2a7;padding:6px 10px;margin:4px 0 10px 0;font-size:.92em}
+ .a-block{color:#fff;background:#b30000;padding:5px 9px;border-radius:4px;margin:3px 0}
+ .a-warn{color:#7a5b00;background:#fff3cd;border:1px solid #ffe08a;padding:5px 9px;border-radius:4px;margin:3px 0}
 </style></head>
 <body>
 <h1>Evaluare imobiliară — pas cu pas</h1>
@@ -23,6 +26,9 @@
 <!-- PAS 1 -->
 <section id="pas-1" class="pas activ">
   <h2>Pas 1 — Adresă & lucrare</h2>
+  <p class="rezumat">Identifici proprietatea și lucrarea. <b>Județul și localitatea</b> aleg zona în care
+   aplicația caută comparabile la Pas 3. Datele de identificare apar în raport (cele personale sunt
+   anonimizate înainte de orice apel AI).</p>
   <label>Județ</label>
   <select id="judet"></select>
   <label>Localitate</label>
@@ -56,6 +62,9 @@
 <!-- PAS 2 -->
 <section id="pas-2" class="pas">
   <h2>Pas 2 — Proprietatea subiect</h2>
+  <p class="rezumat">Datele fizice ale casei pentru <b>calcul</b> (teren, construcție, elemente de cost,
+   depreciere), plus <b>atributele de potrivire</b> care ajută aplicația să găsească cele mai similare
+   anunțuri la descoperire.</p>
   <label>Suprafață teren (mp)</label><input id="suprafata_teren" value="500">
   <small class="hint">Suprafața terenului din actul cadastral. Bază pentru valoarea terenului și
    atribut de potrivire a comparabilelor (suprafață teren).</small>
@@ -105,6 +114,9 @@
 <!-- PAS 3 -->
 <section id="pas-3" class="pas">
   <h2>Pas 3 — Comparabile</h2>
+  <p class="rezumat">Cauți comparabile în zona aleasă. Aplicația le <b>rankează după similaritate</b>
+   (an, stare, finisaj, încălzire, suprafață casă, teren); <b>tu bifezi</b> cele potrivite — ele intră
+   în grila de comparație. Poți adăuga și manual.</p>
   <button type="button" id="btn-descopera">Descoperă comparabile în zonă</button>
   <span id="desc_status" class="hint"></span>
   <div id="candidati"></div>
@@ -115,6 +127,8 @@
 <!-- PAS 4 -->
 <section id="pas-4" class="pas">
   <h2>Pas 4 — Metodă & calcul</h2>
+  <p class="rezumat">Alegi <b>metoda</b> (cost / piață / ponderată) și calculezi valoarea finală.
+   Tot aici apar <b>alertele de validare</b> (ex. prea puține comparabile, outlier, ajustare prea mare).</p>
   <label>Adresă pentru raport (adaugă diacriticele dacă e cazul)</label>
   <textarea id="adresa_raport" rows="2" cols="60"></textarea>
   <small class="hint">Aceasta este adresa care apare în <b>raportul final</b>. Județul și localitatea
@@ -133,6 +147,7 @@
 <!-- PAS 5 -->
 <section id="pas-5" class="pas">
   <h2>Pas 5 — Raport</h2>
+  <p class="rezumat">Descarci <b>raportul .docx</b> final (structură SEV 103), editabil înainte de predare.</p>
   <div id="link-raport"></div>
 </section>
 
@@ -202,7 +217,8 @@ $("btn-descopera").addEventListener("click", async ()=>{
     const res=await r.json(); $("desc_status").textContent=res.candidati.length+" candidați";
     $("candidati").innerHTML=res.candidati.map((c,i)=>
       `<div class="candidat"><label><input type="checkbox" class="bif" data-pret="${c.pret||''}"
-       data-supr="${c.suprafata||''}"> <b>${c.relevanta}%</b> — ${c.pret||'?'} / ${c.suprafata||'?'} mp
+       data-supr="${c.suprafata||''}"> <b>${c.relevanta}%</b> — ${c.pret||'?'} EUR / ${c.suprafata||'?'} mp
+       ${c.pret_mp?'<b>('+c.pret_mp+' €/mp)</b>':''}
        <a href="${c.url}" target="_blank">link</a></label>
        <div class="hint">${c.explicatie}</div></div>`).join("");
     document.querySelectorAll(".bif").forEach(b=>b.addEventListener("change",aduna)); }
@@ -235,7 +251,12 @@ $("btn-calc").addEventListener("click", async ()=>{
   try{ const r=await fetch("/api/evaluare",{method:"POST",
       headers:{"Content-Type":"application/json"}, body:JSON.stringify(asambleaza())});
     const res=await r.json(); evaluareId=res.id;
-    $("rezultat-calc").innerHTML=`<p><b>Valoare: ${res.valoare_finala} LEI</b> (${res.metoda})</p>`;
+    let al='';
+    if(res.alerte && res.alerte.length){
+      al=res.alerte.map(a=>`<div class="${a.nivel==='blocheaza'?'a-block':'a-warn'}">`
+        +`${a.nivel==='blocheaza'?'⛔':'⚠️'} ${a.mesaj}</div>`).join('');
+    }
+    $("rezultat-calc").innerHTML=`<p><b>Valoare: ${res.valoare_finala} LEI</b> (${res.metoda})</p>`+al;
     $("link-raport").innerHTML=`<a href="/api/evaluare/${res.id}/raport.docx">Descarcă raport.docx</a>`;
   }catch(e){ $("rezultat-calc").textContent="eroare calcul"; }
 });
