@@ -35,3 +35,14 @@ class ReconciledResult(BaseModel):
     metoda_selectata: Literal["piata", "cost", "ponderata"]
     valoare_fara_tva: bool = True
     nota: str = ""
+
+
+class LandResult(BaseModel):
+    """Rezultatul evaluarii terenului prin grila de comparatie."""
+
+    preturi_mp_corectate: list[Decimal] = Field(default_factory=list)
+    ajustari_brute: list[Decimal] = Field(default_factory=list)
+    ajustari_nete: list[Decimal] = Field(default_factory=list)
+    index_selectat: int
+    pret_mp_ales: Decimal
+    valoare_teren: Decimal

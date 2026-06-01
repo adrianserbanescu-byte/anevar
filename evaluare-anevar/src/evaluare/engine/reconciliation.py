@@ -55,3 +55,10 @@ def reconcile(
     pondere_cost = Decimal("1") - pondere_piata
     valoare = market_value * pondere_piata + cost_value * pondere_cost
     return ReconciledResult(valoare_finala=valoare, metoda_selectata="ponderata")
+
+
+def aloca_constructii(
+    valoare_proprietate: Decimal, valoare_teren: Decimal
+) -> Decimal:
+    """Alocarea valorii (din rapoarte): valoarea constructiilor = proprietate - teren."""
+    return valoare_proprietate - valoare_teren

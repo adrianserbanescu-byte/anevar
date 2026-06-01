@@ -51,3 +51,8 @@ def test_reconcile_falls_back_to_market_when_cost_unavailable():
 def test_reconcile_raises_when_no_approach_available():
     with pytest.raises(ValueError):
         reconcile(None, make_cost(None), metoda="piata")
+
+
+def test_aloca_constructii():
+    from evaluare.engine.reconciliation import aloca_constructii
+    assert aloca_constructii(Decimal("300000"), Decimal("100000")) == Decimal("200000")
