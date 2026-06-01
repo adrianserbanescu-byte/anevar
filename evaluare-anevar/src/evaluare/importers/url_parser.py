@@ -7,6 +7,7 @@ Parserul prefera datele structurate schema.org (stabile) si degradeaza gratios.
 from __future__ import annotations
 
 import json
+import re
 from decimal import Decimal, InvalidOperation
 from typing import Callable, Optional
 
@@ -52,13 +53,40 @@ def _iter_nodes(data):
             yield from _iter_nodes(data["@graph"])
 
 
+def _din_nextdata(soup) -> tuple:
+    """Cauta pret si suprafata in blobul __NEXT_DATA__ (Next.js)."""
+    tag = soup.find("script", id="__NEXT_DATA__")
+    if not tag or not tag.string:
+        return None, None, None
+    try:
+        data = json.loads(tag.string)
+    except (ValueError, TypeError):
+        return None, None, None
+    pret = moneda = supr = None
+    stack = [data]
+    while stack:
+        node = stack.pop()
+        if isinstance(node, dict):
+            if "price" in node and isinstance(node["price"], dict):
+                pret = pret or _to_decimal(node["price"].get("value"))
+                moneda = moneda or node["price"].get("currency")
+            if node.get("key") == "surface":
+                supr = supr or _to_decimal(node.get("value"))
+            stack.extend(node.values())
+        elif isinstance(node, list):
+            stack.extend(node)
+    return pret, moneda, supr
+
+
 def parse_listing_html(html: str, sursa_url: str = "") -> ParsedListing:
-    """Extrage pret, moneda si suprafata din HTML-ul unui anunt."""
+    """Extrage pret, moneda si suprafata; incearca, in ordine: JSON-LD, __NEXT_DATA__,
+    og:meta, regex pe titlu."""
     soup = BeautifulSoup(html, "html.parser")
     pret: Optional[Decimal] = None
     moneda: Optional[str] = None
     suprafata: Optional[Decimal] = None
 
+    # 1) JSON-LD
     for script in soup.find_all("script", type="application/ld+json"):
         try:
             data = json.loads(script.string or "")
@@ -77,10 +105,32 @@ def parse_listing_html(html: str, sursa_url: str = "") -> ParsedListing:
             if suprafata is None and isinstance(floor, dict):
                 suprafata = _to_decimal(floor.get("value"))
 
+    # 2) __NEXT_DATA__
+    if pret is None or suprafata is None:
+        p2, m2, s2 = _din_nextdata(soup)
+        pret = pret or p2
+        moneda = moneda or m2
+        suprafata = suprafata or s2
+
     titlu = ""
     title_tag = soup.find("title")
     if title_tag and title_tag.string:
         titlu = title_tag.string.strip()
+
+    # 3) og:meta + 4) regex pe titlu, pentru ce a ramas
+    text_cautare = titlu
+    og = soup.find("meta", property="og:title")
+    if og and og.get("content"):
+        text_cautare += " " + og["content"]
+    if suprafata is None:
+        m = re.search(r"(\d+(?:[.,]\d+)?)\s*mp", text_cautare, re.IGNORECASE)
+        if m:
+            suprafata = _to_decimal(m.group(1))
+    if pret is None:
+        m = re.search(r"(\d[\d.\s]{3,})\s*(eur|euro|€|lei)", text_cautare, re.IGNORECASE)
+        if m:
+            pret = _to_decimal(m.group(1).replace(".", "").replace(" ", ""))
+            moneda = moneda or m.group(2).upper().replace("EURO", "EUR").replace("€", "EUR")
 
     return ParsedListing(pret=pret, moneda=moneda, suprafata=suprafata,
                          titlu=titlu, sursa_url=sursa_url)
