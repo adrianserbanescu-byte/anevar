@@ -19,6 +19,14 @@
   Acd (mp): <input name="acd" value="120">
   An referinta: <input name="an_referinta" value="2025"><br>
   Valoare teren (lei): <input name="valoare_teren" value="100000"><br>
+
+  <h2>Metoda de evaluare</h2>
+  <select name="metoda">
+    <option value="cost">Cost (CIN + teren)</option>
+    <option value="piata">Piata (grila de comparatie)</option>
+    <option value="ponderata">Ponderata (cost + piata)</option>
+  </select><br>
+
   <h2>Elemente de cost (un rand per element)</h2>
   <textarea name="elemente" rows="4" cols="80"
    placeholder="element;cod;um;cantitate;cost_unitar;an_pif (cate unul pe linie)">Structura;X;mp;120;2000;2015</textarea><br>
@@ -26,10 +34,42 @@
   <textarea name="depreciere" rows="2" cols="40"
    placeholder="varsta;fractie">5;0.05
 15;0.15</textarea><br>
+
+  <h2>Comparabile de piata (un rand: pret;suprafata)</h2>
+  <p>Import din URL (imobiliare.ro / storia.ro):
+    <input id="url_import" size="50" placeholder="https://...">
+    <button type="button" id="btn_import">Import din URL</button>
+    <span id="import_status"></span>
+  </p>
+  <textarea name="comparabile" rows="4" cols="40"
+   placeholder="pret;suprafata (cate unul pe linie)"></textarea><br>
+
   <button type="submit">Genereaza evaluarea</button>
 </form>
 <pre id="rezultat"></pre>
 <script>
+document.getElementById('btn_import').addEventListener('click', async () => {
+  const url = document.getElementById('url_import').value.trim();
+  const status = document.getElementById('import_status');
+  if (!url) { status.textContent = 'Introduceti un URL.'; return; }
+  status.textContent = 'Se importa...';
+  try {
+    const r = await fetch('/api/import-url', {method:'POST',
+      headers:{'Content-Type':'application/json'}, body: JSON.stringify({url})});
+    const res = await r.json();
+    if (res.pret && res.suprafata) {
+      const ta = document.querySelector('textarea[name="comparabile"]');
+      ta.value = (ta.value ? ta.value.trimEnd() + '\n' : '') + res.pret + ';' + res.suprafata;
+      status.textContent = 'Importat: ' + res.pret + ' ' + (res.moneda || '') +
+                           ', ' + res.suprafata + ' mp.';
+    } else {
+      status.textContent = 'Nu s-au gasit pret si suprafata; completati manual.';
+    }
+  } catch (err) {
+    status.textContent = 'Eroare la import: ' + err;
+  }
+});
+
 document.getElementById('f').addEventListener('submit', async (e) => {
   e.preventDefault();
   const d = Object.fromEntries(new FormData(e.target).entries());
@@ -41,6 +81,10 @@ document.getElementById('f').addEventListener('submit', async (e) => {
     const [varsta, depreciere] = l.split(';');
     return {varsta: parseInt(varsta), depreciere};
   });
+  const comparables = (d.comparabile || '').trim().split('\n').filter(Boolean).map(l => {
+    const [pret, suprafata] = l.split(';');
+    return {pret, suprafata};
+  });
   const payload = {
     meta: {client_nume: d.client_nume, adresa: d.adresa,
            numar_cadastral: d.numar_cadastral, carte_funciara: d.carte_funciara,
@@ -49,7 +93,8 @@ document.getElementById('f').addEventListener('submit', async (e) => {
     land: {suprafata: d.suprafata_teren},
     building: {au: d.au, acd: d.acd, an_referinta: parseInt(d.an_referinta),
                elements, depreciation_points},
-    valoare_teren: d.valoare_teren, metoda: 'cost'
+    comparables,
+    valoare_teren: d.valoare_teren, metoda: d.metoda
   };
   const r = await fetch('/api/evaluare', {method:'POST',
     headers:{'Content-Type':'application/json'}, body: JSON.stringify(payload)});

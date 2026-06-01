@@ -19,6 +19,14 @@ def test_home_page_loads_form(tmp_path):
     assert "<form" in resp.text
 
 
+def test_home_page_has_method_selector_and_url_import(tmp_path):
+    client = _client(tmp_path)
+    resp = client.get("/")
+    assert 'name="metoda"' in resp.text          # selector de metoda
+    assert "Import din URL" in resp.text          # buton import
+    assert 'name="comparabile"' in resp.text      # sectiune comparabile
+
+
 def test_result_page_loads(tmp_path):
     client = _client(tmp_path)
     payload = {
