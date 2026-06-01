@@ -50,26 +50,81 @@ def _to_decimal(value) -> Optional[Decimal]:
         return None
 
 
+def _scalar(v, *subkeys):
+    """Daca v e dict (model inconsecvent), ia prima subcheie disponibila; altfel v direct."""
+    if isinstance(v, dict):
+        for k in subkeys:
+            if v.get(k) is not None:
+                return v[k]
+        return None
+    return v
+
+
+def _int_safe(x) -> Optional[int]:
+    try:
+        return int(x)
+    except (TypeError, ValueError):
+        return None
+
+
 def _build_profile(data: dict) -> CandidateProfile:
-    def nod(key):
-        n = data.get(key)
-        return n if isinstance(n, dict) else {}
-    an = nod("an").get("valoare")
-    stare = nod("stare").get("treapta")
-    finisaj = nod("finisaj").get("treapta")
-    incalzire = nod("incalzire").get("categorie")
-    teren = _to_decimal(nod("teren").get("valoare"))
+    # tolerant la variatii de chei (treapta / valoare_treapta / valoare / value)
+    an = _scalar(data.get("an"), "valoare", "value", "an")
+    stare = _scalar(data.get("stare"), "treapta", "valoare_treapta", "valoare", "value")
+    finisaj = _scalar(data.get("finisaj"), "treapta", "valoare_treapta", "valoare", "value")
+    incalzire = _scalar(data.get("incalzire"), "categorie", "valoare", "value")
+    teren = _to_decimal(_scalar(data.get("teren"), "valoare", "value"))
+    dovezi = data.get("dovezi") if isinstance(data.get("dovezi"), dict) else {}
     texte = {}
     for name in ["an", "stare", "finisaj", "incalzire", "teren"]:
-        t = nod(name).get("text")
+        t = dovezi.get(name)
+        if not t and isinstance(data.get(name), dict):
+            t = data[name].get("text")
         if t:
             texte[name] = str(t)
     return CandidateProfile(
-        an=int(an) if an is not None else None,
-        stare=int(stare) if stare is not None else None,
-        finisaj=int(finisaj) if finisaj is not None else None,
-        incalzire=incalzire, teren=teren, texte=texte,
+        an=_int_safe(an), stare=_int_safe(stare), finisaj=_int_safe(finisaj),
+        incalzire=incalzire if isinstance(incalzire, str) else None,
+        teren=teren, texte=texte,
     )
+
+
+def _build_secundare(data: dict, atribute_secundare) -> list[SecondaryAttributeResult]:
+    """Tolerant: secundarele pot fi in array-ul 'secundare' SAU la nivel superior."""
+    by_name = {}
+    sec_raw = data.get("secundare")
+    if isinstance(sec_raw, list):
+        for item in sec_raw:
+            if isinstance(item, dict) and item.get("nume"):
+                by_name[str(item["nume"]).lower()] = item
+
+    rez: list[SecondaryAttributeResult] = []
+    for nume, dorit in atribute_secundare:
+        item = by_name.get(nume.lower())
+        if item is None and isinstance(data.get(nume), dict):
+            node = data[nume]
+            gasit = (node.get("valoare_gasita") or node.get("categorie")
+                     or node.get("valoare") or node.get("text"))
+            item = {"stare": node.get("stare"), "valoare_gasita": gasit}
+        if item is None:
+            rez.append(SecondaryAttributeResult(nume=nume, stare="nementionat"))
+            continue
+        gasit = item.get("valoare_gasita")
+        stare = item.get("stare")
+        if stare not in ("potrivit", "diferit", "nementionat"):
+            if not gasit:
+                stare = "nementionat"
+            elif dorit and str(dorit).lower() in str(gasit).lower():
+                stare = "potrivit"
+            elif dorit:
+                stare = "diferit"
+            else:
+                stare = "potrivit"
+        rez.append(SecondaryAttributeResult(
+            nume=nume, stare=stare,
+            valoare_gasita=str(gasit) if gasit else None,
+        ))
+    return rez
 
 
 def _fallback(atribute_secundare) -> CandidateExtraction:
@@ -90,15 +145,23 @@ def extrage_atribute(
     lista_sec = "; ".join(
         f"{n} (dorit: {v})" if v else n for n, v in atribute_secundare
     ) or "(niciunul)"
+    sec_schema = ", ".join(
+        f'{{"nume":"{n}","stare":"potrivit|diferit|nementionat","valoare_gasita":"<citat sau null>"}}'
+        for n, _ in atribute_secundare
+    )
     user = (
         "Text anunt:\n" + descriere + "\n\n"
-        "Extrage atributele primare: an (numar), stare (treapta 1-5: 1=degradata..5=noua), "
-        "finisaj (treapta 1-4: 1=modest..4=lux), incalzire (categorie ex. centrala_gaz, "
-        "centrala_lemn, pompa_caldura, sobe), teren (mp). Pentru fiecare da {valoare/treapta/"
-        "categorie, text} sau null daca nu apare.\n"
-        f"Atribute secundare de verificat: {lista_sec}. Pentru fiecare intoarce "
-        "{nume, stare: potrivit/diferit/nementionat, valoare_gasita}.\n"
-        "Raspunde cu JSON conform schemei."
+        "Raspunde cu UN SINGUR JSON in formatul EXACT de mai jos. Valorile sunt DIRECTE "
+        "(numere/string), NU obiecte. Pune null pentru ce NU apare in text:\n"
+        '{"an": <an constructie numar intreg sau null>, '
+        '"stare": <treapta 1-5 (1=degradata,5=noua) sau null>, '
+        '"finisaj": <treapta 1-4 (1=modest,4=lux) sau null>, '
+        '"incalzire": "<centrala_gaz|centrala_lemn|pompa_caldura|sobe|centrala_bloc sau null>", '
+        '"teren": <suprafata teren in mp sau null>, '
+        '"dovezi": {"an":"<citat>","stare":"<citat>","finisaj":"<citat>","incalzire":"<citat>"}, '
+        '"secundare": [' + sec_schema + ']}\n'
+        f"Pentru secundare verifica in text: {lista_sec}. 'potrivit' daca corespunde valorii "
+        "dorite, 'diferit' daca difera, 'nementionat' daca nu apare in text."
     )
     try:
         raw = client.complete(SYSTEM_EXTRACT, user)
@@ -107,15 +170,5 @@ def extrage_atribute(
         return _fallback(atribute_secundare)
 
     profile = _build_profile(data)
-    secundare = []
-    for item in data.get("secundare", []):
-        if not isinstance(item, dict):
-            continue
-        stare = item.get("stare")
-        if stare not in ("potrivit", "diferit", "nementionat"):
-            stare = "nementionat"
-        secundare.append(SecondaryAttributeResult(
-            nume=item.get("nume", ""), stare=stare,
-            valoare_gasita=item.get("valoare_gasita"),
-        ))
+    secundare = _build_secundare(data, atribute_secundare)
     return CandidateExtraction(profile=profile, secundare=secundare)

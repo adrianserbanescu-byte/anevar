@@ -16,7 +16,12 @@ from evaluare.discovery.results import CandidateResult
 
 
 def extrage_descriere(html: str, max_caractere: int = 4000) -> str:
-    """Extrage un text reprezentativ al anuntului (titlu + meta + corp), trunchiat."""
+    """Extrage textul reprezentativ al anuntului: titlu + meta + DESCRIEREA REALA.
+
+    Descrierea scrisa de agent (cu detalii: an, finisaje, incalzire) e in corpul paginii,
+    de obicei dupa titlul „Descriere(a proprietatii)". og:description e doar un rezumat auto,
+    sarac. Deci localizam sectiunea de descriere reala, nu primii caractere (care sunt chrome).
+    """
     soup = BeautifulSoup(html, "html.parser")
     parti: list[str] = []
     t = soup.find("title")
@@ -25,7 +30,14 @@ def extrage_descriere(html: str, max_caractere: int = 4000) -> str:
     md = soup.find("meta", attrs={"name": "description"})
     if md and md.get("content"):
         parti.append(md["content"])
-    parti.append(soup.get_text(" ", strip=True)[:max_caractere])
+    body = soup.get_text(" ", strip=True)
+    idx = body.lower().find("descrierea propriet")
+    if idx < 0:
+        idx = body.lower().find("descriere")
+    if idx >= 0:
+        parti.append(body[idx:idx + max_caractere])
+    else:
+        parti.append(body[:max_caractere])
     return " ".join(parti)
 
 
