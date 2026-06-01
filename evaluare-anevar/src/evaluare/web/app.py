@@ -15,12 +15,24 @@ from evaluare.ai.narrative import NarrativeClient
 from evaluare.db.storage import Storage
 from evaluare.importers.url_parser import fetch_html, import_from_url
 from evaluare.report.generator import genereaza_raport
+from evaluare.discovery.profiles import SubjectProfile
+from evaluare.discovery.orchestrator import descopera
+from evaluare.discovery.scoring import metodologie
 
 DOCX_MIME = "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
 
 
 class ImportUrlRequest(BaseModel):
     url: str
+
+
+class DescoperaRequest(BaseModel):
+    portal: str = "imobiliare"
+    judet: str
+    localitate: str
+    subiect: SubjectProfile
+    atribute_secundare: list[str] = []
+    max_candidati: int = 8
 
 
 def create_app(storage: Storage, client: Optional[NarrativeClient],
@@ -89,5 +101,29 @@ def create_app(storage: Storage, client: Optional[NarrativeClient],
             "titlu": parsed.titlu,
             "sursa_url": parsed.sursa_url,
         }
+
+    @app.post("/api/descopera")
+    def descopera_endpoint(req: DescoperaRequest) -> dict:
+        from evaluare.discovery.extractor import parse_atribute_secundare
+        sec = parse_atribute_secundare("\n".join(req.atribute_secundare))
+        rez = descopera(req.portal, req.judet, req.localitate, req.subiect, sec,
+                        fetcher=fetcher, client=client, max_candidati=req.max_candidati)
+        candidati = []
+        for r in rez:
+            candidati.append({
+                "url": r.url, "titlu": r.titlu,
+                "pret": str(r.pret) if r.pret is not None else None,
+                "suprafata": str(r.suprafata) if r.suprafata is not None else None,
+                "relevanta": r.breakdown.relevanta,
+                "incredere_scazuta": r.breakdown.incredere_scazuta,
+                "explicatie": r.breakdown.explicatie,
+                "atribute": [a.model_dump() for a in r.breakdown.atribute],
+                "secundare": [s.model_dump() for s in r.secundare],
+            })
+        return {"metodologie": metodologie(), "candidati": candidati}
+
+    @app.get("/descoperire", response_class=HTMLResponse)
+    def pagina_descoperire(request: Request) -> HTMLResponse:
+        return templates.TemplateResponse(request, "descoperire.html", {})
 
     return app

@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head><meta charset="utf-8"><title>Descoperire comparabile</title>
+<style>
+ body{font-family:Arial,sans-serif;max-width:1000px;margin:20px auto;line-height:1.5}
+ table{border-collapse:collapse;margin:10px 0}
+ th,td{border:1px solid #ccc;padding:4px 8px;font-size:0.9em}
+ .candidat{border:1px solid #ddd;padding:10px;margin:10px 0}
+ .hint{color:#666;font-size:0.85em}
+ .alerta{color:#b30000}
+</style></head>
+<body>
+<h1>Descoperire comparabile</h1>
+<form id="f">
+  Portal: <select name="portal"><option value="imobiliare">imobiliare.ro</option>
+    <option value="storia">storia.ro</option></select>
+  Judet: <input name="judet" value="ilfov"> Localitate: <input name="localitate" value="otopeni"><br>
+  <b>Casa subiect:</b> An <input name="an" value="2013" size="5">
+   Stare(1-5) <input name="stare" value="3" size="3">
+   Finisaj(1-4) <input name="finisaj" value="4" size="3">
+   Incalzire <input name="incalzire" value="centrala_gaz" size="14">
+   Teren mp <input name="teren" value="500" size="6"><br>
+  Atribute secundare (unul pe linie, „nume: valoare"):<br>
+  <textarea name="secundare" rows="3" cols="40" placeholder="tamplarie: termopan"></textarea><br>
+  <button type="submit">Caută comparabile</button>
+</form>
+
+<!-- Tabelul de metodologie: ÎNAINTE de rezultate -->
+<div id="metodologie"></div>
+<h2>Rezultate</h2>
+<div id="rezultate"></div>
+
+<script>
+function randMetodologie(m){
+  let h = '<h2>Metodologie scoring</h2><table><tr><th>#</th><th>Atribut</th>'
+        + '<th>Pondere</th><th>Cota</th><th>Formula d</th></tr>';
+  m.forEach(r => h += `<tr><td>${r.nr}</td><td>${r.atribut}</td><td>${r.pondere}</td>`
+                    + `<td>${r.cota}</td><td><code>${r.formula}</code></td></tr>`);
+  h += '</table><p class="hint">Relevanță = 100 × (1 − Σ(pondere×d)/Σ(ponderi cunoscute)); '
+     + 'atributele „nementionat" sunt excluse.</p>';
+  return h;
+}
+function randCandidat(c){
+  let attr = '<table><tr><th>Atribut</th><th>Valoare găsită</th><th>d</th>'
+           + '<th>pondere</th><th>contribuție</th></tr>';
+  c.atribute.forEach(a => attr += `<tr><td>${a.nume}</td>`
+     + `<td>${a.valoare_candidat ?? '➖ nementionat'}</td>`
+     + `<td>${a.d ?? '—'}</td><td>${a.pondere}</td>`
+     + `<td>${a.contributie ?? '(exclus)'}</td></tr>`);
+  attr += '</table>';
+  let sec = c.secundare.map(s => `${s.nume}: ${s.stare}`
+     + (s.valoare_gasita ? ` („${s.valoare_gasita}")` : '')).join(' · ');
+  let avert = c.incredere_scazuta ? '<span class="alerta"> (date insuficiente)</span>' : '';
+  return `<div class="candidat">
+    <label><input type="checkbox" class="bif" data-pret="${c.pret||''}" data-supr="${c.suprafata||''}">
+      <b>Relevanță ${c.relevanta}%</b>${avert} — ${c.pret||'?'} / ${c.suprafata||'?'} mp</label><br>
+    <a href="${c.url}" target="_blank">${c.titlu||c.url}</a>
+    <p class="hint">${c.explicatie}</p>
+    ${attr}
+    ${sec ? '<p class="hint">Secundare: '+sec+'</p>' : ''}
+  </div>`;
+}
+document.getElementById('f').addEventListener('submit', async (e)=>{
+  e.preventDefault();
+  const d = Object.fromEntries(new FormData(e.target).entries());
+  const payload = {portal:d.portal, judet:d.judet, localitate:d.localitate,
+    subiect:{an:parseInt(d.an)||null, stare:parseInt(d.stare)||null,
+      finisaj:parseInt(d.finisaj)||null, incalzire:d.incalzire||null, teren:d.teren||null},
+    atribute_secundare:(d.secundare||'').split('\n').filter(Boolean), max_candidati:8};
+  const r = await fetch('/api/descopera',{method:'POST',
+    headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
+  const res = await r.json();
+  document.getElementById('metodologie').innerHTML = randMetodologie(res.metodologie);
+  document.getElementById('rezultate').innerHTML =
+    res.candidati.map(randCandidat).join('')
+    + '<button id="copiaza">Copiază comparabilele bifate (pret;suprafata)</button><pre id="out"></pre>';
+  document.getElementById('copiaza').addEventListener('click', ()=>{
+    const linii = [...document.querySelectorAll('.bif:checked')]
+      .map(b => b.dataset.pret + ';' + b.dataset.supr);
+    document.getElementById('out').textContent = linii.join('\n');
+  });
+});
+</script>
+</body></html>
