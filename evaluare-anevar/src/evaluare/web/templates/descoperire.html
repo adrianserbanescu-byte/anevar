@@ -102,11 +102,22 @@ document.getElementById('f').addEventListener('submit', async (e)=>{
   document.getElementById('metodologie').innerHTML = randMetodologie(res.metodologie);
   document.getElementById('rezultate').innerHTML =
     res.candidati.map(randCandidat).join('')
-    + '<button id="copiaza">Copiază comparabilele bifate (pret;suprafata)</button><pre id="out"></pre>';
+    + '<button id="copiaza">Copiază comparabilele bifate (pret;suprafata)</button> '
+    + '<button id="laGrila">➜ Trimite bifatele la grila casă</button><pre id="out"></pre>';
   document.getElementById('copiaza').addEventListener('click', ()=>{
     const linii = [...document.querySelectorAll('.bif:checked')]
       .map(b => b.dataset.pret + ';' + b.dataset.supr);
     document.getElementById('out').textContent = linii.join('\n');
+  });
+  document.getElementById('laGrila').addEventListener('click', ()=>{
+    const sel = [...document.querySelectorAll('.bif:checked')]
+      .map(b => ({pret:b.dataset.pret, suprafata:b.dataset.supr}))
+      .filter(c => c.pret && c.suprafata);
+    if(sel.length===0){ document.getElementById('out').textContent='Bifează cel puțin un comparabil.'; return; }
+    localStorage.setItem('grila_prefill_casa', JSON.stringify(sel));
+    document.getElementById('out').textContent =
+      sel.length + ' comparabil(e) trimise. Se deschide grila…';
+    window.location.href = '/grila';
   });
 });
 </script>

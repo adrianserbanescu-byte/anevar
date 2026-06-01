@@ -110,6 +110,22 @@ function buildTable(grid){
 }
 buildTable("teren"); buildTable("casa");
 
+// Pre-popularea grilei casă din comparabilele bifate la descoperire.
+(function prefillCasa(){
+  let raw; try{ raw = JSON.parse(localStorage.getItem("grila_prefill_casa")||"[]"); }catch(e){ return; }
+  if(!Array.isArray(raw) || raw.length===0) return;
+  raw.slice(0, NCOMP).forEach((c, i) => {
+    const pi = document.querySelector(`[data-g="casa"][data-pret="${i}"]`);
+    const si = document.querySelector(`[data-g="casa"][data-supr="${i}"]`);
+    if(pi && c.pret) pi.value = c.pret;
+    if(si && c.suprafata) si.value = c.suprafata;
+  });
+  localStorage.removeItem("grila_prefill_casa");
+  const div = document.getElementById("rez-casa");
+  div.innerHTML = '<p class="hint">✓ '+Math.min(raw.length,NCOMP)+
+    ' comparabil(e) pre-completate din descoperire (preț + suprafață). Adaugă ajustările și calculează.</p>';
+})();
+
 function num(v){ v=(v||"").trim(); if(v==="") return null; const n=Number(v.replace(",",".")); return isNaN(n)?null:n; }
 
 function colecteaza(grid){

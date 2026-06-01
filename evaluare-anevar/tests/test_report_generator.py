@@ -63,8 +63,8 @@ def test_raportul_contine_datele_cheie(tmp_path):
     text = _all_text(out)
     assert "Ion Popescu" in text
     assert "Garantarea creditului ipotecar" in text
-    assert "280000" in text                       # valoarea finala
-    assert "CIN" in text or "180000" in text       # tabel cost
+    assert "280.000" in text                       # valoarea finala (formatata)
+    assert "CIN" in text or "180.000" in text       # tabel cost
     assert "Cea mai buna utilizare" in text        # narativ inserat
 
 
@@ -76,3 +76,44 @@ def test_raportul_are_cele_sapte_capitole(tmp_path):
     titlu = "\n".join(headings)
     for nr in ["1.", "2.", "3.", "4.", "5.", "6.", "7."]:
         assert nr in titlu
+
+
+def test_raportul_are_shell_gbf(tmp_path):
+    out = tmp_path / "raport.docx"
+    genereaza_raport(_ctx(), out)
+    text = _all_text(out)
+    for sectiune in ["SCRISOARE DE TRANSMITERE", "DECLARATIE DE CONFORMITATE",
+                     "TERMENI DE REFERINTA", "RISCUL ASOCIAT GARANTIEI (GEV 520)",
+                     "ANEXE", "Intocmit,"]:
+        assert sectiune in text
+
+
+def _ctx_cu_teren() -> ReportContext:
+    from evaluare.models.comparable import Adjustment, LandComparable
+    from evaluare.models.results import LandResult
+    from evaluare.engine.land import evaluate_land
+    from evaluare.engine.reconciliation import aloca_constructii
+    ctx = _ctx()
+    comps = [
+        LandComparable(pret_mp=Decimal("100"), suprafata=Decimal("450"), localizare="Zona A",
+                       adjustments=[Adjustment(element="A", tip="procentuala",
+                                               valoare=Decimal("0.05"))]),
+        LandComparable(pret_mp=Decimal("120"), suprafata=Decimal("500"),
+                       adjustments=[Adjustment(element="A", tip="procentuala",
+                                               valoare=Decimal("-0.30"))]),
+    ]
+    lr = evaluate_land(comps, ctx.land.suprafata)
+    ctx.land_comparables = comps
+    ctx.land_result = lr
+    ctx.alocare_constructii = aloca_constructii(ctx.reconciled.valoare_finala, lr.valoare_teren)
+    return ctx
+
+
+def test_raportul_contine_grila_teren_si_alocare(tmp_path):
+    out = tmp_path / "raport.docx"
+    genereaza_raport(_ctx_cu_teren(), out)
+    text = _all_text(out)
+    assert "Grila de comparatie pentru teren" in text
+    assert "Pret/mp corectat" in text
+    assert "ALOCAREA VALORII" in text
+    assert "Valoarea constructiilor" in text

@@ -8,7 +8,7 @@ from evaluare.models.report_context import ReportContext
 from evaluare.engine.cost import evaluate_cost
 from evaluare.engine.reconciliation import reconcile
 from evaluare.ai.narrative import generate_narrative
-from evaluare.report.generator import genereaza_raport
+from evaluare.report.generator import genereaza_raport, _fmt
 
 
 def test_full_pipeline_cost_only(tmp_path):
@@ -46,4 +46,4 @@ def test_full_pipeline_cost_only(tmp_path):
     doc = Document(str(out))
     text = "\n".join(p.text for p in doc.paragraphs)
     assert "Ion Popescu" in text
-    assert str(reconciled.valoare_finala) in text
+    assert _fmt(reconciled.valoare_finala) in text
