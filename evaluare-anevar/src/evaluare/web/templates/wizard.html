@@ -126,6 +126,10 @@
   <br><button type="button" id="btn-descopera">Descoperă comparabile în zonă</button>
   <span id="desc_status" class="hint"></span>
   <div id="candidati"></div>
+  <p>Sau adaugă un anunț individual după link (imobiliare.ro / storia.ro):
+    <input id="url_import_w" size="45" placeholder="https://...">
+    <button type="button" id="btn-import-url">Import din URL</button>
+    <span id="import_url_status" class="hint"></span></p>
   <label>Comparabile pentru grila de comparație</label>
   <small class="hint">Aici se adună automat comparabilele <b>bifate</b> mai sus (o linie = un comparabil,
    format <code>preț;suprafață</code>). Le poți edita sau adăuga manual. Acestea intră în grila de
@@ -241,6 +245,21 @@ $("btn-descopera").addEventListener("click", async ()=>{
 });
 function aduna(){ const linii=[...document.querySelectorAll(".bif:checked")]
   .map(b=>b.dataset.pret+";"+b.dataset.supr); $("comparabile").value=linii.join("\n"); }
+
+$("btn-import-url").addEventListener("click", async ()=>{
+  const url=$("url_import_w").value.trim();
+  if(!url){ $("import_url_status").textContent="Introdu un URL."; return; }
+  $("import_url_status").textContent="Import...";
+  try{ const r=await fetch("/api/import-url",{method:"POST",
+      headers:{"Content-Type":"application/json"}, body:JSON.stringify({url})});
+    const res=await r.json();
+    if(res.pret && res.suprafata){
+      const ta=$("comparabile");
+      ta.value=(ta.value?ta.value.trimEnd()+"\n":"")+res.pret+";"+res.suprafata;
+      $("import_url_status").textContent="Importat: "+res.pret+" / "+res.suprafata+" mp.";
+    } else { $("import_url_status").textContent="Nu s-au găsit preț+suprafață; completează manual."; }
+  }catch(e){ $("import_url_status").textContent="Eroare la import."; }
+});
 
 function asambleaza(){
   const elements=$("elemente").value.trim().split("\n").filter(Boolean).map(l=>{
