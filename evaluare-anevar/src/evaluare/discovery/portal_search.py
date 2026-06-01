@@ -18,14 +18,16 @@ BAZE = {
 }
 
 
-def build_search_url(portal: str, judet: str, localitate: str) -> str:
-    """Construieste URL-ul paginii de cautare pentru case+teren intr-o zona."""
+def build_search_url(portal: str, judet: str, localitate: str = "") -> str:
+    """Construieste URL-ul paginii de cautare. Fara localitate -> cautare pe judet."""
     judet = judet.strip().lower()
-    localitate = localitate.strip().lower()
+    localitate = (localitate or "").strip().lower()
     if portal == "imobiliare":
-        return f"{BAZE['imobiliare']}/vanzare-case-vile/judetul-{judet}/{localitate}"
+        baza = f"{BAZE['imobiliare']}/vanzare-case-vile/judetul-{judet}"
+        return f"{baza}/{localitate}" if localitate else baza
     if portal == "storia":
-        return f"{BAZE['storia']}/ro/rezultate/vanzare/casa/{judet}/{localitate}"
+        baza = f"{BAZE['storia']}/ro/rezultate/vanzare/casa/{judet}"
+        return f"{baza}/{localitate}" if localitate else baza
     raise ValueError(f"Portal necunoscut: {portal}")
 
 
@@ -48,7 +50,18 @@ def cauta_anunturi(
     portal: str, judet: str, localitate: str,
     fetcher: Callable[[str], str] = fetch_html,
 ) -> list[str]:
-    """Descarca pagina de cautare si intoarce URL-urile anunturilor. Fetcher injectabil."""
-    url = build_search_url(portal, judet, localitate)
-    html = fetcher(url)
-    return extract_listing_urls(html, baza=BAZE[portal])
+    """Descarca pagina de cautare si intoarce URL-urile anunturilor. Fetcher injectabil.
+
+    Incearca intai localitatea; daca da eroare (ex. 404 - unele orase au URL diferit pe storia)
+    sau nu gaseste anunturi, cade pe cautarea la nivel de judet.
+    """
+    incercari = [localitate, ""] if localitate else [""]
+    for loc in incercari:
+        try:
+            html = fetcher(build_search_url(portal, judet, loc))
+        except Exception:
+            continue
+        urls = extract_listing_urls(html, baza=BAZE[portal])
+        if urls:
+            return urls
+    return []

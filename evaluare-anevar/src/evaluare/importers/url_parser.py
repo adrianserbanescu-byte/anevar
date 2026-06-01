@@ -54,12 +54,19 @@ def _iter_nodes(data):
 
 
 def _din_nextdata(soup) -> tuple:
-    """Cauta pret si suprafata in blobul __NEXT_DATA__ (Next.js)."""
+    """Cauta pret si suprafata in blobul __NEXT_DATA__ (Next.js).
+
+    Acopera structuri reale: imobiliare (key=="surface") si storia (caracteristica
+    cu label=="area" -> suprafata casei; "terrain_area" e terenul, ignorat).
+    """
     tag = soup.find("script", id="__NEXT_DATA__")
-    if not tag or not tag.string:
+    if not tag:
+        return None, None, None
+    raw = tag.get_text()
+    if not raw:
         return None, None, None
     try:
-        data = json.loads(tag.string)
+        data = json.loads(raw)
     except (ValueError, TypeError):
         return None, None, None
     pret = moneda = supr = None
@@ -70,8 +77,12 @@ def _din_nextdata(soup) -> tuple:
             if "price" in node and isinstance(node["price"], dict):
                 pret = pret or _to_decimal(node["price"].get("value"))
                 moneda = moneda or node["price"].get("currency")
+            # imobiliare: {key: "surface", value: "130"}
             if node.get("key") == "surface":
                 supr = supr or _to_decimal(node.get("value"))
+            # storia: {label: "area", values: ["220"]} = suprafata casei (NU "terrain_area")
+            if node.get("label") == "area" and isinstance(node.get("values"), list) and node["values"]:
+                supr = supr or _to_decimal(node["values"][0])
             stack.extend(node.values())
         elif isinstance(node, list):
             stack.extend(node)

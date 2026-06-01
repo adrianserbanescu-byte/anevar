@@ -30,6 +30,15 @@ def test_extracts_from_real_imobiliare_structure():
     assert parsed.suprafata == Decimal("400")    # floorSize scalar = suprafata casei
 
 
+def test_extracts_storia_area_not_terrain():
+    # storia.ro: __NEXT_DATA__ cu caracteristica "area" (casa) si "terrain_area" (teren)
+    html = (FIXTURES / "storia_listing_nextdata.html").read_text(encoding="utf-8")
+    parsed = parse_listing_html(html, sursa_url="https://storia.ro/ro/oferta/x")
+    assert parsed.pret == Decimal("385000")
+    assert parsed.moneda == "EUR"
+    assert parsed.suprafata == Decimal("220")    # "area" (casa), NU "terrain_area" (500)
+
+
 def test_title_regex_fallback_for_surface():
     html = "<html><head><title>Vila 220 mp Pipera 500000 EUR</title></head><body></body></html>"
     parsed = parse_listing_html(html)
