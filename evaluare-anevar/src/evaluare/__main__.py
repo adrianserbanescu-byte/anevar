@@ -1,8 +1,10 @@
 """Pornire: incarca config, deschide browserul, ruleaza serverul local."""
 from __future__ import annotations
 
+import socket
 import sys
 import threading
+import time
 import webbrowser
 from pathlib import Path
 
@@ -23,6 +25,21 @@ def _incarca_env() -> None:
         load_env_file(Path(sys.executable).parent / ".env")  # langa executabil
 
 
+def _deschide_browser_cand_e_gata() -> None:
+    """Deschide browserul DOAR dupa ce serverul accepta conexiuni (evita ERR_CONNECTION_REFUSED).
+
+    Exe-ul onefile dezarhiveaza si porneste serverul in cateva secunde; un timer fix se deschide
+    prea devreme. Asteptam ca portul sa fie disponibil (max ~30s).
+    """
+    for _ in range(120):
+        try:
+            with socket.create_connection((HOST, PORT), timeout=0.5):
+                break
+        except OSError:
+            time.sleep(0.25)
+    webbrowser.open(f"http://{HOST}:{PORT}/")
+
+
 def main() -> None:
     _incarca_env()
     settings = Settings.from_env()
@@ -30,7 +47,7 @@ def main() -> None:
     storage.init()
     app = create_app(storage=storage, client=settings.narrative_client())
 
-    threading.Timer(1.0, lambda: webbrowser.open(f"http://{HOST}:{PORT}/")).start()
+    threading.Thread(target=_deschide_browser_cand_e_gata, daemon=True).start()
     uvicorn.run(app, host=HOST, port=PORT)
 
 
