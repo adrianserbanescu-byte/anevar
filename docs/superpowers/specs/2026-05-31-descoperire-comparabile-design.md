@@ -142,23 +142,25 @@ dacă evaluatorul cere explicit influență pe ranking.)
 Valoarea reală se face în grila de comparație (corecțiile), cu evaluatorul ca decident final. Scorul
 trebuie doar să fie rezonabil și explicabil.
 
-**Pas 1 — dissimilaritate per atribut** `d ∈ [0,1]` (0 = identic, 1 = complet diferit):
+**Pas 1 — dissimilaritate per atribut** `d ∈ [0,1]` (0 = identic, 1 = complet diferit). Fiecare
+atribut are o **pondere** și o **cotă** (cât cântărește din formula finală când toate 5 sunt cunoscute;
+cotă = pondere / 15):
 
-| Atribut | Tip | Formula | Exemplu |
-|---|---|---|---|
-| An construcție | numeric | `d = min(\|Δani\| / 25, 1)` | Δ=5 ani → 0.20 |
-| Stare | ordinal, 5 trepte (1=degradată … 5=nouă) | `d = \|Δtrepte\| / 4` | „bună"(3) vs „renovat"(4) → 0.25 |
-| Nivel finisaj | ordinal, 4 trepte (1=modest … 4=lux) | `d = \|Δtrepte\| / 3` | standard vs lux → 0.67 |
-| Tip încălzire | categorial | `0` aceeași / `0.5` înrudită / `1` fundamental diferită | centrală gaz vs pompă → 0.5 |
-| Suprafață teren | numeric | `d = min(\|Δmp\| / teren_subiect, 1)` | 500 vs 450 → 0.10 |
+| # | Atribut | Pondere | Cotă (din total) | Formula `d` (pe valoarea găsită) | Exemplu |
+|---|---|---|---|---|---|
+| 1 | An construcție | **5** | **33%** | `d = min(\|an_subiect − an_anunț\| / 25, 1)` | \|2013−2008\|/25 → 0.20 |
+| 2 | Stare | **4** | **27%** | `d = \|treaptă_subiect − treaptă_anunț\| / 4` (5 trepte: 1=degradată…5=nouă) | \|3−4\|/4 → 0.25 |
+| 3 | Nivel finisaj | **3** | **20%** | `d = \|treaptă_subiect − treaptă_anunț\| / 3` (4 trepte: 1=modest…4=lux) | standard vs lux → 0.67 |
+| 4 | Tip încălzire | **2** | **13%** | `d = 0` aceeași / `0.5` înrudită / `1` fundamental diferită | centrală gaz vs pompă → 0.5 |
+| 5 | Suprafață teren | **1** | **7%** | `d = min(\|teren_subiect − teren_anunț\| / teren_subiect, 1)` | \|500−450\|/500 → 0.10 |
 
-**Pas 2 — combinare ponderată** (ponderi implicite după prioritate: an=5, stare=4, finisaj=3,
-încălzire=2, teren=1), **doar peste atributele CUNOSCUTE**:
+**Pas 2 — combinare ponderată**, **doar peste atributele CUNOSCUTE** (cele „nementionat" se exclud
+și ponderile rămase se renormalizează automat):
 ```
 dissimilaritate = Σ(pondere_i × d_i) / Σ(pondere_i)     // i parcurge doar atributele cunoscute
-scor_afișat      = round(100 × (1 − dissimilaritate))    // ex. „similaritate 84%"
+Relevanță (%)    = round( 100 × (1 − dissimilaritate) )
 ```
-Ranking: descrescător după scor (cel mai mare scor = cel mai similar = sus).
+Ranking: descrescător după Relevanță (cel mai mare = cel mai similar = sus).
 
 **Pas 3 — tratarea atributelor primare „nementionat":**
 - Un atribut primar necunoscut **NU se penalizează** (necunoscut ≠ nepotrivire). Se **exclude** din
@@ -167,15 +169,24 @@ Ranking: descrescător după scor (cel mai mare scor = cel mai similar = sus).
 - **Prag de încredere:** dacă **≥3 din 5 primare sunt „nementionat"**, candidatul e marcat
   **„date insuficiente — verifică manual"** și nu concurează la vârf pe baza unui scor slab fundamentat.
 
-**Exemplu de afișare (un candidat):**
+**Exemplu de afișare (un candidat) — fiecare atribut cu valoarea găsită, `d`, ponderea și
+contribuția (pondere × d); lângă relevanța finală, formula exactă cu numerele:**
 ```
-Similaritate 84% (bazat pe 4/5 atribute)
-  An:        2008          → d 0.20  (subiect 2013)
-  Stare:     "renovat 2021"→ d 0.25
-  Finisaj:   "lux"         → d 0.00
-  Încălzire: "centrală gaz"→ d 0.00
-  Teren:     ➖ nementionat (exclus din scor)
+RELEVANȚĂ 86%  (bazat pe 4/5 atribute — Teren nementionat)
+Formula: 100 × (1 − (5×0.20 + 4×0.25 + 3×0.00 + 2×0.00) / (5+4+3+2))
+       = 100 × (1 − 2.00/14) = 100 × (1 − 0.143) = 86%
+
+  Atribut    Valoare găsită     d      pondere  contribuție(pondere×d)
+  An         2008 (subiect 2013) 0.20   5        1.00
+  Stare      "renovat 2021"      0.25   4        1.00
+  Finisaj    "lux"               0.00   3        0.00
+  Încălzire  "centrală gaz"      0.00   2        0.00
+  Teren      ➖ nementionat       —      (exclus) —
+  ────────────────────────────────────────────────────
+  Σ contribuții = 2.00 ;  Σ ponderi cunoscute = 14 ;  dissim = 0.143
 ```
+Notă: când un atribut e „nementionat", ponderea lui iese din numitor (aici 14 = 5+4+3+2, fără
+ponderea 1 a terenului), deci formula afișată conține mereu exact ponderile atributelor cunoscute.
 
 **Calibrare:** toate pragurile și ponderile (cei 25 de ani la „an", treptele de stare/finisaj,
 ponderile, pragul de 3/5) sunt **valori implicite, de calibrat de evaluator — de revizuit ulterior**.
