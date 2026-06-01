@@ -18,12 +18,17 @@ from evaluare.report.generator import genereaza_raport
 from evaluare.discovery.profiles import SubjectProfile
 from evaluare.discovery.orchestrator import descopera
 from evaluare.discovery.scoring import metodologie
+from evaluare.zona import extrage_zona
 
 DOCX_MIME = "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
 
 
 class ImportUrlRequest(BaseModel):
     url: str
+
+
+class ZonaRequest(BaseModel):
+    adresa: str
 
 
 class DescoperaRequest(BaseModel):
@@ -125,5 +130,10 @@ def create_app(storage: Storage, client: Optional[NarrativeClient],
     @app.get("/descoperire", response_class=HTMLResponse)
     def pagina_descoperire(request: Request) -> HTMLResponse:
         return templates.TemplateResponse(request, "descoperire.html", {})
+
+    @app.post("/api/zona")
+    def deriva_zona(req: ZonaRequest) -> dict:
+        judet, localitate = extrage_zona(req.adresa, client=client)
+        return {"judet": judet, "localitate": localitate}
 
     return app
