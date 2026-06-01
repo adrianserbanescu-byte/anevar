@@ -136,6 +136,51 @@ sub nicio formă. Ranking-ul este determinat **doar de cele 5 atribute primare**
 sunt variabile și des „nementionate"; scorarea lor ar reintroduce zgomot. (Ajustabil ulterior doar
 dacă evaluatorul cere explicit influență pe ranking.)
 
+### 5.3 Scoringul și ranking-ul
+
+**Scopul scorului:** o euristică de *proximitate* care propune candidații, NU un model de evaluare.
+Valoarea reală se face în grila de comparație (corecțiile), cu evaluatorul ca decident final. Scorul
+trebuie doar să fie rezonabil și explicabil.
+
+**Pas 1 — dissimilaritate per atribut** `d ∈ [0,1]` (0 = identic, 1 = complet diferit):
+
+| Atribut | Tip | Formula | Exemplu |
+|---|---|---|---|
+| An construcție | numeric | `d = min(\|Δani\| / 25, 1)` | Δ=5 ani → 0.20 |
+| Stare | ordinal, 5 trepte (1=degradată … 5=nouă) | `d = \|Δtrepte\| / 4` | „bună"(3) vs „renovat"(4) → 0.25 |
+| Nivel finisaj | ordinal, 4 trepte (1=modest … 4=lux) | `d = \|Δtrepte\| / 3` | standard vs lux → 0.67 |
+| Tip încălzire | categorial | `0` aceeași / `0.5` înrudită / `1` fundamental diferită | centrală gaz vs pompă → 0.5 |
+| Suprafață teren | numeric | `d = min(\|Δmp\| / teren_subiect, 1)` | 500 vs 450 → 0.10 |
+
+**Pas 2 — combinare ponderată** (ponderi implicite după prioritate: an=5, stare=4, finisaj=3,
+încălzire=2, teren=1), **doar peste atributele CUNOSCUTE**:
+```
+dissimilaritate = Σ(pondere_i × d_i) / Σ(pondere_i)     // i parcurge doar atributele cunoscute
+scor_afișat      = round(100 × (1 − dissimilaritate))    // ex. „similaritate 84%"
+```
+Ranking: descrescător după scor (cel mai mare scor = cel mai similar = sus).
+
+**Pas 3 — tratarea atributelor primare „nementionat":**
+- Un atribut primar necunoscut **NU se penalizează** (necunoscut ≠ nepotrivire). Se **exclude** din
+  sumă, iar ponderile se renormalizează peste atributele cunoscute.
+- Candidatul afișează explicit **„scor bazat pe X/5 atribute"**, ca evaluatorul să știe pe ce date stă scorul.
+- **Prag de încredere:** dacă **≥3 din 5 primare sunt „nementionat"**, candidatul e marcat
+  **„date insuficiente — verifică manual"** și nu concurează la vârf pe baza unui scor slab fundamentat.
+
+**Exemplu de afișare (un candidat):**
+```
+Similaritate 84% (bazat pe 4/5 atribute)
+  An:        2008          → d 0.20  (subiect 2013)
+  Stare:     "renovat 2021"→ d 0.25
+  Finisaj:   "lux"         → d 0.00
+  Încălzire: "centrală gaz"→ d 0.00
+  Teren:     ➖ nementionat (exclus din scor)
+```
+
+**Calibrare:** toate pragurile și ponderile (cei 25 de ani la „an", treptele de stare/finisaj,
+ponderile, pragul de 3/5) sunt **valori implicite, de calibrat de evaluator — de revizuit ulterior**.
+Mapările ordinale (text liber „stare"/„finisaj" → treaptă) se fac tot prin LLM, pe baza descrierii.
+
 ---
 
 ## 6. Rolul LLM-ului
