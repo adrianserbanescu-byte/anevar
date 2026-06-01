@@ -3,21 +3,28 @@ from __future__ import annotations
 
 import tempfile
 from pathlib import Path
-from typing import Optional
+from typing import Callable, Optional
 
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.responses import FileResponse, HTMLResponse
 from fastapi.templating import Jinja2Templates
+from pydantic import BaseModel
 
 from evaluare.assembler import EvaluationInput, construieste_context
 from evaluare.ai.narrative import NarrativeClient
 from evaluare.db.storage import Storage
+from evaluare.importers.url_parser import fetch_html, import_from_url
 from evaluare.report.generator import genereaza_raport
 
 DOCX_MIME = "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
 
 
-def create_app(storage: Storage, client: Optional[NarrativeClient]) -> FastAPI:
+class ImportUrlRequest(BaseModel):
+    url: str
+
+
+def create_app(storage: Storage, client: Optional[NarrativeClient],
+               fetcher: Callable[[str], str] = fetch_html) -> FastAPI:
     """Construieste aplicatia cu storage si client AI injectate."""
     app = FastAPI(title="Evaluare ANEVAR")
     templates = Jinja2Templates(directory=str(Path(__file__).parent / "templates"))
@@ -71,5 +78,16 @@ def create_app(storage: Storage, client: Optional[NarrativeClient]) -> FastAPI:
             "valoare_finala": str(ctx.reconciled.valoare_finala),
             "metoda": ctx.reconciled.metoda_selectata,
         })
+
+    @app.post("/api/import-url")
+    def importa_url(req: ImportUrlRequest) -> dict:
+        parsed = import_from_url(req.url, fetcher=fetcher)
+        return {
+            "pret": str(parsed.pret) if parsed.pret is not None else None,
+            "moneda": parsed.moneda,
+            "suprafata": str(parsed.suprafata) if parsed.suprafata is not None else None,
+            "titlu": parsed.titlu,
+            "sursa_url": parsed.sursa_url,
+        }
 
     return app
