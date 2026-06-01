@@ -25,8 +25,12 @@
   <select id="judet"></select>
   <label>Localitate</label>
   <select id="localitate"></select>
-  <input id="localitate_alt" placeholder="altă localitate (slug)" style="display:none">
-  <small class="hint">Județ și localitate aleg slug-ul exact folosit la căutarea comparabilelor.</small>
+  <input id="localitate_alt" placeholder="ex: baia-de-aries (fara diacritice)" style="display:none">
+  <small class="hint">Județ și localitate aleg slug-ul exact folosit la căutarea comparabilelor pe portaluri.
+   Slug-urile <b>nu folosesc diacritice</b>. Reguli de normalizare: litere mici · fără diacritice
+   (ă→a, î→i, ș→s, ț→t, â→a) · spațiile și semnele devin cratimă. Ex.: „Baia de Arieş" → <code>baia-de-aries</code>,
+   „Sfântu Gheorghe" → <code>sfantu-gheorghe</code>. Dacă scrii manual o localitate (opțiunea „altă localitate"),
+   respectă aceste reguli.</small>
   <label>Stradă, număr (rest adresă)</label>
   <input id="adresa_strada" size="50" placeholder="Str. Exemplu nr. 10">
   <label>Nume client</label><input id="client_nume">
