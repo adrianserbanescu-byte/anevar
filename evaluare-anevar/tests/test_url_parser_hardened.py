@@ -21,6 +21,15 @@ def test_jsonld_still_works():
     assert parsed.suprafata == Decimal("180")
 
 
+def test_extracts_from_real_imobiliare_structure():
+    # structura reala imobiliare.ro: @graph cu Offer.priceSpecification.price si floorSize scalar
+    html = (FIXTURES / "imobiliare_listing_real.html").read_text(encoding="utf-8")
+    parsed = parse_listing_html(html, sursa_url="https://imobiliare.ro/oferta/x")
+    assert parsed.pret == Decimal("2000000")
+    assert parsed.moneda == "EUR"
+    assert parsed.suprafata == Decimal("400")    # floorSize scalar = suprafata casei
+
+
 def test_title_regex_fallback_for_surface():
     html = "<html><head><title>Vila 220 mp Pipera 500000 EUR</title></head><body></body></html>"
     parsed = parse_listing_html(html)

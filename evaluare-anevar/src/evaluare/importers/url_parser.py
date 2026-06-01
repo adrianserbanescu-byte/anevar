@@ -78,32 +78,59 @@ def _din_nextdata(soup) -> tuple:
     return pret, moneda, supr
 
 
+def _cauta_in_jsonld(data) -> tuple:
+    """Cautare recursiva in JSON-LD: pret (maximul = total), moneda, suprafata (floorSize).
+
+    Robust la structuri reale: pretul poate fi sub Offer.priceSpecification.price, iar
+    floorSize poate fi scalar (400) sau dict ({value: 400}).
+    """
+    preturi: list = []
+    suprafete: list = []
+
+    def walk(o):
+        if isinstance(o, dict):
+            if "price" in o:
+                p = _to_decimal(o.get("price"))
+                if p is not None and p > 0:
+                    preturi.append((p, o.get("priceCurrency")))
+            if "floorSize" in o:
+                fs = o.get("floorSize")
+                v = _to_decimal(fs.get("value")) if isinstance(fs, dict) else _to_decimal(fs)
+                if v is not None and v > 0:
+                    suprafete.append(v)
+            for val in o.values():
+                walk(val)
+        elif isinstance(o, list):
+            for val in o:
+                walk(val)
+
+    walk(data)
+    pret = moneda = supr = None
+    if preturi:
+        pret, moneda = max(preturi, key=lambda x: x[0])   # totalul, nu pretul/mp
+    if suprafete:
+        supr = suprafete[0]                                # prima = cladirea (floorSize)
+    return pret, moneda, supr
+
+
 def parse_listing_html(html: str, sursa_url: str = "") -> ParsedListing:
-    """Extrage pret, moneda si suprafata; incearca, in ordine: JSON-LD, __NEXT_DATA__,
-    og:meta, regex pe titlu."""
+    """Extrage pret, moneda si suprafata; incearca, in ordine: JSON-LD (recursiv),
+    __NEXT_DATA__, og:meta + regex pe titlu/descriere."""
     soup = BeautifulSoup(html, "html.parser")
     pret: Optional[Decimal] = None
     moneda: Optional[str] = None
     suprafata: Optional[Decimal] = None
 
-    # 1) JSON-LD
+    # 1) JSON-LD (recursiv, robust la nesting real: priceSpecification, floorSize scalar)
     for script in soup.find_all("script", type="application/ld+json"):
         try:
-            data = json.loads(script.string or "")
-        except (json.JSONDecodeError, TypeError):
+            data = json.loads(script.get_text() or "")
+        except (json.JSONDecodeError, TypeError, ValueError):
             continue
-        for node in _iter_nodes(data):
-            offers = node.get("offers")
-            if isinstance(offers, dict):
-                if pret is None and "price" in offers:
-                    pret = _to_decimal(offers.get("price"))
-                    moneda = moneda or offers.get("priceCurrency")
-            if pret is None and node.get("@type") == "Offer" and "price" in node:
-                pret = _to_decimal(node.get("price"))
-                moneda = moneda or node.get("priceCurrency")
-            floor = node.get("floorSize")
-            if suprafata is None and isinstance(floor, dict):
-                suprafata = _to_decimal(floor.get("value"))
+        p, m, s = _cauta_in_jsonld(data)
+        pret = pret or p
+        moneda = moneda or m
+        suprafata = suprafata or s
 
     # 2) __NEXT_DATA__
     if pret is None or suprafata is None:
@@ -117,11 +144,12 @@ def parse_listing_html(html: str, sursa_url: str = "") -> ParsedListing:
     if title_tag and title_tag.string:
         titlu = title_tag.string.strip()
 
-    # 3) og:meta + 4) regex pe titlu, pentru ce a ramas
+    # 3) og:meta (title + description) + regex, pentru ce a ramas
     text_cautare = titlu
-    og = soup.find("meta", property="og:title")
-    if og and og.get("content"):
-        text_cautare += " " + og["content"]
+    for prop in ("og:title", "og:description"):
+        og = soup.find("meta", property=prop)
+        if og and og.get("content"):
+            text_cautare += " " + og["content"]
     if suprafata is None:
         m = re.search(r"(\d+(?:[.,]\d+)?)\s*mp", text_cautare, re.IGNORECASE)
         if m:
