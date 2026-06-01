@@ -36,7 +36,8 @@ def test_extracts_storia_area_not_terrain():
     parsed = parse_listing_html(html, sursa_url="https://storia.ro/ro/oferta/x")
     assert parsed.pret == Decimal("385000")
     assert parsed.moneda == "EUR"
-    assert parsed.suprafata == Decimal("220")    # "area" (casa), NU "terrain_area" (500)
+    assert parsed.suprafata == Decimal("220")          # "area" (casa), NU "terrain_area"
+    assert parsed.suprafata_teren == Decimal("500")    # "terrain_area" = teren
 
 
 def test_title_regex_fallback_for_surface():

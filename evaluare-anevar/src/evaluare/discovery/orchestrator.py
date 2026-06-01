@@ -1,6 +1,7 @@
 """Orchestratorul descoperirii: search → scrape → parse → extract → score → rank."""
 from __future__ import annotations
 
+from decimal import Decimal
 from typing import Callable, Optional
 
 from bs4 import BeautifulSoup
@@ -28,6 +29,25 @@ def extrage_descriere(html: str, max_caractere: int = 4000) -> str:
     return " ".join(parti)
 
 
+TOLERANTA_TEREN = Decimal("0.40")   # +-40%: peste asta, terenul nu e comparabil
+
+
+def _pret_mp_daca_teren_comparabil(parsed, subiect, teren_candidat):
+    """€/mp construit, DOAR daca terenul candidatului e comparabil cu al subiectului.
+
+    Pe un anunt de casa+teren, €/mp construit amesteca valoarea terenului. Are sens
+    doar cand terenul e similar (atunci contributia terenului e aproape constanta).
+    """
+    if parsed.pret is None or not parsed.suprafata or parsed.suprafata <= 0:
+        return None
+    st = subiect.teren
+    if st is None or st <= 0 or teren_candidat is None:
+        return None
+    if abs(teren_candidat - st) / st > TOLERANTA_TEREN:
+        return None
+    return round(parsed.pret / parsed.suprafata)
+
+
 def descopera(
     portal: str, judet: str, localitate: str, subiect: SubjectProfile,
     atribute_secundare: list, fetcher: Callable[[str], str] = fetch_html,
@@ -48,10 +68,15 @@ def descopera(
         extraction.profile.suprafata_construita = parsed.suprafata
         if parsed.suprafata is not None:
             extraction.profile.texte.setdefault("suprafata_construita", str(parsed.suprafata))
+        # suprafata terenului din date structurate (storia) are prioritate fata de LLM
+        if parsed.suprafata_teren is not None:
+            extraction.profile.teren = parsed.suprafata_teren
+            extraction.profile.texte.setdefault("teren", str(parsed.suprafata_teren))
         breakdown = scor_candidat(subiect, extraction.profile)
+        pret_mp = _pret_mp_daca_teren_comparabil(parsed, subiect, extraction.profile.teren)
         rezultate.append(CandidateResult(
             url=url, titlu=parsed.titlu, pret=parsed.pret, suprafata=parsed.suprafata,
-            breakdown=breakdown, secundare=extraction.secundare,
+            pret_mp=pret_mp, breakdown=breakdown, secundare=extraction.secundare,
         ))
     rezultate.sort(key=lambda r: r.breakdown.relevanta, reverse=True)
     return rezultate

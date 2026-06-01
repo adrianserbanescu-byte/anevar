@@ -218,7 +218,7 @@ $("btn-descopera").addEventListener("click", async ()=>{
     $("candidati").innerHTML=res.candidati.map((c,i)=>
       `<div class="candidat"><label><input type="checkbox" class="bif" data-pret="${c.pret||''}"
        data-supr="${c.suprafata||''}"> <b>${c.relevanta}%</b> — ${c.pret||'?'} EUR / ${c.suprafata||'?'} mp
-       ${c.pret_mp?'<b>('+c.pret_mp+' €/mp)</b>':''}
+       ${c.pret_mp?'<b>('+c.pret_mp+' €/mp construit · teren comparabil)</b>':''}
        <a href="${c.url}" target="_blank">link</a></label>
        <div class="hint">${c.explicatie}</div></div>`).join("");
     document.querySelectorAll(".bif").forEach(b=>b.addEventListener("change",aduna)); }

@@ -28,7 +28,8 @@ class ParsedListing(BaseModel):
 
     pret: Optional[Decimal] = None
     moneda: Optional[str] = None
-    suprafata: Optional[Decimal] = None
+    suprafata: Optional[Decimal] = None         # suprafata casei (construita/utila)
+    suprafata_teren: Optional[Decimal] = None   # suprafata terenului, daca e in date structurate
     titlu: str = ""
     sursa_url: str = ""
 
@@ -61,15 +62,15 @@ def _din_nextdata(soup) -> tuple:
     """
     tag = soup.find("script", id="__NEXT_DATA__")
     if not tag:
-        return None, None, None
+        return None, None, None, None
     raw = tag.get_text()
     if not raw:
-        return None, None, None
+        return None, None, None, None
     try:
         data = json.loads(raw)
     except (ValueError, TypeError):
-        return None, None, None
-    pret = moneda = supr = None
+        return None, None, None, None
+    pret = moneda = supr = teren = None
     stack = [data]
     while stack:
         node = stack.pop()
@@ -80,13 +81,16 @@ def _din_nextdata(soup) -> tuple:
             # imobiliare: {key: "surface", value: "130"}
             if node.get("key") == "surface":
                 supr = supr or _to_decimal(node.get("value"))
-            # storia: {label: "area", values: ["220"]} = suprafata casei (NU "terrain_area")
-            if node.get("label") == "area" and isinstance(node.get("values"), list) and node["values"]:
+            # storia: {label: "area", values: ["220"]} = casa; "terrain_area" = teren
+            lbl = node.get("label")
+            if lbl == "area" and isinstance(node.get("values"), list) and node["values"]:
                 supr = supr or _to_decimal(node["values"][0])
+            if lbl == "terrain_area" and isinstance(node.get("values"), list) and node["values"]:
+                teren = teren or _to_decimal(node["values"][0])
             stack.extend(node.values())
         elif isinstance(node, list):
             stack.extend(node)
-    return pret, moneda, supr
+    return pret, moneda, supr, teren
 
 
 def _cauta_in_jsonld(data) -> tuple:
@@ -131,6 +135,7 @@ def parse_listing_html(html: str, sursa_url: str = "") -> ParsedListing:
     pret: Optional[Decimal] = None
     moneda: Optional[str] = None
     suprafata: Optional[Decimal] = None
+    suprafata_teren: Optional[Decimal] = None
 
     # 1) JSON-LD (recursiv, robust la nesting real: priceSpecification, floorSize scalar)
     for script in soup.find_all("script", type="application/ld+json"):
@@ -143,12 +148,12 @@ def parse_listing_html(html: str, sursa_url: str = "") -> ParsedListing:
         moneda = moneda or m
         suprafata = suprafata or s
 
-    # 2) __NEXT_DATA__
-    if pret is None or suprafata is None:
-        p2, m2, s2 = _din_nextdata(soup)
-        pret = pret or p2
-        moneda = moneda or m2
-        suprafata = suprafata or s2
+    # 2) __NEXT_DATA__ (include suprafata terenului - storia)
+    p2, m2, s2, t2 = _din_nextdata(soup)
+    pret = pret or p2
+    moneda = moneda or m2
+    suprafata = suprafata or s2
+    suprafata_teren = suprafata_teren or t2
 
     titlu = ""
     title_tag = soup.find("title")
@@ -172,7 +177,7 @@ def parse_listing_html(html: str, sursa_url: str = "") -> ParsedListing:
             moneda = moneda or m.group(2).upper().replace("EURO", "EUR").replace("€", "EUR")
 
     return ParsedListing(pret=pret, moneda=moneda, suprafata=suprafata,
-                         titlu=titlu, sursa_url=sursa_url)
+                         suprafata_teren=suprafata_teren, titlu=titlu, sursa_url=sursa_url)
 
 
 def to_comparable(parsed: ParsedListing) -> Comparable:

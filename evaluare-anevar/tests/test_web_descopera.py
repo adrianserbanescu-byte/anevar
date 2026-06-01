@@ -54,11 +54,17 @@ def test_descoperire_page_has_methodology_before_results(tmp_path):
     assert body.index('id="metodologie"') < body.index('id="rezultate"')
 
 
-def test_descopera_candidat_are_pret_mp(tmp_path):
+def test_pret_mp_afisat_doar_cand_teren_comparabil(tmp_path):
     client = TestClient(_app(tmp_path))
-    payload = {"portal": "imobiliare", "judet": "ilfov", "localitate": "otopeni",
-               "subiect": {"an": 2013}, "atribute_secundare": [], "max_candidati": 3}
-    data = client.post("/api/descopera", json=payload).json()
-    c0 = data["candidati"][0]
-    assert "pret_mp" in c0
+    # candidatul (FakeClient) are teren=400. Subiect teren 420 -> comparabil -> pret/mp afisat
+    p_comp = {"portal": "imobiliare", "judet": "ilfov", "localitate": "otopeni",
+              "subiect": {"an": 2013, "teren": "420"}, "atribute_secundare": [], "max_candidati": 3}
+    c0 = client.post("/api/descopera", json=p_comp).json()["candidati"][0]
+    assert c0["pret_mp"] is not None       # 249900/130 ~ 1922
+
+    # Subiect teren 2000 -> teren necomparabil cu 400 -> pret/mp ascuns
+    p_diff = {"portal": "imobiliare", "judet": "ilfov", "localitate": "otopeni",
+              "subiect": {"an": 2013, "teren": "2000"}, "atribute_secundare": [], "max_candidati": 3}
+    c0d = client.post("/api/descopera", json=p_diff).json()["candidati"][0]
+    assert c0d["pret_mp"] is None
     assert c0["pret_mp"] is not None   # pret 249900 / supr 130 -> ~1922

@@ -124,14 +124,11 @@ def create_app(storage: Storage, client: Optional[NarrativeClient],
                         fetcher=fetcher, client=client, max_candidati=req.max_candidati)
         candidati = []
         for r in rez:
-            pret_mp = None
-            if r.pret is not None and r.suprafata and r.suprafata > 0:
-                pret_mp = str(round(r.pret / r.suprafata))
             candidati.append({
                 "url": r.url, "titlu": r.titlu,
                 "pret": str(r.pret) if r.pret is not None else None,
                 "suprafata": str(r.suprafata) if r.suprafata is not None else None,
-                "pret_mp": pret_mp,
+                "pret_mp": str(r.pret_mp) if r.pret_mp is not None else None,
                 "relevanta": r.breakdown.relevanta,
                 "incredere_scazuta": r.breakdown.incredere_scazuta,
                 "explicatie": r.breakdown.explicatie,
