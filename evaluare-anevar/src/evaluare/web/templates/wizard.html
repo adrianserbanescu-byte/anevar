@@ -56,10 +56,28 @@
   <textarea id="depreciere" rows="2" cols="30">5;0.05
 15;0.15</textarea>
   <h3>Atribute pentru potrivire (descoperire)</h3>
-  An <input id="attr_an" value="2013" size="5">
-  Stare(1-5) <input id="attr_stare" value="3" size="3">
-  Finisaj(1-4) <input id="attr_finisaj" value="4" size="3">
-  Încălzire <input id="attr_incalzire" value="centrala_gaz" size="14">
+  <label>An construcție</label><input id="attr_an" value="2013" size="5">
+  <label>Stare construcție</label>
+  <select id="attr_stare">
+    <option value="1">Degradată / necesită reparații majore</option>
+    <option value="2">Necesită renovare</option>
+    <option value="3" selected>Medie / bună</option>
+    <option value="4">Foarte bună / renovată recent</option>
+    <option value="5">Nouă</option>
+  </select>
+  <label>Nivel finisaj</label>
+  <select id="attr_finisaj">
+    <option value="1">Modest</option>
+    <option value="2">Standard</option>
+    <option value="3">Superior</option>
+    <option value="4" selected>Lux</option>
+  </select>
+  <label>Tip încălzire</label>
+  <input id="attr_incalzire" value="centrala_gaz" size="18">
+  <small class="hint">Categorie normalizată: litere mici, <b>cu „_" în loc de spațiu</b> (nu spațiu).
+   Ex.: <code>centrala_gaz</code>, <code>centrala_lemn</code>, <code>pompa_caldura</code>,
+   <code>sobe</code>, <code>centrala_bloc</code>. Familia (partea dinainte de „_", ex. „centrala")
+   contează la potrivire — aceeași familie ≈ potrivire parțială.</small>
 </section>
 
 <!-- PAS 3 -->
