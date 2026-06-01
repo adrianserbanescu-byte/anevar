@@ -56,12 +56,19 @@ function badgeClass(c){
   if(c.relevanta>=60) return 'b-mid';
   return 'b-low';
 }
+const STARE_LBL={'1':'Degradată','2':'Necesită renovare','3':'Medie / bună','4':'Foarte bună / renovată','5':'Nouă'};
+const FINISAJ_LBL={'1':'Modest','2':'Standard','3':'Superior','4':'Lux'};
+function eticheta(nume,v){
+  if(v===null||v===undefined||v==='') return '➖';
+  if(nume==='Stare' && STARE_LBL[v]) return STARE_LBL[v]+' ('+v+')';
+  if(nume==='Finisaj' && FINISAJ_LBL[v]) return FINISAJ_LBL[v]+' ('+v+')';
+  return v;
+}
 function tabelAtribute(c){
   const A=c.atribute;
-  const cel=v=>`<td>${(v===null||v===undefined||v==='')?'➖':v}</td>`;
   const head='<tr><th>Criteriu</th>'+A.map(a=>`<th>${a.nume}</th>`).join('')+'</tr>';
-  const ref ='<tr><td>Referință (subiect)</td>'+A.map(a=>cel(a.valoare_subiect)).join('')+'</tr>';
-  const gas ='<tr><td>Găsit în anunț</td>'+A.map(a=>cel(a.valoare_candidat)).join('')+'</tr>';
+  const ref ='<tr><td>Referință (subiect)</td>'+A.map(a=>`<td>${eticheta(a.nume,a.valoare_subiect)}</td>`).join('')+'</tr>';
+  const gas ='<tr><td>Găsit în anunț</td>'+A.map(a=>`<td>${eticheta(a.nume,a.valoare_candidat)}</td>`).join('')+'</tr>';
   const dd  ='<tr><td>d (folosit în formulă)</td>'+A.map(a=>`<td>${a.cunoscut?a.d:'<i>neaplicabil</i>'}</td>`).join('')+'</tr>';
   const pon ='<tr><td>Pondere</td>'+A.map(a=>`<td>${a.pondere}</td>`).join('')+'</tr>';
   return '<table class="detalii">'+head+ref+gas+dd+pon+'</table>';
