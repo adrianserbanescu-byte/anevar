@@ -81,7 +81,13 @@ def create_app(storage: Storage, client: Optional[NarrativeClient],
         return FileResponse(str(out), media_type=DOCX_MIME, filename=f"raport_{eid}.docx")
 
     @app.get("/", response_class=HTMLResponse)
+    def pagina_index(request: Request) -> HTMLResponse:
+        # Pagina principala = wizard-ul ghidat pas-cu-pas.
+        return templates.TemplateResponse(request, "wizard.html", {})
+
+    @app.get("/formular", response_class=HTMLResponse)
     def pagina_formular(request: Request) -> HTMLResponse:
+        # Formularul monolit (toate campurile pe o pagina), alternativa la wizard.
         return templates.TemplateResponse(request, "form.html", {})
 
     @app.get("/evaluare/{eid}", response_class=HTMLResponse)

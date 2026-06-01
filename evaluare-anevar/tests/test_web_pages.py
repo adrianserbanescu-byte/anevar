@@ -10,18 +10,21 @@ def _client(tmp_path):
     return TestClient(create_app(storage=storage, client=None))
 
 
-def test_home_page_loads_form(tmp_path):
+def test_index_is_wizard(tmp_path):
     client = _client(tmp_path)
     resp = client.get("/")
     assert resp.status_code == 200
     assert "text/html" in resp.headers["content-type"]
-    assert "Evaluare" in resp.text
-    assert "<form" in resp.text
+    # pagina principala este acum wizard-ul
+    assert 'id="pas-1"' in resp.text
+    assert "pas cu pas" in resp.text
 
 
-def test_home_page_has_method_selector_and_url_import(tmp_path):
+def test_formular_monolit_la_ruta_noua(tmp_path):
     client = _client(tmp_path)
-    resp = client.get("/")
+    resp = client.get("/formular")
+    assert resp.status_code == 200
+    assert "<form" in resp.text
     assert 'name="metoda"' in resp.text          # selector de metoda
     assert "Import din URL" in resp.text          # buton import
     assert 'name="comparabile"' in resp.text      # sectiune comparabile
