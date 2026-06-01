@@ -1,48 +1,124 @@
 <!DOCTYPE html>
 <html lang="ro">
-<head><meta charset="utf-8"><title>Evaluare ANEVAR</title></head>
+<head><meta charset="utf-8"><title>Evaluare ANEVAR</title>
+<style>
+  body { font-family: Arial, sans-serif; max-width: 900px; margin: 20px auto; line-height: 1.5; }
+  .hint { color: #666; font-size: 0.85em; font-style: italic; display: block; margin: 2px 0 10px 0; }
+  label { font-weight: bold; display: block; margin-top: 8px; }
+  input, select, textarea { font-size: 1em; }
+  h2 { border-bottom: 1px solid #ccc; padding-bottom: 4px; margin-top: 24px; }
+</style>
+</head>
 <body>
 <h1>Evaluare imobiliara ANEVAR — casa + teren</h1>
 <form id="f">
+
   <h2>Client si lucrare</h2>
-  Nume client: <input name="client_nume" required><br>
-  Adresa: <input name="adresa" required><br>
-  Nr. cadastral: <input name="numar_cadastral" required><br>
-  Carte funciara: <input name="carte_funciara" required><br>
-  Evaluator: <input name="evaluator_nume" required>
-  Legitimatie: <input name="evaluator_legitimatie" required><br>
-  Data evaluarii: <input name="data_evaluarii" value="2026-01-16">
-  Data raportului: <input name="data_raportului" value="2026-01-16"><br>
+
+  <label>Nume client</label>
+  <input name="client_nume" required>
+  <small class="hint">Persoana/firma pentru care se face evaluarea. Apare in raport; este
+   anonimizat (inlocuit cu [CLIENT]) inainte de orice trimitere catre AI.</small>
+
+  <label>Adresa</label>
+  <input name="adresa" size="50" required>
+  <small class="hint">Adresa proprietatii evaluate. Identifica imobilul in raport; anonimizata
+   ([ADRESA]) inainte de apelul AI.</small>
+
+  <label>Nr. cadastral</label>
+  <input name="numar_cadastral" required>
+  <small class="hint">Identificatorul cadastral unic al proprietatii. Documenteaza situatia
+   juridica; anonimizat ([CADASTRAL]) la AI.</small>
+
+  <label>Carte funciara</label>
+  <input name="carte_funciara" required>
+  <small class="hint">Numarul cartii funciare (CF). Atesta dreptul de proprietate si eventualele
+   sarcini; anonimizat ([CF]) la AI.</small>
+
+  <label>Evaluator</label>
+  <input name="evaluator_nume" required>
+  <small class="hint">Numele evaluatorului autorizat ANEVAR. Apare in declaratia de independenta
+   din raport.</small>
+
+  <label>Legitimatie</label>
+  <input name="evaluator_legitimatie" required>
+  <small class="hint">Numarul legitimatiei ANEVAR a evaluatorului. Atesta dreptul de a semna
+   raportul.</small>
+
+  <label>Data evaluarii</label>
+  <input name="data_evaluarii" value="2026-01-16">
+  <small class="hint">Data la care se estimeaza valoarea (data de referinta a calculelor). Aici se
+   raporteaza varsta constructiei si conditiile de piata.</small>
+
+  <label>Data raportului</label>
+  <input name="data_raportului" value="2026-01-16">
+  <small class="hint">Data emiterii raportului. Poate diferi de data evaluarii.</small>
+
   <h2>Teren si constructie</h2>
-  Suprafata teren (mp): <input name="suprafata_teren" value="500"><br>
-  Au (mp): <input name="au" value="100">
-  Acd (mp): <input name="acd" value="120">
-  An referinta: <input name="an_referinta" value="2025"><br>
-  Valoare teren (lei): <input name="valoare_teren" value="100000"><br>
+
+  <label>Suprafata teren (mp)</label>
+  <input name="suprafata_teren" value="500">
+  <small class="hint">Suprafata terenului din actul cadastral. Baza pentru valoarea terenului in
+   abordarea prin cost.</small>
+
+  <label>Au — arie utila (mp)</label>
+  <input name="au" value="100">
+  <small class="hint">Suprafata interioara efectiv folosibila a constructiei (fara pereti). Folosita
+   in descrierea fizica si la verificari (Au nu poate depasi Acd).</small>
+
+  <label>Acd — arie construita desfasurata (mp)</label>
+  <input name="acd" value="120">
+  <small class="hint">Suprafata totala construita pe toate nivelurile (cu pereti). Este numitorul
+   pentru costul pe mp (CIN) si suprafata subiectului folosita la comparatie.</small>
+
+  <label>An referinta</label>
+  <input name="an_referinta" value="2025">
+  <small class="hint">Anul fata de care se calculeaza varsta constructiei. Varsta fiecarui element
+   = an referinta − an punere in functiune (an_pif). Determina deprecierea.</small>
+
+  <label>Valoare teren (lei)</label>
+  <input name="valoare_teren" value="100000">
+  <small class="hint">Valoarea estimata a terenului (din comparatie sau alta sursa). Se adauga la
+   costul net al constructiei (CIN) pentru valoarea prin cost.</small>
 
   <h2>Metoda de evaluare</h2>
   <select name="metoda">
     <option value="cost">Cost (CIN + teren)</option>
     <option value="piata">Piata (grila de comparatie)</option>
     <option value="ponderata">Ponderata (cost + piata)</option>
-  </select><br>
+  </select>
+  <small class="hint">Care abordare determina valoarea finala. „Cost" = constructie prin cost de
+   inlocuire net + teren. „Piata" = grila de comparatie. „Ponderata" = media celor doua.</small>
 
   <h2>Elemente de cost (un rand per element)</h2>
+  <small class="hint">Fiecare element constructiv din catalogul IROVAL: infrastructura, structura,
+   finisaje, instalatii, invelitoare. Format pe linie:
+   <b>element;cod;um;cantitate;cost_unitar;an_pif</b>. Suma (cantitate × cost_unitar) = costul de
+   inlocuire brut (CIB). „an_pif" = anul punerii in functiune (pentru varsta/depreciere).</small>
   <textarea name="elemente" rows="4" cols="80"
-   placeholder="element;cod;um;cantitate;cost_unitar;an_pif (cate unul pe linie)">Structura;X;mp;120;2000;2015</textarea><br>
+   placeholder="element;cod;um;cantitate;cost_unitar;an_pif (cate unul pe linie)">Structura;X;mp;120;2000;2015</textarea>
+
   <h2>Depreciere fizica (puncte varsta;fractie)</h2>
+  <small class="hint">Punctele din tabelul de depreciere intre care se interpoleaza deprecierea
+   fizica (Dfn), in functie de varsta cronologica ponderata (Vcp). Format pe linie:
+   <b>varsta;fractie</b> (ex. 30;0.31 = la 30 ani, 31% depreciere).</small>
   <textarea name="depreciere" rows="2" cols="40"
    placeholder="varsta;fractie">5;0.05
-15;0.15</textarea><br>
+15;0.15</textarea>
 
   <h2>Comparabile de piata (un rand: pret;suprafata)</h2>
+  <small class="hint">Proprietati similare vandute/oferite, folosite la metoda „piata". Din pret si
+   suprafata se calculeaza pretul unitar (pret/suprafata) si se selecteaza valoarea. Recomandat
+   minimum 3 comparabile. Format pe linie: <b>pret;suprafata</b>.</small>
   <p>Import din URL (imobiliare.ro / storia.ro):
     <input id="url_import" size="50" placeholder="https://...">
     <button type="button" id="btn_import">Import din URL</button>
     <span id="import_status"></span>
   </p>
+  <small class="hint">Lipeste linkul unui anunt: aplicatia extrage automat pretul si suprafata si
+   le adauga ca un rand mai jos. Verifica datele importate inainte de generare.</small>
   <textarea name="comparabile" rows="4" cols="40"
-   placeholder="pret;suprafata (cate unul pe linie)"></textarea><br>
+   placeholder="pret;suprafata (cate unul pe linie)"></textarea><br><br>
 
   <button type="submit">Genereaza evaluarea</button>
 </form>
