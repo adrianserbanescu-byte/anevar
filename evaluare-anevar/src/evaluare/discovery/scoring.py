@@ -128,3 +128,23 @@ def scor_candidat(subiect: SubjectProfile, candidat: CandidateProfile) -> ScoreB
         atribute_cunoscute=cunoscute, incredere_scazuta=incredere_scazuta,
         explicatie=explicatie,
     )
+
+
+def metodologie() -> list[dict]:
+    """Descrie metodologia de scoring pentru afișare (tabel UI, înainte de rezultate)."""
+    total = sum(PONDERI.values())  # 15
+    randuri = [
+        ("An", "an", "min(|an_subiect - an_anunt| / 25, 1)"),
+        ("Stare", "stare", "|treapta_subiect - treapta_anunt| / 4  (5 trepte)"),
+        ("Finisaj", "finisaj", "|treapta_subiect - treapta_anunt| / 3  (4 trepte)"),
+        ("Încălzire", "incalzire", "0 (aceeasi) / 0.5 (aceeasi familie) / 1 (diferita)"),
+        ("Teren", "teren", "min(|teren_subiect - teren_anunt| / teren_subiect, 1)"),
+    ]
+    out = []
+    for i, (eticheta, cheie, formula) in enumerate(randuri, start=1):
+        p = PONDERI[cheie]
+        out.append({
+            "nr": i, "atribut": eticheta, "pondere": p,
+            "cota": f"{round(100 * p / total)}%", "formula": formula,
+        })
+    return out
