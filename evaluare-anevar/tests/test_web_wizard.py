@@ -18,7 +18,15 @@ def test_wizard_page_loads_with_5_steps(tmp_path):
     for i in range(1, 6):
         assert f'id="pas-{i}"' in body
     # referinta catre endpoint-urile reutilizate
-    assert "/api/zona" in body
     assert "/api/descopera" in body
     assert "/api/evaluare" in body
     assert "localStorage" in body
+
+
+def test_wizard_pas1_are_dropdown_judet_localitate(tmp_path):
+    client = _client(tmp_path)
+    body = client.get("/wizard").text
+    assert '<select id="judet"' in body
+    assert '<select id="localitate"' in body
+    assert "/api/localitati" in body
+    assert 'id="adresa_strada"' in body
