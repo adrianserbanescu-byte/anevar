@@ -15,6 +15,9 @@
  .rezumat{color:#444;background:#f4f7f5;border-left:3px solid #2a7;padding:6px 10px;margin:4px 0 10px 0;font-size:.92em}
  .a-block{color:#fff;background:#b30000;padding:5px 9px;border-radius:4px;margin:3px 0}
  .a-warn{color:#7a5b00;background:#fff3cd;border:1px solid #ffe08a;padding:5px 9px;border-radius:4px;margin:3px 0}
+ table.detalii{font-size:0.8em;table-layout:fixed;width:100%;border-collapse:collapse;margin:6px 0}
+ table.detalii td,table.detalii th{max-width:150px;word-wrap:break-word;vertical-align:top;border:1px solid #ddd;padding:2px 5px}
+ table.detalii td:first-child,table.detalii th:first-child{font-weight:bold;background:#f7f7f7;width:130px}
 </style></head>
 <body>
 <h1>Evaluare imobiliară — pas cu pas</h1>
@@ -232,17 +235,30 @@ $("btn-descopera").addEventListener("click", async ()=>{
   try{ const r=await fetch("/api/descopera",{method:"POST",
       headers:{"Content-Type":"application/json"}, body:JSON.stringify(payload)});
     const res=await r.json(); $("desc_status").textContent=res.candidati.length+" candidați";
-    $("candidati").innerHTML=res.candidati.map((c,i)=>
-      `<div class="candidat"><label><input type="checkbox" class="bif" data-pret="${c.pret||''}"
+    $("candidati").innerHTML=res.candidati.map((c,i)=>{
+      const secId=(c.secundare||[]).filter(s=>s.stare!=='nementionat');
+      const sec=secId.map(s=>s.nume+': '+s.stare+(s.valoare_gasita?' („'+s.valoare_gasita+'")':'')).join(' · ');
+      return `<div class="candidat"><label><input type="checkbox" class="bif" data-pret="${c.pret||''}"
        data-supr="${c.suprafata||''}"> <b>${c.relevanta}%</b> — ${c.pret||'?'} EUR / ${c.suprafata||'?'} mp
        ${c.pret_mp?'<b>('+c.pret_mp+' €/mp construit · teren comparabil)</b>':''}
        <a href="${c.url}" target="_blank">link</a></label>
+       ${tabelAtribute(c)}
        <div class="hint">${c.explicatie}</div>
-       ${c.secundare&&c.secundare.length?'<div class="hint"><b>Secundare:</b> '+c.secundare.map(s=>s.nume+': '+s.stare+(s.valoare_gasita?' („'+s.valoare_gasita+'")':'')).join(' · ')+'</div>':''}
-       </div>`).join("");
+       ${sec?'<div class="hint"><b>Secundare:</b> '+sec+'</div>':''}
+       </div>`;}).join("");
     document.querySelectorAll(".bif").forEach(b=>b.addEventListener("change",aduna)); }
   catch(e){ $("desc_status").textContent="eroare căutare"; }
 });
+function tabelAtribute(c){
+  const A=c.atribute||[]; if(!A.length) return '';
+  const cel=v=>`<td>${(v===null||v===undefined||v==='')?'➖':v}</td>`;
+  const head='<tr><th>Criteriu</th>'+A.map(a=>`<th>${a.nume}</th>`).join('')+'</tr>';
+  const ref ='<tr><td>Referință (subiect)</td>'+A.map(a=>cel(a.valoare_subiect)).join('')+'</tr>';
+  const gas ='<tr><td>Găsit în anunț</td>'+A.map(a=>cel(a.valoare_candidat)).join('')+'</tr>';
+  const dd  ='<tr><td>d (folosit în formulă)</td>'+A.map(a=>`<td>${a.cunoscut?a.d:'<i>neaplicabil</i>'}</td>`).join('')+'</tr>';
+  const pon ='<tr><td>Pondere</td>'+A.map(a=>`<td>${a.pondere}</td>`).join('')+'</tr>';
+  return '<table class="detalii">'+head+ref+gas+dd+pon+'</table>';
+}
 function aduna(){ const linii=[...document.querySelectorAll(".bif:checked")]
   .map(b=>b.dataset.pret+";"+b.dataset.supr); $("comparabile").value=linii.join("\n"); }
 

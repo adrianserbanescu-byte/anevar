@@ -15,6 +15,9 @@
  .b-low{background:#b30000}
  .pret{font-weight:bold;color:#067a06}
  .vezi{display:inline-block;margin:2px 0 6px 0;text-decoration:none;font-weight:bold}
+ table.detalii{font-size:0.8em;table-layout:fixed;width:100%}
+ table.detalii td,table.detalii th{max-width:150px;word-wrap:break-word;vertical-align:top}
+ table.detalii td:first-child,table.detalii th:first-child{font-weight:bold;background:#f7f7f7;width:130px}
 </style></head>
 <body>
 <h1>Descoperire comparabile</h1>
@@ -53,15 +56,19 @@ function badgeClass(c){
   if(c.relevanta>=60) return 'b-mid';
   return 'b-low';
 }
+function tabelAtribute(c){
+  const A=c.atribute;
+  const cel=v=>`<td>${(v===null||v===undefined||v==='')?'➖':v}</td>`;
+  const head='<tr><th>Criteriu</th>'+A.map(a=>`<th>${a.nume}</th>`).join('')+'</tr>';
+  const ref ='<tr><td>Referință (subiect)</td>'+A.map(a=>cel(a.valoare_subiect)).join('')+'</tr>';
+  const gas ='<tr><td>Găsit în anunț</td>'+A.map(a=>cel(a.valoare_candidat)).join('')+'</tr>';
+  const dd  ='<tr><td>d (folosit în formulă)</td>'+A.map(a=>`<td>${a.cunoscut?a.d:'<i>neaplicabil</i>'}</td>`).join('')+'</tr>';
+  const pon ='<tr><td>Pondere</td>'+A.map(a=>`<td>${a.pondere}</td>`).join('')+'</tr>';
+  return '<table class="detalii">'+head+ref+gas+dd+pon+'</table>';
+}
 function randCandidat(c){
-  let attr = '<table><tr><th>Atribut</th><th>Valoare găsită</th><th>d</th>'
-           + '<th>pondere</th><th>contribuție</th></tr>';
-  c.atribute.forEach(a => attr += `<tr><td>${a.nume}</td>`
-     + `<td>${a.valoare_candidat ?? '➖ nementionat'}</td>`
-     + `<td>${a.d ?? '—'}</td><td>${a.pondere}</td>`
-     + `<td>${a.contributie ?? '(exclus)'}</td></tr>`);
-  attr += '</table>';
-  let sec = c.secundare.map(s => `${s.nume}: ${s.stare}`
+  const secId = (c.secundare||[]).filter(s=>s.stare!=='nementionat');
+  const sec = secId.map(s => `${s.nume}: ${s.stare}`
      + (s.valoare_gasita ? ` („${s.valoare_gasita}")` : '')).join(' · ');
   let avert = c.incredere_scazuta ? ' <span class="alerta">(date insuficiente — verifică manual)</span>' : '';
   return `<div class="candidat">
@@ -70,8 +77,8 @@ function randCandidat(c){
       <span class="pret">${c.pret?c.pret+' '+(c.moneda||'EUR'):'preț ?'}</span>
       · ${c.suprafata||'?'} mp construiți${c.pret_mp?' · <b>'+c.pret_mp+' €/mp</b> (teren comparabil)':''}${avert}</label></h3>
     <a class="vezi" href="${c.url}" target="_blank">▶ Vezi anunțul${c.titlu?': '+c.titlu:''}</a>
+    ${tabelAtribute(c)}
     <p class="hint">${c.explicatie}</p>
-    ${attr}
     ${sec ? '<p class="hint"><b>Secundare:</b> '+sec+'</p>' : ''}
   </div>`;
 }
