@@ -75,6 +75,12 @@
 <!-- PAS 4 -->
 <section id="pas-4" class="pas">
   <h2>Pas 4 — Metodă & calcul</h2>
+  <label>Adresă pentru raport (adaugă diacriticele dacă e cazul)</label>
+  <textarea id="adresa_raport" rows="2" cols="60"></textarea>
+  <small class="hint">Aceasta este adresa care apare în <b>raportul final</b>. Județul și localitatea
+   sunt deja cu diacritice (din liste); completează/corectează diacriticele pentru stradă și restul
+   adresei înainte de a genera raportul.</small><br>
+  <label>Metodă</label>
   <select id="metoda">
     <option value="cost">Cost (CIN + teren)</option>
     <option value="piata">Piață (comparație)</option>
@@ -103,7 +109,7 @@ const CAMPURI = ["judet","localitate","localitate_alt","adresa_strada","client_n
  "numar_cadastral","carte_funciara","evaluator_nume","evaluator_legitimatie",
  "data_evaluarii","data_raportului","suprafata_teren","au","acd","an_referinta",
  "valoare_teren","elemente","depreciere","attr_an","attr_stare","attr_finisaj",
- "attr_incalzire","comparabile","metoda"];
+ "attr_incalzire","comparabile","metoda","adresa_raport"];
 
 function salveaza(){ const s={}; CAMPURI.forEach(c=>{if($(c))s[c]=$(c).value});
   localStorage.setItem("wizard", JSON.stringify(s)); }
@@ -111,7 +117,8 @@ function incarca(){ try{ const s=JSON.parse(localStorage.getItem("wizard")||"{}"
   CAMPURI.forEach(c=>{if($(c)&&s[c]!=null)$(c).value=s[c]}); }catch(e){} }
 function arata(){ for(let i=1;i<=PASI;i++) $("pas-"+i).classList.toggle("activ", i===pas);
   $("progres").style.width=(pas*100/PASI)+"%"; $("eticheta-pas").textContent="Pas "+pas+" / "+PASI;
-  $("inapoi").disabled=(pas===1); }
+  $("inapoi").disabled=(pas===1);
+  if(pas===4 && !$("adresa_raport").value.trim()) $("adresa_raport").value=composeAdresa(); }
 
 $("inainte").addEventListener("click", ()=>{
   if(pas<PASI){ pas++; salveaza(); arata(); }
@@ -139,6 +146,9 @@ function populeazaLocalitati(){
 }
 function localitateSlug(){ const v=$("localitate").value;
   return v==="__alt__" ? ($("localitate_alt").value.trim()) : v; }
+function composeAdresa(){
+  return [$("adresa_strada").value, ($("localitate").selectedOptions[0]||{}).text||"",
+          ($("judet").selectedOptions[0]||{}).text||""].filter(Boolean).join(", "); }
 
 $("btn-descopera").addEventListener("click", async ()=>{
   $("desc_status").textContent="Caut...";
@@ -169,8 +179,7 @@ function asambleaza(){
   const comparables=$("comparabile").value.trim().split("\n").filter(Boolean).map(l=>{
     const[pret,suprafata]=l.split(";"); return{pret,suprafata};});
   return{meta:{client_nume:$("client_nume").value,
-      adresa:[$("adresa_strada").value, ($("localitate").selectedOptions[0]||{}).text||"",
-              ($("judet").selectedOptions[0]||{}).text||""].filter(Boolean).join(", "),
+      adresa:$("adresa_raport").value.trim() || composeAdresa(),
       numar_cadastral:$("numar_cadastral").value,carte_funciara:$("carte_funciara").value,
       evaluator_nume:$("evaluator_nume").value,evaluator_legitimatie:$("evaluator_legitimatie").value,
       data_evaluarii:$("data_evaluarii").value,data_raportului:$("data_raportului").value},
