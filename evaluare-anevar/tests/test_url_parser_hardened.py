@@ -45,3 +45,17 @@ def test_title_regex_fallback_for_surface():
     parsed = parse_listing_html(html)
     assert parsed.suprafata == Decimal("220")
     assert parsed.pret == Decimal("500000")
+
+
+def test_extrage_teren_imobiliare_format_romanesc():
+    # imobiliare: terenul e in text "Sup. teren: 1.910 mp" (punctul = separator de mii)
+    html = '<html><body><div>Sup. utila: 149 mp Sup. teren: 1.910 mp Tip prop.: Individuala</div></body></html>'
+    p = parse_listing_html(html)
+    assert p.suprafata_teren == Decimal("1910")
+
+
+def test_to_decimal_ro_format_romanesc():
+    from evaluare.importers.url_parser import _to_decimal_ro
+    assert _to_decimal_ro("1.910") == Decimal("1910")
+    assert _to_decimal_ro("351,46") == Decimal("351.46")
+    assert _to_decimal_ro("149") == Decimal("149")

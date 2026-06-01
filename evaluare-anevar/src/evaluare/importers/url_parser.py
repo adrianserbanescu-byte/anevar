@@ -35,10 +35,25 @@ class ParsedListing(BaseModel):
 
 
 def _to_decimal(value) -> Optional[Decimal]:
+    """Pentru valori din date structurate (JSON-LD): '.' = zecimale (format international)."""
     if value is None:
         return None
     try:
         return Decimal(str(value).replace(" ", "").replace(",", "."))
+    except (InvalidOperation, ValueError):
+        return None
+
+
+def _to_decimal_ro(value) -> Optional[Decimal]:
+    """Pentru numere din TEXT de afisare romanesc: '.' = separator de mii, ',' = zecimale.
+
+    Ex.: '1.910' -> 1910 ; '351,46' -> 351.46.
+    """
+    if value is None:
+        return None
+    s = str(value).strip().replace(" ", "").replace(".", "").replace(",", ".")
+    try:
+        return Decimal(s)
     except (InvalidOperation, ValueError):
         return None
 
@@ -175,6 +190,13 @@ def parse_listing_html(html: str, sursa_url: str = "") -> ParsedListing:
         if m:
             pret = _to_decimal(m.group(1).replace(".", "").replace(" ", ""))
             moneda = moneda or m.group(2).upper().replace("EURO", "EUR").replace("€", "EUR")
+
+    # 5) suprafata terenului din tabelul de caracteristici (imobiliare: "Sup. teren: 1.910 mp")
+    if suprafata_teren is None:
+        body = soup.get_text(" ", strip=True)
+        m = re.search(r"sup\w*\.?\s*teren\s*:?\s*([\d.,]+)\s*mp", body, re.IGNORECASE)
+        if m:
+            suprafata_teren = _to_decimal_ro(m.group(1))
 
     return ParsedListing(pret=pret, moneda=moneda, suprafata=suprafata,
                          suprafata_teren=suprafata_teren, titlu=titlu, sursa_url=sursa_url)

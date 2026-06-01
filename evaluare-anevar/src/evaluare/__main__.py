@@ -1,8 +1,10 @@
 """Pornire: incarca config, deschide browserul, ruleaza serverul local."""
 from __future__ import annotations
 
+import sys
 import threading
 import webbrowser
+from pathlib import Path
 
 import uvicorn
 
@@ -14,8 +16,15 @@ HOST = "127.0.0.1"
 PORT = 8000
 
 
+def _incarca_env() -> None:
+    """Incarca .env din directorul curent SI de langa executabil (cazul .exe)."""
+    load_env_file(".env")                                   # directorul curent
+    if getattr(sys, "frozen", False):                       # rulat ca .exe (PyInstaller)
+        load_env_file(Path(sys.executable).parent / ".env")  # langa executabil
+
+
 def main() -> None:
-    load_env_file(".env")
+    _incarca_env()
     settings = Settings.from_env()
     storage = Storage(settings.db_path)
     storage.init()
