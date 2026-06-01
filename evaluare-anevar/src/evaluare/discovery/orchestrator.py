@@ -44,6 +44,10 @@ def descopera(
         parsed = parse_listing_html(html, sursa_url=url)
         descriere = extrage_descriere(html)
         extraction = extrage_atribute(descriere, atribute_secundare, client=client)
+        # suprafata casei pentru potrivire = suprafata reala din anunt (parser, nu LLM)
+        extraction.profile.suprafata_construita = parsed.suprafata
+        if parsed.suprafata is not None:
+            extraction.profile.texte.setdefault("suprafata_construita", str(parsed.suprafata))
         breakdown = scor_candidat(subiect, extraction.profile)
         rezultate.append(CandidateResult(
             url=url, titlu=parsed.titlu, pret=parsed.pret, suprafata=parsed.suprafata,

@@ -98,11 +98,15 @@ afișat ca atare (evaluatorul completează manual sau îl ignoră).
 
 Ordinea de prioritate (cât mută prețul), **confirmată de evaluator — de revizuit ulterior dacă e cazul**:
 
-1. **An construcție**
-2. **Stare construcție** (separată de an: o casă veche renovată ≠ una nouă neîntreținută)
-3. **Nivel finisaj**
-4. **Tip încălzire**
-5. **Suprafață teren**
+1. **Suprafață construită** (suprafața casei, ex. Acd — driver major de comparabilitate; pondere 5, alimentată din suprafața reală a anunțului prin parser, nu LLM)
+2. **An construcție** (pondere 5)
+3. **Stare construcție** (separată de an: o casă veche renovată ≠ una nouă neîntreținută)
+4. **Nivel finisaj**
+5. **Tip încălzire**
+6. **Suprafață teren**
+
+(Notă: modelul a fost extins de la 5 la 6 atribute primare — s-a adăugat suprafața construită a casei.
+Total ponderi = 20. Pragurile/ponderile rămân „de revizuit ulterior".)
 
 Pentru fiecare atribut primar, LLM-ul întoarce **valoarea regăsită în anunț** (ex. an=2008,
 stare=„renovată 2021", finisaj=„lux", încălzire=„centrală pe gaz", teren=450 mp), sau

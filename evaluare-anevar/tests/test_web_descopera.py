@@ -37,7 +37,7 @@ def test_post_descopera_returns_metodologie_and_candidati(tmp_path):
     resp = client.post("/api/descopera", json=payload)
     assert resp.status_code == 200
     data = resp.json()
-    assert len(data["metodologie"]) == 5
+    assert len(data["metodologie"]) == 6
     assert len(data["candidati"]) == 3
     c0 = data["candidati"][0]
     assert "relevanta" in c0 and "explicatie" in c0 and "pret" in c0

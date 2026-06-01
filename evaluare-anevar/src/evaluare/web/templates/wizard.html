@@ -33,29 +33,50 @@
    respectă aceste reguli.</small>
   <label>Stradă, număr (rest adresă)</label>
   <input id="adresa_strada" size="50" placeholder="Str. Exemplu nr. 10">
+  <small class="hint">Partea de stradă/număr a adresei (text liber). Apare în raport; o poți edita
+   cu diacritice la Pas 4.</small>
   <label>Nume client</label><input id="client_nume">
+  <small class="hint">Persoana/firma pentru care se face evaluarea. Apare în raport; anonimizat
+   ([CLIENT]) înainte de orice apel AI.</small>
   <label>Nr. cadastral</label><input id="numar_cadastral">
+  <small class="hint">Identificatorul cadastral unic. Situația juridică; anonimizat ([CADASTRAL]) la AI.</small>
   <label>Carte funciară</label><input id="carte_funciara">
+  <small class="hint">Numărul CF (drept de proprietate, sarcini). Anonimizat ([CF]) la AI.</small>
   <label>Evaluator</label><input id="evaluator_nume">
+  <small class="hint">Numele evaluatorului autorizat ANEVAR; apare în declarația de independență.</small>
   <label>Legitimație</label><input id="evaluator_legitimatie">
+  <small class="hint">Numărul legitimației ANEVAR a evaluatorului.</small>
   <label>Data evaluării</label><input id="data_evaluarii" value="2026-01-16">
+  <small class="hint">Data la care se estimează valoarea (data de referință a calculelor).</small>
   <label>Data raportului</label><input id="data_raportului" value="2026-01-16">
+  <small class="hint">Data emiterii raportului (poate diferi de data evaluării).</small>
 </section>
 
 <!-- PAS 2 -->
 <section id="pas-2" class="pas">
   <h2>Pas 2 — Proprietatea subiect</h2>
   <label>Suprafață teren (mp)</label><input id="suprafata_teren" value="500">
-  <label>Au (mp)</label><input id="au" value="100">
-  <label>Acd (mp)</label><input id="acd" value="120">
+  <small class="hint">Suprafața terenului din actul cadastral. Bază pentru valoarea terenului și
+   atribut de potrivire a comparabilelor (suprafață teren).</small>
+  <label>Au — arie utilă (mp)</label><input id="au" value="100">
+  <small class="hint">Suprafața interioară efectiv folosibilă a casei. Folosită în descriere și verificări (Au ≤ Acd).</small>
+  <label>Acd — arie construită desfășurată (mp)</label><input id="acd" value="120">
+  <small class="hint">Suprafața totală construită pe toate nivelurile. Numitor pentru costul pe mp (CIN)
+   <b>și suprafața casei folosită la potrivirea comparabilelor</b> (Pas 3).</small>
   <label>An referință</label><input id="an_referinta" value="2025">
+  <small class="hint">Anul față de care se calculează vârsta construcției (vârstă = an referință − an PIF). Determină deprecierea.</small>
   <label>Valoare teren (lei)</label><input id="valoare_teren" value="100000">
+  <small class="hint">Valoarea estimată a terenului; se adaugă la costul net al construcției (CIN) pentru valoarea prin cost.</small>
   <label>Elemente de cost (element;cod;um;cantitate;cost_unitar;an_pif)</label>
   <textarea id="elemente" rows="3" cols="80">Structura;X;mp;120;2000;2015</textarea>
+  <small class="hint">Elemente constructive (catalog IROVAL): Σ(cantitate × cost_unitar) = costul de înlocuire brut (CIB).</small>
   <label>Depreciere fizică (varsta;fractie)</label>
   <textarea id="depreciere" rows="2" cols="30">5;0.05
 15;0.15</textarea>
+  <small class="hint">Puncte (vârstă;fracție) între care se interpolează deprecierea fizică în funcție de vârsta ponderată.</small>
   <h3>Atribute pentru potrivire (descoperire)</h3>
+  <small class="hint">Folosite ca să găsim comparabile cât mai apropiate. Suprafața casei (Acd, de mai sus)
+   intră automat ca atribut de potrivire.</small>
   <label>An construcție</label><input id="attr_an" value="2013" size="5">
   <label>Stare construcție</label>
   <select id="attr_stare">
@@ -171,7 +192,8 @@ function composeAdresa(){
 $("btn-descopera").addEventListener("click", async ()=>{
   $("desc_status").textContent="Caut...";
   const payload={portal:"imobiliare", judet:$("judet").value, localitate:localitateSlug(),
-    subiect:{an:parseInt($("attr_an").value)||null, stare:parseInt($("attr_stare").value)||null,
+    subiect:{suprafata_construita:$("acd").value||null,
+      an:parseInt($("attr_an").value)||null, stare:parseInt($("attr_stare").value)||null,
       finisaj:parseInt($("attr_finisaj").value)||null, incalzire:$("attr_incalzire").value||null,
       teren:$("suprafata_teren").value||null}, atribute_secundare:[], max_candidati:8};
   try{ const r=await fetch("/api/descopera",{method:"POST",

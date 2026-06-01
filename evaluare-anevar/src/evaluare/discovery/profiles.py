@@ -10,16 +10,18 @@ from pydantic import BaseModel, Field
 class SubjectProfile(BaseModel):
     """Atributele primare ale casei evaluate (normalizate pentru scoring)."""
 
+    suprafata_construita: Optional[Decimal] = None   # mp (suprafata casei, ex. Acd)
     an: Optional[int] = None                # an constructie
     stare: Optional[int] = None             # treapta 1-5 (1=degradata .. 5=noua)
     finisaj: Optional[int] = None           # treapta 1-4 (1=modest .. 4=lux)
     incalzire: Optional[str] = None         # categorie normalizata (ex. "centrala_gaz")
-    teren: Optional[Decimal] = None         # mp
+    teren: Optional[Decimal] = None         # mp (suprafata teren)
 
 
 class CandidateProfile(BaseModel):
     """Atributele primare extrase pentru un candidat + textul brut gasit (dovada)."""
 
+    suprafata_construita: Optional[Decimal] = None   # mp (din anunt, via parser)
     an: Optional[int] = None
     stare: Optional[int] = None
     finisaj: Optional[int] = None

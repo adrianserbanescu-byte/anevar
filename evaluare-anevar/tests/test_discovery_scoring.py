@@ -29,7 +29,21 @@ def test_d_teren():
 
 
 def test_ponderi():
-    assert PONDERI == {"an": 5, "stare": 4, "finisaj": 3, "incalzire": 2, "teren": 1}
+    assert PONDERI == {"suprafata_construita": 5, "an": 5, "stare": 4,
+                       "finisaj": 3, "incalzire": 2, "teren": 1}
+
+
+def test_suprafata_construita_intra_in_scor():
+    from evaluare.discovery.scoring import d_suprafata
+    assert d_suprafata(Decimal("120"), Decimal("108")) == 0.1
+    subiect = SubjectProfile(suprafata_construita=Decimal("120"), an=2013)
+    candidat = CandidateProfile(suprafata_construita=Decimal("120"), an=2013)
+    b = scor_candidat(subiect, candidat)
+    # potrivire perfecta pe ambele -> relevanta 100, ambele cunoscute
+    assert b.relevanta == 100
+    supr = next(a for a in b.atribute if a.nume == "Supr. construită")
+    assert supr.cunoscut is True
+    assert supr.pondere == 5
 
 
 def test_scor_candidat_exemplul_din_spec_86():

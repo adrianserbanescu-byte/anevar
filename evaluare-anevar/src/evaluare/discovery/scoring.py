@@ -13,7 +13,12 @@ from evaluare.discovery.profiles import (
 )
 
 # Ponderi dupa prioritatea atributelor (spec 5.3). De calibrat ulterior.
-PONDERI = {"an": 5, "stare": 4, "finisaj": 3, "incalzire": 2, "teren": 1}
+# suprafata_construita = suprafata casei (din anunt), driver major de comparabilitate.
+PONDERI = {"suprafata_construita": 5, "an": 5, "stare": 4, "finisaj": 3,
+           "incalzire": 2, "teren": 1}
+
+# Ordinea de parcurgere a atributelor primare la scorare.
+ORDINE = ["suprafata_construita", "an", "stare", "finisaj", "incalzire", "teren"]
 
 PRAG_AN = 25                 # ani peste care diferenta e maxima
 TREPTE_STARE = 4             # 5 trepte -> diferenta maxima 4
@@ -43,15 +48,26 @@ def d_incalzire(s: str, c: str) -> float:
     return 1.0
 
 
-def d_teren(s: Decimal, c: Decimal) -> float:
+def _d_relativ(s: Decimal, c: Decimal) -> float:
+    """Diferenta relativa pentru suprafete (teren / construit)."""
     if s == 0:
         return 1.0
     return min(float(abs(s - c) / s), 1.0)
 
 
+def d_teren(s: Decimal, c: Decimal) -> float:
+    return _d_relativ(s, c)
+
+
+def d_suprafata(s: Decimal, c: Decimal) -> float:
+    return _d_relativ(s, c)
+
+
 def _d_pentru(nume: str, sv, cv) -> Optional[float]:
     if sv is None or cv is None:
         return None
+    if nume == "suprafata_construita":
+        return d_suprafata(sv, cv)
     if nume == "an":
         return d_an(sv, cv)
     if nume == "stare":
@@ -65,8 +81,8 @@ def _d_pentru(nume: str, sv, cv) -> Optional[float]:
     raise ValueError(f"Atribut necunoscut: {nume}")
 
 
-_ETICHETE = {"an": "An", "stare": "Stare", "finisaj": "Finisaj",
-             "incalzire": "Încălzire", "teren": "Teren"}
+_ETICHETE = {"suprafata_construita": "Supr. construită", "an": "An", "stare": "Stare",
+             "finisaj": "Finisaj", "incalzire": "Încălzire", "teren": "Teren"}
 
 
 def scor_candidat(subiect: SubjectProfile, candidat: CandidateProfile) -> ScoreBreakdown:
@@ -78,7 +94,7 @@ def scor_candidat(subiect: SubjectProfile, candidat: CandidateProfile) -> ScoreB
     ponderi_formula: list[str] = []
     necunoscute = 0
 
-    for nume in ["an", "stare", "finisaj", "incalzire", "teren"]:
+    for nume in ORDINE:
         sv = getattr(subiect, nume)
         cv = getattr(candidat, nume)
         pondere = PONDERI[nume]
@@ -109,12 +125,12 @@ def scor_candidat(subiect: SubjectProfile, candidat: CandidateProfile) -> ScoreB
     else:
         dissim = suma_contributii / suma_ponderi
     relevanta = round(100 * (1 - dissim))
-    cunoscute = 5 - necunoscute
+    cunoscute = len(ORDINE) - necunoscute
     incredere_scazuta = necunoscute >= PRAG_INCREDERE_LIPSA
 
     numarator = " + ".join(termeni_formula) if termeni_formula else "0"
     numitor = "+".join(ponderi_formula) if ponderi_formula else "1"
-    excluse = [_ETICHETE[n] for n in ["an", "stare", "finisaj", "incalzire", "teren"]
+    excluse = [_ETICHETE[n] for n in ORDINE
                if getattr(subiect, n) is None or getattr(candidat, n) is None]
     nota_excluse = (f" {', '.join(excluse)}: nementionat (exclus din calcul)."
                     if excluse else "")
@@ -132,8 +148,10 @@ def scor_candidat(subiect: SubjectProfile, candidat: CandidateProfile) -> ScoreB
 
 def metodologie() -> list[dict]:
     """Descrie metodologia de scoring pentru afișare (tabel UI, înainte de rezultate)."""
-    total = sum(PONDERI.values())  # 15
+    total = sum(PONDERI.values())  # 20
     randuri = [
+        ("Supr. construită", "suprafata_construita",
+         "min(|supr_subiect - supr_anunt| / supr_subiect, 1)"),
         ("An", "an", "min(|an_subiect - an_anunt| / 25, 1)"),
         ("Stare", "stare", "|treapta_subiect - treapta_anunt| / 4  (5 trepte)"),
         ("Finisaj", "finisaj", "|treapta_subiect - treapta_anunt| / 3  (4 trepte)"),
