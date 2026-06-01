@@ -30,3 +30,10 @@ def test_wizard_pas1_are_dropdown_judet_localitate(tmp_path):
     assert '<select id="localitate"' in body
     assert "/api/localitati" in body
     assert 'id="adresa_strada"' in body
+
+
+def test_wizard_are_atribute_secundare(tmp_path):
+    client = _client(tmp_path)
+    body = client.get("/wizard").text
+    assert 'id="atribute_secundare"' in body
+    assert "Atribute secundare" in body
