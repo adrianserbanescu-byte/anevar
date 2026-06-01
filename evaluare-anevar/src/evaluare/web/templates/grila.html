@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head><meta charset="utf-8"><title>Grilă de ajustări (teren + casă)</title>
+<style>
+ body{font-family:Arial,sans-serif;max-width:1000px;margin:20px auto;line-height:1.5}
+ h1{font-size:1.4em} h2{font-size:1.15em;margin-top:28px;border-bottom:2px solid #2a6;padding-bottom:3px}
+ table{border-collapse:collapse;margin:10px 0;width:100%}
+ th,td{border:1px solid #ccc;padding:3px 7px;font-size:0.88em}
+ th{background:#f3f6f3}
+ td:first-child,th:first-child{text-align:left;background:#f7f7f7;font-weight:bold;width:230px}
+ input.cell{width:78px;text-align:right;border:1px solid #bbb;padding:2px}
+ input.base{width:96px;text-align:right;font-weight:bold}
+ .eur{color:#a60} .pct{color:#06c}
+ .hint{color:#666;font-size:0.85em}
+ .row-pret td:first-child,.row-supr td:first-child{background:#eef}
+ button{margin:8px 0;padding:7px 16px;font-size:0.95em;cursor:pointer}
+ .rez{border:1px solid #2a6;border-radius:6px;padding:10px 14px;margin:10px 0;background:#f6fbf6}
+ .rez table{width:auto}
+ .sel{background:#dff3df;font-weight:bold}
+ .val{font-size:1.15em;font-weight:bold;color:#067a06}
+ .nav{font-size:0.9em;margin-bottom:10px}
+ .err{color:#b30000}
+</style></head>
+<body>
+<div class="nav"><a href="/">← wizard</a> · <a href="/descoperire">descoperire comparabile</a></div>
+<h1>Grilă de ajustări</h1>
+<p class="hint">Completează prețul de pornire și ajustările pe fiecare element, pentru fiecare comparabil.
+Ajustările <span class="pct">procentuale</span> se introduc în <b>puncte %</b> (ex. <code>-10</code> = −10%);
+cele <span class="eur">valorice</span> în <b>EUR</b> (ex. <code>-5000</code>). Gol = neaplicat (0).
+Se aplică <b>secvențial</b>; se alege comparabilul cu <b>ajustarea brută minimă</b>.</p>
+
+<!-- ================= TEREN ================= -->
+<h2>Grilă teren — valoare = preț/mp corectat × suprafață subiect</h2>
+<div id="tabel-teren"></div>
+<p>Suprafață teren subiect (mp): <input id="supr-teren" class="base" value="1000"></p>
+<button onclick="calcul('teren')">Calculează grila teren</button>
+<div id="rez-teren"></div>
+
+<!-- ================= CASĂ ================= -->
+<h2>Grilă casă — valoare = preț unitar corectat × suprafață subiect (ACD)</h2>
+<div id="tabel-casa"></div>
+<p>Suprafață subiect ACD (mp): <input id="supr-casa" class="base" value="120"></p>
+<button onclick="calcul('casa')">Calculează grila casă</button>
+<div id="rez-casa"></div>
+
+<script>
+const NCOMP = 3;
+
+// Catalog elemente. tip: "procentuala" sau "valorica".
+const ELEM = {
+ teren: [
+  "Ofertă→Tranzacție","Drept de proprietate","Finanțare","Condiții de vânzare",
+  "Cheltuieli post-vânzare","Condițiile pieței (timp)","Localizare","Acces","Utilități",
+  "Suprafață","Deschidere (front stradal)","Înclinație","Tip teren","Document urbanistic",
+  "Regim juridic (intra/extravilan)","Regim economic (destinație)","Indicatori urbanism (CUT/POT)"
+ ].map(e => ({nume:e, tip:"procentuala"})),
+ casa: [
+  {nume:"Negociere", tip:"procentuala"},
+  {nume:"Componente non-imobiliare (mobilier)", tip:"valorica"},
+  {nume:"Drept de proprietate", tip:"procentuala"},
+  {nume:"Finanțare", tip:"procentuala"},
+  {nume:"Condiții de vânzare", tip:"procentuala"},
+  {nume:"Condițiile pieței (timp)", tip:"procentuala"},
+  {nume:"Localizare", tip:"procentuala"},
+  {nume:"Suprafață teren (EUR/mp × Δ)", tip:"valorica"},
+  {nume:"Arie utilă (EUR)", tip:"valorica"},
+  {nume:"Destinație", tip:"procentuala"},
+  {nume:"PIF / vechime", tip:"procentuala"},
+  {nume:"Acces", tip:"procentuala"},
+  {nume:"Curte", tip:"procentuala"},
+  {nume:"Finisaje", tip:"procentuala"},
+  {nume:"Sistem încălzire", tip:"procentuala"},
+  {nume:"Alte elemente (garaj, anexe)", tip:"valorica"},
+ ],
+};
+
+function head(){
+ let h = "<tr><th>Element</th>";
+ for(let i=0;i<NCOMP;i++) h += `<th>Comp ${i+1}</th>`;
+ return h + "</tr>";
+}
+function baseRows(grid){
+ // pret de pornire (+ suprafata comp pentru casa)
+ const lblPret = grid==="teren" ? "Preț (EUR/mp)" : "Preț ofertă (EUR)";
+ let r = `<tr class="row-pret"><td>${lblPret}</td>`;
+ for(let i=0;i<NCOMP;i++) r += `<td><input class="base" data-g="${grid}" data-pret="${i}"></td>`;
+ r += "</tr>";
+ if(grid==="casa"){
+   r += `<tr class="row-supr"><td>Suprafață comp (mp)</td>`;
+   for(let i=0;i<NCOMP;i++) r += `<td><input class="base" data-g="${grid}" data-supr="${i}"></td>`;
+   r += "</tr>";
+ }
+ return r;
+}
+function elemRows(grid){
+ let out = "";
+ ELEM[grid].forEach((el, idx) => {
+   const cls = el.tip==="valorica" ? "eur" : "pct";
+   const unit = el.tip==="valorica" ? "EUR" : "%";
+   out += `<tr><td><span class="${cls}">${el.nume}</span> <span class="hint">(${unit})</span></td>`;
+   for(let i=0;i<NCOMP;i++)
+     out += `<td><input class="cell" data-g="${grid}" data-el="${idx}" data-c="${i}"></td>`;
+   out += "</tr>";
+ });
+ return out;
+}
+function buildTable(grid){
+ document.getElementById("tabel-"+grid).innerHTML =
+   "<table>" + head() + baseRows(grid) + elemRows(grid) + "</table>";
+}
+buildTable("teren"); buildTable("casa");
+
+function num(v){ v=(v||"").trim(); if(v==="") return null; const n=Number(v.replace(",",".")); return isNaN(n)?null:n; }
+
+function colecteaza(grid){
+ const comps = [];
+ for(let i=0;i<NCOMP;i++){
+   const pret = num(document.querySelector(`[data-g="${grid}"][data-pret="${i}"]`).value);
+   if(pret===null) continue; // comparabil necompletat -> ignorat
+   const adj = [];
+   ELEM[grid].forEach((el, idx) => {
+     const raw = num(document.querySelector(`[data-g="${grid}"][data-el="${idx}"][data-c="${i}"]`).value);
+     if(raw===null || raw===0) return;
+     const val = el.tip==="procentuala" ? (raw/100) : raw;
+     adj.push({element: el.nume, tip: el.tip, valoare: String(val)});
+   });
+   if(grid==="teren"){
+     comps.push({pret_mp:String(pret), suprafata:"1", adjustments:adj});
+   } else {
+     const supr = num(document.querySelector(`[data-g="${grid}"][data-supr="${i}"]`).value) || 1;
+     comps.push({pret:String(pret), suprafata:String(supr), adjustments:adj});
+   }
+ }
+ return comps;
+}
+
+async function calcul(grid){
+ const rezDiv = document.getElementById("rez-"+grid);
+ const comparabile = colecteaza(grid);
+ if(comparabile.length===0){ rezDiv.innerHTML = '<p class="err">Completează cel puțin un preț de pornire.</p>'; return; }
+ const supr = num(document.getElementById("supr-"+grid).value);
+ if(supr===null){ rezDiv.innerHTML = '<p class="err">Completează suprafața subiectului.</p>'; return; }
+ const url = grid==="teren" ? "/api/grila-teren" : "/api/grila-casa";
+ rezDiv.innerHTML = "Se calculează…";
+ try{
+   const resp = await fetch(url, {method:"POST", headers:{"Content-Type":"application/json"},
+     body: JSON.stringify({suprafata_subiect:String(supr), comparabile})});
+   if(!resp.ok){ rezDiv.innerHTML = '<p class="err">Eroare: '+resp.status+' — verifică valorile introduse.</p>'; return; }
+   const d = await resp.json();
+   afiseaza(grid, d, rezDiv);
+ }catch(e){ rezDiv.innerHTML = '<p class="err">Eroare rețea: '+e+'</p>'; }
+}
+
+function afiseaza(grid, d, div){
+ const preturi = grid==="teren" ? d.preturi_mp_corectate : d.preturi_unitare_corectate;
+ const unitLbl = grid==="teren" ? "Preț/mp corectat" : "Preț unitar corectat";
+ let t = '<div class="rez"><table><tr><th>Comparabil</th><th>'+unitLbl+'</th><th>Ajustare brută</th><th>Selecție</th></tr>';
+ preturi.forEach((p,i) => {
+   const sel = i===d.index_selectat;
+   const bruta = (parseFloat(d.ajustari_brute[i])*100).toFixed(1)+"%";
+   t += `<tr class="${sel?'sel':''}"><td>Comp ${i+1}</td><td>${(+p).toFixed(2)}</td><td>${bruta}</td><td>${sel?'✓ ales':''}</td></tr>`;
+ });
+ t += "</table>";
+ if(grid==="teren")
+   t += `<p class="val">Valoare teren = ${(+d.pret_mp_ales).toFixed(2)} EUR/mp × suprafață = ${(+d.valoare_teren).toLocaleString('ro-RO')} EUR</p>`;
+ else
+   t += `<p class="val">Valoare prin comparație = ${(+d.valoare_piata).toLocaleString('ro-RO')} EUR</p>`;
+ t += "</div>";
+ div.innerHTML = t;
+}
+</script>
+</body>
+</html>

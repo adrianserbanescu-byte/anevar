@@ -2,7 +2,7 @@ from decimal import Decimal
 
 from evaluare.models.meta import EvaluationMeta
 from evaluare.models.property import BuildingData, CostElement, DepreciationPoint, LandData
-from evaluare.models.comparable import Adjustment, Comparable
+from evaluare.models.comparable import Adjustment, Comparable, LandComparable
 from evaluare.assembler import EvaluationInput, construieste_context, valideaza
 
 
@@ -68,6 +68,24 @@ def test_valideaza_piata_sub_3_comparabile_blocheaza():
     )
     issues = valideaza(inp)
     assert any(i.nivel == "blocheaza" for i in issues)
+
+
+def test_valoare_teren_din_grila_de_teren():
+    inp = EvaluationInput(
+        meta=_meta(), land=LandData(suprafata=Decimal("1000")),
+        building=_building_with_elements(),
+        land_comparables=[
+            LandComparable(pret_mp=Decimal("100"), suprafata=Decimal("450"),
+                           adjustments=[Adjustment(element="A", tip="procentuala",
+                                                   valoare=Decimal("0.05"))]),
+        ],
+        metoda="cost",
+    )
+    ctx = construieste_context(inp, client=None)
+    # valoare teren = 105 EUR/mp * 1000 mp = 105000 (din grila, nu manual)
+    assert ctx.land_result is not None
+    assert ctx.land_result.valoare_teren == Decimal("105000.00")
+    assert ctx.alocare_constructii is not None
 
 
 def test_valideaza_cost_nu_cere_comparabile():

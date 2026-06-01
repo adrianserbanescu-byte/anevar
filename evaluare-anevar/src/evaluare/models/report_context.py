@@ -1,6 +1,7 @@
 """Agregatul care leaga toate datele necesare generarii raportului."""
 from __future__ import annotations
 
+from decimal import Decimal
 from typing import Optional
 
 from pydantic import BaseModel, Field
@@ -8,7 +9,7 @@ from pydantic import BaseModel, Field
 from evaluare.models.meta import EvaluationMeta
 from evaluare.models.property import BuildingData, LandData
 from evaluare.models.comparable import Comparable, LandComparable
-from evaluare.models.results import CostResult, MarketResult, ReconciledResult
+from evaluare.models.results import CostResult, MarketResult, ReconciledResult, LandResult
 from evaluare.models.narrative import NarrativeSection
 
 
@@ -23,4 +24,6 @@ class ReportContext(BaseModel):
     cost_result: Optional[CostResult] = None
     market_result: Optional[MarketResult] = None
     reconciled: ReconciledResult
+    land_result: Optional[LandResult] = None
+    alocare_constructii: Optional[Decimal] = None
     narrative: list[NarrativeSection] = Field(default_factory=list)

@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import tempfile
+from decimal import Decimal
 from pathlib import Path
 from typing import Callable, Optional
 
@@ -11,6 +12,9 @@ from fastapi.templating import Jinja2Templates
 from pydantic import BaseModel
 
 from evaluare.assembler import EvaluationInput, construieste_context, valideaza
+from evaluare.models.comparable import Comparable, LandComparable
+from evaluare.engine.land import evaluate_land
+from evaluare.engine.market import evaluate_market
 from evaluare.ai.narrative import NarrativeClient
 from evaluare.db.storage import Storage
 from evaluare.importers.url_parser import fetch_html, import_from_url
@@ -30,6 +34,16 @@ class ImportUrlRequest(BaseModel):
 
 class ZonaRequest(BaseModel):
     adresa: str
+
+
+class GrilaTerenRequest(BaseModel):
+    suprafata_subiect: Decimal
+    comparabile: list[LandComparable]
+
+
+class GrilaCasaRequest(BaseModel):
+    suprafata_subiect: Decimal
+    comparabile: list[Comparable]
 
 
 class DescoperaRequest(BaseModel):
@@ -155,5 +169,32 @@ def create_app(storage: Storage, client: Optional[NarrativeClient],
         judete = _judete()
         return {"judete": judete,
                 "localitati": {j["slug"]: _localitati(j["slug"]) for j in judete}}
+
+    @app.post("/api/grila-teren")
+    def grila_teren(req: GrilaTerenRequest) -> dict:
+        r = evaluate_land(req.comparabile, req.suprafata_subiect)
+        return {
+            "preturi_mp_corectate": [str(p) for p in r.preturi_mp_corectate],
+            "ajustari_brute": [str(b) for b in r.ajustari_brute],
+            "ajustari_nete": [str(n) for n in r.ajustari_nete],
+            "index_selectat": r.index_selectat,
+            "pret_mp_ales": str(r.pret_mp_ales),
+            "valoare_teren": str(r.valoare_teren),
+        }
+
+    @app.post("/api/grila-casa")
+    def grila_casa(req: GrilaCasaRequest) -> dict:
+        r = evaluate_market(req.comparabile, req.suprafata_subiect)
+        return {
+            "preturi_unitare_corectate": [str(p) for p in r.preturi_unitare_corectate],
+            "ajustari_brute": [str(b) for b in r.ajustari_brute],
+            "ajustari_nete": [str(n) for n in r.ajustari_nete],
+            "index_selectat": r.index_selectat,
+            "valoare_piata": str(r.valoare_piata),
+        }
+
+    @app.get("/grila", response_class=HTMLResponse)
+    def pagina_grila(request: Request) -> HTMLResponse:
+        return templates.TemplateResponse(request, "grila.html", {})
 
     return app

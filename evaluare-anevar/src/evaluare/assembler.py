@@ -13,8 +13,9 @@ from evaluare.models.report_context import ReportContext
 from evaluare.ai.narrative import generate_narrative, NarrativeClient
 from evaluare.report.anonymizer import build_anonymizer
 from evaluare.engine.cost import evaluate_cost
+from evaluare.engine.land import evaluate_land
 from evaluare.engine.market import evaluate_market
-from evaluare.engine.reconciliation import reconcile
+from evaluare.engine.reconciliation import reconcile, aloca_constructii
 from evaluare.engine.validation import (
     Issue, valideaza_proprietate, valideaza_comparabile, valideaza_depreciere,
 )
@@ -51,9 +52,17 @@ def construieste_context(
     inp: EvaluationInput, client: Optional[NarrativeClient]
 ) -> ReportContext:
     """Ruleaza motoarele si asambleaza ReportContext (inclusiv narativul)."""
+    # Teren: daca exista comparabile de teren, valoarea se calculeaza prin grila;
+    # altfel se foloseste valoarea introdusa manual.
+    land_result = None
+    valoare_teren = inp.valoare_teren
+    if inp.land_comparables:
+        land_result = evaluate_land(inp.land_comparables, inp.land.suprafata)
+        valoare_teren = land_result.valoare_teren
+
     cost_result = None
     if inp.building.elements:
-        cost_result = evaluate_cost(inp.building, valoare_teren=inp.valoare_teren)
+        cost_result = evaluate_cost(inp.building, valoare_teren=valoare_teren)
 
     market_result = None
     if inp.comparables:
@@ -64,10 +73,15 @@ def construieste_context(
         metoda=inp.metoda, pondere_piata=inp.pondere_piata,
     )
 
+    alocare = None
+    if valoare_teren is not None:
+        alocare = aloca_constructii(reconciled.valoare_finala, valoare_teren)
+
     ctx = ReportContext(
         meta=inp.meta, land=inp.land, building=inp.building,
         comparables=inp.comparables, land_comparables=inp.land_comparables,
         cost_result=cost_result, market_result=market_result, reconciled=reconciled,
+        land_result=land_result, alocare_constructii=alocare,
     )
 
     anonymizer = build_anonymizer(inp.meta)
