@@ -108,13 +108,17 @@ tip (casă+teren), suprafață construită aproximativă.
 Evaluatorul scrie într-un text box, **câte unul pe linie**, în format `atribut: valoare_dorită`
 (ex. `tamplarie: termopan`, `garaj: da`, `panouri solare`). Valoarea dorită e opțională.
 
-Pentru fiecare candidat, LLM-ul caută atributul în descrierea reală și raportează **trei stări**:
+Pentru fiecare candidat, LLM-ul caută atributul în descrierea reală și raportează **trei stări**.
+Pentru „potrivit" și „diferit", afișează și **valoarea exactă găsită în anunț** (dovada), ca
+evaluatorul să vadă pe ce se bazează verdictul:
 
-| Stare | Sens |
-|---|---|
-| ✅ Potrivit | atributul e menționat și valoarea corespunde celei dorite |
-| ⚠️ Diferit | atributul e menționat, dar cu altă valoare |
-| ➖ Nementionat | descrierea nu pomenește atributul |
+| Stare | Sens | Ce se afișează |
+|---|---|---|
+| ✅ Potrivit | atributul e menționat și valoarea corespunde celei dorite | valoarea găsită (ex. „termopan PVC") |
+| ⚠️ Diferit | atributul e menționat, dar cu altă valoare | valoarea găsită (ex. „tâmplărie lemn") |
+| ➖ Nementionat | descrierea nu pomenește atributul | — (nimic) |
+
+Exemplu pentru `tamplarie: termopan` pe un candidat: `⚠️ Diferit — găsit în anunț: „tâmplărie lemn stratificat"`.
 
 **Decizie (fermă):** atributele secundare sunt **exclusiv FYI** — semnalizatoare afișate în „match
 breakdown" pentru informarea evaluatorului. Ele **NU intră în scor și NU influențează ranking-ul**
@@ -129,7 +133,9 @@ dacă evaluatorul cere explicit influență pe ranking.)
 - **Doar extracție din text furnizat** (descrierea reală a anunțului descărcat). Niciodată căutare
   sau generare de date despre proprietăți.
 - Prompt: „din acest text de anunț, extrage {atribute}; pentru ce nu apare, întoarce «nementionat»".
-- Întoarce date structurate (JSON validat) cu atributele + starea fiecărui atribut secundar.
+- Întoarce date structurate (JSON validat): pentru fiecare atribut secundar — `stare`
+  (potrivit/diferit/nementionat) **și `valoare_gasita`** (textul exact din anunț pentru
+  potrivit/diferit; `null` pentru nementionat), ca dovadă afișabilă evaluatorului.
 - Provider: configurabil prin clientul injectabil existent. Pentru această sarcină (extracție
   ancorată) orice LLM e potrivit, inclusiv Perplexity sonar. Pentru **narativ** se păstrează Claude
   ca implicit (tendința de halucinare a Perplexity e un steag galben pentru proză liberă).
