@@ -136,4 +136,8 @@ def create_app(storage: Storage, client: Optional[NarrativeClient],
         judet, localitate = extrage_zona(req.adresa, client=client)
         return {"judet": judet, "localitate": localitate}
 
+    @app.get("/wizard", response_class=HTMLResponse)
+    def pagina_wizard(request: Request) -> HTMLResponse:
+        return templates.TemplateResponse(request, "wizard.html", {})
+
     return app
