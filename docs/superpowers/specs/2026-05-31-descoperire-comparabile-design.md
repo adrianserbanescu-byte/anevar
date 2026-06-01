@@ -86,6 +86,10 @@ afișat ca atare (evaluatorul completează manual sau îl ignoră).
 
 ## 5. Modelul de atribute
 
+> **REGULĂ FERMĂ:** DOAR cele 5 atribute primare intră în ranking. Toate atributele secundare
+> sunt strict **FYI (informative)** și **NU influențează în niciun fel scorul sau ordinea**
+> candidaților. Ranking-ul = funcție exclusiv de cele 5 primare.
+
 ### 5.1 Atribute primare (scorate, determină ranking-ul)
 
 Ordinea de prioritate (cât mută prețul), **confirmată de evaluator — de revizuit ulterior dacă e cazul**:
@@ -112,9 +116,11 @@ Pentru fiecare candidat, LLM-ul caută atributul în descrierea reală și rapor
 | ⚠️ Diferit | atributul e menționat, dar cu altă valoare |
 | ➖ Nementionat | descrierea nu pomenește atributul |
 
-**Decizie:** secundarele sunt **doar semnalizatoare în „match breakdown", NU intră în scor.** Fiind
-variabile și des „nementionate", scorarea lor ar reintroduce zgomot. Ranking-ul stă pe atributele
-primare (stabile). (Ajustabil ulterior dacă evaluatorul dorește influență pe ranking.)
+**Decizie (fermă):** atributele secundare sunt **exclusiv FYI** — semnalizatoare afișate în „match
+breakdown" pentru informarea evaluatorului. Ele **NU intră în scor și NU influențează ranking-ul**
+sub nicio formă. Ranking-ul este determinat **doar de cele 5 atribute primare**. Motiv: secundarele
+sunt variabile și des „nementionate"; scorarea lor ar reintroduce zgomot. (Ajustabil ulterior doar
+dacă evaluatorul cere explicit influență pe ranking.)
 
 ---
 
@@ -154,8 +160,8 @@ primare (stabile). (Ajustabil ulterior dacă evaluatorul dorește influență pe
 
 ## 9. Decizii înregistrate (pentru pagina web a modulului)
 
-- Ordinea atributelor primare: **an · stare · finisaj · încălzire · teren** — *de revizuit ulterior*.
-- Atribute secundare: text liber, definite de user, raportate în 3 stări, informative (ne-scorate).
+- **Doar cele 5 atribute primare intră în ranking** (an · stare · finisaj · încălzire · teren) — *de revizuit ulterior*.
+- Atribute secundare: text liber, definite de user, raportate în 3 stări — **strict FYI, fără influență asupra ranking-ului**.
 - Provider LLM extracție: configurabil; narativ implicit Claude.
 
 ---
