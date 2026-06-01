@@ -192,6 +192,24 @@ ponderea 1 a terenului), deci formula afișată conține mereu exact ponderile a
 ponderile, pragul de 3/5) sunt **valori implicite, de calibrat de evaluator — de revizuit ulterior**.
 Mapările ordinale (text liber „stare"/„finisaj" → treaptă) se fac tot prin LLM, pe baza descrierii.
 
+### 5.4 Cerință UI: tabel de metodologie ÎNAINTE de rezultate
+
+În pagina de descoperire, **înainte de lista candidaților individuali**, se afișează o singură dată
+un **tabel de metodologie** care explică cum se scorează — fiecare atribut primar cu **formula
+exactă pe valoarea găsită, ponderea și cota din total**:
+
+| # | Atribut | Pondere | Cotă | Formula `d` |
+|---|---|---|---|---|
+| 1 | An | 5 | 33% | `min(\|an_subiect − an_anunț\| / 25, 1)` |
+| 2 | Stare | 4 | 27% | `\|treaptă_subiect − treaptă_anunț\| / 4` |
+| 3 | Finisaj | 3 | 20% | `\|treaptă_subiect − treaptă_anunț\| / 3` |
+| 4 | Încălzire | 2 | 13% | `0 / 0.5 / 1` |
+| 5 | Teren | 1 | 7% | `min(\|teren_subiect − teren_anunț\| / teren_subiect, 1)` |
+
+Sub tabel: nota „Relevanță = 100 × (1 − Σ(pondere×d)/Σ(ponderi cunoscute)); atributele «nementionat»
+sunt excluse din calcul." Apoi urmează candidații, fiecare cu propriul breakdown și câmpul
+`explicatie`. Astfel cititorul înțelege metodologia **o dată sus**, apoi fiecare rezultat individual.
+
 ---
 
 ## 6. Rolul LLM-ului
@@ -218,6 +236,35 @@ Mapările ordinale (text liber „stare"/„finisaj" → treaptă) se fac tot pr
 - **Termeni și Condiții / legal:** scraping-ul direct poate încălca ToS-ul site-urilor. Folosit pe
   răspunderea evaluatorului (decizie asumată explicit).
 - **Acoperire variabilă:** unele zone/anunțuri au descrieri sărace → atribute „nementionate" multe.
+
+---
+
+## 7.5 Conectarea cu modulul de calcul deja dezvoltat
+
+Modulul de descoperire **nu modifică** motorul de calcul existent — îl alimentează. Punctul de
+cuplare este modelul `Comparable` (Planul 1) și funcția `to_comparable()` (Planul 4):
+
+```
+Descoperire (search → parse → score → rank)
+   → evaluatorul bifează candidații doriți
+   → fiecare candidat → to_comparable()  [funcție existentă]  → pret + suprafață
+   → lista `comparables` din EvaluationInput  [existent]
+   → evaluate_market / grila de comparație  [existent, neatins]
+   → reconciliere → raport .docx  [existent]
+```
+
+Trei punți:
+1. **Date (preț/suprafață):** `ParsedListing → to_comparable()` produce un `Comparable` standard.
+   Descoperirea reutilizează exact acest seam → **zero schimbare** în motorul de piață/grilă.
+2. **Profilul subiectului fără re-introducere:** `SubjectProfile` se derivă din datele deja
+   introduse (an din `BuildingData.an_pif`/an construcție, teren din `LandData.suprafata`); doar
+   atributele noi (stare, treaptă finisaj, categorie încălzire) se cer suplimentar.
+3. **Breakdown-ul ghidează corecțiile din grilă:** unde `d > 0` (ex. finisaj diferit) → semnal că
+   acolo se aplică o corecție în grilă (elementul „caracteristici fizice"/„finisaje"). **Valoarea
+   corecției o pune evaluatorul** — scorul NU generează ajustări automat.
+
+**Principiu:** scorul de descoperire e pentru **selecție**; valoarea finală vine din grilă (corecții)
++ reconciliere, **neschimbate**. Descoperirea înlocuiește doar pasul „caut manual comparabile".
 
 ---
 

@@ -755,7 +755,14 @@ git add -A && git commit -m "test: verificare nucleu descoperire" || echo "nimic
 | Parser întărit (__NEXT_DATA__/og/titlu) | Task 3 |
 | Scraper căutare portal (URL-uri anunțuri) | Task 4 |
 
-**Rămâne (plan următor):** extracția atributelor cu LLM (din descrierea reală → `CandidateProfile`,
-inclusiv maparea text→treaptă pentru stare/finisaj și categoria de încălzire), orchestratorul complet
-(search → scrape → parse → extract → score → rank), endpoint web `POST /api/descopera` și pagina UI
-de descoperire (listă candidați cu bife + breakdown care afișează câmpul `explicatie`).
+**Rămâne (plan următor):**
+- Extracția atributelor cu LLM (din descrierea reală → `CandidateProfile`, inclusiv maparea
+  text→treaptă pentru stare/finisaj și categoria de încălzire).
+- Orchestratorul complet (search → scrape → parse → extract → score → rank).
+- Endpoint web `POST /api/descopera`.
+- **Pagina UI de descoperire**, cu, în ordine: (1) **tabelul de metodologie** (spec 5.4) — fiecare
+  atribut cu formula exactă, ponderea și cota — afișat O dată, ÎNAINTE de rezultate; (2) lista
+  candidaților cu bife, fiecare cu relevanța, breakdown-ul per atribut și câmpul `explicatie`.
+- **Integrarea cu modulul de calcul** (spec 7.5): candidații bifați → `to_comparable()` (existent)
+  → lista `comparables` din formular/`EvaluationInput` → grila existentă. `SubjectProfile` se
+  pre-completează din `BuildingData`/`LandData` deja introduse.
