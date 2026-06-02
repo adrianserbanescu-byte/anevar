@@ -32,6 +32,7 @@ class EvaluationInput(BaseModel):
     valoare_teren: Optional[Decimal] = None
     metoda: Literal["piata", "cost", "ponderata"] = "cost"
     pondere_piata: Decimal = Decimal("0.5")
+    photos: list[str] = Field(default_factory=list)   # data-URL base64 pentru anexa foto
 
 
 def valideaza(inp: EvaluationInput) -> list[Issue]:
@@ -81,7 +82,7 @@ def construieste_context(
         meta=inp.meta, land=inp.land, building=inp.building,
         comparables=inp.comparables, land_comparables=inp.land_comparables,
         cost_result=cost_result, market_result=market_result, reconciled=reconciled,
-        land_result=land_result, alocare_constructii=alocare,
+        land_result=land_result, alocare_constructii=alocare, photos=inp.photos,
     )
 
     anonymizer = build_anonymizer(inp.meta)

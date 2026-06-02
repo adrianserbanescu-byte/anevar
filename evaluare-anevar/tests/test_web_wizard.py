@@ -45,3 +45,11 @@ def test_wizard_are_campuri_gbf_noi(tmp_path):
     for camp in ['id="beneficiar"', 'id="proprietar"', 'id="data_inspectiei"',
                  'id="moneda"', 'id="curs_valutar"']:
         assert camp in body
+
+
+def test_wizard_are_upload_foto(tmp_path):
+    client = _client(tmp_path)
+    body = client.get("/wizard").text
+    assert 'id="foto"' in body
+    assert 'type="file"' in body
+    assert "photos:FOTOS" in body

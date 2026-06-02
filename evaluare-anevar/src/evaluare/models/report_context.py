@@ -26,4 +26,5 @@ class ReportContext(BaseModel):
     reconciled: ReconciledResult
     land_result: Optional[LandResult] = None
     alocare_constructii: Optional[Decimal] = None
+    photos: list[str] = Field(default_factory=list)   # data-URL base64 pentru anexa foto
     narrative: list[NarrativeSection] = Field(default_factory=list)

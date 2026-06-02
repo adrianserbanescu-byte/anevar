@@ -109,6 +109,31 @@ def _ctx_cu_teren() -> ReportContext:
     return ctx
 
 
+_PNG_1x1 = ("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJ"
+            "AAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==")
+
+
+def test_raportul_embeddeaza_fotografiile(tmp_path):
+    ctx = _ctx()
+    ctx.photos = [_PNG_1x1, "data:image/png;base64,GUNOI_INVALID==", _PNG_1x1]
+    out = tmp_path / "raport.docx"
+    genereaza_raport(ctx, out)
+    doc = Document(str(out))
+    # cele doua imagini valide sunt inserate; cea invalida e sarita fara eroare
+    assert len(doc.inline_shapes) == 2
+    text = _all_text(out)
+    assert "Planse fotografice" in text
+    assert "[de atasat]" not in text.split("Anexa 2")[1].split("Anexa 3")[0]
+
+
+def test_raportul_anexa_foto_placeholder_fara_poze(tmp_path):
+    out = tmp_path / "raport.docx"
+    genereaza_raport(_ctx(), out)   # fara photos
+    text = _all_text(out)
+    dupa_anexa2 = text.split("Anexa 2")[1].split("Anexa 3")[0]
+    assert "[de atasat]" in dupa_anexa2
+
+
 def test_raportul_contine_grila_teren_si_alocare(tmp_path):
     out = tmp_path / "raport.docx"
     genereaza_raport(_ctx_cu_teren(), out)

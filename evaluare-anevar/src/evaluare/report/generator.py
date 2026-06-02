@@ -5,12 +5,16 @@ referintA, cele 7 capitole SEV 103, alocarea valorii, riscul GEV 520, anexe, sem
 """
 from __future__ import annotations
 
+import base64
+import binascii
 from decimal import Decimal
+from io import BytesIO
 from pathlib import Path
 from typing import Optional
 
 from docx import Document
 from docx.document import Document as DocxDocument
+from docx.shared import Inches
 
 from evaluare.models.report_context import ReportContext
 
@@ -270,6 +274,20 @@ def _adauga_risc_garantie(doc: DocxDocument, ctx: ReportContext) -> None:
         )
 
 
+def _decode_foto(data_url: str) -> Optional[BytesIO]:
+    """Extrage bytes dintr-un data-URL base64 (sau base64 simplu). None daca e invalid."""
+    if not data_url:
+        return None
+    payload = data_url.split(",", 1)[1] if data_url.startswith("data:") else data_url
+    try:
+        raw = base64.b64decode(payload, validate=True)
+    except (binascii.Error, ValueError):
+        return None
+    if not raw:
+        return None
+    return BytesIO(raw)
+
+
 def _adauga_anexe(doc: DocxDocument, ctx: ReportContext) -> None:
     doc.add_heading("ANEXE", level=1)
     doc.add_paragraph("Anexa 1 — Comparabile utilizate (surse):")
@@ -279,7 +297,21 @@ def _adauga_anexe(doc: DocxDocument, ctx: ReportContext) -> None:
             doc.add_paragraph(u, style="List Bullet")
     else:
         doc.add_paragraph("Comparabile introduse manual.", style="List Bullet")
-    doc.add_paragraph("Anexa 2 — Planse fotografice ale proprietatii [de atasat].")
+
+    doc.add_paragraph("Anexa 2 — Planse fotografice ale proprietatii:")
+    inserate = 0
+    for data_url in ctx.photos:
+        stream = _decode_foto(data_url)
+        if stream is None:
+            continue
+        try:
+            doc.add_picture(stream, width=Inches(5.5))
+            inserate += 1
+        except Exception:
+            continue  # fisier imagine corupt / format neacceptat -> sarim
+    if inserate == 0:
+        doc.add_paragraph("[de atasat].")
+
     doc.add_paragraph("Anexa 3 — Documente cadastrale, extras CF si acte juridice [de atasat].")
 
 

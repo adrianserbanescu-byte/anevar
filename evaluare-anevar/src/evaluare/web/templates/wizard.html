@@ -174,6 +174,11 @@
   <label>Curs valutar EUR/LEI (opțional)</label><input id="curs_valutar" placeholder="ex: 4.9750">
   <small class="hint">Cursul BNR la data evaluării. Apare în termenii de referință pentru conversia
    EUR ↔ LEI. Lasă gol dacă nu se aplică.</small>
+  <label>Fotografii proprietate (pentru Anexa foto)</label>
+  <input type="file" id="foto" accept="image/*" multiple>
+  <small class="hint">Pozele alese intră în <b>Anexa 2 — Planșe fotografice</b> din raport. Poți adăuga
+   mai multe (se cumulează). Rămân doar în această sesiune (nu se salvează în browser).</small>
+  <div id="foto-preview"></div>
   <button type="button" id="btn-calc">Calculează</button>
   <div id="rezultat-calc"></div>
 </section>
@@ -182,7 +187,9 @@
 <section id="pas-5" class="pas">
   <h2>Pas 5 — Raport</h2>
   <p class="rezumat">Apeși butonul de mai jos: aplicația <b>generează raportul .docx</b> (structură SEV 103)
-   și îl descarcă. Editabil înainte de predare. (Necesită întâi calculul de la Pas 4.)</p>
+   și îl descarcă. Editabil înainte de predare. (Necesită întâi calculul de la Pas 4.)
+   <br><b>Fotografiile</b> se atașează la Pas 4 înainte de „Calculează" — dacă le adaugi după, apasă
+   din nou „Calculează" ca să intre în raport.</p>
   <button type="button" id="btn-raport">📄 Generează și descarcă raportul .docx</button>
   <div id="link-raport" class="hint"></div>
 </section>
@@ -304,6 +311,30 @@ $("btn-import-url").addEventListener("click", async ()=>{
   }catch(e){ $("import_url_status").textContent="Eroare la import."; }
 });
 
+// --- Fotografii pentru anexa (in memorie, nu in localStorage) ---
+let FOTOS = [];
+function randFoto(){
+  const d=$("foto-preview");
+  if(!FOTOS.length){ d.innerHTML=""; return; }
+  d.innerHTML = '<p class="hint">'+FOTOS.length+' poză(e) atașate:</p>' +
+    FOTOS.map((src,i)=>`<span style="display:inline-block;margin:3px;text-align:center">
+      <img src="${src}" style="height:64px;border:1px solid #ccc;border-radius:4px"><br>
+      <button type="button" data-foto="${i}" class="del-foto" style="font-size:.75em">șterge</button></span>`).join("");
+  d.querySelectorAll(".del-foto").forEach(b=>b.addEventListener("click",()=>{
+    FOTOS.splice(+b.dataset.foto,1); randFoto(); }));
+}
+$("foto").addEventListener("change", (e)=>{
+  const files=[...e.target.files];
+  let ramase=files.length;
+  files.forEach(f=>{
+    const r=new FileReader();
+    r.onload=()=>{ FOTOS.push(r.result); if(--ramase===0) randFoto(); };
+    r.onerror=()=>{ if(--ramase===0) randFoto(); };
+    r.readAsDataURL(f);
+  });
+  e.target.value=""; // permite re-selectarea aceluiasi fisier
+});
+
 function asambleaza(){
   const elements=$("elemente").value.trim().split("\n").filter(Boolean).map(l=>{
     const[element,cod,um,cantitate,cost_unitar,an_pif]=l.split(";");
@@ -327,7 +358,7 @@ function asambleaza(){
     land:{suprafata:$("suprafata_teren").value},
     building:{au:$("au").value,acd:$("acd").value,an_referinta:parseInt($("an_referinta").value),
       elements,depreciation_points:dp}, comparables,
-    valoare_teren:$("valoare_teren").value, metoda:$("metoda").value};
+    valoare_teren:$("valoare_teren").value, metoda:$("metoda").value, photos:FOTOS};
 }
 
 $("btn-calc").addEventListener("click", async ()=>{
