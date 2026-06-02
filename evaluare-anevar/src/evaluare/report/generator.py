@@ -151,13 +151,13 @@ def _adauga_grila_comparatie(doc: DocxDocument, ctx: ReportContext) -> None:
     if ctx.market_result is None or not ctx.comparables:
         doc.add_paragraph("Abordarea prin piata nu a fost aplicata (a se vedea reconcilierea).")
         return
-    doc.add_paragraph("Grila de comparatie directa (proprietate intreaga):")
+    doc.add_paragraph("Grila de comparatie directa pe pret total (proprietate intreaga):")
     m = ctx.market_result
     table = doc.add_table(rows=1, cols=4)
     table.style = "Table Grid"
     hdr = table.rows[0].cells
     hdr[0].text = "Comparabil"
-    hdr[1].text = "Pret unitar corectat"
+    hdr[1].text = "Pret total corectat"
     hdr[2].text = "Ajustare bruta"
     hdr[3].text = "Selectat"
     for i, comp in enumerate(ctx.comparables):

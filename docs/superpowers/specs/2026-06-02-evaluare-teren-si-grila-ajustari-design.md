@@ -164,3 +164,25 @@ Formula reproduce EXACT toate cele 12 comparabile reale si valorile raportate (4
 **De aliniat ulterior:** `engine/market.py` (grila de casa) foloseste inca modelul vechi (compunere
 secventiala). Trebuie validat la fel pe foile de calcul de casa (.xlsx) si aliniat la cele doua etape
 + ajustari valorice (EUR).
+
+---
+
+## 11. Addendum 2 — alinierea grilei de casa (validare pe .xlsx de casa)
+
+Validarea pe 3 grile reale de casa (Maneciu/Brasov/Busteni, foaia "G. Comparatii locuinta")
+a confirmat ca grila de casa foloseste ACEEASI metodologie in doua etape, dar pe **pret TOTAL**:
+- Etapa de tranzactie (negociere, componente non-imobiliare, drept, finantare, conditii vanzare,
+  cheltuieli, conditiile pietei) — secventiala pe pretul total -> pret de baza.
+- Etapa de proprietate (localizare, suprafata teren, **arie utila** ca ajustare valorica EUR/mp x Δ,
+  destinatie, PIF, acces, curte, finisaje, incalzire, alte) — aditiva pe pretul de baza.
+- **Valoarea = pretul total corectat al comparabilei alese** (NU pret unitar x suprafata —
+  diferenta de suprafata e absorbita de ajustarea de arie utila).
+
+Decizie (user): model pe pret total + **regula curata de selectie** = ajustare bruta minima pe etapa
+de proprietate (procentualele direct + valoricele raportate la pretul de baza). Foile reale au
+celule de ajustare bruta neconsistente (ex. exclud localizarea la unele comparabile), deci selectia
+motorului poate diferi de marcajul manual din foi in cazuri-limita.
+
+Reproducere: toate cele 4 preturi totale corectate ale comparabilelor Busteni se reproduc EXACT
+(132570.55 / 151463.08 / 138052.80 / 139899.65). `engine/market.py` rescris;
+test `tests/test_market.py::test_regresie_casa_reala_busteni`.

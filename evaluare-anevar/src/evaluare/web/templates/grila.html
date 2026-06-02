@@ -37,7 +37,10 @@ Se aplică <b>secvențial</b>; se alege comparabilul cu <b>ajustarea brută mini
 <div id="rez-teren"></div>
 
 <!-- ================= CASĂ ================= -->
-<h2>Grilă casă — valoare = preț unitar corectat × suprafață subiect (ACD)</h2>
+<h2>Grilă casă — pe preț total; valoare = prețul total corectat al comparabilei alese</h2>
+<p class="hint">Diferența de suprafață se tratează ca ajustare valorică (arie utilă: EUR/mp × Δ), deci
+ fiecare comparabilă e adusă la subiect. „Suprafața subiect" de mai jos nu mai intră în formulă
+ (rămâne pentru referință).</p>
 <div id="tabel-casa"></div>
 <p>Suprafață subiect ACD (mp): <input id="supr-casa" class="base" value="120"></p>
 <button onclick="calcul('casa')">Calculează grila casă</button>
@@ -176,7 +179,7 @@ async function calcul(grid){
 
 function afiseaza(grid, d, div){
  const preturi = grid==="teren" ? d.preturi_mp_corectate : d.preturi_unitare_corectate;
- const unitLbl = grid==="teren" ? "Preț/mp corectat" : "Preț unitar corectat";
+ const unitLbl = grid==="teren" ? "Preț/mp corectat" : "Preț total corectat";
  let t = '<div class="rez"><table><tr><th>Comparabil</th><th>'+unitLbl+'</th><th>Ajustare brută</th><th>Selecție</th></tr>';
  preturi.forEach((p,i) => {
    const sel = i===d.index_selectat;
