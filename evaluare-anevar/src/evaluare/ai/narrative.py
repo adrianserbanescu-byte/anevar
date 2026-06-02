@@ -13,12 +13,48 @@ from evaluare.report.anonymizer import Anonymizer
 
 # Capitolele analitice pentru care AI genereaza text (numerele raman deterministe).
 CAPITOLE_NARATIVE = [
+    "Ipoteze generale si speciale",
     "Prezentarea datelor de piata",
     "Descrierea juridica si fizica a proprietatii",
     "Analiza celei mai bune utilizari (CMBU)",
     "Justificarea ajustarilor aplicate",
     "Reconcilierea rezultatelor si concluzia valorii",
+    "Riscul asociat garantiei (GEV 520)",
 ]
+
+# Indrumar scurt per capitol: ce trebuie sa contina (ghideaza AI-ul, nu cifrele).
+GHID_CAPITOL = {
+    "Ipoteze generale si speciale": (
+        "Enunta ipotezele si conditiile limitative standard: se presupune titlu valabil si "
+        "liber de sarcini (cu exceptiile mentionate), structura de rezistenta corespunzatoare, "
+        "fara investigatii geotehnice/ascunse; raportul se foloseste exclusiv in scopul declarat."
+    ),
+    "Prezentarea datelor de piata": (
+        "Descrie pe scurt piata imobiliara locala relevanta (cerere/oferta, lichiditate, "
+        "tendinte), pe baza zonei si a comparabilelor utilizate."
+    ),
+    "Descrierea juridica si fizica a proprietatii": (
+        "Descrie proprietatea: situarea juridica (cadastral/CF), terenul (suprafata, categorie) "
+        "si constructia (arii, an, regim de inaltime), in proza profesionala."
+    ),
+    "Analiza celei mai bune utilizari (CMBU)": (
+        "Argumenteaza cea mai buna utilizare (permis legal, posibil fizic, fezabil financiar, "
+        "maxim productiv); de regula utilizarea rezidentiala existenta."
+    ),
+    "Justificarea ajustarilor aplicate": (
+        "Justifica logica ajustarilor din grila (etapa de tranzactie vs proprietate) si de ce "
+        "comparabilul selectat are ajustarea bruta minima."
+    ),
+    "Reconcilierea rezultatelor si concluzia valorii": (
+        "Compara abordarile aplicate (piata/cost), explica ponderarea/selectia metodei si "
+        "concluzioneaza valoarea finala."
+    ),
+    "Riscul asociat garantiei (GEV 520)": (
+        "Analizeaza riscul pentru garantarea creditului conform GEV 520: lichiditatea si "
+        "activitatea pietei locale, gradul de adecvare al proprietatii ca garantie, "
+        "vandabilitatea si expunerea estimata, sensibilitatea valorii la conditiile pietei."
+    ),
+}
 
 SYSTEM_PROMPT = (
     "Esti un evaluator imobiliar autorizat ANEVAR. Scrii sectiuni de raport de "
@@ -57,10 +93,23 @@ def _facts(ctx: ReportContext) -> str:
     if ctx.market_result is not None:
         m = ctx.market_result
         linii.append(
-            f"Abordarea prin piata: valoare={m.valoare_piata}, "
+            f"Abordarea prin piata (pret total): valoare={m.valoare_piata}, "
             f"comparabil selectat index {m.index_selectat}, "
             f"numar comparabile={len(ctx.comparables)}."
         )
+    if ctx.land_result is not None:
+        lr = ctx.land_result
+        linii.append(
+            f"Teren prin comparatie: {lr.pret_mp_ales} EUR/mp x {ctx.land.suprafata} mp = "
+            f"{lr.valoare_teren} (comparabil selectat index {lr.index_selectat}, "
+            f"din {len(ctx.land_comparables)} comparabile de teren)."
+        )
+    if ctx.alocare_constructii is not None:
+        linii.append(
+            f"Alocarea valorii: valoare constructii (alocata) = {ctx.alocare_constructii}."
+        )
+    if ctx.meta.beneficiar:
+        linii.append(f"Beneficiar / finantator: {ctx.meta.beneficiar}.")
     return "\n".join(linii)
 
 
@@ -87,10 +136,13 @@ def generate_narrative(
 
     sections: list[NarrativeSection] = []
     for capitol in CAPITOLE_NARATIVE:
+        ghid = GHID_CAPITOL.get(capitol, "")
+        indrumar = f"Indrumar (ce sa contina): {ghid}\n\n" if ghid else ""
         user = (
             f"Capitol de redactat: {capitol}.\n\n"
+            f"{indrumar}"
             f"Date calculate (deja anonimizate):\n{facts}\n\n"
-            f"Scrie textul acestui capitol."
+            f"Scrie textul acestui capitol (2-4 paragrafe, proza profesionala)."
         )
         raw = client.complete(SYSTEM_PROMPT, user)
         text = anonymizer.unmask(raw) if anonymizer is not None else raw

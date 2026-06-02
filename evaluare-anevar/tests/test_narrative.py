@@ -70,6 +70,23 @@ def test_generate_narrative_never_sends_real_client_name_to_client():
         assert "Ion Popescu" not in user
 
 
+def test_narrative_acopera_capitolele_gbf_noi():
+    ctx = _ctx()
+    sections = generate_narrative(ctx, client=FakeClient(), anonymizer=build_anonymizer(ctx.meta))
+    capitole = {s.capitol for s in sections}
+    assert "Ipoteze generale si speciale" in capitole
+    assert "Riscul asociat garantiei (GEV 520)" in capitole
+
+
+def test_narrative_trimite_ghid_gev520():
+    ctx = _ctx()
+    client = FakeClient()
+    generate_narrative(ctx, client=client, anonymizer=build_anonymizer(ctx.meta))
+    promptul_gev = next(u for _, u in client.calls if "GEV 520" in u)
+    assert "lichiditatea" in promptul_gev.lower()
+    assert "garantarea creditului" in promptul_gev.lower()
+
+
 def test_fallback_without_client_returns_placeholders():
     ctx = _ctx()
     sections = generate_narrative(ctx, client=None, anonymizer=None)
