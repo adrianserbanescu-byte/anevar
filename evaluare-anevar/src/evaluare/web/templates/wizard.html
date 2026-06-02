@@ -53,6 +53,11 @@
   <small class="hint">Identificatorul cadastral unic. Situația juridică; anonimizat ([CADASTRAL]) la AI.</small>
   <label>Carte funciară</label><input id="carte_funciara">
   <small class="hint">Numărul CF (drept de proprietate, sarcini). Anonimizat ([CF]) la AI.</small>
+  <label>Beneficiar / finanțator (bancă)</label><input id="beneficiar" placeholder="ex: Banca Transilvania SA">
+  <small class="hint">Pentru garantare credit: banca/utilizatorul desemnat al raportului. Apare în
+   scrisoarea de transmitere și termenii de referință. Lasă gol dacă nu se aplică.</small>
+  <label>Proprietar (dacă diferă de client)</label><input id="proprietar">
+  <small class="hint">Numele proprietarului, dacă nu coincide cu clientul. Opțional.</small>
   <label>Evaluator</label><input id="evaluator_nume">
   <small class="hint">Numele evaluatorului autorizat ANEVAR; apare în declarația de independență.</small>
   <label>Legitimație</label><input id="evaluator_legitimatie">
@@ -61,6 +66,8 @@
   <small class="hint">Data la care se estimează valoarea (data de referință a calculelor).</small>
   <label>Data raportului</label><input id="data_raportului" value="2026-01-16">
   <small class="hint">Data emiterii raportului (poate diferi de data evaluării).</small>
+  <label>Data inspecției (opțional)</label><input id="data_inspectiei" placeholder="2026-01-15">
+  <small class="hint">Data inspecției proprietății, dacă diferă de data evaluării. Apare în termenii de referință.</small>
 </section>
 
 <!-- PAS 2 -->
@@ -157,6 +164,16 @@
     <option value="piata">Piață (comparație)</option>
     <option value="ponderata">Ponderată</option>
   </select>
+  <label>Monedă raportare</label>
+  <select id="moneda">
+    <option value="EUR">EUR</option>
+    <option value="LEI" selected>LEI</option>
+  </select>
+  <small class="hint">Moneda în care se exprimă valoarea în raport. Rapoartele de garanție folosesc de
+   regulă EUR (cu echivalent în LEI la cursul BNR).</small>
+  <label>Curs valutar EUR/LEI (opțional)</label><input id="curs_valutar" placeholder="ex: 4.9750">
+  <small class="hint">Cursul BNR la data evaluării. Apare în termenii de referință pentru conversia
+   EUR ↔ LEI. Lasă gol dacă nu se aplică.</small>
   <button type="button" id="btn-calc">Calculează</button>
   <div id="rezultat-calc"></div>
 </section>
@@ -180,10 +197,12 @@
 const PASI = 5; let pas = 1; let evaluareId = null;
 const $ = id => document.getElementById(id);
 const CAMPURI = ["judet","localitate","localitate_alt","adresa_strada","client_nume",
- "numar_cadastral","carte_funciara","evaluator_nume","evaluator_legitimatie",
- "data_evaluarii","data_raportului","suprafata_teren","au","acd","an_referinta",
+ "numar_cadastral","carte_funciara","beneficiar","proprietar","evaluator_nume",
+ "evaluator_legitimatie","data_evaluarii","data_raportului","data_inspectiei",
+ "suprafata_teren","au","acd","an_referinta",
  "valoare_teren","elemente","depreciere","attr_an","attr_stare","attr_finisaj",
- "attr_incalzire","atribute_secundare","comparabile","metoda","adresa_raport"];
+ "attr_incalzire","atribute_secundare","comparabile","metoda","moneda","curs_valutar",
+ "adresa_raport"];
 
 function salveaza(){ const s={}; CAMPURI.forEach(c=>{if($(c))s[c]=$(c).value});
   localStorage.setItem("wizard", JSON.stringify(s)); }
@@ -293,11 +312,18 @@ function asambleaza(){
     const[varsta,depreciere]=l.split(";"); return{varsta:parseInt(varsta),depreciere};});
   const comparables=$("comparabile").value.trim().split("\n").filter(Boolean).map(l=>{
     const[pret,suprafata]=l.split(";"); return{pret,suprafata};});
-  return{meta:{client_nume:$("client_nume").value,
+  const meta={client_nume:$("client_nume").value,
       adresa:$("adresa_raport").value.trim() || composeAdresa(),
       numar_cadastral:$("numar_cadastral").value,carte_funciara:$("carte_funciara").value,
       evaluator_nume:$("evaluator_nume").value,evaluator_legitimatie:$("evaluator_legitimatie").value,
-      data_evaluarii:$("data_evaluarii").value,data_raportului:$("data_raportului").value},
+      data_evaluarii:$("data_evaluarii").value,data_raportului:$("data_raportului").value,
+      moneda:$("moneda").value};
+  // câmpuri opționale — trimise doar dacă sunt completate
+  if($("beneficiar").value.trim()) meta.beneficiar=$("beneficiar").value.trim();
+  if($("proprietar").value.trim()) meta.proprietar=$("proprietar").value.trim();
+  if($("data_inspectiei").value.trim()) meta.data_inspectiei=$("data_inspectiei").value.trim();
+  if($("curs_valutar").value.trim()) meta.curs_valutar=$("curs_valutar").value.trim();
+  return{meta,
     land:{suprafata:$("suprafata_teren").value},
     building:{au:$("au").value,acd:$("acd").value,an_referinta:parseInt($("an_referinta").value),
       elements,depreciation_points:dp}, comparables,
@@ -314,7 +340,7 @@ $("btn-calc").addEventListener("click", async ()=>{
       al=res.alerte.map(a=>`<div class="${a.nivel==='blocheaza'?'a-block':'a-warn'}">`
         +`${a.nivel==='blocheaza'?'⛔':'⚠️'} ${a.mesaj}</div>`).join('');
     }
-    $("rezultat-calc").innerHTML=`<p><b>Valoare: ${res.valoare_finala} LEI</b> (${res.metoda})</p>`+al
+    $("rezultat-calc").innerHTML=`<p><b>Valoare: ${res.valoare_finala} ${$("moneda").value}</b> (${res.metoda})</p>`+al
       +'<p class="hint">Mergi la Pas 5 pentru a genera raportul .docx.</p>';
   }catch(e){ $("rezultat-calc").textContent="eroare calcul"; }
 });

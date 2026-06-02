@@ -37,3 +37,11 @@ def test_wizard_are_atribute_secundare(tmp_path):
     body = client.get("/wizard").text
     assert 'id="atribute_secundare"' in body
     assert "Atribute secundare" in body
+
+
+def test_wizard_are_campuri_gbf_noi(tmp_path):
+    client = _client(tmp_path)
+    body = client.get("/wizard").text
+    for camp in ['id="beneficiar"', 'id="proprietar"', 'id="data_inspectiei"',
+                 'id="moneda"', 'id="curs_valutar"']:
+        assert camp in body
