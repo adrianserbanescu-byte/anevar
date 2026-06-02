@@ -49,18 +49,25 @@ const NCOMP = 3;
 // Catalog elemente. tip: "procentuala" sau "valorica".
 const ELEM = {
  teren: [
-  "Ofertă→Tranzacție","Drept de proprietate","Finanțare","Condiții de vânzare",
-  "Cheltuieli post-vânzare","Condițiile pieței (timp)","Localizare","Acces","Utilități",
-  "Suprafață","Deschidere (front stradal)","Înclinație","Tip teren","Document urbanistic",
-  "Regim juridic (intra/extravilan)","Regim economic (destinație)","Indicatori urbanism (CUT/POT)"
- ].map(e => ({nume:e, tip:"procentuala"})),
+  // primele 6 = etapa de tranzacție (secvențial); restul = etapa de proprietate (aditiv)
+  {nume:"Ofertă→Tranzacție", etapa:"tranzactie"},
+  {nume:"Drept de proprietate", etapa:"tranzactie"},
+  {nume:"Finanțare", etapa:"tranzactie"},
+  {nume:"Condiții de vânzare", etapa:"tranzactie"},
+  {nume:"Cheltuieli post-vânzare", etapa:"tranzactie"},
+  {nume:"Condițiile pieței (timp)", etapa:"tranzactie"},
+  {nume:"Localizare"}, {nume:"Acces"}, {nume:"Utilități"}, {nume:"Suprafață"},
+  {nume:"Deschidere (front stradal)"}, {nume:"Înclinație"}, {nume:"Tip teren"},
+  {nume:"Document urbanistic"}, {nume:"Regim juridic (intra/extravilan)"},
+  {nume:"Regim economic (destinație)"}, {nume:"Indicatori urbanism (CUT/POT)"}
+ ].map(e => ({nume:e.nume, tip:"procentuala", etapa:e.etapa||"proprietate"})),
  casa: [
-  {nume:"Negociere", tip:"procentuala"},
+  {nume:"Negociere", tip:"procentuala", etapa:"tranzactie"},
   {nume:"Componente non-imobiliare (mobilier)", tip:"valorica"},
-  {nume:"Drept de proprietate", tip:"procentuala"},
-  {nume:"Finanțare", tip:"procentuala"},
-  {nume:"Condiții de vânzare", tip:"procentuala"},
-  {nume:"Condițiile pieței (timp)", tip:"procentuala"},
+  {nume:"Drept de proprietate", tip:"procentuala", etapa:"tranzactie"},
+  {nume:"Finanțare", tip:"procentuala", etapa:"tranzactie"},
+  {nume:"Condiții de vânzare", tip:"procentuala", etapa:"tranzactie"},
+  {nume:"Condițiile pieței (timp)", tip:"procentuala", etapa:"tranzactie"},
   {nume:"Localizare", tip:"procentuala"},
   {nume:"Suprafață teren (EUR/mp × Δ)", tip:"valorica"},
   {nume:"Arie utilă (EUR)", tip:"valorica"},
@@ -71,7 +78,7 @@ const ELEM = {
   {nume:"Finisaje", tip:"procentuala"},
   {nume:"Sistem încălzire", tip:"procentuala"},
   {nume:"Alte elemente (garaj, anexe)", tip:"valorica"},
- ],
+ ].map(e => ({nume:e.nume, tip:e.tip, etapa:e.etapa||"proprietate"})),
 };
 
 function head(){
@@ -138,7 +145,7 @@ function colecteaza(grid){
      const raw = num(document.querySelector(`[data-g="${grid}"][data-el="${idx}"][data-c="${i}"]`).value);
      if(raw===null || raw===0) return;
      const val = el.tip==="procentuala" ? (raw/100) : raw;
-     adj.push({element: el.nume, tip: el.tip, valoare: String(val)});
+     adj.push({element: el.nume, tip: el.tip, etapa: el.etapa, valoare: String(val)});
    });
    if(grid==="teren"){
      comps.push({pret_mp:String(pret), suprafata:"1", adjustments:adj});

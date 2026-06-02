@@ -141,3 +141,26 @@ prețul/suprafața, evaluatorul adaugă ajustările.
 | Breaza | Comp C (5%) | 74.81 | 900 | 67.000 EUR |
 
 Motorul de teren trebuie să reproducă aceste valori din ajustările reale.
+
+---
+
+## 10. Addendum (validare pe grile reale — 2026-06-02)
+
+Validarea pe cele 4 foi de calcul reale (Maneciu/Brasov/Busteni/Breaza) a corectat presupunerea
+de la §1: ajustarile NU sunt toate secventiale. Metodologia reala are **doua etape**:
+
+1. **Etapa de tranzactie** (oferta->tranzactie, drept, finantare, conditii vanzare, cheltuieli,
+   conditiile pietei) — **secvential** (compus) -> pret de baza.
+2. **Etapa de proprietate** (caracteristici fizice/juridice) — **aditiv** pe pretul de baza:
+   `final = baza * (1 + Σ% proprietate) [+ Σ EUR proprietate]`.
+
+**Ajustarea bruta** (criteriul de selectie) = `Σ |% proprietate|` (etapa de tranzactie NU se
+contorizeaza). Comparabilul ales = ajustare bruta minima.
+
+Formula reproduce EXACT toate cele 12 comparabile reale si valorile raportate (44.000 / 78.000 /
+34.000 / 67.000 EUR). Implementat in `engine/land.py`; `Adjustment.etapa` ("tranzactie" |
+"proprietate") marcheaza etapa. Test de regresie: `tests/test_land.py::test_regresie_grila_reala`.
+
+**De aliniat ulterior:** `engine/market.py` (grila de casa) foloseste inca modelul vechi (compunere
+secventiala). Trebuie validat la fel pe foile de calcul de casa (.xlsx) si aliniat la cele doua etape
++ ajustari valorice (EUR).

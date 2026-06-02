@@ -1,7 +1,15 @@
 """Evaluarea terenului prin grila de comparatie directa (EUR/mp).
 
-Mecanica identica cu grila de casa: ajustari secventiale, selectie pe ajustare bruta minima.
-Difera doar pretul de pornire (EUR/mp direct) si formula valorii (pret_mp x suprafata).
+Metodologia reala GBF/ANEVAR are DOUA etape (validata pe 4 grile reale: Maneciu, Brasov,
+Busteni, Breaza):
+  1. Etapa de TRANZACTIE (oferta->tranzactie, drept, finantare, conditii vanzare, cheltuieli,
+     conditiile pietei) — ajustarile se aplica SECVENTIAL (compus) -> pret de baza.
+  2. Etapa de PROPRIETATE (caracteristici fizice/juridice) — ajustarile se aplica ADITIV pe
+     pretul de baza: final = baza * (1 + suma % proprietate) + suma EUR proprietate.
+
+Ajustarea bruta (criteriul de selectie) = suma valorilor absolute ale ajustarilor procentuale
+din etapa de proprietate (etapa de tranzactie NU se contorizeaza). Comparabilul ales = cel cu
+ajustare bruta minima. Valoarea terenului = pret/mp corectat ales * suprafata subiectului.
 """
 from __future__ import annotations
 
@@ -9,27 +17,50 @@ from decimal import Decimal
 
 from evaluare.models.comparable import LandComparable
 from evaluare.models.results import LandResult
-from evaluare.engine.market import ajustare_bruta, ajustare_neta
+
+_UNU = Decimal("1")
+_ZERO = Decimal("0")
 
 
-def pret_mp_corectat(comp: LandComparable) -> Decimal:
-    """Aplica ajustarile secvential pe pretul EUR/mp (procentual: *(1+v); valoric: +v)."""
+def _pret_baza_tranzactie(comp: LandComparable) -> Decimal:
+    """Pretul dupa etapa de tranzactie (ajustari secventiale, compus)."""
     pret = comp.pret_mp
     for adj in comp.adjustments:
+        if adj.etapa != "tranzactie":
+            continue
         if adj.tip == "procentuala":
-            pret = pret * (Decimal("1") + adj.valoare)
+            pret = pret * (_UNU + adj.valoare)
         else:
             pret = pret + adj.valoare
     return pret
 
 
+def pret_mp_corectat(comp: LandComparable) -> Decimal:
+    """Pretul/mp corectat final: etapa de tranzactie (compus) + etapa de proprietate (aditiv)."""
+    baza = _pret_baza_tranzactie(comp)
+    suma_pct = sum((a.valoare for a in comp.adjustments
+                    if a.etapa == "proprietate" and a.tip == "procentuala"), _ZERO)
+    suma_eur = sum((a.valoare for a in comp.adjustments
+                    if a.etapa == "proprietate" and a.tip == "valorica"), _ZERO)
+    return baza * (_UNU + suma_pct) + suma_eur
+
+
+def ajustare_bruta(comp: LandComparable) -> Decimal:
+    """Suma valorilor absolute ale ajustarilor procentuale din etapa de proprietate."""
+    return sum((abs(a.valoare) for a in comp.adjustments
+                if a.etapa == "proprietate" and a.tip == "procentuala"), _ZERO)
+
+
+def ajustare_neta(comp: LandComparable) -> Decimal:
+    """Suma algebrica a ajustarilor procentuale din etapa de proprietate."""
+    return sum((a.valoare for a in comp.adjustments
+                if a.etapa == "proprietate" and a.tip == "procentuala"), _ZERO)
+
+
 def evaluate_land(
     comparables: list[LandComparable], suprafata_subiect: Decimal
 ) -> LandResult:
-    """Ruleaza grila de teren si selecteaza comparabilul cu ajustare bruta minima.
-
-    Valoarea terenului = pret_mp corectat al comparabilului ales * suprafata subiectului.
-    """
+    """Ruleaza grila de teren si selecteaza comparabilul cu ajustare bruta minima."""
     if not comparables:
         raise ValueError("Sunt necesare comparabile de teren.")
     preturi = [pret_mp_corectat(c) for c in comparables]
