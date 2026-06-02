@@ -5,6 +5,7 @@ Clientul este injectabil pentru testare fara retea.
 """
 from __future__ import annotations
 
+import re
 from typing import Optional, Protocol
 
 from evaluare.models.report_context import ReportContext
@@ -117,6 +118,25 @@ def _placeholder(capitol: str) -> str:
     return f"[de completat: {capitol}. Generare AI dezactivata - introduceti textul manual.]"
 
 
+# Marcaje de citare web (ex. sonar): "[2]", "[2][6]". NU afecteaza tokenii anonimizatorului
+# ([CLIENT], [ADRESA], ...) care sunt alfabetici.
+_RE_CITARE = re.compile(r"\[\d+\]")
+_RE_BOLD = re.compile(r"\*\*(.+?)\*\*", re.DOTALL)
+_RE_ITALIC_US = re.compile(r"(?<!\w)__(.+?)__(?!\w)", re.DOTALL)
+_RE_TITLU_MD = re.compile(r"^\s{0,3}#{1,6}\s*", re.MULTILINE)
+
+
+def _curata_narativ(text: str) -> str:
+    """Curata textul AI pentru raport formal: elimina citatiile web si markdown-ul."""
+    text = _RE_CITARE.sub("", text)
+    text = _RE_BOLD.sub(r"\1", text)
+    text = _RE_ITALIC_US.sub(r"\1", text)
+    text = _RE_TITLU_MD.sub("", text)
+    # spatii duble lasate de eliminarea citatiilor
+    text = re.sub(r"[ \t]{2,}", " ", text)
+    return text.strip()
+
+
 def generate_narrative(
     ctx: ReportContext,
     client: Optional[NarrativeClient],
@@ -146,7 +166,7 @@ def generate_narrative(
         )
         raw = client.complete(SYSTEM_PROMPT, user)
         text = anonymizer.unmask(raw) if anonymizer is not None else raw
-        sections.append(NarrativeSection(capitol=capitol, text=text))
+        sections.append(NarrativeSection(capitol=capitol, text=_curata_narativ(text)))
     return sections
 
 

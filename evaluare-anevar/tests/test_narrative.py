@@ -87,6 +87,22 @@ def test_narrative_trimite_ghid_gev520():
     assert "garantarea creditului" in promptul_gev.lower()
 
 
+def test_curata_narativ_elimina_citatii_si_markdown():
+    from evaluare.ai.narrative import _curata_narativ
+    t = _curata_narativ("Riscul **este** moderat[2][6].\n## Concluzie\nValoare buna[1].")
+    assert "[2]" not in t and "[6]" not in t and "[1]" not in t
+    assert "**" not in t
+    assert "##" not in t
+    assert "este" in t and "Concluzie" in t
+
+
+def test_curata_narativ_pastreaza_tokeni_anonimizator():
+    from evaluare.ai.narrative import _curata_narativ
+    # tokenii alfabetici ai anonimizatorului NU trebuie atinsi
+    t = _curata_narativ("Proprietatea [CLIENT] de la [ADRESA] are [CADASTRAL].")
+    assert "[CLIENT]" in t and "[ADRESA]" in t and "[CADASTRAL]" in t
+
+
 def test_fallback_without_client_returns_placeholders():
     ctx = _ctx()
     sections = generate_narrative(ctx, client=None, anonymizer=None)
