@@ -126,7 +126,7 @@ def _termeni_referinta(doc: DocxDocument, ctx: ReportContext) -> None:
     doc.add_paragraph(f"Tipul valorii estimate: {meta.tip_valoare}.")
     moneda_txt = f"Moneda raportarii: {meta.moneda}."
     if meta.curs_valutar is not None:
-        moneda_txt += f" Curs de schimb EUR/{meta.moneda}: {meta.curs_valutar}."
+        moneda_txt += f" Curs de schimb EUR/LEI: {meta.curs_valutar}."
     doc.add_paragraph(moneda_txt)
     date_txt = f"Data evaluarii: {meta.data_evaluarii}. Data raportului: {meta.data_raportului}."
     if meta.data_inspectiei:
