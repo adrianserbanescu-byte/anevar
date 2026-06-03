@@ -73,6 +73,7 @@ creditului, conform ANEVAR. **Pachet:** `evaluare-anevar/` (Python, FastAPI, PyI
   încrucișată** (cablată în `/api/evaluare`) + export `/api/evaluare/{id}/audit.txt`. 9 teste.
 - **`ingestie/`** — OCR (PDF via fitz) + extractoare CF/releveu/plan/CPE (regex) + VLM injectabil;
   endpoint `/api/ingestie` + wiring în wizard (pre-completare câmpuri). 7 teste.
+- **`aml/`** — modul complet de conformitate Legea 129/2019 (vezi §12).
 
 ## 7. Documentație strategică
 
@@ -102,6 +103,32 @@ de piață), model norme interne. Rezultat:
   liste live + formularistica ONPCSB).
 - HCD 74: anunțurile = oferte „neajustate, neverificate" → întărește disclaimer-ul pe comparabile.
 
+## 12. Modul AML implementat (`aml/`) — Legea 129/2019 (6 faze TDD, 70 teste)
+
+Planul din §9 a fost **executat integral**, TDD, în 6 faze (fiecare comisă separat):
+- **Faza 0** — `constante.py` (praguri/termene cu articol sursă), `models.py` (PersoanaFizica,
+  BeneficiarReal, StatutPEP, ClientPF/PJ, FactorRisc, EvaluareRisc, DosarAML), `incadrare.py`
+  (PFA exceptat de persoana desemnată — Norme art. 7; audit independent 2-din-3 — Norme art. 9).
+- **Faza 1** — `risc.py`: 4 factori ponderați → scor → categorie (redus/standard/sporit) + nivel
+  măsuri; **reguli HARD** care forțează „sporit"/EDD (PEP efectiv prin regula 12 luni art. 3(6),
+  listă sancțiuni, țară risc înalt, tranzacție complexă, relație la distanță — art. 17).
+- **Faza 2** — `indicatori.py`: cei **10 indicatori** HCD 58 art. 6(10) ca checklist → propunere RTS;
+  `raportare.py`: prag RTN 10.000 €, conversie EUR/LEI la curs BNR, termen RTN +3 zile lucrătoare,
+  suspendare +24h prorogată, anti-fragmentare 15.000 € pe fereastră glisantă, `RaportRTN`/`RaportRTS`
+  cu avertisment **tipping-off** (art. 38).
+- **Faza 3** — `documente.py` (python-docx): norme interne **7 capitole** (Norme art. 8(1) a–g),
+  evaluare de risc, **decizie de desemnare** (doar societate; refuzată pentru PFA), fișă KYC (PF/PJ +
+  beneficiari reali + PEP), draft RTN, draft RTS.
+- **Faza 4** — `serviciu.py` (orchestrare risc+indicatori+screening+documente), `liste.py` (liste
+  externe injectabile + screening tolerant la diacritice/similaritate + `data/liste.json` placeholder),
+  `store.py` (**StoreAML separat** de dosar, retenție 5 ani). Endpoints `/api/aml/evalueaza` +
+  generare `.docx`, pagina `/aml` + link în wizard. RTS/RTN persistate într-un director confidențial.
+- **Faza 5** — suită **269 teste verzi**; smoke 6 documente; **exe reîmpachetat** (spec include
+  `aml/data`) și verificat live: PJ cu PEP → sporit + RTS; norme-interne.docx 37 KB; `/aml` → 200.
+
+Rămâne extern: formularistica electronică ONPCSB (transmiterea o face evaluatorul pe rapoarte.onpcsb.ro),
+listele live (sancțiuni/PEP-ANI/țări) de reîmprospătat, validarea juridică finală a textelor.
+
 ## 10. Decizii și principii stabilite
 
 - **Om-în-buclă** (AI propune, evaluatorul decide) — din rațiuni de răspundere profesională (GEV 520) + GDPR.
@@ -111,12 +138,12 @@ de piață), model norme interne. Rezultat:
 - **TDD + rebuild + smoke** la fiecare modul.
 - **Securitate:** cheia Perplexity NU se distribuie cu exe-ul; `.env` gitignored.
 
-## 11. Stare la momentul creării jurnalului
+## 11. Stare curentă
 
-- **~199 teste verzi**, exe funcțional reîmpachetat.
-- Tot ce e „cod pur" fără dependențe externe = implementat.
-- Rămas blocat extern: `big/`, `ancpi/` (acces ANEVAR/ANCPI), `aml/` faze 4+ (liste live, transmitere
-  ONPCSB, validare juridică), exe semnat (certificat), catalog IROVAL (plătit).
+- **269 teste verzi**, exe funcțional reîmpachetat (include `aml/data`).
+- Tot ce e „cod pur" fără dependențe externe = implementat, **inclusiv modulul AML complet** (§12).
+- Rămas blocat extern: `big/`, `ancpi/` (acces ANEVAR/ANCPI), AML — doar **listele live** + transmiterea
+  electronică ONPCSB + validarea juridică finală, exe semnat (certificat), catalog IROVAL (plătit).
 
 ---
 
@@ -128,3 +155,10 @@ de piață), model norme interne. Rezultat:
 ### 2026-06-03 — jurnal creat
 Sinteza completă a sesiunii (secțiunile 1–11 de mai sus). Ultimul livrat: planul de implementare AML
 ancorat în Legea 129/2019 + Norme 37/2021 + HCD 58. Programată actualizarea orară a acestui jurnal.
+
+### 2026-06-04 — modul AML implementat integral
+Executat planul AML, TDD, 6 faze (vezi §12 nou): `constante/models/incadrare`, `risc`, `indicatori/
+raportare`, `documente` (.docx), `serviciu/liste/store` + endpoints `/api/aml/*` + pagina `/aml`,
+verificare. **+70 teste AML** (suita totală 199 → **269 verzi**). Exe reîmpachetat (spec include
+`aml/data`) și verificat live. AML trece de la „plan complet" la **„implementat (cod pur)"**; rămân
+externe doar listele live, formularistica electronică ONPCSB și validarea juridică.

@@ -5,7 +5,7 @@
 > `evaluare-anevar/scripts/export_chat.py`. Secretele (chei API) sunt redactate. Se
 > regenereaza la fiecare rulare (actualizare orara). Pentru sinteza, vezi `log.md`.
 
-**Mesaje:** 908.
+**Mesaje:** 952.
 
 ---
 
@@ -8896,3 +8896,325 @@ Două transcripturi (19.8 MB + 724 KB). Înțeleg structura JSONL ca să extrag 
 ## Assistant  ·  2026-06-03 20:37:54
 
 Înțeleg structura. Scriu un script care extrage **verbatim** mesajele (user + răspunsurile mele text, fără thinking/tool noise), din transcript, cu redactarea cheii API (securitate). Îl fac re-rulabil (regenerează tot, deci actualizarea orară e simplă):
+
+## Assistant  ·  2026-06-03 20:38:50
+
+Funcționează — **908 mesaje verbatim, de la primul mesaj (30 mai)**, cheia API redactată (securitate). Comit + script:
+
+## Assistant  ·  2026-06-03 20:39:04
+
+Acum reprogramez wake-up-ul orar să actualizeze **ambele** loguri (verbatim prin re-rularea scriptului; sinteza doar dacă e ceva nou):
+
+## Assistant  ·  2026-06-03 20:39:33
+
+Gata. Ai acum **două loguri**, ambele actualizate orar:
+
+## `log_complet.md` — transcript VERBATIM
+- **908 mesaje**, exact cum au avut loc în chat (mesajele tale + răspunsurile mele text), în ordine cronologică, **fără procesare/rezumare** — de la primul mesaj (30 mai, brainstorming) până acum.
+- Generat de `evaluare-anevar/scripts/export_chat.py` direct din fișierele de sesiune `.jsonl`.
+- **Cheia API redactată** (`pplx-[REDACTAT]`) — singura intervenție, din motive de securitate (fișierul e comis în git).
+- Script **idempotent** → regenerează tot fișierul la fiecare rulare, deci include automat discuțiile noi.
+
+## `log.md` — sinteză procesată (creat anterior)
+- Rezumatul structurat pe teme; se actualizează doar când e ceva nou.
+
+## Actualizarea orară (ambele)
+La fiecare oră:
+1. **`log_complet.md`** — re-rulez `export_chat.py` (verbatim, prinde mesajele noi) → comit dacă s-a schimbat
+2. **`log.md`** — adaug intrare **doar dacă** e ceva nou
+3. reprogramez automat
+
+Diferența clară:
+| | `log_complet.md` | `log.md` |
+|---|---|---|
+| Conținut | transcript brut, verbatim | sinteză pe teme |
+| Procesare | niciuna (doar redactare cheie) | rezumat |
+| Update orar | mereu (regenerare) | doar dacă e nou |
+
+Notă: transcriptul verbatim include și conținutul injectat de skill-uri/comenzi (cum apare în fluxul real) — am păstrat-o așa tocmai ca să fie „fără procesarea mea". Dacă vrei o variantă filtrată (doar mesajele tale + răspunsurile mele, fără bootstrap-urile de skill), pot adăuga un mod „curat" în script.
+
+Continuăm cu `aml/` sau altceva?
+
+## User  ·  2026-06-03 20:40:39
+
+continua cu toate dezvoltarea modului aml. cu minima interactiune din partea mea.
+
+## Assistant  ·  2026-06-03 20:41:07
+
+Execut **tot modulul AML** după planul existent (6 faze, TDD), autonom. Marchez capitolul și încep cu Faza 0 (constante + modele + încadrare):
+
+## User  ·  2026-06-03 20:44:39
+
+This session is being continued from a previous conversation that ran out of context. The summary below covers the earlier portion of the conversation.
+
+Summary:
+1. Primary Request and Intent:
+   The user is building a Romanian ANEVAR-compliant real estate evaluation application (house + land, for credit guarantee purpose), packaged as a local Windows `.exe` (PyInstaller). The user is effectively the firm GBF Valuation (evaluator Gabriela Frătilă). Across this long session, the user made many sequential requests, each typically a short confirmation ("da", "continua", "B", "amandoua") directing me to continue building. The cumulative intent was to: build the land + house valuation engines (validated against real GBF dossiers), build the GBF report generator, add AI narrative, add photo/document upload, create a review package (NotebookLM doc + slides + demo report), fix real-world parser bugs, integrate ANEVAR conformity (SEV 2025, GEV 520, ESG), build new modules (audit/, ingestie/), integrate external data (BNR rate, ANEVAR index), write strategic docs (master plan, module map, roadmap, specs), and analyze official legal texts. 
+
+   **The MOST RECENT explicit request (current active task):** "continua cu toate dezvoltarea modului aml. cu minima interactiune din partea mea." = Develop the ENTIRE AML module (`aml/`, Legea 129/2019 compliance) following the existing implementation plan, autonomously, with minimal user interaction.
+
+   Two standing background tasks the user requested:
+   - "scrie in un log.md file tot ce am discutat in aceasta sesiune si actualizeaza ulterior la fiecare ora" → then refined: "actualizarea orara are loc doar daca ai ce sa actualizez" (only update log.md hourly if there's something new) + "actualizeaza instructiunile despre acest proiect si include ca exista acest log.md ca resursa pentru viitor."
+   - "adauga un alt fisier log_complet.md in care treci toata sesiunea exact cum a avut loc in chat, fara procesarea ta. actualizeaz o cu noile discutii la ora, la fel ca si log.md." (verbatim transcript, regenerated hourly).
+
+2. Key Technical Concepts:
+   - ANEVAR/SEV standards 2025 edition (in force 1 July 2025, HCN 2/2025): SEV 100-106 (SEV 101 Termeni de referință = 16 elements a-p; SEV 102 Tipuri ale valorii [was SEV 104]; SEV 106 Documentare și raportare [was SEV 103] = 18 elements a-r including NEW ESG element m), GEV 520 (loan guarantee, Annex A1-A10 with mandatory A5 factors), GEV 630 (real estate).
+   - Two-stage adjustment grid methodology (validated on real GBF dossiers): Stage 1 transaction (sequential/compounding), Stage 2 property (additive: `final = base × (1+Σ%)`). Selection = minimum gross adjustment on property stage. House grid works on TOTAL price; land grid on EUR/mp.
+   - Legea 129/2019 (AML/anti-money-laundering), Ordin ONPCSB 37/2021 (Norms), HCD 58/2023 (ANEVAR instructions), HCD 74/2022 (market studies). Key thresholds: beneficiary real >25%, cash 10,000 EUR, occasional transaction 15,000 EUR, PEP +12 months, retention 5 years, cash report 3 working days. PFA exempt from designated person (Norms art. 7). RTS/ONPCSB reports stored SEPARATE from client file (tipping-off, Law art. 38).
+   - Python 3.12, FastAPI, Pydantic v2, python-docx, PyInstaller onefile, pytest, Decimal for money, BeautifulSoup, requests, fitz (PyMuPDF), Pillow.
+   - Injectable client pattern (NarrativeClient/fetcher) for testability offline.
+   - Hash-chained append-only audit journal (tamper-evident).
+   - ScheduleWakeup for hourly log updates (delaySeconds=3600).
+
+3. Files and Code Sections:
+   - **`docs/superpowers/plans/2026-06-03-modul-aml-129-2019-plan.md`** (the active implementation plan, MUST FOLLOW): 6 phases TDD. Phase 0: constante.py + models.py + incadrare.py. Phase 1: risc.py. Phase 2: indicatori.py + raportare.py. Phase 3: documente.py (.docx generators). Phase 4: integration (wizard step, separate store, liste.py). Phase 5: verification (suite + smoke + rebuild). Legal anchoring table included.
+   - **`src/evaluare/aml/__init__.py`** — JUST CREATED: `"""Modul de conformitate AML — Legea 129/2019 + Norme Ord. 37/2021 + HCD 58 ANEVAR."""`
+   - **`src/evaluare/aml/constante.py`** — JUST CREATED (full content):
+     ```python
+     from decimal import Decimal
+     PRAG_BENEFICIAR_REAL = Decimal("0.25")        # art. 4(2)(a)(1)
+     PRAG_NUMERAR_EUR = Decimal("10000")           # art. 7(1); Norme art. 20(1)
+     PRAG_TRANZ_OCAZIONALA_EUR = Decimal("15000")  # art. 13(1)(b)(1)
+     PRAG_ANTIFRAGMENTARE_EUR = Decimal("15000")   # art. 7(4)
+     PRAG_TRANSFER_FONDURI_EUR = Decimal("1000")   # art. 13(1)(b)(2)
+     PERIOADA_POST_PEP_LUNI = 12                   # art. 3(6), art. 17(1)(c)
+     RETENTIE_ANI = 5                              # art. 21(1); Norme art. 22(2)
+     RETENTIE_PRELUNGIRE_MAX_ANI = 5               # art. 21(3)
+     TERMEN_RTN_ZILE_LUCRATOARE = 3                # art. 7(7)
+     SUSPENDARE_ORE = 24                           # art. 8(3)
+     PRAG_AUDIT_ACTIVE_LEI = Decimal("16000000")   # Norme art. 9
+     PRAG_AUDIT_CA_LEI = Decimal("32000000")
+     PRAG_AUDIT_SALARIATI = 50
+     ```
+   - **`src/evaluare/audit/`** (completed earlier): jurnal.py (JurnalAudit hash-chained, EvenimentAudit, verifica()), snapshot.py, validare_x.py (valideaza_incrucisat → Issue list: market/cost divergence >30%, negative alocare, value<=0), raport_audit.py (text_audit, scrie_audit). Wired into /api/evaluare. 9 tests.
+   - **`src/evaluare/ingestie/`** (completed earlier): models.py (DateExtraseCF, DateReleveu, DatePlan, DateCPE), ocr.py (text_din_pdf via fitz + injectable ocr_fn), extractoare.py (extrage_cf/releveu/plan/cpe regex diacritic-tolerant + _num), vlm.py (VlmClient protocol). Endpoint /api/ingestie. Wired into wizard Pas 1. 7 tests.
+   - **`src/evaluare/curs_bnr.py`** + `/api/curs-bnr` — BNR XML feed, EUR/LEI. **`src/evaluare/indice_anevar.py`** + `/api/indice-anevar` — parses Google Charts data from ANEVAR public page (cities + quarterly % variations).
+   - **`src/evaluare/report/generator.py`** — GBF report, now SEV 2025 conformant: tip_valoare SEV 102, raportare SEV 106, termeni SEV 101 (16 elements incl. ESG), GEV 520 A5 factors + BIG registration, `_echiv_lei()` (LEI equivalent), `_b2`/`_pct` (2-decimal rounding), ADNOTARI dict + `_nota()` (demo annotation mode, `adnotari` param).
+   - **`src/evaluare/engine/land.py`** (2-stage, etapa tranzactie/proprietate) and **`engine/market.py`** (total-price 2-stage) — validated reproducing real GBF dossier values.
+   - **`evaluare-anevar/scripts/export_chat.py`** — generates `log_complet.md` (verbatim transcript from .jsonl, redacts API keys, idempotent). 
+   - **`log.md`** (repo root) — processed session synthesis. **`log_complet.md`** — verbatim transcript (908 messages).
+   - **`C:\Users\adyse\.claude\projects\C--Users-adyse-anevar\memory\proiect-evaluare-anevar.md`** and **`MEMORY.md`** — updated with current state + log.md as key resource.
+   - Legal source files in **`C:\Users\adyse\anevar\md files\`**: `LEGE nr.md` (Law 129/2019), `NORME din 2 martie 2021de aplicare a prevederilor.md` (Ordin 37/2021 norms), `hcd-58-instructiuni-oncpsb.md`, `anexa-hcd-74-recomandari-studii-de-piata.md`, `model-norme-interne.docx`, `standardele-de-evaluare-a-bunurilor-2025.md` (full SEV 2025).
+
+4. Errors and fixes:
+   - **Storia parser missed an construcție/characteristics**: User caught it ("cum nu este anul consuctiei?"). The structured characteristics were in `__NEXT_DATA__` `target` dict; description was in `ad.description` (not rendered HTML). Fixed `_caracteristici_storia()` + `extrage_descriere()` reading `ad.description` + `_caracteristici_imobiliare()` regex.
+   - **Terrain display "?" in discovery**: CandidateResult lacked `teren` field. Added it + propagated.
+   - **Long decimals in report** (`178735.066666...`): User asked "poti bloca la doua zecimale". Added `_b2`/`_pct` helpers + rounded facts in narrative.py.
+   - **Python heredoc crashed on em-dash (U+2014)** when updating docs via `python - <<PY`: switched to Edit tool / sed.
+   - **PowerShell quoting mangled URL** in smoke test: switched to Python requests.
+   - **1x1 PNG truncated for python-docx** (UnexpectedEndOfFileError): used a valid 70-byte PNG.
+   - **Duplicate list-close inserted in test_market.py**: fixed by removing the orphan.
+   - **Recurring**: leftover exe processes holding port 8000 — `Get-Process evaluare-anevar | Stop-Process -Force` before rebuild.
+
+5. Problem Solving:
+   - Validated land engine reproduces Maneciu 44.000 / Brașov 78.000 / Bușteni 34.000 / Breaza 67.000 EUR exactly; house engine reproduces Bușteni + Maneciu + Brașov total prices exactly.
+   - Discovered SEV 2025 renumbering (SEV 102/106) and ESG as new mandatory element; corrected report.
+   - Extracted complete AML legal framework via subagents from Law 129/2019 + Norms 37/2021 → produced full implementation plan with exact thresholds.
+   - Confirmed ANEVAR index data is public (Google Charts) and integrated it.
+
+6. All user messages:
+   - "B"
+   - "narativ"
+   - "da" (multiple)
+   - "amandoua" (multiple)
+   - "ce nu imi e clar: raportul demo docx e fictiv complet sau partial?"
+   - "pot sa iti dau date reale ca si date subiect de comparat"
+   - "extrage datele subiectului din acest anunt: https://www.storia.ro/ro/oferta/vanzare-schimb-casa-de-vacanta-rezidentiala-220mp-IDzRcc"
+   - "cum nu este anul consuctiei?" (with screenshot)
+   - "iar in text exista aceste info de ce nu trimiti toate informatii catre LLM? poti verifica cum procedezi pe imobiliare?"
+   - "testeaza: [two imobiliare.ro URLs: ...275474743 and ...49309493]"
+   - "adăuga și extragere structurată din tabelul de caracteristici imobiliare — momentan an/încălzire vin prin LLM, care a mers, dar structuratul ar fi 100% sigur"
+   - "da mi tu linkrui sa le validez ca si cum as valida in app"
+   - "1. ok. 2. da"
+   - "continua" (several times)
+   - "o intrebare punctuala despre notebookLM video. ce aleg?" (with screenshot)
+   - "in raport: poti bloca la doua zecimale cifrelee?" (with screenshot)
+   - "modifica si info asta in una generalizata Evaluator: ing. Gabriela Fratila, membru ANEVAR, legitimatia 14288. am deblocat wordul. lasa un singur document, nu doua"
+   - "ce idee mai am: in raportul generat poti adauga comentarii la inceputul fiecarui capitol sau daca consideri necesar la incepultului parargaf despre informatiile ce urmeaza si de unde provin? ma ntereseaza cand citeste evaluatorul sa intelegeaca ce e fucntional atuomatizat deja in raport, ce nu si e fictiv, etc"
+   - "ca sa trimit si app ul carte evaluator - trimit doar exe?"
+   - "/product-management:roadmap-update citeste https://www.anevar.ro/p/despre-anevar/standarde-de-evaluare & ... in general caiuta din anevar.ro si subpagini si linkuri info relevante."
+   - "2 + 3 + 4" (and earlier "2", "3", "DA", "da")
+   - "now and next dupa"
+   - "fa specs si adauga le ca un modul in lista initiaa de module ale aplicatiei"
+   - "ma refeream la aceste sisteme discutate initial: [5 systems: Ingestie documente, Conectivitate date externe, Motor matematic, Generator raport SEV 103, Validare & conformitate]"
+   - "/claude-mem:make-plan as vrea sa actualizezi/creezi un plan master..."
+   - "ce mai e de facut fara access extern sau validare juritica?"
+   - "continua cum recomanzi tu"
+   - "DA, VERF"
+   - "see here a few .md extracted from some pdfs I have selected from anevar.ro. vezi daca e ceva folositor si zi mi daca le citisei anterior. C:\Users\adyse\anevar\md files"
+   - "@C:\Users\adyse\Downloads\standardele-de-evaluare-a-bunurilor-2025.md de ce nu consideri acest fisier relevant?"
+   - "am adaugat acest ultim .md in acelasi folder ca si pe precedentele. legea, ordinul si normele mentionate in ordin in format md sunt in acelasi folder. citeste le si fa un plan pentru schimabrile in baza tuturor info noi"
+   - "scrie in un log.md file tot ce am discutat in aceasta sesiune si actualizeaza ulterior la fiecare ora acest log cu info noi"
+   - "actualizarea orara are loc doar daca ai ce sa actualizez. actualizeaza instructiunile despre acest proiect si include ca exista acest log.md ca resursa pentru viitor."
+   - "adauga un alt fisier log_complet.md in care treci toata sesiunea exact cum a avut loc in chat, fara procesarea ta. actualizeaz o cu noile discutii la ora, la fel ca si log.md."
+   - "continua cu toate dezvoltarea modului aml. cu minima interactiune din partea mea."
+   - SECURITY (verbatim, earlier): "scrie cheia in fisier, its ok" — authorized Perplexity key in .env. The key `pplx-[REDACTAT]` circulated in chat → I repeatedly advised regenerating it. `.env` is gitignored, must NEVER be committed, is copied to dist/.env for the exe. Anonymization before any AI call (GDPR). Don't distribute the key with the exe.
+
+7. Pending Tasks:
+   - **PRIMARY (active):** Implement the entire AML module (`aml/`) per `docs/superpowers/plans/2026-06-03-modul-aml-129-2019-plan.md`, TDD, autonomously (6 phases). Phase 0 in progress.
+   - **Background (standing):** Hourly updates via ScheduleWakeup: (1) regenerate `log_complet.md` via `python scripts/export_chat.py` + commit if changed; (2) update `log.md` only if something new; (3) re-schedule. A wakeup is scheduled (~00:40).
+
+8. Current Work:
+   I was executing the AML module implementation. I marked a chapter "Modul AML (Legea 129/2019)". I created the package `src/evaluare/aml/__init__.py` and `src/evaluare/aml/constante.py` (full content shown in section 3 above — all legal thresholds with article citations). I had NOT yet created the next Phase 0 files. Per the plan, the next files in Phase 0 are:
+   - `src/evaluare/aml/models.py` — Pydantic models: PersoanaFizica (nume, prenume, cnp, tip_act, serie_act, nr_act, cetatenie, domiciliu, ocupatie); BeneficiarReal(PersoanaFizica) (+ procent: Decimal, tip_control: proprietate/alte_mijloace/senior_management, este_pep, consultat_registru_central, neconcordanta_registru); StatutPEP (este_pep, categorie enum from Law art 3(2) a-h, tip titular/membru_familie/asociat_apropiat, data_incetare_functie Optional); ClientPF/ClientPJ (PJ: denumire, cui, acte_constituire, reprezentant_legal, imputernicit Optional, traducere_legalizata bool, beneficiari_reali: list[BeneficiarReal]); EvaluareRisc (factori {client,produs_serviciu,canal,geografic} valoare+pondere, scor, categorie {redus,standard,sporit}, data, data_reevaluare); DosarAML (client, evaluare_risc, indicatori list, tip_entitate PJ/PFA, persoana_desemnata Optional, data_creare, data_retentie).
+   - `src/evaluare/aml/incadrare.py` — `necesita_persoana_desemnata(tip_entitate) -> bool` (False for PFA/persoană fizică per Norme art. 7), `necesita_audit_independent(active, ca, salariati) -> bool` (True if ≥2 of 3 thresholds per Norme art. 9).
+   - Tests: `tests/test_aml_constante.py`, `tests/test_aml_models.py` (incl. incadrare).
+   The test suite was at ~199-200 passing before AML work. After each phase I run `python -m pytest -q` and commit. The exe gets rebuilt at integration/verification.
+
+9. Optional Next Step:
+   Continue Phase 0 of the AML plan: create `src/evaluare/aml/models.py` (Pydantic KYC/beneficiar real/PEP/risc/dosar models) and `src/evaluare/aml/incadrare.py` (necesita_persoana_desemnata, necesita_audit_independent), plus tests `tests/test_aml_constante.py` and `tests/test_aml_models.py`; run `python -m pytest tests/test_aml_constante.py tests/test_aml_models.py -q`; then commit Phase 0. This directly continues the user's explicit request: "continua cu toate dezvoltarea modului aml. cu minima interactiune din partea mea." and follows the plan's Phase 0 (Task 0.1 constante done; Tasks 0.2 models + 0.3 incadrare next). After Phase 0, proceed sequentially through Phases 1-5 (risc.py, indicatori.py, raportare.py, documente.py, integration, verification) per `docs/superpowers/plans/2026-06-03-modul-aml-129-2019-plan.md`, committing per phase and rebuilding the exe at the end.
+
+If you need specific details from before compaction (like exact code snippets, error messages, or content you generated), read the full transcript at: C:\Users\adyse\.claude\projects\C--Users-adyse-anevar\82bb8c56-434a-4b44-9a85-3c12a9f75ef2.jsonl
+Continue the conversation from where it left off without asking the user any further questions. Resume directly — do not acknowledge the summary, do not recap what was happening, do not preface with "I'll continue" or similar. Pick up the last task as if the break never happened.
+
+## Assistant  ·  2026-06-03 20:44:47
+
+I'll continue with Phase 0 tests. Let me check the existing test conventions first.
+
+## Assistant  ·  2026-06-03 20:45:04
+
+Now I'll write the Phase 0 tests:
+
+## Assistant  ·  2026-06-03 20:45:56
+
+Phase 0 green (12 tests). Let me commit and move to Phase 1.
+
+## Assistant  ·  2026-06-03 20:46:12
+
+Let me set up task tracking for the remaining AML phases.
+
+## Assistant  ·  2026-06-03 20:46:33
+
+Let me review the plan for Phase 1 details before implementing.
+
+## Assistant  ·  2026-06-03 20:47:26
+
+The docs live in the parent `anevar/` dir. Let me read the AML plan:
+
+## Assistant  ·  2026-06-03 20:47:32
+
+Now I'll implement Phase 1 (risc.py). Let me mark task in progress and write tests first (TDD).
+
+## Assistant  ·  2026-06-03 20:49:11
+
+Phase 1 green (13 tests). Commit and move to Phase 2.
+
+## Assistant  ·  2026-06-03 20:49:26
+
+Phase 2 needs the 10 suspicion indicators from HCD 58 art. 6(10). Let me check the source.
+
+## Assistant  ·  2026-06-03 20:49:57
+
+Now I have the exact 10 indicators. Let me write Phase 2 tests then the modules.
+
+## Assistant  ·  2026-06-03 20:51:46
+
+Phase 2 green (16 tests). Commit.
+
+## Assistant  ·  2026-06-03 20:52:03
+
+Phase 3: .docx generators. Let me check the existing report generator's python-docx patterns to reuse them.
+
+## Assistant  ·  2026-06-03 20:52:15
+
+Let me get the 7 internal-norms chapters (Norme art. 8) and decision fields (HCD 58 Annex 1).
+
+## Assistant  ·  2026-06-03 20:53:04
+
+I have the 7 chapters confirmed. Now I'll write Phase 3 tests then the documents module.
+
+## Assistant  ·  2026-06-03 20:55:01
+
+The heading reads "Cunoașterea clientelei" not "cunoaștere a clientelei". Fixing the test assertion to match actual content.
+
+## Assistant  ·  2026-06-03 20:55:23
+
+Phase 3 green (9 tests). Commit.
+
+## Assistant  ·  2026-06-03 20:55:39
+
+Phase 4: integration. Let me start with `liste.py` (pure, testable), then wire the API. Let me inspect the web app structure.
+
+## Assistant  ·  2026-06-03 20:56:21
+
+Now I'll build Phase 4. Let me check the web test pattern first, then build `liste.py`, a separate AML store, and the API endpoints.
+
+## Assistant  ·  2026-06-03 20:56:44
+
+Now let me build `liste.py` (screening) with tests:
+
+## Assistant  ·  2026-06-03 20:57:19
+
+Now the separate AML store for RTS/RTN drafts (tipping-off — stored apart from the evaluation DB):
+
+## Assistant  ·  2026-06-03 20:57:45
+
+Now an orchestration service tying KYC + risc + indicatori + screening together:
+
+## Assistant  ·  2026-06-03 20:58:01
+
+Now wire the API endpoints into the web app. Let me add request models and routes:
+
+## Assistant  ·  2026-06-03 20:58:22
+
+Storage exposes `db_path`. I'll derive a sibling confidential dir for AML. Now add the endpoints before `return app`:
+
+## Assistant  ·  2026-06-03 20:58:47
+
+Now create the `aml.html` template. Let me check an existing template's structure first.
+
+## Assistant  ·  2026-06-03 20:59:42
+
+Now tests for the Phase 4 components — liste, store, and the web endpoints.
+
+## Assistant  ·  2026-06-03 21:00:50
+
+All 20 Phase 4 tests pass. Let me also add a nav link to the AML page from the wizard, then run the full suite.
+
+## Assistant  ·  2026-06-03 21:01:15
+
+Now run the full suite to confirm nothing regressed:
+
+## Assistant  ·  2026-06-03 21:01:41
+
+Full suite green: 269 passed. Commit Phase 4.
+
+## Assistant  ·  2026-06-03 21:02:04
+
+Phase 5: verification + rebuild. First I must ensure the PyInstaller spec bundles the new `aml.html` template and `aml/data/liste.json`. Let me check the spec.
+
+## Assistant  ·  2026-06-03 21:02:13
+
+The AML data dir isn't bundled. Let me add it to the spec.
+
+## Assistant  ·  2026-06-03 21:02:20
+
+Now let me run a smoke test that generates all 5 AML documents and verifies content, before rebuilding the exe:
+
+## Assistant  ·  2026-06-03 21:02:42
+
+Smoke passes — all 6 documents generate, PFA correctly omits the desemnare decision. Now rebuild the exe. First stop any leftover process, then build.
+
+## Assistant  ·  2026-06-03 21:11:05
+
+Exe built. Now smoke-test the running exe to confirm the AML endpoint works end-to-end in the packaged binary.
+
+## Assistant  ·  2026-06-03 21:11:30
+
+The exe likely needs more unpack time, or my env var name is wrong. Let me check how it starts.
+
+## Assistant  ·  2026-06-03 21:11:38
+
+Port 8000, no browser env var (harmless). 8s was too short for onefile unpack. Let me retry with polling.
+
+## Assistant  ·  2026-06-03 21:12:30
+
+The packaged exe works end-to-end: AML evaluation returns `sporit` + RTS proposal + correct document set (PJ includes the desemnare decision), norme-interne.docx generates (37.7 KB), and `/aml` loads. All Phase 5 checkpoints pass. Let me commit the spec change and update the project docs/memory.
+
+## Assistant  ·  2026-06-03 21:12:49
+
+Now update `log.md` to reflect the AML module completion (it moves from "plan" to "implemented"):
+
+## Assistant  ·  2026-06-03 21:14:08
+
+Now regenerate `log_complet.md` (verbatim transcript) and update the project memory file:
