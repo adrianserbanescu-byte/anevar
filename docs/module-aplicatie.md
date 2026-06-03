@@ -26,7 +26,8 @@ Legendă status: ✅ implementat · 🟡 parțial · 📋 planificat (cu spec).
 | Modul | Rol | Status |
 |---|---|---|
 | `discovery/` + `importers/` | Scraping portaluri (imobiliare/storia): descoperire comparabile casă **și teren** | ✅ |
-| `curs_bnr.py` | Indici/curs **BNR** (feed public XML) EUR/LEI | ✅ |
+| `curs_bnr.py` | Curs **BNR** (feed public XML) EUR/LEI | ✅ |
+| `indice_anevar.py` | **Indicele imobiliar ANEVAR** (date publice) — variații %/mp pe orașe, pentru ajustarea „condițiile pieței" | ✅ |
 | **`big/`** | **BIG** (Baza Imobiliară de Garanții) — comparabile reale de garantare + înregistrare raport (GEV 520) | 📋 [spec](superpowers/specs/2026-06-03-modul-big-design.md) |
 | **`ancpi/`** | **ANCPI / e-Terra** — verificare cadastrală oficială (nr. cadastral, CF, suprafețe, sarcini) | 📋 [spec](superpowers/specs/2026-06-03-modul-ancpi-eterra-design.md) |
 

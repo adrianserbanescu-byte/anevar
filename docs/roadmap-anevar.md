@@ -63,7 +63,7 @@ Legea 129/2019 AML, IROVAL). Format: **Now / Next / Later** (evită falsa preciz
 
 | # | Item | Driver ANEVAR | Efort | Dependență |
 |---|---|---|---|---|
-| 8 | **Indicele imobiliar ANEVAR** → input pentru ajustarea „condițiile pieței (timp)" în grile | Indicele ANEVAR | M | **Parțial** — hint în grilă spre Indicele ANEVAR; auto-fetch blocat (date cu acces membru) |
+| 8 | **Indicele imobiliar ANEVAR** → input pentru ajustarea „condițiile pieței (timp)" în grile | Indicele ANEVAR | M | **Done** — date publice parsate (`/api/indice-anevar`) + buton în grilă; verificat live |
 | 9 | **Grilă de teren cu comparabile reale** (descoperire de anunțuri de teren, nu doar casă) | Acuratețe | M | **Done** — `/api/descopera-teren` + UI în grilă; verificat live (Breaza) |
 | 10 | **Import catalog costuri IROVAL** pentru CIN (€/mp actualizat pe categorii) | IROVAL | M | Blocat — catalog cu acces |
 | 11 | **Anexa 3 — upload documente** (extras CF, plan cadastral, acte) | Structură raport | S | **Done** |
