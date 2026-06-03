@@ -94,7 +94,7 @@ Legendă status: ✅ implementat · 🟡 parțial · 📋 planificat (cu spec).
 | 4. Generator raport SEV | ✅ |
 | 5. Validare & conformitate | 🟡 parțial (validări + GDPR + audit ✅; AML 📋) |
 
-**Implementat recent (schelet TDD):** `audit/`, `ingestie/`. **Module planificate (cu spec):** `ingestie/`,
+**Implementat recent (schelet TDD):** `audit/`, `ingestie/`. **Module planificate (cu spec):**
 `ancpi/`, `big/`, `aml/`.
 Dependențe comune: acces extern (ANCPI, BIG — membru ANEVAR), validare juridică (AML), cost model VLM
 (ingestie). De clarificat înainte de implementare.
