@@ -113,6 +113,35 @@ def test_regresie_casa_reala_busteni(comp, final_asteptat):
     assert round(pret_total_corectat(comp), 6) == round(Decimal(final_asteptat), 6)
 
 
+# Regresie pe inca doua grile reale de casa (Maneciu, Brasov). Per comparabil: pret initial,
+# negociere (etapa tranzactie) si suma ajustarilor valorice de proprietate (EUR) -> pret final.
+# Sursa: foaia "G. Comparatii locuinta". final = pret*(1+negociere) + suma EUR.
+_REAL_CASA = {
+    "Maneciu": [
+        ("110000", "-0.05", "-52918.01136363636", "51581.98863636364"),
+        ("87500", "-0.05", "23205.735625", "106330.735625"),
+        ("87500", "-0.05", "-26444.330357142855", "56680.669642857145"),
+        ("128500", "-0.05", "-61630.044384057976", "60444.95561594202"),
+    ],
+    "Brasov": [
+        ("400000", "-0.1", "-23743.60521739132", "336256.39478260867"),
+        ("275000", "-0.05", "26631.791499999985", "287881.7915"),
+        ("275000", "-0.1", "96613.88866666665", "344113.88866666664"),
+        ("370000", "-0.1", "21887.429188022652", "354887.4291880226"),
+    ],
+}
+
+
+@pytest.mark.parametrize("oras", list(_REAL_CASA.keys()))
+def test_regresie_casa_reala_maneciu_brasov(oras):
+    for pret, neg, sum_eur, final in _REAL_CASA[oras]:
+        c = Comparable(pret=Decimal(pret), suprafata=Decimal("1"), adjustments=[
+            _adj("Negociere", neg, "tranzactie"),
+            _adj("Ajustari proprietate", sum_eur, tip="valorica"),
+        ])
+        assert round(pret_total_corectat(c), 2) == round(Decimal(final), 2), f"{oras} {pret}"
+
+
 def test_regresie_casa_busteni_grila_completa():
     comps = [c for c, _ in BUSTENI_CASA]
     r = evaluate_market(comps)

@@ -171,9 +171,12 @@
   </select>
   <small class="hint">Moneda în care se exprimă valoarea în raport. Rapoartele de garanție folosesc de
    regulă EUR (cu echivalent în LEI la cursul BNR).</small>
-  <label>Curs valutar EUR/LEI (opțional)</label><input id="curs_valutar" placeholder="ex: 4.9750">
+  <label>Curs valutar EUR/LEI (opțional)</label>
+  <input id="curs_valutar" placeholder="ex: 4.9750">
+  <button type="button" id="btn-curs-bnr">↻ Curs BNR (azi)</button>
+  <span id="curs_status" class="hint"></span>
   <small class="hint">Cursul BNR la data evaluării. Apare în termenii de referință pentru conversia
-   EUR ↔ LEI. Lasă gol dacă nu se aplică.</small>
+   EUR ↔ LEI. Butonul preia cursul oficial BNR de azi (necesită internet).</small>
   <label>Fotografii proprietate (pentru Anexa foto)</label>
   <input type="file" id="foto" accept="image/*" multiple>
   <small class="hint">Pozele alese intră în <b>Anexa 2 — Planșe fotografice</b> din raport. Poți adăuga
@@ -194,7 +197,8 @@
   <button type="button" id="btn-raport-demo">📝 Raport cu note (demo)</button>
   <small class="hint">„Raport cu note (demo)" adaugă sub fiecare secțiune o adnotare care explică
    proveniența informației (calculat / extras / AI / exemplu / placeholder) — util pentru review.
-   Notele NU apar în raportul normal.</small>
+   Notele NU apar în raportul normal.<br>
+   <b>PDF:</b> raportul e .docx editabil; pentru PDF, deschide-l în Word și „Salvează ca → PDF".</small>
   <div id="link-raport" class="hint"></div>
 </section>
 
@@ -338,6 +342,17 @@ $("foto").addEventListener("change", (e)=>{
     r.readAsDataURL(f);
   });
   e.target.value=""; // permite re-selectarea aceluiasi fisier
+});
+
+$("btn-curs-bnr").addEventListener("click", async ()=>{
+  $("curs_status").textContent = "Preiau cursul…";
+  try{
+    const r = await fetch("/api/curs-bnr?moneda=EUR");
+    if(!r.ok){ $("curs_status").textContent = "Cursul BNR indisponibil."; return; }
+    const d = await r.json();
+    $("curs_valutar").value = d.curs;
+    $("curs_status").textContent = "BNR " + (d.data||"") + ": 1 EUR = " + d.curs + " LEI";
+  }catch(e){ $("curs_status").textContent = "Eroare rețea."; }
 });
 
 function asambleaza(){

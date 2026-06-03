@@ -175,6 +175,17 @@ def create_app(storage: Storage, client: Optional[NarrativeClient],
     def pagina_wizard(request: Request) -> HTMLResponse:
         return templates.TemplateResponse(request, "wizard.html", {})
 
+    @app.get("/api/curs-bnr")
+    def curs_bnr_endpoint(moneda: str = "EUR") -> dict:
+        from evaluare.curs_bnr import curs_bnr
+        try:
+            r = curs_bnr(moneda)
+        except Exception:
+            raise HTTPException(status_code=502, detail="Cursul BNR nu a putut fi preluat.")
+        if r is None:
+            raise HTTPException(status_code=404, detail=f"Valuta {moneda} nu e in lista BNR.")
+        return {"moneda": r["moneda"], "curs": str(r["curs"]), "data": r["data"]}
+
     @app.get("/api/localitati")
     def lista_localitati() -> dict:
         judete = _judete()

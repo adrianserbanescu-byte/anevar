@@ -257,6 +257,11 @@ def _adauga_grila_comparatie(doc: DocxDocument, ctx: ReportContext) -> None:
     doc.add_paragraph(
         f"Valoarea prin comparatie de piata: {_fmt(m.valoare_piata)} {ctx.meta.moneda}."
     )
+    doc.add_paragraph(
+        "Sursele comparabilelor au caracter indicativ (oferte de pe portaluri publice); "
+        "preturile si atributele au fost verificate si retinute de evaluator pe baza "
+        "rationamentului profesional."
+    )
 
 
 def _adauga_grila_teren(doc: DocxDocument, ctx: ReportContext) -> None:
