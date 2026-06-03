@@ -1,6 +1,7 @@
 """Orchestratorul descoperirii: search → scrape → parse → extract → score → rank."""
 from __future__ import annotations
 
+import json
 from decimal import Decimal
 from typing import Callable, Optional
 
@@ -15,12 +16,47 @@ from evaluare.discovery.scoring import scor_candidat
 from evaluare.discovery.results import CandidateResult
 
 
+def _descriere_din_nextdata(soup, max_caractere: int) -> str:
+    """Descrierea completa a agentului din __NEXT_DATA__ (storia/Next.js: ad.description).
+
+    Pe site-urile randate client-side (storia), descrierea bogata + lista de specificatii NU
+    sunt in HTML-ul static (corpul randat are doar chrome + footer); ele sunt in blobul JSON
+    __NEXT_DATA__, in campul `description` (HTML). Luam cel mai lung astfel de camp si scoatem
+    tag-urile.
+    """
+    tag = soup.find("script", id="__NEXT_DATA__")
+    if not tag:
+        return ""
+    raw = tag.get_text()
+    if not raw:
+        return ""
+    try:
+        data = json.loads(raw)
+    except (ValueError, TypeError):
+        return ""
+    best = ""
+    stack = [data]
+    while stack:
+        node = stack.pop()
+        if isinstance(node, dict):
+            d = node.get("description")
+            if isinstance(d, str) and len(d) > len(best):
+                best = d
+            stack.extend(node.values())
+        elif isinstance(node, list):
+            stack.extend(node)
+    if not best:
+        return ""
+    text = BeautifulSoup(best, "html.parser").get_text(" ", strip=True)
+    return text[:max_caractere]
+
+
 def extrage_descriere(html: str, max_caractere: int = 4000) -> str:
     """Extrage textul reprezentativ al anuntului: titlu + meta + DESCRIEREA REALA.
 
-    Descrierea scrisa de agent (cu detalii: an, finisaje, incalzire) e in corpul paginii,
-    de obicei dupa titlul „Descriere(a proprietatii)". og:description e doar un rezumat auto,
-    sarac. Deci localizam sectiunea de descriere reala, nu primii caractere (care sunt chrome).
+    Prioritate: descrierea completa din __NEXT_DATA__ (storia) — contine toata descrierea
+    agentului + lista de specificatii. Daca lipseste (ex. imobiliare, randat server-side),
+    cade pe corpul paginii dupa titlul „Descriere(a proprietatii)".
     """
     soup = BeautifulSoup(html, "html.parser")
     parti: list[str] = []
@@ -30,6 +66,14 @@ def extrage_descriere(html: str, max_caractere: int = 4000) -> str:
     md = soup.find("meta", attrs={"name": "description"})
     if md and md.get("content"):
         parti.append(md["content"])
+
+    # 1) descrierea bogata din __NEXT_DATA__ (storia & alte site-uri Next.js)
+    nd = _descriere_din_nextdata(soup, max_caractere)
+    if len(nd) >= 200:
+        parti.append(nd)
+        return " ".join(parti)
+
+    # 2) fallback: corpul paginii (imobiliare e randat server-side -> descrierea e in body)
     body = soup.get_text(" ", strip=True)
     idx = body.lower().find("descrierea propriet")
     if idx < 0:

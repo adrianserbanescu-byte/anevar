@@ -13,6 +13,23 @@ def test_extrage_descriere_include_text():
     assert "Finisaje de lux" in txt
 
 
+def test_extrage_descriere_din_nextdata_storia():
+    # storia: descrierea bogata (cu specs) e in __NEXT_DATA__ ad.description, NU in body randat
+    desc = ("Casa in Breaza, deschidere la strada 30 m. Suprafata utila 180 mp, amprenta la sol "
+            "100 mp, desfasurata 220 mp. Regim inaltime P+2E+M. Pereti tip sandwich, fundatie beton, "
+            "acoperis tabla. Incalzire centrala gaz Ariston. An constructie 2010.")
+    html = ('<html><head><title>Casa Breaza</title></head><body>'
+            '<p>chrome si footer fara specs</p>'
+            f'<script id="__NEXT_DATA__" type="application/json">'
+            f'{{"props":{{"pageProps":{{"ad":{{"description":"<p>{desc}</p>"}}}}}}}}</script>'
+            '</body></html>')
+    txt = extrage_descriere(html)
+    assert "P+2E+M" in txt
+    assert "sandwich" in txt
+    assert "180 mp" in txt
+    assert "footer fara specs" not in txt   # NU mai luam corpul randat sarac
+
+
 def test_descopera_pipeline_complet():
     search_html = (FIXTURES / "imobiliare_search.html").read_text(encoding="utf-8")
     listing_html = (FIXTURES / "imobiliare_listing_nextdata.html").read_text(encoding="utf-8")
