@@ -24,10 +24,13 @@ def test_pagina_are_nav_landmark(client, ruta):
     assert "<nav" in client.get(ruta).text
 
 
-def test_wizard_labels_asociate_si_progressbar(client):
+def test_wizard_labels_asociate_si_stepper(client):
     html = client.get("/wizard").text
     assert 'for="judet"' in html and 'for="client_nume"' in html
-    assert 'role="progressbar"' in html and 'aria-valuenow' in html
+    # stepper numerotat clickabil (a inlocuit bara de progres)
+    assert 'class="stepper"' in html
+    assert 'data-pas="1"' in html and 'data-pas="5"' in html
+    assert "Comparabile" in html and "Raport" in html   # etichetele pasilor
     assert 'role="status"' in html          # mesaje de stare anuntate
 
 

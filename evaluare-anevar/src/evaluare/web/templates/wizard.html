@@ -8,9 +8,16 @@
  <a href="/descoperire">descoperire comparabile</a> ·
  <a href="/grila">grilă detaliată (teren + casă)</a> ·
  <a href="/aml">conformitate AML (Legea 129/2019)</a></nav>
-<div class="bara"><div id="progres" role="progressbar" aria-label="Progres completare wizard"
-  aria-valuemin="0" aria-valuemax="100" aria-valuenow="20" style="width:20%"></div></div>
-<p id="eticheta-pas" role="status"></p>
+<nav class="stepper-wrap" aria-label="Pașii evaluării">
+  <ol class="stepper" id="stepper">
+    <li><button type="button" class="step" data-pas="1" aria-label="Pasul 1: Adresă"><span class="num">1</span><span class="et">Adresă</span></button></li>
+    <li><button type="button" class="step" data-pas="2" aria-label="Pasul 2: Subiect"><span class="num">2</span><span class="et">Subiect</span></button></li>
+    <li><button type="button" class="step" data-pas="3" aria-label="Pasul 3: Comparabile"><span class="num">3</span><span class="et">Comparabile</span></button></li>
+    <li><button type="button" class="step" data-pas="4" aria-label="Pasul 4: Calcul"><span class="num">4</span><span class="et">Calcul</span></button></li>
+    <li><button type="button" class="step" data-pas="5" aria-label="Pasul 5: Raport"><span class="num">5</span><span class="et">Raport</span></button></li>
+  </ol>
+</nav>
+<p id="eticheta-pas" role="status" class="sr-only"></p>
 <main>
 
 <!-- PAS 1 -->
@@ -231,19 +238,30 @@ function salveaza(){ const s={}; CAMPURI.forEach(c=>{if($(c))s[c]=$(c).value});
   localStorage.setItem("wizard", JSON.stringify(s)); }
 function incarca(){ try{ const s=JSON.parse(localStorage.getItem("wizard")||"{}");
   CAMPURI.forEach(c=>{if($(c)&&s[c]!=null)$(c).value=s[c]}); }catch(e){} }
-function arata(){ for(let i=1;i<=PASI;i++) $("pas-"+i).classList.toggle("activ", i===pas);
-  const proc=Math.round(pas*100/PASI);
-  $("progres").style.width=proc+"%"; $("progres").setAttribute("aria-valuenow", proc);
-  $("eticheta-pas").textContent="Pas "+pas+" / "+PASI;
+const STEP_LBL=["Adresă","Subiect","Comparabile","Calcul","Raport"];
+function arata(){
+  for(let i=1;i<=PASI;i++) $("pas-"+i).classList.toggle("activ", i===pas);
+  // stepper: stări făcut / activ / următor
+  document.querySelectorAll("#stepper .step").forEach(b=>{
+    const n=+b.dataset.pas, li=b.parentElement;
+    li.classList.toggle("done", n<pas);
+    li.classList.toggle("activ", n===pas);
+    if(n===pas) b.setAttribute("aria-current","step"); else b.removeAttribute("aria-current");
+  });
+  $("eticheta-pas").textContent="Pasul "+pas+" din "+PASI+" — "+STEP_LBL[pas-1];
   $("inapoi").disabled=(pas===1);
-  if(pas===4 && !$("adresa_raport").value.trim()) $("adresa_raport").value=composeAdresa(); }
+  $("inainte").disabled=(pas===PASI);
+  if(pas===4 && !$("adresa_raport").value.trim()) $("adresa_raport").value=composeAdresa();
+}
 function focusPas(){ const h=document.querySelector("#pas-"+pas+" h2");
   if(h){ h.setAttribute("tabindex","-1"); h.focus(); } }
+function mergiLa(n){ if(n>=1 && n<=PASI && n!==pas){ pas=n; salveaza(); arata(); focusPas(); } }
 
-$("inainte").addEventListener("click", ()=>{
-  if(pas<PASI){ pas++; salveaza(); arata(); focusPas(); }
+$("inainte").addEventListener("click", ()=>{ if(pas<PASI) mergiLa(pas+1); });
+$("inapoi").addEventListener("click", ()=>{ if(pas>1) mergiLa(pas-1); });
+document.querySelectorAll("#stepper .step").forEach(b=>{
+  b.addEventListener("click", ()=> mergiLa(+b.dataset.pas));
 });
-$("inapoi").addEventListener("click", ()=>{ if(pas>1){pas--; arata(); focusPas();} });
 $("reset").addEventListener("click", ()=>{ localStorage.removeItem("wizard"); location.reload(); });
 
 let LOCALITATI = {};

@@ -241,6 +241,42 @@ main{ display:block; }
 #eticheta-pas{ font-family:var(--sans); text-transform:uppercase; letter-spacing:.14em;
   font-size:.74rem; color:var(--ink-faint); font-weight:600; margin:2px 0 0; }
 
+/* utilitar: vizibil doar pentru cititoarele de ecran */
+.sr-only{ position:absolute; width:1px; height:1px; padding:0; margin:-1px; overflow:hidden;
+  clip:rect(0 0 0 0); white-space:nowrap; border:0; }
+
+/* ---- Stepper de pași (indicator numerotat, clickabil) ---- */
+.stepper-wrap{ margin:22px 0 10px; }
+.stepper{ list-style:none; display:flex; padding:0; margin:0; }
+.stepper li{ flex:1 1 0; position:relative; }
+.stepper li:not(:first-child)::before{
+  content:""; position:absolute; top:25px; right:50%; width:100%; height:2px;
+  background:var(--line-2); z-index:0;
+}
+.stepper li.done::before, .stepper li.activ::before{ background:var(--green); }
+.step{
+  position:relative; z-index:1; width:100%;
+  background:none; border:0; margin:0; padding:8px 2px 4px; box-shadow:none;
+  display:flex; flex-direction:column; align-items:center; gap:7px; cursor:pointer;
+  font-family:var(--sans); color:var(--ink-faint); transition:none;
+}
+.step:hover{ transform:none; background:none; box-shadow:none; }
+.step .num{
+  width:36px; height:36px; border-radius:50%; display:grid; place-items:center;
+  font-family:var(--serif); font-weight:700; font-size:1.02rem;
+  background:var(--paper-card); border:2px solid var(--line-2); color:var(--ink-faint);
+  transition:background .2s, border-color .2s, color .2s, box-shadow .2s;
+}
+.step .et{ font-size:.73rem; letter-spacing:.05em; text-transform:uppercase; font-weight:600; }
+.stepper li.done .num{ background:var(--green); border-color:var(--green); color:#fbf8f0; }
+.stepper li.done .step{ color:var(--ink-2); }
+.stepper li.activ .num{ background:var(--sienna); border-color:var(--sienna-deep); color:#fbf8f0;
+  box-shadow:0 0 0 4px rgba(157,74,37,.16); }
+.stepper li.activ .step{ color:var(--sienna-deep); }
+.step:hover .num{ border-color:var(--sienna); color:var(--sienna-deep); }
+.step:focus-visible{ outline:2px solid var(--sienna); outline-offset:3px; border-radius:8px; }
+@media (max-width:560px){ .step .et{ display:none; } }
+
 /* alerte de validare */
 .a-block,.a-warn{ border-radius:6px; padding:8px 12px; margin:6px 0; font-size:.9rem;
   font-family:var(--sans); }
