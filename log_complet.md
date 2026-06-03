@@ -5,7 +5,7 @@
 > `evaluare-anevar/scripts/export_chat.py`. Secretele (chei API) sunt redactate. Se
 > regenereaza la fiecare rulare (actualizare orara). Pentru sinteza, vezi `log.md`.
 
-**Mesaje:** 1022.
+**Mesaje:** 1031.
 
 ---
 
@@ -9847,3 +9847,92 @@ The `False` is a PowerShell quoting artifact (escaped quotes in the match string
 ## Assistant  ·  2026-06-03 22:32:07
 
 Totul verificat în exe. Commit + log:
+
+## Assistant  ·  2026-06-03 22:32:55
+
+Gata. Am refăcut logica pașilor în wizard cu un **stepper numerotat clickabil**, exact direcția pe care ai ales-o.
+
+## Ce am schimbat
+- **Stepper cu 5 pași etichetați** — `Adresă · Subiect · Comparabile · Calcul · Raport` — a înlocuit bara subțire de progres + textul „Pas X/Y".
+- **Stări vizuale clare:** făcut (cerc verde + conector umplut), activ (cerc sienna cu halou), următor (estompat).
+- **Clickabil** — apeși orice pas (chiar și înainte) ca să sari direct la el (`mergiLa`).
+- **Corectată inconsecvența reală** pe care o semnalasem: „Înainte" se dezactivează acum la ultimul pas, la fel cum „Înapoi" e dezactivat la primul.
+- **Accesibilitate păstrată și întărită:** `aria-current="step"` pe pasul activ, etichetă `sr-only` cu `role="status"` care anunță „Pasul 3 din 5 — Comparabile", focus mutat pe titlul pasului, navigare completă cu tastatura.
+
+## Verificare
+- QA vizual live (preview): stepper la pasul 3 — 1-2 verzi, 3 sienna, 4-5 estompate; salt cu click și butoane Înainte/Înapoi corecte (verificat: la pas 5 „Înainte" e dezactivat, la pas 1 „Înapoi").
+- **280 teste verzi** (am actualizat testul a11y: stepper în loc de progressbar).
+- Exe reîmpachetat și verificat live (stepper prezent în bundle, offline).
+- Comis pe `master`; `log.md` + `log_complet.md` actualizate.
+
+Dacă vrei, pot adăuga și **validare între pași** (să nu te lase „Înainte" cu câmpuri esențiale goale) — era a doua opțiune; acum navigarea e liberă, cum ai ales.
+
+## User  ·  2026-06-03 22:48:25
+
+de ce treci "Alternative: formular"inainte de toate cele 4 optuni?
+
+## Assistant  ·  2026-06-03 22:49:14
+
+Bună observație — și ai dreptate că e ilogic. Îți explic de ce e așa și îl repar.
+
+**De ce arată așa:** e o rămășiță istorică. La început, singura altă pagină era „formular clasic", așa că linia a fost etichetată `Alternative:`. Pe măsură ce am adăugat `descoperire`, `grilă` și `AML`, le-am lipit pe aceeași linie — și au ajuns toate, din inerție, sub eticheta „Alternative:" și **după** „formular".
+
+E greșit conceptual: doar **formularul clasic** e o *alternativă* la wizard (aceeași sarcină, altă interfață). `descoperire`, `grilă` și `AML` nu sunt alternative — sunt **instrumente** complementare. Le repar separându-le:
+
+## Assistant  ·  2026-06-03 22:49:25
+
+Acum linia distinge clar: **Instrumente** (cele 3 complementare, puse primele fiindcă sunt mai relevante din wizard) și **Vizualizare alternativă** (formularul clasic). Verific și reîmpachetez:
+
+## Assistant  ·  2026-06-03 22:56:54
+
+Reparat. Pe scurt:
+
+**De ce era așa:** artefact istoric — eticheta `Alternative:` a rămas de când singura altă pagină era formularul clasic. Linkurile noi (`descoperire`, `grilă`, `AML`) le-am adăugat pe aceeași linie și au fost „înghițite" sub aceeași etichetă, deși nu sunt alternative.
+
+**Cum arată acum:**
+- **Instrumente:** descoperire comparabile · grilă detaliată · conformitate AML  *(complementare, puse primele fiindcă din wizard la ele sari)*
+- **Vizualizare alternativă:** formular clasic *(singura cu adevărat „alternativă" — aceeași evaluare, pe o singură pagină)*
+
+Verificat (20 teste relevante verzi), exe reîmpachetat, comis pe `master`.
+
+## User  ·  2026-06-03 23:06:05
+
+ce mai e facut?
+
+## Assistant  ·  2026-06-03 23:06:34
+
+Iată unde suntem. (Sinteza completă e în `C:\Users\adyse\anevar\log.md`.)
+
+## ✅ Făcut (recent, în această sesiune)
+- **Modul AML complet** (Legea 129/2019) — 6 faze, +70 teste.
+- **Accesibilitate Faza 1** (WCAG 2.1 AA) pe toate paginile + bug-fix `$` în grilă.
+- **Redesign vizual „Cadastru"** — sistem de design unitar, offline.
+- **Wizard: stepper numerotat clickabil** + corectarea navigării.
+- **Bara de sus** reorganizată (Instrumente vs. Vizualizare alternativă).
+- **280 teste verzi**, exe reîmpachetat și verificat live la fiecare pas.
+
+## 🔜 Rămas de făcut — pot continua autonom (fără tine / fără acces extern)
+- **Accesibilitate Faza 2** (`docs/plan-accesibilitate.md`): `<form>` + Enter, `type="date"`, erori legate de câmp (`aria-describedby`), skip-link, `autocomplete`.
+- **Validare între pași** în wizard (opțiunea pe care n-ai ales-o; navigarea e liberă acum).
+- **`/result` ca „certificat"** — layout mai îngrijit pe pagina de rezultat (acum e minimală).
+- Polish UI rămas (pagina `descoperire`/`form` au și ele clase, dar arată deja bine).
+
+## 🔒 Blocat extern (depinde de tine / terți)
+- **`big/`, `ancpi/`** — acces la API/portaluri ANEVAR/ANCPI.
+- **AML „live"** — listele oficiale (sancțiuni UE/ONU, PEP-ANI, țări), transmiterea electronică la ONPCSB, **validarea juridică finală** a textelor.
+- **Catalog IROVAL** (costuri unitare — plătit), **exe semnat** (certificat de cod, ca să nu mai apară SmartScreen).
+
+---
+
+Ce vrei să atac în continuare? Recomandarea mea: **Accesibilitate Faza 2** (mic, sigur, lustruiește experiența) sau **validarea între pași** în wizard. Spune și mă apuc.
+
+## User  ·  2026-06-03 23:16:00
+
+Actualizare orară a logurilor proiectului:
+1) Rulează `cd C:\Users\adyse\anevar\evaluare-anevar && python scripts/export_chat.py` ca să regenerezi log_complet.md (transcript verbatim, include mesajele noi). Dacă fișierul s-a schimbat, comite-l.
+2) Dacă în ultima oră a apărut ceva NOU de consemnat, adaugă o intrare cu data/ora în secțiunea „Actualizări (orare)" din C:\Users\adyse\anevar\log.md și comite. Dacă nu e nimic nou, nu scrie nimic în log.md.
+3) Reprogramează această actualizare peste încă o oră (ScheduleWakeup 3600s cu același prompt).
+
+## Assistant  ·  2026-06-03 23:16:06
+
+Rulez actualizarea orară: regenerez transcriptul, comit dacă s-a schimbat, apoi evaluez log.md.
