@@ -113,6 +113,37 @@ def create_app(storage: Storage, client: Optional[NarrativeClient],
         genereaza_raport(ctx, out, adnotari=bool(demo))
         return FileResponse(str(out), media_type=DOCX_MIME, filename=f"raport_{eid}{sufix}.docx")
 
+    @app.get("/api/evaluare/{eid}/audit.txt")
+    def audit_dosar(eid: int):
+        from fastapi.responses import PlainTextResponse
+        from evaluare.audit.jurnal import JurnalAudit
+        from evaluare.audit.snapshot import snapshot
+        from evaluare.audit.validare_x import valideaza_incrucisat
+        from evaluare.audit.raport_audit import text_audit
+        try:
+            ctx = storage.load(eid)
+        except KeyError:
+            raise HTTPException(status_code=404, detail="Dosar inexistent.")
+        j = JurnalAudit()
+        j.inregistreaza("identificare", {"adresa": ctx.meta.adresa,
+                                         "cadastral": ctx.meta.numar_cadastral, "scop": ctx.meta.scop})
+        j.inregistreaza("input_proprietate", {"hash": snapshot({
+            "land": ctx.land.model_dump(mode="json"),
+            "building": ctx.building.model_dump(mode="json")})["hash"]})
+        j.inregistreaza("comparabile", {"casa": len(ctx.comparables),
+                                        "teren": len(ctx.land_comparables)})
+        if ctx.market_result is not None:
+            j.inregistreaza("rezultat_piata", {"valoare": str(ctx.market_result.valoare_piata)})
+        if ctx.cost_result is not None:
+            j.inregistreaza("rezultat_cost", {"valoare": str(ctx.cost_result.valoare_cost)})
+        if ctx.land_result is not None:
+            j.inregistreaza("rezultat_teren", {"valoare": str(ctx.land_result.valoare_teren)})
+        j.inregistreaza("valoare_finala", {"valoare": str(ctx.reconciled.valoare_finala),
+                                           "metoda": ctx.reconciled.metoda_selectata})
+        for issue in valideaza_incrucisat(ctx):
+            j.inregistreaza("validare_incrucisata", {"nivel": issue.nivel, "mesaj": issue.mesaj})
+        return PlainTextResponse(text_audit(j))
+
     @app.get("/", response_class=HTMLResponse)
     def pagina_index(request: Request) -> HTMLResponse:
         # Pagina principala = wizard-ul ghidat pas-cu-pas.

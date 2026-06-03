@@ -215,6 +215,7 @@
    din nou „Calculează" ca să intre în raport.</p>
   <button type="button" id="btn-raport">📄 Generează și descarcă raportul .docx</button>
   <button type="button" id="btn-raport-demo">📝 Raport cu note (demo)</button>
+  <button type="button" id="btn-audit">🧾 Urmă de audit (.txt)</button>
   <small class="hint">„Raport cu note (demo)" adaugă sub fiecare secțiune o adnotare care explică
    proveniența informației (calculat / extras / AI / exemplu / placeholder) — util pentru review.
    Notele NU apar în raportul normal.<br>
@@ -454,6 +455,10 @@ function descarcaRaport(demo){
 }
 $("btn-raport").addEventListener("click", ()=>descarcaRaport(false));
 $("btn-raport-demo").addEventListener("click", ()=>descarcaRaport(true));
+$("btn-audit").addEventListener("click", ()=>{
+  if(!evaluareId){ $("link-raport").textContent="Întâi calculează valoarea la Pasul 4."; return; }
+  window.location = "/api/evaluare/"+evaluareId+"/audit.txt";
+});
 
 incarcaLocalitati().then(()=>{ incarca(); populeazaLocalitati(); arata(); });
 </script>
