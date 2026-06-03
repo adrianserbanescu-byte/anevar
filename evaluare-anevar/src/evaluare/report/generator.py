@@ -14,9 +14,52 @@ from typing import Optional
 
 from docx import Document
 from docx.document import Document as DocxDocument
-from docx.shared import Inches
+from docx.shared import Inches, Pt, RGBColor
 
 from evaluare.models.report_context import ReportContext
+
+# Note de provenienta (mod demo/review): explica ce e calculat, extras, AI, exemplu sau placeholder.
+ADNOTARI = {
+    "legenda": ("LEGENDA NOTELOR DEMO (text colorat, NU apare in raportul real): "
+                "[CALCULAT]=produs de motorul de calcul; [EXTRAS]=preluat automat din anunt; "
+                "[INTRODUS]=completat de evaluator; [AI]=text generat de inteligenta artificiala; "
+                "[SABLON]=text fix standard; [EXEMPLU]/[PLACEHOLDER]=valori demonstrative de inlocuit."),
+    "coperta": ("[INTRODUS] Identificarea (client, cadastral, CF, evaluator) e introdusa de evaluator — "
+                "aici valori generice/placeholder. [CALCULAT] VALOAREA estimata e calculata real de motor."),
+    "scrisoare": "[SABLON+CALCULAT] Text-sablon fix, completat automat cu valoarea calculata. Functional.",
+    "declaratie": "[SABLON] Declaratii standard ANEVAR — text fix. Functional.",
+    "termeni": ("[INTRODUS] Compilati automat din campurile lucrarii (client, beneficiar, scop, moneda, "
+                "curs, date). Functional."),
+    "cap1": "[CALCULAT] Sinteza generata automat din rezultatele calculate. Functional.",
+    "cap2": "[AI] Text narativ generat de inteligenta artificiala; de revizuit de evaluator.",
+    "cap3": "[AI] Analiza de piata descriptiva (AI) — NU pe o baza de date de tranzactii reale.",
+    "cap4": ("[EXTRAS/INTRODUS] Date fizice extrase din anunt / introduse de evaluator (reale). "
+             "Nr. cadastral si CF aici sunt PLACEHOLDER."),
+    "cap5": "[AI] Analiza celei mai bune utilizari generata de AI.",
+    "cap6": ("[CALCULAT] Grilele (teren + casa) si costul CIN sunt calculate real de motor. "
+             "[EXTRAS] Preturile/suprafetele comparabilelor sunt reale (din anunturi). "
+             "[EXEMPLU] Ajustarile din grila sunt demonstrative — de stabilit de evaluator la inspectie."),
+    "cap7": "[CALCULAT] Selectia metodei si valoarea finala sunt calculate. [AI] Textul explicativ.",
+    "alocare": "[CALCULAT] Valoare constructii = valoare proprietate − valoare teren.",
+    "gev520": "[AI] Text standard GEV 520 generat de AI; de adaptat la caz.",
+    "anexe": ("[EXTRAS] Sursele comparabilelor sunt linkuri reale. [EXEMPLU] Fotografiile sunt "
+              "exemplificative. [PLACEHOLDER] Documentele cadastrale — de atasat."),
+    "semnatura": "[PLACEHOLDER] Caseta de semnatura — de completat de evaluator.",
+}
+
+
+def _nota(doc: DocxDocument, cheie: str, adnotari: bool) -> None:
+    """Adauga o nota de provenienta (colorata, italic) sub un titlu — doar in modul demo."""
+    if not adnotari:
+        return
+    text = ADNOTARI.get(cheie, "")
+    if not text:
+        return
+    p = doc.add_paragraph()
+    run = p.add_run("▮ NOTA DEMO — " + text)
+    run.italic = True
+    run.font.size = Pt(8.5)
+    run.font.color.rgb = RGBColor(0xB0, 0x6A, 0x00)
 
 
 def _narativ(ctx: ReportContext, capitol: str) -> Optional[str]:
@@ -68,9 +111,11 @@ def _valoare_teren(ctx: ReportContext):
 # --------------------------------------------------------------------------- #
 # Front matter (shell GBF)
 # --------------------------------------------------------------------------- #
-def _coperta(doc: DocxDocument, ctx: ReportContext) -> None:
+def _coperta(doc: DocxDocument, ctx: ReportContext, adnotari: bool = False) -> None:
     meta = ctx.meta
     doc.add_heading("RAPORT DE EVALUARE", level=0)
+    _nota(doc, "legenda", adnotari)
+    _nota(doc, "coperta", adnotari)
     p = doc.add_paragraph()
     p.add_run("Proprietate imobiliara: casa de locuit si teren aferent").bold = True
     doc.add_paragraph(f"Adresa: {meta.adresa}")
@@ -96,9 +141,10 @@ def _coperta(doc: DocxDocument, ctx: ReportContext) -> None:
     doc.add_page_break()
 
 
-def _scrisoare_transmitere(doc: DocxDocument, ctx: ReportContext) -> None:
+def _scrisoare_transmitere(doc: DocxDocument, ctx: ReportContext, adnotari: bool = False) -> None:
     meta = ctx.meta
     doc.add_heading("SCRISOARE DE TRANSMITERE", level=1)
+    _nota(doc, "scrisoare", adnotari)
     catre = meta.client_nume + (f" / {meta.beneficiar}" if meta.beneficiar else "")
     doc.add_paragraph(f"Catre: {catre}")
     doc.add_paragraph(
@@ -117,8 +163,9 @@ def _scrisoare_transmitere(doc: DocxDocument, ctx: ReportContext) -> None:
     )
 
 
-def _declaratie_conformitate(doc: DocxDocument, ctx: ReportContext) -> None:
+def _declaratie_conformitate(doc: DocxDocument, ctx: ReportContext, adnotari: bool = False) -> None:
     doc.add_heading("DECLARATIE DE CONFORMITATE SI CERTIFICARE", level=1)
+    _nota(doc, "declaratie", adnotari)
     afirmatii = [
         "Prezentul raport a fost elaborat in conformitate cu Standardele de evaluare ANEVAR "
         "(SEV) in vigoare la data raportului.",
@@ -136,9 +183,10 @@ def _declaratie_conformitate(doc: DocxDocument, ctx: ReportContext) -> None:
         doc.add_paragraph(a, style="List Bullet")
 
 
-def _termeni_referinta(doc: DocxDocument, ctx: ReportContext) -> None:
+def _termeni_referinta(doc: DocxDocument, ctx: ReportContext, adnotari: bool = False) -> None:
     meta = ctx.meta
     doc.add_heading("TERMENI DE REFERINTA AI EVALUARII", level=1)
+    _nota(doc, "termeni", adnotari)
     doc.add_paragraph(f"Clientul evaluarii: {meta.client_nume} ({meta.client_tip}).")
     if meta.beneficiar:
         doc.add_paragraph(f"Beneficiarul / utilizatorul desemnat: {meta.beneficiar}.")
@@ -251,10 +299,11 @@ def _adauga_tabel_cost(doc: DocxDocument, ctx: ReportContext) -> None:
 # --------------------------------------------------------------------------- #
 # Back matter (alocare, risc GEV 520, anexe, semnatura)
 # --------------------------------------------------------------------------- #
-def _adauga_alocare(doc: DocxDocument, ctx: ReportContext) -> None:
+def _adauga_alocare(doc: DocxDocument, ctx: ReportContext, adnotari: bool = False) -> None:
     if ctx.alocare_constructii is None:
         return
     doc.add_heading("ALOCAREA VALORII", level=1)
+    _nota(doc, "alocare", adnotari)
     vt = _valoare_teren(ctx)
     table = doc.add_table(rows=1, cols=2)
     table.style = "Table Grid"
@@ -275,8 +324,9 @@ def _adauga_alocare(doc: DocxDocument, ctx: ReportContext) -> None:
     )
 
 
-def _adauga_risc_garantie(doc: DocxDocument, ctx: ReportContext) -> None:
+def _adauga_risc_garantie(doc: DocxDocument, ctx: ReportContext, adnotari: bool = False) -> None:
     doc.add_heading("RISCUL ASOCIAT GARANTIEI (GEV 520)", level=1)
+    _nota(doc, "gev520", adnotari)
     txt = _narativ(ctx, "Riscul asociat garantiei (GEV 520)")
     if txt:
         doc.add_paragraph(txt)
@@ -304,8 +354,9 @@ def _decode_foto(data_url: str) -> Optional[BytesIO]:
     return BytesIO(raw)
 
 
-def _adauga_anexe(doc: DocxDocument, ctx: ReportContext) -> None:
+def _adauga_anexe(doc: DocxDocument, ctx: ReportContext, adnotari: bool = False) -> None:
     doc.add_heading("ANEXE", level=1)
+    _nota(doc, "anexe", adnotari)
     doc.add_paragraph("Anexa 1 — Comparabile utilizate (surse):")
     surse = [c.sursa for c in ctx.comparables if c.sursa and c.sursa != "manual"]
     if surse:
@@ -331,8 +382,9 @@ def _adauga_anexe(doc: DocxDocument, ctx: ReportContext) -> None:
     doc.add_paragraph("Anexa 3 — Documente cadastrale, extras CF si acte juridice [de atasat].")
 
 
-def _adauga_semnatura(doc: DocxDocument, ctx: ReportContext) -> None:
+def _adauga_semnatura(doc: DocxDocument, ctx: ReportContext, adnotari: bool = False) -> None:
     meta = ctx.meta
+    _nota(doc, "semnatura", adnotari)
     doc.add_paragraph("")
     doc.add_paragraph("Intocmit,")
     p = doc.add_paragraph()
@@ -345,19 +397,26 @@ def _adauga_semnatura(doc: DocxDocument, ctx: ReportContext) -> None:
 # --------------------------------------------------------------------------- #
 # Asamblare
 # --------------------------------------------------------------------------- #
-def genereaza_raport(ctx: ReportContext, output_path: Path | str) -> Path:
-    """Construieste si salveaza raportul .docx. Returneaza calea fisierului."""
+def genereaza_raport(
+    ctx: ReportContext, output_path: Path | str, adnotari: bool = False
+) -> Path:
+    """Construieste si salveaza raportul .docx. Returneaza calea fisierului.
+
+    Cu `adnotari=True`, insereaza note de provenienta (mod demo/review) sub fiecare sectiune:
+    ce e calculat real, extras automat, generat de AI, exemplu sau placeholder.
+    """
     doc = Document()
     meta = ctx.meta
 
     # --- Shell GBF (front matter) ---
-    _coperta(doc, ctx)
-    _scrisoare_transmitere(doc, ctx)
-    _declaratie_conformitate(doc, ctx)
-    _termeni_referinta(doc, ctx)
+    _coperta(doc, ctx, adnotari)
+    _scrisoare_transmitere(doc, ctx, adnotari)
+    _declaratie_conformitate(doc, ctx, adnotari)
+    _termeni_referinta(doc, ctx, adnotari)
 
     # --- Cele 7 capitole SEV 103 ---
     doc.add_heading("1. SINTEZA EVALUARII SI CERTIFICARE", level=1)
+    _nota(doc, "cap1", adnotari)
     doc.add_paragraph(f"Client: {meta.client_nume} ({meta.client_tip}).")
     doc.add_paragraph(
         f"Proprietatea: {meta.adresa}; nr. cadastral {meta.numar_cadastral}; "
@@ -374,18 +433,21 @@ def genereaza_raport(ctx: ReportContext, output_path: Path | str) -> Path:
     )
 
     doc.add_heading("2. IPOTEZE GENERALE SI SPECIALE", level=1)
+    _nota(doc, "cap2", adnotari)
     doc.add_paragraph(
         _narativ(ctx, "Ipoteze generale si speciale")
         or "Ipoteze limitative standard privind structura de rezistenta si solul."
     )
 
     doc.add_heading("3. PREZENTAREA DATELOR DE PIATA", level=1)
+    _nota(doc, "cap3", adnotari)
     doc.add_paragraph(
         _narativ(ctx, "Prezentarea datelor de piata")
         or "Analiza pietei locale [de completat]."
     )
 
     doc.add_heading("4. DESCRIEREA JURIDICA SI FIZICA A PROPRIETATII", level=1)
+    _nota(doc, "cap4", adnotari)
     doc.add_paragraph(f"Teren: {ctx.land.suprafata} mp, categorie {ctx.land.categorie}.")
     doc.add_paragraph(
         f"Constructie: Au {ctx.building.au} mp, Acd {ctx.building.acd} mp, "
@@ -396,12 +458,14 @@ def genereaza_raport(ctx: ReportContext, output_path: Path | str) -> Path:
         doc.add_paragraph(descriere)
 
     doc.add_heading("5. ANALIZA CELEI MAI BUNE UTILIZARI (CMBU)", level=1)
+    _nota(doc, "cap5", adnotari)
     doc.add_paragraph(
         _narativ(ctx, "Analiza celei mai bune utilizari (CMBU)")
         or "Analiza CMBU [de completat]."
     )
 
     doc.add_heading("6. APLICAREA METODELOR DE CALCUL", level=1)
+    _nota(doc, "cap6", adnotari)
     _adauga_grila_comparatie(doc, ctx)
     _adauga_grila_teren(doc, ctx)
     _adauga_tabel_cost(doc, ctx)
@@ -410,6 +474,7 @@ def genereaza_raport(ctx: ReportContext, output_path: Path | str) -> Path:
         doc.add_paragraph(justificare)
 
     doc.add_heading("7. RECONCILIEREA REZULTATELOR SI CONCLUZIA VALORII", level=1)
+    _nota(doc, "cap7", adnotari)
     doc.add_paragraph(
         _narativ(ctx, "Reconcilierea rezultatelor si concluzia valorii")
         or "Reconcilierea metodelor [de completat]."
@@ -420,10 +485,10 @@ def genereaza_raport(ctx: ReportContext, output_path: Path | str) -> Path:
     )
 
     # --- Shell GBF (back matter) ---
-    _adauga_alocare(doc, ctx)
-    _adauga_risc_garantie(doc, ctx)
-    _adauga_anexe(doc, ctx)
-    _adauga_semnatura(doc, ctx)
+    _adauga_alocare(doc, ctx, adnotari)
+    _adauga_risc_garantie(doc, ctx, adnotari)
+    _adauga_anexe(doc, ctx, adnotari)
+    _adauga_semnatura(doc, ctx, adnotari)
 
     output_path = Path(output_path)
     doc.save(str(output_path))

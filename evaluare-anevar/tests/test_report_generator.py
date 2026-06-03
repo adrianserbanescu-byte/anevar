@@ -78,6 +78,20 @@ def test_raportul_are_cele_sapte_capitole(tmp_path):
         assert nr in titlu
 
 
+def test_adnotari_demo_doar_cand_sunt_cerute(tmp_path):
+    fara = tmp_path / "fara.docx"
+    genereaza_raport(_ctx(), fara, adnotari=False)
+    assert "NOTA DEMO" not in _all_text(fara)
+    assert "LEGENDA NOTELOR DEMO" not in _all_text(fara)
+
+    cu = tmp_path / "cu.docx"
+    genereaza_raport(_ctx(), cu, adnotari=True)
+    text = _all_text(cu)
+    assert "NOTA DEMO" in text
+    assert "LEGENDA NOTELOR DEMO" in text
+    assert "[CALCULAT]" in text and "[AI]" in text and "[EXEMPLU]" in text
+
+
 def test_raportul_are_shell_gbf(tmp_path):
     out = tmp_path / "raport.docx"
     genereaza_raport(_ctx(), out)

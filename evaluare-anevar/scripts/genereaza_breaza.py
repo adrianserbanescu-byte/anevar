@@ -117,5 +117,5 @@ print("Valoare cost (CIN+teren):", ctx.cost_result.valoare_cost)
 print("Valoare piata (total ales):", ctx.market_result.valoare_piata)
 print("Valoare finala:", ctx.reconciled.valoare_finala, "| alocare constructii:", ctx.alocare_constructii)
 out = Path(__file__).resolve().parents[2] / "docs" / "exemplu-raport-breaza.docx"
-genereaza_raport(ctx, out)
+genereaza_raport(ctx, out, adnotari=True)   # raport de review -> cu note de provenienta
 print("Raport scris:", out)

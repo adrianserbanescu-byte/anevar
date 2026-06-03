@@ -87,14 +87,16 @@ def create_app(storage: Storage, client: Optional[NarrativeClient],
         }
 
     @app.get("/api/evaluare/{eid}/raport.docx")
-    def descarca_raport(eid: int) -> FileResponse:
+    def descarca_raport(eid: int, demo: int = 0) -> FileResponse:
         try:
             ctx = storage.load(eid)
         except KeyError:
             raise HTTPException(status_code=404, detail="Dosar inexistent.")
-        out = Path(tempfile.gettempdir()) / f"raport_{eid}.docx"
-        genereaza_raport(ctx, out)
-        return FileResponse(str(out), media_type=DOCX_MIME, filename=f"raport_{eid}.docx")
+        # ?demo=1 -> raport cu note de provenienta (calculat/extras/AI/exemplu/placeholder)
+        sufix = "_demo" if demo else ""
+        out = Path(tempfile.gettempdir()) / f"raport_{eid}{sufix}.docx"
+        genereaza_raport(ctx, out, adnotari=bool(demo))
+        return FileResponse(str(out), media_type=DOCX_MIME, filename=f"raport_{eid}{sufix}.docx")
 
     @app.get("/", response_class=HTMLResponse)
     def pagina_index(request: Request) -> HTMLResponse:
