@@ -191,6 +191,10 @@
    <br><b>Fotografiile</b> se atașează la Pas 4 înainte de „Calculează" — dacă le adaugi după, apasă
    din nou „Calculează" ca să intre în raport.</p>
   <button type="button" id="btn-raport">📄 Generează și descarcă raportul .docx</button>
+  <button type="button" id="btn-raport-demo">📝 Raport cu note (demo)</button>
+  <small class="hint">„Raport cu note (demo)" adaugă sub fiecare secțiune o adnotare care explică
+   proveniența informației (calculat / extras / AI / exemplu / placeholder) — util pentru review.
+   Notele NU apar în raportul normal.</small>
   <div id="link-raport" class="hint"></div>
 </section>
 
@@ -377,10 +381,12 @@ $("btn-calc").addEventListener("click", async ()=>{
   }catch(e){ $("rezultat-calc").textContent="eroare calcul"; }
 });
 
-$("btn-raport").addEventListener("click", ()=>{
+function descarcaRaport(demo){
   if(!evaluareId){ $("link-raport").textContent="Întâi calculează valoarea la Pasul 4."; return; }
-  window.location = "/api/evaluare/"+evaluareId+"/raport.docx";
-});
+  window.location = "/api/evaluare/"+evaluareId+"/raport.docx" + (demo ? "?demo=1" : "");
+}
+$("btn-raport").addEventListener("click", ()=>descarcaRaport(false));
+$("btn-raport-demo").addEventListener("click", ()=>descarcaRaport(true));
 
 incarcaLocalitati().then(()=>{ incarca(); populeazaLocalitati(); arata(); });
 </script>

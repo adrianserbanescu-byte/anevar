@@ -53,3 +53,10 @@ def test_wizard_are_upload_foto(tmp_path):
     assert 'id="foto"' in body
     assert 'type="file"' in body
     assert "photos:FOTOS" in body
+
+
+def test_wizard_are_buton_raport_demo(tmp_path):
+    client = _client(tmp_path)
+    body = client.get("/wizard").text
+    assert 'id="btn-raport-demo"' in body
+    assert "?demo=1" in body
