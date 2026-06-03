@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head><meta charset="utf-8"><title>Conformitate AML (Legea 129/2019)</title>
+<style>
+ body{font-family:Arial,sans-serif;max-width:920px;margin:20px auto;line-height:1.5}
+ h1{font-size:1.4em} h2{font-size:1.1em;margin-top:24px;border-bottom:2px solid #2a6;padding-bottom:3px}
+ label{display:block;margin:6px 0 2px;font-size:0.9em}
+ input,select{padding:4px 6px;font-size:0.9em} input[type=text]{width:230px}
+ fieldset{border:1px solid #ccc;border-radius:6px;margin:10px 0;padding:8px 12px}
+ .row{display:flex;flex-wrap:wrap;gap:14px}
+ .chk{font-size:0.88em;margin:3px 0} .chk input{margin-right:5px}
+ button{margin:10px 8px 10px 0;padding:8px 16px;font-size:0.95em;cursor:pointer}
+ .nav{font-size:0.9em;margin-bottom:10px}
+ .rez{border:1px solid #2a6;border-radius:6px;padding:10px 14px;margin:12px 0;background:#f6fbf6}
+ .badge{display:inline-block;padding:2px 9px;border-radius:10px;font-weight:bold}
+ .redus{background:#dff3df;color:#067a06} .standard{background:#eef;color:#246}
+ .sporit{background:#fde6e6;color:#a00}
+ .hint{color:#666;font-size:0.85em} .warn{color:#a00;font-weight:bold}
+ ul{margin:4px 0}
+</style></head>
+<body>
+<div class="nav"><a href="/">← wizard</a> · <a href="/grila">grilă</a> · <a href="/descoperire">descoperire</a></div>
+<h1>Conformitate AML — Legea 129/2019</h1>
+<p class="hint">Asistă obligațiile evaluatorului ca <b>entitate raportoare</b>: cunoașterea clientelei (KYC),
+beneficiar real, evaluarea de risc, indicatorii de suspiciune și pragul de numerar (10.000 €).
+Datele rămân <b>local</b>; rapoartele suspecte se păstrează separat (interdicție de divulgare, art. 38).
+Modulul propune — <b>evaluatorul decide și transmite</b> (rapoarte.onpcsb.ro).</p>
+
+<fieldset>
+ <legend>Entitate evaluator</legend>
+ <label>Tip</label>
+ <select id="tip_entitate">
+   <option value="PFA">PFA / persoană fizică (fără persoană desemnată — Norme art. 7)</option>
+   <option value="PJ">Societate (necesită persoană desemnată)</option>
+ </select>
+ <label>Data evaluării</label><input type="date" id="azi" value="2026-06-03">
+</fieldset>
+
+<fieldset>
+ <legend>Client</legend>
+ <label>Tip client</label>
+ <select id="tip_client" onchange="document.getElementById('pj').style.display=this.value=='PJ'?'block':'none'">
+   <option value="PF">Persoană fizică</option>
+   <option value="PJ">Persoană juridică</option>
+ </select>
+ <div class="row">
+   <div><label>Nume</label><input type="text" id="nume"></div>
+   <div><label>Prenume</label><input type="text" id="prenume"></div>
+   <div><label>CNP</label><input type="text" id="cnp"></div>
+ </div>
+ <div class="chk"><label><input type="checkbox" id="pep"> Client / beneficiar real este PEP (persoană expusă public)</label></div>
+ <div id="pj" style="display:none">
+   <label>Denumire PJ</label><input type="text" id="denumire">
+   <label>CUI</label><input type="text" id="cui">
+   <p class="hint">Beneficiarii reali (&gt;25%) se completează în fișa generată.</p>
+ </div>
+</fieldset>
+
+<fieldset>
+ <legend>Semnale de risc</legend>
+ <div class="row">
+  <label class="chk"><input type="checkbox" id="tara_risc_inalt"> Țară cu risc înalt</label>
+  <label class="chk"><input type="checkbox" id="pe_lista_sanctiuni"> Pe listă de sancțiuni</label>
+  <label class="chk"><input type="checkbox" id="tranzactie_complexa"> Tranzacție complexă / neobișnuită</label>
+  <label class="chk"><input type="checkbox" id="canal_la_distanta"> Relație la distanță</label>
+ </div>
+</fieldset>
+
+<fieldset>
+ <legend>Indicatori de suspiciune (HCD 58 art. 6(10))</legend>
+ <label class="chk"><input type="checkbox" class="ind" value="graba_excesiva"> Grabă excesivă</label>
+ <label class="chk"><input type="checkbox" class="ind" value="presiune_documente_insuficiente"> Presiune — documente insuficiente</label>
+ <label class="chk"><input type="checkbox" class="ind" value="nemultumire_nejustificata"> Nemulțumire nejustificată</label>
+ <label class="chk"><input type="checkbox" class="ind" value="presiune_valoare_predeterminata"> Presiune pentru o valoare predeterminată</label>
+ <label class="chk"><input type="checkbox" class="ind" value="scop_nedefinit"> Scop nedefinit al evaluării</label>
+ <label class="chk"><input type="checkbox" class="ind" value="pep_implicat"> PEP implicat</label>
+ <label class="chk"><input type="checkbox" class="ind" value="istoric_atipic_tranzactionare"> Istoric atipic de tranzacționare</label>
+ <label class="chk"><input type="checkbox" class="ind" value="tranzactii_in_dezacord_cu_piata"> Tranzacții în dezacord cu piața</label>
+ <label class="chk"><input type="checkbox" class="ind" value="drepturi_litigioase"> Drepturi litigioase</label>
+ <label class="chk"><input type="checkbox" class="ind" value="antecedente_penale"> Antecedente penale</label>
+</fieldset>
+
+<button onclick="evalueaza()">Evaluează relația</button>
+<div id="rez"></div>
+
+<script>
+function _client(){
+  const tip=document.getElementById('tip_client').value;
+  if(tip=='PJ') return {client_pj:{tip:'PJ',denumire:val('denumire'),cui:val('cui'),
+     beneficiari_reali:[{nume:val('nume'),prenume:val('prenume'),
+        pep:{este_pep:document.getElementById('pep').checked}}]}};
+  return {client_pf:{tip:'PF',persoana:{nume:val('nume'),prenume:val('prenume'),cnp:val('cnp')||null},
+     pep:{este_pep:document.getElementById('pep').checked}}};
+}
+function val(id){return document.getElementById(id).value;}
+function semnaleRisc(){const s={};['tara_risc_inalt','pe_lista_sanctiuni','tranzactie_complexa','canal_la_distanta']
+   .forEach(k=>{if(document.getElementById(k).checked)s[k]=true;});return s;}
+function semnaleInd(){const s={};document.querySelectorAll('.ind:checked').forEach(c=>s[c.value]=true);return s;}
+async function evalueaza(){
+  const body=Object.assign({tip_entitate:val('tip_entitate'),azi:val('azi'),
+     semnale_risc:semnaleRisc(),semnale_indicatori:semnaleInd()},_client());
+  const r=await fetch('/api/aml/evalueaza',{method:'POST',headers:{'Content-Type':'application/json'},
+     body:JSON.stringify(body)});
+  if(!r.ok){document.getElementById('rez').innerHTML='<p class="warn">Eroare la evaluare.</p>';return;}
+  const d=await r.json();
+  let h=`<div class="rez"><h2>Rezultat</h2>
+    <p>Categorie de risc: <span class="badge ${d.categorie}">${d.categorie.toUpperCase()}</span>
+       — măsuri <b>${d.nivel_masuri}</b></p>`;
+  if(d.motive_sporit.length) h+=`<p class="warn">Motive risc sporit:</p><ul>`+d.motive_sporit.map(m=>`<li>${m}</li>`).join('')+`</ul>`;
+  if(d.indicatori.length) h+=`<p>Indicatori activi → ${d.propune_rts?'<b class="warn">se propune RTS</b>':''}</p><ul>`+
+     d.indicatori.map(i=>`<li>${i.text}</li>`).join('')+`</ul>`;
+  if(d.screening.length) h+=`<p class="warn">Posibile potriviri screening (verifică manual):</p><ul>`+
+     d.screening.map(s=>`<li>${s.lista}: ${s.intrare} (${s.scor})</li>`).join('')+`</ul>`;
+  h+=`<p>Documente de generat:</p><ul>`+d.documente_necesare.map(doc=>{
+     const map={norme_interne:'/api/aml/norme-interne.docx',evaluare_risc:'/api/aml/evaluare-risc.docx',
+       fisa_kyc:'/api/aml/fisa-kyc.docx',decizie_desemnare:'/api/aml/decizie.docx',rts:'/api/aml/rts.docx'};
+     return `<li><button onclick='descarca("${map[doc]}")'>${doc}</button></li>`;}).join('')+`</ul></div>`;
+  document.getElementById('rez').innerHTML=h;
+  window._amlBody=body;
+}
+async function descarca(url){
+  const body=Object.assign({},window._amlBody);
+  if(url.indexOf('decizie')>=0) body.persoana_desemnata={nume:val('nume')||'____',prenume:val('prenume')||''};
+  if(url.indexOf('rts')>=0) body.rts={motiv:'indicatori de suspiciune bifați',
+     data_inregistrare:val('azi'),indicatori:Object.keys(semnaleInd())};
+  const r=await fetch(url,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
+  if(!r.ok){alert('Documentul nu a putut fi generat (verifică datele).');return;}
+  const blob=await r.blob();const a=document.createElement('a');
+  a.href=URL.createObjectURL(blob);a.download=url.split('/').pop();a.click();
+}
+</script>
+</body>
+</html>

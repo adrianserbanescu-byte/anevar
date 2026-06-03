@@ -1,0 +1,22 @@
+{
+  "actualizat": "2026-06-03",
+  "_nota": "PLACEHOLDER — listele trebuie reimprospatate manual din surse OFICIALE inainte de uz real: sanctiuni UE/ONU (consolidate), functii PEP (ANI), tari terte cu risc inalt (Regulament delegat CE), tari necooperante (ONPCSB/GAFI). Acest fisier este doar un exemplu minimal de structura.",
+  "sanctiuni": [],
+  "pep_functii": [
+    "Presedinte al Romaniei",
+    "Prim-ministru",
+    "Ministru",
+    "Senator",
+    "Deputat",
+    "Judecator la Inalta Curte de Casatie si Justitie",
+    "Guvernator al Bancii Nationale a Romaniei",
+    "Membru al Curtii de Conturi",
+    "Ambasador"
+  ],
+  "tari_risc_inalt": [
+    "Coreea de Nord",
+    "Iran",
+    "Myanmar"
+  ],
+  "tari_necooperante": []
+}
