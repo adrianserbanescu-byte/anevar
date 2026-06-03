@@ -72,7 +72,7 @@ Legendă status: ✅ implementat · 🟡 parțial · 📋 planificat (cu spec).
 | **`audit/`** | **Audit trail** (jurnal append-only + hash) + snapshot + **validare încrucișată** (cablată în `/api/evaluare`) + export | ✅ schelet implementat (TDD, 9 teste) · [spec](superpowers/specs/2026-06-03-modul-audit-trail-design.md) |
 | **`aml/`** | **Conformitate Legea 129/2019 (AML)** — KYC, screening sancțiuni/PEP, risc SB/FT, raport ONPCSB | 📋 [spec](superpowers/specs/2026-06-03-modul-aml-129-2019-design.md) |
 
-➡️ **Status sistem: 🟡 parțial** (validări + GDPR gata; audit trail și AML planificate).
+➡️ **Status sistem: 🟡 parțial** (validări + GDPR + audit trail gata; AML planificat).
 
 ---
 
@@ -94,7 +94,8 @@ Legendă status: ✅ implementat · 🟡 parțial · 📋 planificat (cu spec).
 | 4. Generator raport SEV | ✅ |
 | 5. Validare & conformitate | 🟡 parțial (validări + GDPR + audit ✅; AML 📋) |
 
-**Module planificate (toate cu spec):** `ingestie/`, `ancpi/`, `big/`, `audit/`, `aml/`.
+**Implementat recent:** `audit/` (schelet TDD). **Module planificate (cu spec):** `ingestie/`,
+`ancpi/`, `big/`, `aml/`.
 Dependențe comune: acces extern (ANCPI, BIG — membru ANEVAR), validare juridică (AML), cost model VLM
 (ingestie). De clarificat înainte de implementare.
 
