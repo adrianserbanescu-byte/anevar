@@ -5,7 +5,7 @@
 > `evaluare-anevar/scripts/export_chat.py`. Secretele (chei API) sunt redactate. Se
 > regenereaza la fiecare rulare (actualizare orara). Pentru sinteza, vezi `log.md`.
 
-**Mesaje:** 1002.
+**Mesaje:** 1005.
 
 ---
 
@@ -9729,3 +9729,43 @@ Clean. Let me run the full suite, then rebuild + smoke the exe:
 ## Assistant  ·  2026-06-03 22:13:59
 
 The redesigned exe ships the design system offline (tokens present, served from the bundle). Let me commit, then update the log:
+
+## Assistant  ·  2026-06-03 22:15:04
+
+Gata — am redesenat vizual toate paginile aplicației, păstrând întreaga funcționalitate și accesibilitatea. Am verificat rezultatul cu screenshot-uri live (wizard, grilă, AML).
+
+## Concept: „Cadastru" — registru de carte funciară / topograf
+O estetică distinctivă, sobră și de încredere, potrivită unui instrument profesional de evaluare care produce documente oficiale:
+
+- **Tipografie** — serife de document (**Constantia/Cambria**) pentru titluri, **Segoe UI** pentru interfață, **cifre tabulare** pentru precizie financiară. Zero Arial/Inter.
+- **Paletă** — pergament cald, cerneală bleumarin, **sienna de topograf** + **verde cadastral**, linii de alamă.
+- **Semnătură vizuală** — bandă-antet tricoloră sus, kicker de marcă „GBF VALUATION · EVALUARE ANEVAR" deasupra fiecărui titlu, grilă cartografică discretă în fundal.
+- **Componente** — carduri-pas cu margine de registru, bară de progres sienna→auriu, rezumate editoriale italice, **tabele-registru** (antet cerneală, stub pergament, rânduri alternante), pastile de risc, casete „callout", butoane sienna.
+
+## Decizie tehnică cheie (offline-first)
+Aplicația rulează ca `.exe` **fără internet**, deci **nu am folosit niciun font din CDN**. Sistemul `templates/_design.css` e injectat prin Jinja `{% include %}` în toate paginile și folosește doar fonturi care vin cu Windows — deci arată identic offline, în binar.
+
+## Verificare
+- **Screenshot-uri QA live** (preview): wizard, grilă (tabelele-registru), AML (fieldsets + badge `SPORIT` + panoul de rezultat) — totul coerent.
+- **280 teste verzi** (structura + accesibilitatea intacte; `_design.css` se injectează în toate paginile).
+- **Bonus a11y:** am adăugat `:focus-visible` explicit și `@media print` (raport printabil curat).
+- **Exe reîmpachetat** și verificat live: CSS-ul e livrat din bundle, offline → 200.
+- Comis pe `master`; `log.md` + `log_complet.md` actualizate.
+
+Ca să-l vezi: dublu-click pe `dist/evaluare-anevar.exe` (sau `python -m evaluare`) → se deschide pe `localhost:8000`.
+
+Dacă vrei, pot:
+- ajusta paleta/încărcătura (ex. variantă mai minimală sau mai „instituțională"),
+- aplica și pe `/result` un layout de „certificat" mai elaborat,
+- sau continua cu **Faza 2** de accesibilitate din plan.
+
+## User  ·  2026-06-03 22:15:09
+
+Actualizare orară a logurilor proiectului:
+1) Rulează `cd C:\Users\adyse\anevar\evaluare-anevar && python scripts/export_chat.py` ca să regenerezi log_complet.md (transcript verbatim, include mesajele noi). Dacă fișierul s-a schimbat, comite-l.
+2) Dacă în ultima oră a apărut ceva NOU de consemnat, adaugă o intrare cu data/ora în secțiunea „Actualizări (orare)" din C:\Users\adyse\anevar\log.md și comite. Dacă nu e nimic nou, nu scrie nimic în log.md.
+3) Reprogramează această actualizare peste încă o oră (ScheduleWakeup 3600s cu același prompt).
+
+## Assistant  ·  2026-06-03 22:15:14
+
+I'll run the hourly log update: regenerate the verbatim transcript, commit if changed, then assess whether anything new needs a log.md entry.
