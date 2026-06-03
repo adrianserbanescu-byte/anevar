@@ -29,7 +29,10 @@ Ajustările <span class="pct">procentuale</span> se introduc în <b>puncte %</b>
 cele <span class="eur">valorice</span> în <b>EUR</b> (ex. <code>-5000</code>). Gol = neaplicat (0).
 Se aplică <b>secvențial</b>; se alege comparabilul cu <b>ajustarea brută minimă</b>.<br>
 Pentru ajustarea <b>„Condițiile pieței (timp)"</b> poți folosi <b>Indicele imobiliar ANEVAR</b>
-(dinamica valorilor de piață/mp).</p>
+(dinamica valorilor de piață/mp).
+<button type="button" onclick="incarcaIndice()">↻ Indicele ANEVAR</button>
+<span id="indice-status" class="hint"></span></p>
+<div id="indice-rez"></div>
 
 <!-- ================= TEREN ================= -->
 <h2>Grilă teren — valoare = preț/mp corectat × suprafață subiect</h2>
@@ -173,6 +176,22 @@ function colecteaza(grid){
    }
  }
  return comps;
+}
+
+async function incarcaIndice(){
+  $("indice-status").textContent=" se încarcă…";
+  try{
+    const r=await fetch("/api/indice-anevar?ultimele=4");
+    if(!r.ok){ $("indice-status").textContent=" indisponibil."; return; }
+    const d=await r.json();
+    if(!d.orase.length){ $("indice-status").textContent=" fără date."; return; }
+    let h='<table><tr><th>Perioadă</th>'+d.orase.map(o=>`<th>${o}</th>`).join('')+'</tr>';
+    d.perioade.forEach(p=>{ h+='<tr><td>'+p.perioada+'</td>'+
+      d.orase.map(o=>{const v=p.valori[o]; return `<td>${v>0?'+':''}${v}%</td>`}).join('')+'</tr>'; });
+    $("indice-rez").innerHTML=h+'</table><p class="hint">Variația % a valorii de piață/mp pe trimestre (ANEVAR). '
+      +'Folosește variația cumulată între data evaluării și data comparabilei pentru ajustarea „condițiile pieței".</p>';
+    $("indice-status").textContent="";
+  }catch(e){ $("indice-status").textContent=" eroare rețea."; }
 }
 
 function inGrilaTeren(pretMp){

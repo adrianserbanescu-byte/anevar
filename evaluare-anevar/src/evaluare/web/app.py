@@ -264,6 +264,16 @@ def create_app(storage: Storage, client: Optional[NarrativeClient],
             raise HTTPException(status_code=404, detail=f"Valuta {moneda} nu e in lista BNR.")
         return {"moneda": r["moneda"], "curs": str(r["curs"]), "data": r["data"]}
 
+    @app.get("/api/indice-anevar")
+    def indice_anevar_endpoint(ultimele: int = 6) -> dict:
+        from evaluare.indice_anevar import indice_anevar
+        try:
+            d = indice_anevar(fetcher=fetcher)
+        except Exception:
+            raise HTTPException(status_code=502, detail="Indicele ANEVAR nu a putut fi preluat.")
+        d["perioade"] = d["perioade"][-max(1, ultimele):]
+        return d
+
     @app.get("/api/localitati")
     def lista_localitati() -> dict:
         judete = _judete()
