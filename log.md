@@ -137,6 +137,8 @@ listele live (sancțiuni/PEP-ANI/țări) de reîmprospătat, validarea juridică
 - **Clienți injectabili** (AI, fetcher, viitor BIG/ANCPI/VLM) → testabil offline.
 - **TDD + rebuild + smoke** la fiecare modul.
 - **Securitate:** cheia Perplexity NU se distribuie cu exe-ul; `.env` gitignored.
+- **Wizard — navigare liberă, FĂRĂ validare între pași** (decizie user, 2026-06-04): se poate sări la
+  orice pas (stepper clickabil); nu se blochează avansarea pentru câmpuri lipsă. A NU se reintroduce.
 
 ## 11. Stare curentă
 
