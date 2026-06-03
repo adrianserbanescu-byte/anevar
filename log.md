@@ -162,3 +162,12 @@ raportare`, `documente` (.docx), `serviciu/liste/store` + endpoints `/api/aml/*`
 verificare. **+70 teste AML** (suita totală 199 → **269 verzi**). Exe reîmpachetat (spec include
 `aml/data`) și verificat live. AML trece de la „plan complet" la **„implementat (cod pur)"**; rămân
 externe doar listele live, formularistica electronică ONPCSB și validarea juridică.
+
+### 2026-06-04 — accesibilitate WCAG 2.1 AA (faza 1)
+Audit + fixuri pe `/wizard`, `/aml`, `/grila`, `/descoperire`: asociere `label`↔control (53
+controale), `aria-label` pe controale fără etichetă, mesaje de stare anunțate (`role="status"`/
+`aria-live`), bară de progres `role="progressbar"`, mutare focus pe pas la navigare, landmark-uri
+`<main>`/`<nav>`, `alt` pe upload, contrast bară progres (2.56→4.58:1), `<th scope>` în grilă.
+**Bug-fix colateral:** helper `$` lipsă în `grila.html` (butoanele „Indice ANEVAR"/„Caută terenuri"
+erau nefuncționale). +11 teste (`test_web_a11y.py`); plan faza 2 în `docs/plan-accesibilitate.md`.
+Exe reîmpachetat și verificat (4 pagini → 200). Suita: **280 verzi**.

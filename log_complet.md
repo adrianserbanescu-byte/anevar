@@ -5,7 +5,7 @@
 > `evaluare-anevar/scripts/export_chat.py`. Secretele (chei API) sunt redactate. Se
 > regenereaza la fiecare rulare (actualizare orara). Pentru sinteza, vezi `log.md`.
 
-**Mesaje:** 952.
+**Mesaje:** 983.
 
 ---
 
@@ -9218,3 +9218,370 @@ Now update `log.md` to reflect the AML module completion (it moves from "plan" t
 ## Assistant  ·  2026-06-03 21:14:08
 
 Now regenerate `log_complet.md` (verbatim transcript) and update the project memory file:
+
+## Assistant  ·  2026-06-03 21:14:52
+
+Now commit the docs/memory updates:
+
+## Assistant  ·  2026-06-03 21:15:06
+
+The full AML module is complete and committed. Let me do a quick cleanup check for any unused imports introduced.
+
+## Assistant  ·  2026-06-03 21:15:35
+
+Just one unused import. Let me clean it:
+
+## Assistant  ·  2026-06-03 21:16:30
+
+Modulul AML este complet. Am dezvoltat autonom întreg modulul `aml/` (Legea 129/2019), TDD, în 6 faze — fiecare comisă separat, urmând exact planul din `docs/superpowers/plans/2026-06-03-modul-aml-129-2019-plan.md`.
+
+## Ce am livrat
+
+| Fază | Fișiere | Conținut | Teste |
+|---|---|---|---|
+| **0** | `constante.py`, `models.py`, `incadrare.py` | Praguri/termene cu articol-sursă; modele KYC/beneficiar real/PEP/risc/dosar; PFA exceptat de persoana desemnată (Norme art. 7), audit 2-din-3 (art. 9) | 12 |
+| **1** | `risc.py` | 4 factori ponderați → categorie; **reguli HARD EDD**: PEP efectiv (regula 12 luni art. 3(6)), sancțiuni, țară risc înalt, tranzacție complexă, relație la distanță (art. 17) | 13 |
+| **2** | `indicatori.py`, `raportare.py` | Cei 10 indicatori HCD 58 art. 6(10); prag RTN 10.000 €, conversie EUR/LEI curs BNR, termen +3 zile lucrătoare, anti-fragmentare 15.000 €, RTN/RTS cu **tipping-off** (art. 38) | 16 |
+| **3** | `documente.py` | `.docx`: norme interne **7 capitole** (art. 8 a–g), evaluare risc, **decizie desemnare** (refuzată pentru PFA), fișă KYC, RTN, RTS | 9 |
+| **4** | `serviciu.py`, `liste.py`, `store.py`, endpoints, `aml.html` | Orchestrare; screening injectabil tolerant; **store separat** de dosar (retenție 5 ani); `/api/aml/*` + pagina `/aml` + link în wizard | 20 |
+| **5** | spec + smoke + rebuild | Suită verde, 6 documente generate, exe reîmpachetat și verificat live | — |
+
+## Verificare
+- **269 teste verzi** (199 → 269, +70 AML), pyflakes clean.
+- Smoke live pe exe: PJ cu PEP → `sporit` + propunere RTS + setul corect de documente (incl. decizie desemnare); `norme-interne.docx` 37 KB; `/aml` → 200.
+- Constrângeri respectate: **om-în-buclă** (modulul propune, evaluatorul transmite la rapoarte.onpcsb.ro), **GDPR** (date KYC local, fără AI), **tipping-off** (RTS/RTN în director confidențial separat).
+
+## Rămâne extern (după plan)
+Listele live (sancțiuni/PEP-ANI/țări — am pus placeholder reîmprospătabil), formularistica electronică ONPCSB și **validarea juridică finală** a textelor.
+
+Am actualizat `log.md` (§12 nou), `log_complet.md` și memoria proiectului. Totul comis pe `master`.
+
+## User  ·  2026-06-03 21:16:35
+
+switch back to romanian language
+
+## Assistant  ·  2026-06-03 21:16:52
+
+Am revenit la limba română.
+
+Modulul AML este finalizat integral și totul e comis pe `master`. Pe scurt, unde suntem:
+
+## Stare curentă
+- **Modul `aml/` complet** (Legea 129/2019) — 6 faze TDD, **+70 teste**, toate verzi.
+- **269 de teste** trec în total, `pyflakes` curat.
+- **Exe reîmpachetat** și verificat live: PJ cu PEP → risc `sporit` + propunere RTS, `norme-interne.docx` (37 KB), pagina `/aml` → 200.
+- `log.md` (§12 nou), `log_complet.md` și memoria proiectului — actualizate.
+
+## Ce rămâne (extern, conform planului)
+- Listele live (sancțiuni / PEP-ANI / țări) — momentan placeholder reîmprospătabil în `aml/data/liste.json`.
+- Transmiterea electronică oficială la ONPCSB (o face evaluatorul pe rapoarte.onpcsb.ro).
+- Validarea juridică finală a textelor generate.
+
+Spune-mi cum vrei să continuăm. Câteva direcții posibile:
+- **Validare AML cu un dosar real** (testăm fluxul KYC + risc + documente pe un caz concret).
+- **Listele oficiale** — integrăm sursele reale (sancțiuni UE/ONU, funcții PEP-ANI).
+- **Alt modul blocat extern** (`big/`, `ancpi/`) sau o altă prioritate din roadmap.
+- Sau orice altceva ai în minte.
+
+## User  ·  2026-06-03 21:17:03
+
+Base directory for this skill: C:\Users\adyse\AppData\Roaming\Claude\local-agent-mode-sessions\7d0d1a78-1282-478a-a4a4-dc1b7a348f23\59fd5706-37a4-4366-84ae-5e6b5c6eca8a\rpm\plugin_01XXJmxLXPEhPMmnxmrgntNw\skills\accessibility-review
+
+# /accessibility-review
+
+> If you see unfamiliar placeholders or need to check which tools are connected, see [CONNECTORS.md](../../CONNECTORS.md).
+
+Audit a design or page for WCAG 2.1 AA accessibility compliance.
+
+## Usage
+
+```
+/accessibility-review ruleaza un assesment pe app ul curent wizard
+```
+
+Audit for accessibility: @un
+
+## WCAG 2.1 AA Quick Reference
+
+### Perceivable
+- **1.1.1** Non-text content has alt text
+- **1.3.1** Info and structure conveyed semantically
+- **1.4.3** Contrast ratio >= 4.5:1 (normal text), >= 3:1 (large text)
+- **1.4.11** Non-text contrast >= 3:1 (UI components, graphics)
+
+### Operable
+- **2.1.1** All functionality available via keyboard
+- **2.4.3** Logical focus order
+- **2.4.7** Visible focus indicator
+- **2.5.5** Touch target >= 44x44 CSS pixels
+
+### Understandable
+- **3.2.1** Predictable on focus (no unexpected changes)
+- **3.3.1** Error identification (describe the error)
+- **3.3.2** Labels or instructions for inputs
+
+### Robust
+- **4.1.2** Name, role, value for all UI components
+
+## Common Issues
+
+1. Insufficient color contrast
+2. Missing form labels
+3. No keyboard access to interactive elements
+4. Missing alt text on meaningful images
+5. Focus traps in modals
+6. Missing ARIA landmarks
+7. Auto-playing media without controls
+8. Time limits without extension options
+
+## Testing Approach
+
+1. Automated scan (catches ~30% of issues)
+2. Keyboard-only navigation
+3. Screen reader testing (VoiceOver, NVDA)
+4. Color contrast verification
+5. Zoom to 200% — does layout break?
+
+## Output
+
+```markdown
+## Accessibility Audit: [Design/Page Name]
+**Standard:** WCAG 2.1 AA | **Date:** [Date]
+
+### Summary
+**Issues found:** [X] | **Critical:** [X] | **Major:** [X] | **Minor:** [X]
+
+### Findings
+
+#### Perceivable
+| # | Issue | WCAG Criterion | Severity | Recommendation |
+|---|-------|---------------|----------|----------------|
+| 1 | [Issue] | [1.4.3 Contrast] | 🔴 Critical | [Fix] |
+
+#### Operable
+| # | Issue | WCAG Criterion | Severity | Recommendation |
+|---|-------|---------------|----------|----------------|
+| 1 | [Issue] | [2.1.1 Keyboard] | 🟡 Major | [Fix] |
+
+#### Understandable
+| # | Issue | WCAG Criterion | Severity | Recommendation |
+|---|-------|---------------|----------|----------------|
+| 1 | [Issue] | [3.3.2 Labels] | 🟢 Minor | [Fix] |
+
+#### Robust
+| # | Issue | WCAG Criterion | Severity | Recommendation |
+|---|-------|---------------|----------|----------------|
+| 1 | [Issue] | [4.1.2 Name, Role, Value] | 🟡 Major | [Fix] |
+
+### Color Contrast Check
+| Element | Foreground | Background | Ratio | Required | Pass? |
+|---------|-----------|------------|-------|----------|-------|
+| [Body text] | [color] | [color] | [X]:1 | 4.5:1 | ✅/❌ |
+
+### Keyboard Navigation
+| Element | Tab Order | Enter/Space | Escape | Arrow Keys |
+|---------|-----------|-------------|--------|------------|
+| [Element] | [Order] | [Behavior] | [Behavior] | [Behavior] |
+
+### Screen Reader
+| Element | Announced As | Issue |
+|---------|-------------|-------|
+| [Element] | [What SR says] | [Problem if any] |
+
+### Priority Fixes
+1. **[Critical fix]** — Affects [who] and blocks [what]
+2. **[Major fix]** — Improves [what] for [who]
+3. **[Minor fix]** — Nice to have
+```
+
+## If Connectors Available
+
+If **~~design tool** is connected:
+- Inspect color values, font sizes, and touch targets directly from Figma
+- Check component ARIA roles and keyboard behavior in the design spec
+
+If **~~project tracker** is connected:
+- Create tickets for each accessibility finding with severity and WCAG criterion
+- Link findings to existing accessibility remediation epics
+
+## Tips
+
+1. **Start with contrast and keyboard** — These catch the most common and impactful issues.
+2. **Test with real assistive technology** — My audit is a great start, but manual testing with VoiceOver/NVDA catches things I can't.
+3. **Prioritize by impact** — Fix issues that block users first, polish later.
+
+## Assistant  ·  2026-06-03 21:17:15
+
+Voi audita pagina wizard (`wizard.html`). Citesc întâi întregul template ca să evaluez structura, contrastul, formularele și navigarea cu tastatura.
+
+## Assistant  ·  2026-06-03 21:19:22
+
+# Audit de accesibilitate: pagina Wizard (`/wizard`)
+**Standard:** WCAG 2.1 AA · **Dată:** 2026-06-04 · **Metodă:** audit static al `wizard.html` (cod + contrast calculat). Nu înlocuiește testarea reală cu cititor de ecran (NVDA/VoiceOver) — vezi nota la final.
+
+## Sumar
+**Probleme găsite:** 11 · 🔴 **Critice:** 1 · 🟡 **Majore:** 3 · 🟢 **Minore:** 7
+
+Punctul forte: toate controalele sunt elemente native (`<button>`, `<input>`, `<select>`, `<label>` pe checkbox-uri), deci **accesul cu tastatura e bun** și **focus-ul vizibil nu e suprimat**. Slăbiciunea sistemică: **labels neasociate programatic** și **mesaje de stare neanunțate**.
+
+---
+
+### Findings
+
+#### Perceivable
+| # | Problemă | Criteriu WCAG | Severitate | Recomandare |
+|---|----------|---------------|-----------|-------------|
+| 1 | Bara de progres (`#progres`, verde `#2a7` pe `#eee`) are contrast **2.56:1** între umplere și pistă | 1.4.11 Non-text contrast (≥3:1) | 🟢 Minor | Închide verdele (ex. `#1c7a52`) sau adaugă contur `1px` mai închis pe umplere |
+| 2 | Pozele/documentele încărcate (`<img src="${src}">`, l.352) nu au `alt` | 1.1.1 Non-text content | 🟢 Minor | `alt="Fotografie ${i+1}"` / `alt="Document ${i+1}"` |
+| 3 | Lipsesc landmark-uri (`<main>`, `<nav>`, `<header>`); linkurile alternative nu sunt într-un `<nav>` | 1.3.1 Info & Relationships | 🟢 Minor | Înfășoară conținutul în `<main>`, linkurile în `<nav aria-label="Alte pagini">` |
+
+#### Operable
+| # | Problemă | Criteriu WCAG | Severitate | Recomandare |
+|---|----------|---------------|-----------|-------------|
+| 4 | La „Înainte/Înapoi" pasul se schimbă vizual, dar **focus-ul rămâne pe buton** și nimic nu anunță noul pas | 2.4.3 Focus Order / 4.1.3 | 🟡 Major | După `arata()`, mută focus pe `<h2>` al pasului activ (`tabindex="-1"` + `.focus()`) |
+| 5 | Butoanele „șterge" upload (`.del-up`, `font-size:.75em`) sunt sub 24×24px | 2.5.5/2.5.8 Target Size | 🟢 Minor | Mărește padding-ul la min. 24px înălțime |
+
+#### Understandable
+| # | Problemă | Criteriu WCAG | Severitate | Recomandare |
+|---|----------|---------------|-----------|-------------|
+| 6 | Mesajele dinamice (`desc_status`, `curs_status`, `ingestie-status`, `rezultat-calc`, `link-raport`, alertele `.a-block/.a-warn`) sunt scrise prin JS dar **nu sunt anunțate** de cititorul de ecran | **4.1.3 Status Messages (AA)** | 🟡 Major | `role="status"` (sau `aria-live="polite"`) pe span-urile de status; `role="alert"` pe blocul de alerte de validare |
+| 7 | Câmpurile de dată (`data_evaluarii` etc.) sunt `<input>` text cu valoare „2026-01-16", nu `type="date"` | 3.3.2 Labels/Instructions | 🟢 Minor | `type="date"` → selector nativ + validare format |
+| 8 | Câmpurile de identitate nu au `autocomplete` | 1.3.5 Identify Input Purpose | 🟢 Minor | `autocomplete="name"` pe evaluator/proprietar etc. |
+
+#### Robust
+| # | Problemă | Criteriu WCAG | Severitate | Recomandare |
+|---|----------|---------------|-----------|-------------|
+| 9 | **Toate `<label>`-urile (~30 câmpuri) sunt neasociate** — sunt adiacente inputului, fără `for`/`id` și fără înfășurare. Cititorul de ecran anunță „edit text" fără nume | 1.3.1 / 3.3.2 / **4.1.2 Name, Role, Value** | 🔴 Critic | Adaugă `for="judet"` pe label + `id` corespunzător (deja există `id`-uri) — fix mecanic pe toate |
+| 10 | Bara de progres e doar `<div>` — fără rol/valoare | 4.1.2 / 1.3.1 | 🟡 Major | `role="progressbar" aria-valuenow aria-valuemin="0" aria-valuemax="100"` actualizate în `arata()` |
+| 11 | Alertele de validare comunică nivelul prin culoare+emoji+text (textul există → OK), dar nu prin rol | 1.4.1 Use of Color (limită) | 🟢 Minor | Acoperit de fix #6 (`role="alert"`) |
+
+---
+
+### Verificare contrast culoare
+| Element | Prim-plan | Fundal | Raport | Necesar | Trece? |
+|---------|-----------|--------|--------|---------|--------|
+| Text corp | `#000` | `#fff` | 21:1 | 4.5:1 | ✅ |
+| `.hint` (text mic) | `#666` | `#fff` | 5.74:1 | 4.5:1 | ✅ |
+| `.rezumat` | `#444` | `#f4f7f5` | ~8.5:1 | 4.5:1 | ✅ |
+| `.a-block` (alertă) | `#fff` | `#b30000` | ~5.9:1 | 4.5:1 | ✅ |
+| `.a-warn` (alertă) | `#7a5b00` | `#fff3cd` | 5.70:1 | 4.5:1 | ✅ |
+| **Bară progres** | `#2a7` | `#eee` | **2.56:1** | 3:1 (non-text) | ❌ |
+
+### Navigare cu tastatura
+| Element | Ordine Tab | Enter/Space | Observație |
+|---------|-----------|-------------|-----------|
+| Inputuri/select-uri | Logică (DOM = ordinea pașilor) | Native | Pașii ascunși (`display:none`) ies corect din ordinea de tab ✅ |
+| Butoane pas/acțiuni | După secțiuni | Activează | Funcțional, dar tranziția de pas nu mută focus (finding #4) |
+| Checkbox candidați | În label | Bifează | ✅ corect asociate |
+| Focus vizibil | — | — | ✅ outline-ul implicit nu e suprimat |
+
+### Cititor de ecran (estimat din cod)
+| Element | Anunțat ca | Problemă |
+|---------|-----------|----------|
+| `#judet`, `#client_nume`, … | „casetă combo / editare text" **fără nume** | Label neasociat (finding #9) |
+| `#progres` | (ignorat) | Fără rol progressbar (#10) |
+| `#rezultat-calc`, alerte | (tăcut la actualizare) | Fără `aria-live` (#6) |
+
+---
+
+### Fixuri prioritare
+1. **🔴 Asociază toate labelurile** (`for`/`id`) — deblochează completarea formularului pentru utilizatorii de cititor de ecran. Fix mecanic, ~30 linii, risc zero.
+2. **🟡 `aria-live` pe mesajele de stare + `role="alert"` pe alerte** — utilizatorul aude „X candidați", „Curs BNR…", rezultatul calculului și alertele de validare.
+3. **🟡 Mută focus pe titlul pasului + `role="progressbar"`** — tranziția între pași devine perceptibilă.
+4. **🟢 Contrast bară progres + `alt` pe poze + landmarks** — finisaje.
+
+---
+
+**Notă onestă:** acesta e un audit static din cod (prinde ~30–40% din probleme). Recomand și o trecere reală cu **NVDA** (gratuit) navigând doar din tastatură + verificare la **zoom 200%**.
+
+Vrei să **aplic fixurile prioritare 1–3** direct în `wizard.html` (sunt sigure, fără să schimbe comportamentul vizual) și să rulez din nou suita + un smoke pe `/wizard`? Pot face și o trecere similară pe `/aml`, `/grila` și `/descoperire`, care au aceleași tipare.
+
+## User  ·  2026-06-03 21:30:21
+
+te rog tot de fix. si un plan de imbunatari dupa. toate
+
+## Assistant  ·  2026-06-03 21:31:12
+
+Bun — aplic toate fixurile pe toate cele 4 pagini (`wizard`, `aml`, `grila`, `descoperire`), apoi scriu planul de îmbunătățiri. Întâi citesc celelalte două template-uri ca să le tratez corect.
+
+## Assistant  ·  2026-06-03 21:32:49
+
+Acum am toate cele 4 template-uri. Observ și un **bug latent** în `grila.html`: funcția helper `$` e folosită (`incarcaIndice`, `descoperaTeren`) dar nu e definită — acele butoane crapă la runtime. Îl repar odată cu accesibilitatea.
+
+Încep cu partea mecanică (asocierea `label`↔control) printr-un script verificabil pe `wizard.html` și `aml.html`:
+
+## Assistant  ·  2026-06-03 21:33:20
+
+The cwd is the parent `anevar`. Let me run with the correct path.
+
+## Assistant  ·  2026-06-03 21:33:49
+
+Label association done (31 in wizard, 8 in aml). Now the structural a11y fixes in `wizard.html` — landmark, nav, progressbar role, live regions, focus management, img alt, orphan aria-labels:
+
+## Assistant  ·  2026-06-03 21:34:16
+
+Now close `</main>` before the script, and add focus management + aria-valuenow in `arata()`:
+
+## Assistant  ·  2026-06-03 21:34:40
+
+Now the live-region roles on status outputs and aria-labels on the orphan controls:
+
+## Assistant  ·  2026-06-03 21:35:46
+
+Now the `<img>` alt in the upload preview:
+
+## Assistant  ·  2026-06-03 21:36:00
+
+Now fix the progress-bar contrast (darker green) in the wizard CSS:
+
+## Assistant  ·  2026-06-03 21:36:20
+
+Now `aml.html` — nav landmark, main, and live region on the result container:
+
+## Assistant  ·  2026-06-03 21:37:02
+
+Now `descoperire.html` — inline text labels become `aria-label`s, plus a live status line and a `main` landmark:
+
+## Assistant  ·  2026-06-03 21:37:45
+
+Now `grila.html` — the biggest one. First the `$` helper bug fix, nav/main landmarks, and the inline labels:
+
+## Assistant  ·  2026-06-03 21:38:53
+
+Now the dynamically-built table — proper header scopes and `aria-label` on each cell input:
+
+## Assistant  ·  2026-06-03 21:39:18
+
+Preserve the row styling now that the first cell is a `<th>`:
+
+## Assistant  ·  2026-06-03 21:39:31
+
+Let me verify: run the page-rendering tests, check landmark balance, and confirm the templates still serve 200.
+
+## Assistant  ·  2026-06-03 21:39:37
+
+The cwd is already `evaluare-anevar`. Running directly:
+
+## Assistant  ·  2026-06-03 21:40:04
+
+Let me sanity-check landmark balance and label coverage across all four templates:
+
+## Assistant  ·  2026-06-03 21:40:27
+
+Landmarks balanced, attributes in place. Now the full suite, then rebuild the exe (templates are bundled):
+
+## Assistant  ·  2026-06-03 21:41:22
+
+All 269 pass. Let me clean up the temp script, commit, and add a brief a11y page test. First a quick test that asserts key a11y attributes are present (so regressions get caught):
+
+## Assistant  ·  2026-06-03 21:42:01
+
+Now write the improvement plan and commit, then rebuild the exe:
+
+## Assistant  ·  2026-06-03 21:43:00
+
+Now rebuild the exe so the updated templates ship, and smoke-test the pages:
+
+## Assistant  ·  2026-06-03 21:51:06
+
+Exe rebuilt și verificat live — toate cele 4 pagini servesc 200 cu landmark-uri și labels asociate în binarul împachetat. Adaug o intrare în jurnal:
