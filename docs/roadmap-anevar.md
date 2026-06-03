@@ -78,7 +78,7 @@ Legea 129/2019 AML, IROVAL). Format: **Now / Next / Later** (evită falsa preciz
 | # | Item | Driver ANEVAR | Efort | Notă |
 |---|---|---|---|---|
 | 13 | **Integrare BIG (Baza Imobiliară de Garanții)** ca sursă primară de comparabile pentru garanție | BIG | L | Necesită acces membru ANEVAR / API; cea mai autoritară sursă |
-| 14 | **Modul AML / Legea 129/2019** — KYC client + beneficiar real, screening sancțiuni/PEP/jurisdicții necooperante, jurnal + flag tranzacții suspecte | Legea 129/2019 | L | Diferențiator de conformitate; entitate raportoare |
+| 14 | **Modul AML / Legea 129/2019** — KYC client + beneficiar real, screening sancțiuni/PEP/jurisdicții necooperante, jurnal + flag tranzacții suspecte | Legea 129/2019 | L | **Plan complet** (ancorat în Lege+Norme+HCD 58); validare juridică finală + liste live rămân |
 | 15 | **Contribuție automată la BIG/BIF** din rapoartele generate (dacă ANEVAR permite) | BIG/BIF | L | Depinde de specificațiile ANEVAR |
 | 16 | **Suport multi-tip proprietate** (apartament, comercial) dincolo de casă+teren | Extindere piață | L | — |
 
