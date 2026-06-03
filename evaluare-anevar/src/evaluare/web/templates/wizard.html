@@ -68,7 +68,8 @@
   <label for="proprietar">Proprietar (dacă diferă de client)</label><input id="proprietar">
   <small class="hint">Numele proprietarului, dacă nu coincide cu clientul. Opțional.</small>
   <label for="evaluator_nume">Evaluator</label><input id="evaluator_nume">
-  <small class="hint">Numele evaluatorului autorizat ANEVAR; apare în declarația de independență.</small>
+  <small class="hint">Numele evaluatorului autorizat ANEVAR; apare în declarația de independență.
+   <b>Se reține între sesiuni</b> (numele + legitimația) — îl poți modifica oricând; rămâne și după „Reset dosar".</small>
   <label for="evaluator_legitimatie">Legitimație</label><input id="evaluator_legitimatie">
   <small class="hint">Numărul legitimației ANEVAR a evaluatorului.</small>
   <label for="data_evaluarii">Data evaluării</label><input id="data_evaluarii" value="2026-01-16">
@@ -239,6 +240,15 @@ function salveaza(){ const s={}; CAMPURI.forEach(c=>{if($(c))s[c]=$(c).value});
   localStorage.setItem("wizard", JSON.stringify(s)); }
 function incarca(){ try{ const s=JSON.parse(localStorage.getItem("wizard")||"{}");
   CAMPURI.forEach(c=>{if($(c)&&s[c]!=null)$(c).value=s[c]}); }catch(e){} }
+
+// Identitatea evaluatorului — reținută între sesiuni, separat de dosar (supraviețuiește la „Reset
+// dosar"), pre-completată la fiecare deschidere, editabilă oricând.
+const EVALUATOR = ["evaluator_nume","evaluator_legitimatie"];
+function salveazaEvaluator(){ const s={}; EVALUATOR.forEach(c=>{if($(c))s[c]=$(c).value});
+  localStorage.setItem("evaluator", JSON.stringify(s)); }
+function incarcaEvaluator(){ try{ const s=JSON.parse(localStorage.getItem("evaluator")||"{}");
+  EVALUATOR.forEach(c=>{ if($(c) && !$(c).value && s[c]!=null) $(c).value=s[c]; }); }catch(e){} }
+EVALUATOR.forEach(c=>{ if($(c)) $(c).addEventListener("change", salveazaEvaluator); });
 const STEP_LBL=["Adresă","Subiect","Comparabile","Calcul","Raport"];
 function arata(){
   for(let i=1;i<=PASI;i++) $("pas-"+i).classList.toggle("activ", i===pas);
@@ -470,6 +480,6 @@ $("btn-audit").addEventListener("click", ()=>{
   window.location = "/api/evaluare/"+evaluareId+"/audit.txt";
 });
 
-incarcaLocalitati().then(()=>{ incarca(); populeazaLocalitati(); arata(); });
+incarcaLocalitati().then(()=>{ incarca(); incarcaEvaluator(); populeazaLocalitati(); arata(); });
 </script>
 </body></html>

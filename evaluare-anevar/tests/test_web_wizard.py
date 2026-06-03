@@ -60,3 +60,14 @@ def test_wizard_are_buton_raport_demo(tmp_path):
     body = client.get("/wizard").text
     assert 'id="btn-raport-demo"' in body
     assert "?demo=1" in body
+
+
+def test_wizard_retine_identitatea_evaluatorului(tmp_path):
+    # B3: nume + legitimatie evaluator retinute intre sesiuni, separat de dosar
+    body = _client(tmp_path).get("/wizard").text
+    assert 'localStorage.setItem("evaluator"' in body      # sticky store dedicat
+    assert "incarcaEvaluator()" in body                     # pre-completare la init
+    assert '"evaluator_nume","evaluator_legitimatie"' in body
+    # reset sterge doar dosarul, nu identitatea evaluatorului
+    assert 'localStorage.removeItem("wizard")' in body
+    assert 'localStorage.removeItem("evaluator")' not in body

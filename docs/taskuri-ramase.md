@@ -38,12 +38,12 @@
 
 ## B. Necesită INPUT / DECIZIE de la tine
 
-- [ ] **B1. Export PDF in-app** — vrei convertor încorporat (dependență externă: `docx2pdf`/LibreOffice,
-      crește exe-ul) sau rămâne „Word → Salvează ca PDF" (documentat acum)? *(roadmap Now #6)*
+- [x] ~~**B1. Export PDF in-app**~~ — **decis: nu e cazul.** Rămâne „Word → Salvează ca PDF".
 - [ ] **B2. Suport multi-tip proprietate** (apartament, spațiu comercial) dincolo de casă+teren — scope mare;
       îl vrei? *(roadmap Later #16)* **L**
-- [ ] **B3. Date evaluator implicite** — pre-completez peste tot „ing. Gabriela Frătilă, legitimația 14288"
-      (acum doar în raport)? **S**
+- [x] ~~**B3. Date evaluator implicite**~~ — **FĂCUT** (2026-06-04): identitatea evaluatorului (nume +
+      legitimație) se cere la Pas 1, se **reține între sesiuni** (store `localStorage["evaluator"]` separat,
+      supraviețuiește la „Reset dosar"), pre-completată la fiecare deschidere, **editabilă**.
 - [ ] **B4. AML — validarea juridică finală** a textelor generate (norme interne, decizii, RTS/RTN): cine o face?
       *(necesar înainte de uz real)*
 
