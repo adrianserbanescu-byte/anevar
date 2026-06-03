@@ -1,24 +1,7 @@
 <!DOCTYPE html>
 <html lang="ro">
 <head><meta charset="utf-8"><title>Evaluare — wizard</title>
-<style>
- body{font-family:Arial,sans-serif;max-width:900px;margin:20px auto;line-height:1.5}
- .pas{display:none;border:1px solid #ddd;padding:16px;margin-top:10px}
- .pas.activ{display:block}
- .bara{background:#eee;height:8px;border-radius:4px;margin:8px 0}
- .bara>div{background:#1c7a52;height:8px;border-radius:4px;transition:width .2s}
- label{font-weight:bold;display:block;margin-top:6px}
- .hint{color:#666;font-size:.85em}
- input,select,textarea{font-size:1em}
- .candidat{border:1px solid #eee;padding:8px;margin:6px 0}
- button{margin-top:10px}
- .rezumat{color:#444;background:#f4f7f5;border-left:3px solid #2a7;padding:6px 10px;margin:4px 0 10px 0;font-size:.92em}
- .a-block{color:#fff;background:#b30000;padding:5px 9px;border-radius:4px;margin:3px 0}
- .a-warn{color:#7a5b00;background:#fff3cd;border:1px solid #ffe08a;padding:5px 9px;border-radius:4px;margin:3px 0}
- table.detalii{font-size:0.8em;table-layout:fixed;width:100%;border-collapse:collapse;margin:6px 0}
- table.detalii td,table.detalii th{max-width:150px;word-wrap:break-word;vertical-align:top;border:1px solid #ddd;padding:2px 5px}
- table.detalii td:first-child,table.detalii th:first-child{font-weight:bold;background:#f7f7f7;width:130px}
-</style></head>
+<style>{% include "_design.css" %}</style></head>
 <body>
 <h1>Evaluare imobiliară — pas cu pas</h1>
 <nav class="hint" aria-label="Alte pagini ale aplicației">Alternative: <a href="/formular">formular clasic (toate câmpurile pe o pagină)</a> ·
@@ -37,7 +20,7 @@
    aplicația caută comparabile la Pas 3. Datele de identificare apar în raport (cele personale sunt
    anonimizate înainte de orice apel AI).</p>
 
-  <div style="border:1px dashed #bbb;border-radius:6px;padding:8px;margin-bottom:8px">
+  <div class="callout">
     <b>Pornire rapidă — importă din document (PDF)</b>
     <select id="doc-tip" aria-label="Tip document pentru import">
       <option value="cf">Extras carte funciară</option>

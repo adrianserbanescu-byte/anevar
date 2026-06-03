@@ -1,26 +1,7 @@
 <!DOCTYPE html>
 <html lang="ro">
 <head><meta charset="utf-8"><title>Grilă de ajustări (teren + casă)</title>
-<style>
- body{font-family:Arial,sans-serif;max-width:1000px;margin:20px auto;line-height:1.5}
- h1{font-size:1.4em} h2{font-size:1.15em;margin-top:28px;border-bottom:2px solid #2a6;padding-bottom:3px}
- table{border-collapse:collapse;margin:10px 0;width:100%}
- th,td{border:1px solid #ccc;padding:3px 7px;font-size:0.88em}
- th{background:#f3f6f3}
- td:first-child,th:first-child{text-align:left;background:#f7f7f7;font-weight:bold;width:230px}
- input.cell{width:78px;text-align:right;border:1px solid #bbb;padding:2px}
- input.base{width:96px;text-align:right;font-weight:bold}
- .eur{color:#a60} .pct{color:#06c}
- .hint{color:#666;font-size:0.85em}
- .row-pret th:first-child,.row-supr th:first-child{background:#eef}
- button{margin:8px 0;padding:7px 16px;font-size:0.95em;cursor:pointer}
- .rez{border:1px solid #2a6;border-radius:6px;padding:10px 14px;margin:10px 0;background:#f6fbf6}
- .rez table{width:auto}
- .sel{background:#dff3df;font-weight:bold}
- .val{font-size:1.15em;font-weight:bold;color:#067a06}
- .nav{font-size:0.9em;margin-bottom:10px}
- .err{color:#b30000}
-</style></head>
+<style>{% include "_design.css" %}</style></head>
 <body>
 <nav class="nav" aria-label="Alte pagini ale aplicației"><a href="/">← wizard</a> · <a href="/descoperire">descoperire comparabile</a></nav>
 <h1>Grilă de ajustări</h1>
@@ -42,7 +23,7 @@ Pentru ajustarea <b>„Condițiile pieței (timp)"</b> poți folosi <b>Indicele 
 <button onclick="calcul('teren')">Calculează grila teren</button>
 <div id="rez-teren" role="status" aria-live="polite"></div>
 
-<div style="border:1px dashed #bbb;border-radius:6px;padding:10px;margin-top:10px">
+<div class="callout">
   <b>Descoperă terenuri în zonă</b> (anunțuri reale → preț/mp orientativ)<br>
   <small class="hint">Județ și localitate fără diacritice (ex: prahova / breaza). Relevanța =
    similaritatea de suprafață cu terenul subiect.</small><br>
