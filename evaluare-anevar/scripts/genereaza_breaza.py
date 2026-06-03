@@ -87,8 +87,8 @@ meta = EvaluationMeta(
     carte_funciara="CF xxxxx Breaza (demo)", scop="Garantarea creditului ipotecar",
     tip_valoare="Valoarea de piata (SEV 104)",
     data_evaluarii="2026-05-25", data_raportului="2026-05-27", data_inspectiei="2026-05-23",
-    valabilitate="6 luni", evaluator_nume="ing. Gabriela Fratila",
-    evaluator_legitimatie="14288", moneda="EUR", curs_valutar=Decimal("4.9750"),
+    valabilitate="6 luni", evaluator_nume="[Nume evaluator autorizat ANEVAR]",
+    evaluator_legitimatie="[nr. legitimatie]", moneda="EUR", curs_valutar=Decimal("4.9750"),
 )
 land = LandData(suprafata=SUBIECT_TEREN, categorie="intravilan")
 building = BuildingData(
