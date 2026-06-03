@@ -36,6 +36,22 @@ def _fmt(v) -> str:
         return str(v)
 
 
+def _b2(v) -> str:
+    """Rotunjeste la 2 zecimale (preturi unitare, EUR/mp)."""
+    try:
+        return f"{Decimal(str(v)).quantize(Decimal('0.01'))}"
+    except Exception:
+        return str(v)
+
+
+def _pct(v) -> str:
+    """Fractie -> procent cu 2 zecimale (0.1727 -> '17.27%')."""
+    try:
+        return f"{(Decimal(str(v)) * 100).quantize(Decimal('0.01'))}%"
+    except Exception:
+        return str(v)
+
+
 def _fara_tva(ctx: ReportContext) -> str:
     return "Valoarea nu contine TVA." if ctx.reconciled.valoare_fara_tva else ""
 
@@ -169,8 +185,8 @@ def _adauga_grila_comparatie(doc: DocxDocument, ctx: ReportContext) -> None:
         bruta = m.ajustari_brute[i] if i < len(m.ajustari_brute) else ""
         row = table.add_row().cells
         row[0].text = f"{i + 1}"
-        row[1].text = str(pret)
-        row[2].text = str(bruta)
+        row[1].text = _b2(pret)
+        row[2].text = _pct(bruta)
         row[3].text = "DA" if i == m.index_selectat else ""
     doc.add_paragraph(
         f"Valoarea prin comparatie de piata: {_fmt(m.valoare_piata)} {ctx.meta.moneda}."
@@ -195,11 +211,11 @@ def _adauga_grila_teren(doc: DocxDocument, ctx: ReportContext) -> None:
         row = table.add_row().cells
         eticheta = f"{i + 1}" + (f" — {c.localizare}" if c.localizare else "")
         row[0].text = eticheta
-        row[1].text = str(pret)
-        row[2].text = str(bruta)
+        row[1].text = _b2(pret)
+        row[2].text = _pct(bruta)
         row[3].text = "DA" if i == lr.index_selectat else ""
     doc.add_paragraph(
-        f"Valoarea terenului = {lr.pret_mp_ales} EUR/mp x {ctx.land.suprafata} mp = "
+        f"Valoarea terenului = {_b2(lr.pret_mp_ales)} EUR/mp x {ctx.land.suprafata} mp = "
         f"{_fmt(lr.valoare_teren)} EUR."
     )
 
@@ -220,14 +236,14 @@ def _adauga_tabel_cost(doc: DocxDocument, ctx: ReportContext) -> None:
         row = table.add_row().cells
         row[0].text = el.element
         row[1].text = el.cod
-        row[2].text = str(el.cantitate)
-        row[3].text = str(el.cost_unitar)
-        row[4].text = str(el.cost_nou())
+        row[2].text = _b2(el.cantitate)
+        row[3].text = _b2(el.cost_unitar)
+        row[4].text = _fmt(el.cost_nou())
     if ctx.cost_result is not None:
         c = ctx.cost_result
         doc.add_paragraph(
-            f"CIB = {_fmt(c.cib)}; Vcp = {c.vcp} ani; depreciere fizica = "
-            f"{c.depreciere_fizica}; CIN = {_fmt(c.cin)}; "
+            f"CIB = {_fmt(c.cib)}; Vcp = {_b2(c.vcp)} ani; depreciere fizica = "
+            f"{_pct(c.depreciere_fizica)}; CIN = {_fmt(c.cin)}; "
             f"valoare prin cost (CIN + teren) = {_fmt(c.valoare_cost)} {ctx.meta.moneda}."
         )
 

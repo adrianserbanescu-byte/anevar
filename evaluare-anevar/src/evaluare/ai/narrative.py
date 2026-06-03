@@ -6,6 +6,7 @@ Clientul este injectabil pentru testare fara retea.
 from __future__ import annotations
 
 import re
+from decimal import Decimal, InvalidOperation
 from typing import Optional, Protocol
 
 from evaluare.models.report_context import ReportContext
@@ -73,41 +74,60 @@ class NarrativeClient(Protocol):
         ...
 
 
+def _b2(x) -> str:
+    """Rotunjeste la 2 zecimale (pentru cifrele trimise la AI)."""
+    try:
+        return f"{Decimal(str(x)).quantize(Decimal('0.01'))}"
+    except (InvalidOperation, ValueError, TypeError):
+        return str(x)
+
+
+def _pct(x) -> str:
+    """Procent cu 2 zecimale dintr-o fractie (0.1727 -> '17.27%')."""
+    try:
+        return f"{(Decimal(str(x)) * 100).quantize(Decimal('0.01'))}%"
+    except (InvalidOperation, ValueError, TypeError):
+        return str(x)
+
+
 def _facts(ctx: ReportContext) -> str:
-    """Construieste un rezumat textual al datelor calculate (date de intrare AI)."""
+    """Construieste un rezumat textual al datelor calculate (date de intrare AI).
+
+    Toate cifrele sunt rotunjite la 2 zecimale ca AI-ul sa nu le redea cu multe zecimale.
+    """
     linii = [
         f"Scop evaluare: {ctx.meta.scop}.",
         f"Tip valoare: {ctx.meta.tip_valoare}. Moneda: {ctx.meta.moneda}.",
         f"Suprafata teren: {ctx.land.suprafata} mp; categorie: {ctx.land.categorie}.",
         f"Arie utila (Au): {ctx.building.au} mp; arie construita desfasurata (Acd): "
         f"{ctx.building.acd} mp; an referinta: {ctx.building.an_referinta}.",
-        f"Valoare finala reconciliata: {ctx.reconciled.valoare_finala} "
+        f"Valoare finala reconciliata: {_b2(ctx.reconciled.valoare_finala)} "
         f"{ctx.meta.moneda} (metoda: {ctx.reconciled.metoda_selectata}).",
     ]
     if ctx.cost_result is not None:
         c = ctx.cost_result
         linii.append(
-            f"Abordarea prin cost: CIB={c.cib}, Vcp={c.vcp} ani, "
-            f"depreciere fizica={c.depreciere_fizica}, CIN={c.cin}, "
-            f"valoare prin cost={c.valoare_cost}."
+            f"Abordarea prin cost: CIB={_b2(c.cib)}, Vcp={_b2(c.vcp)} ani, "
+            f"depreciere fizica={_pct(c.depreciere_fizica)}, CIN={_b2(c.cin)}, "
+            f"valoare prin cost={_b2(c.valoare_cost)}."
         )
     if ctx.market_result is not None:
         m = ctx.market_result
         linii.append(
-            f"Abordarea prin piata (pret total): valoare={m.valoare_piata}, "
+            f"Abordarea prin piata (pret total): valoare={_b2(m.valoare_piata)}, "
             f"comparabil selectat index {m.index_selectat}, "
             f"numar comparabile={len(ctx.comparables)}."
         )
     if ctx.land_result is not None:
         lr = ctx.land_result
         linii.append(
-            f"Teren prin comparatie: {lr.pret_mp_ales} EUR/mp x {ctx.land.suprafata} mp = "
-            f"{lr.valoare_teren} (comparabil selectat index {lr.index_selectat}, "
+            f"Teren prin comparatie: {_b2(lr.pret_mp_ales)} EUR/mp x {ctx.land.suprafata} mp = "
+            f"{_b2(lr.valoare_teren)} (comparabil selectat index {lr.index_selectat}, "
             f"din {len(ctx.land_comparables)} comparabile de teren)."
         )
     if ctx.alocare_constructii is not None:
         linii.append(
-            f"Alocarea valorii: valoare constructii (alocata) = {ctx.alocare_constructii}."
+            f"Alocarea valorii: valoare constructii (alocata) = {_b2(ctx.alocare_constructii)}."
         )
     if ctx.meta.beneficiar:
         linii.append(f"Beneficiar / finantator: {ctx.meta.beneficiar}.")
