@@ -197,6 +197,42 @@ def _caracteristici_storia(soup) -> dict:
     return out
 
 
+_STRUCTURA = {"beton armat": "beton_armat", "bca": "bca", "beton": "beton", "lemn": "lemn",
+              "caramida": "caramida", "cărămidă": "caramida", "caramidă": "caramida",
+              "zidarie": "zidarie", "zidărie": "zidarie", "metal": "metal",
+              "prefabricate": "prefabricate", "sandwich": "panou_sandwich"}
+
+
+def _caracteristici_imobiliare(body: str) -> dict:
+    """Caracteristici structurate din corpul anuntului (imobiliare: perechi 'Eticheta: valoare').
+
+    imobiliare e randat server-side: campurile apar ca text 'An constructie: 1996',
+    'Structura rezistenta: BCA', 'Regim inaltime: D+P+M'. Tolerant la diacritice.
+    """
+    out: dict = {}
+    m = re.search(r"An\s+construc[țt]ie\s*:?\s*(\d{4})", body, re.IGNORECASE)
+    if m:
+        an = _to_int(m.group(1))
+        if an:
+            out["an"] = an
+    m = re.search(r"Structur[ăa]\s+rezisten[țt][ăa]\s*:?\s*([^|:\n]{2,40})", body, re.IGNORECASE)
+    if m:
+        s = m.group(1).strip().lower()
+        for cheie, val in _STRUCTURA.items():
+            if cheie in s:
+                out["material"] = val
+                break
+    # regim inaltime: token fara spatii, ex. D+P+1E, P+2E+M, S+P+M
+    m = re.search(r"Regim\s+[îi]n[ăa]l[țt]ime\s*:?\s*([SDP][A-Za-z0-9+]{1,16})", body, re.IGNORECASE)
+    if m:
+        out["etaje"] = m.group(1).strip()
+    if re.search(r"central[ăa].{0,25}gaz|central[ăa]\s+termic", body, re.IGNORECASE):
+        out["incalzire"] = "centrala_gaz"
+    elif re.search(r"\bsobe\b", body, re.IGNORECASE):
+        out["incalzire"] = "sobe"
+    return out
+
+
 def _cauta_in_jsonld(data) -> tuple:
     """Cautare recursiva in JSON-LD: pret (maximul = total), moneda, suprafata (floorSize).
 
@@ -280,15 +316,18 @@ def parse_listing_html(html: str, sursa_url: str = "") -> ParsedListing:
             pret = _to_decimal(m.group(1).replace(".", "").replace(" ", ""))
             moneda = moneda or m.group(2).upper().replace("EURO", "EUR").replace("€", "EUR")
 
+    body = soup.get_text(" ", strip=True)
+
     # 5) suprafata terenului din tabelul de caracteristici (imobiliare: "Sup. teren: 1.910 mp")
     if suprafata_teren is None:
-        body = soup.get_text(" ", strip=True)
         m = re.search(r"sup\w*\.?\s*teren\s*:?\s*([\d.,]+)\s*mp", body, re.IGNORECASE)
         if m:
             suprafata_teren = _to_decimal_ro(m.group(1))
 
-    # 6) caracteristici structurate (an, incalzire, material, stare, camere, etaje)
+    # 6) caracteristici structurate: storia (__NEXT_DATA__) cu prioritate, apoi imobiliare (body)
     car = _caracteristici_storia(soup)
+    for cheie, val in _caracteristici_imobiliare(body).items():
+        car.setdefault(cheie, val)
 
     return ParsedListing(pret=pret, moneda=moneda, suprafata=suprafata,
                          suprafata_teren=suprafata_teren, titlu=titlu, sursa_url=sursa_url,

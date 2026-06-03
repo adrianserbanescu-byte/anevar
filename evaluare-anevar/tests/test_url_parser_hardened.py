@@ -74,3 +74,17 @@ def test_extrage_caracteristici_structurate_storia():
     assert parsed.etaje == "un nivel"
     assert parsed.suprafata == Decimal("220")
     assert parsed.suprafata_teren == Decimal("700")
+
+
+def test_caracteristici_structurate_imobiliare_din_body():
+    # imobiliare e server-side: campurile apar ca text 'Eticheta: valoare' in body
+    html = ("<html><head><title>Casa Breaza</title></head><body>"
+            "<span>An construcție: 1996 (Finalizată)</span>"
+            "<span>Structură rezistență: BCA</span>"
+            "<span>Regim înălțime: D+P+1E</span>"
+            "<p>Incalzire centrala termica pe gaz.</p></body></html>")
+    parsed = parse_listing_html(html, sursa_url="https://imobiliare.ro/oferta/x")
+    assert parsed.an == 1996
+    assert parsed.material == "bca"
+    assert parsed.etaje == "D+P+1E"
+    assert parsed.incalzire == "centrala_gaz"
