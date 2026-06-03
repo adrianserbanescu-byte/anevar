@@ -16,6 +16,7 @@ hiddenimports = (
 datas = collect_data_files("anthropic") + [
     ("src/evaluare/web/templates", "evaluare/web/templates"),
     ("src/evaluare/data", "evaluare/data"),
+    ("src/evaluare/aml/data", "evaluare/aml/data"),
 ]
 
 a = Analysis(
