@@ -33,6 +33,21 @@
   <p class="rezumat">Identifici proprietatea și lucrarea. <b>Județul și localitatea</b> aleg zona în care
    aplicația caută comparabile la Pas 3. Datele de identificare apar în raport (cele personale sunt
    anonimizate înainte de orice apel AI).</p>
+
+  <div style="border:1px dashed #bbb;border-radius:6px;padding:8px;margin-bottom:8px">
+    <b>Pornire rapidă — importă din document (PDF)</b>
+    <select id="doc-tip">
+      <option value="cf">Extras carte funciară</option>
+      <option value="releveu">Releveu</option>
+      <option value="plan">Plan de amplasament</option>
+      <option value="cpe">Certificat energetic</option>
+    </select>
+    <input type="file" id="doc-ingestie" accept="application/pdf">
+    <span id="ingestie-status" class="hint"></span>
+    <small class="hint">PDF digital → pre-completează câmpurile (cadastral, CF, suprafețe, arii).
+     Valorile sunt <b>propuse — verifică-le</b>. Funcționează fără internet/AI.</small>
+  </div>
+
   <label>Județ</label>
   <select id="judet"></select>
   <label>Localitate</label>
@@ -361,6 +376,34 @@ $("btn-curs-bnr").addEventListener("click", async ()=>{
     $("curs_valutar").value = d.curs;
     $("curs_status").textContent = "BNR " + (d.data||"") + ": 1 EUR = " + d.curs + " LEI";
   }catch(e){ $("curs_status").textContent = "Eroare rețea."; }
+});
+
+// --- Ingestie document (PDF) -> pre-completare campuri ---
+function aplicaIngestie(tip, d){
+  const pus=[];
+  const set=(id,val,et)=>{ if(val!=null && val!=="" && $(id)){ $(id).value=val; pus.push(et); } };
+  if(tip==="cf"){ set("numar_cadastral",d.numar_cadastral,"cadastral"); set("carte_funciara",d.carte_funciara,"CF");
+    set("suprafata_teren",d.suprafata,"teren"); if((d.proprietari||[]).length) set("client_nume",d.proprietari[0],"proprietar"); }
+  if(tip==="releveu"){ set("au",d.arie_utila,"Au"); set("acd",d.arie_construita,"Acd"); }
+  if(tip==="plan"){ set("suprafata_teren",d.suprafata_teren,"teren"); }
+  return pus;
+}
+$("doc-ingestie").addEventListener("change",(e)=>{
+  const f=e.target.files[0]; if(!f) return;
+  $("ingestie-status").textContent="Citesc documentul…";
+  const r=new FileReader();
+  r.onload=async ()=>{
+    try{
+      const resp=await fetch("/api/ingestie",{method:"POST",headers:{"Content-Type":"application/json"},
+        body:JSON.stringify({tip:$("doc-tip").value, continut:r.result})});
+      if(!resp.ok){ $("ingestie-status").textContent="Nu am putut citi documentul (PDF scanat? completează manual)."; return; }
+      const d=await resp.json();
+      const pus=aplicaIngestie($("doc-tip").value, d);
+      $("ingestie-status").textContent = pus.length ? ("✓ completat (verifică): "+pus.join(", ")) : "Niciun câmp recunoscut — completează manual.";
+      salveaza();
+    }catch(err){ $("ingestie-status").textContent="Eroare la citire."; }
+  };
+  r.readAsDataURL(f); e.target.value="";
 });
 
 function asambleaza(){

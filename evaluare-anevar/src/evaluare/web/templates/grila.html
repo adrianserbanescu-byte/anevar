@@ -175,6 +175,14 @@ function colecteaza(grid){
  return comps;
 }
 
+function inGrilaTeren(pretMp){
+  for(let i=0;i<NCOMP;i++){
+    const inp=document.querySelector(`[data-g="teren"][data-pret="${i}"]`);
+    if(inp && !inp.value){ inp.value=pretMp; return true; }
+  }
+  return false;
+}
+
 async function descoperaTeren(){
   const judet=$("t-judet").value.trim(), loc=$("t-loc").value.trim();
   if(!judet){ $("t-status").textContent="Completează județul."; return; }
@@ -187,13 +195,19 @@ async function descoperaTeren(){
     const d=await r.json();
     $("t-status").textContent=d.candidati.length+" terenuri";
     if(!d.candidati.length){ $("t-rez").innerHTML='<p class="hint">Niciun rezultat. Încearcă doar județul.</p>'; return; }
-    let h='<table><tr><th>Rel.</th><th>Preț</th><th>Supr.</th><th>€/mp</th><th>Anunț</th></tr>';
+    let h='<table><tr><th>Rel.</th><th>Preț</th><th>Supr.</th><th>€/mp</th><th>Anunț</th><th></th></tr>';
     d.candidati.forEach(c=>{
+      const add = c.pret_mp ? `<button class="t-add" data-mp="${c.pret_mp}">➕ grilă</button>` : '';
       h+=`<tr><td>${c.relevanta}%</td><td>${c.pret?(+c.pret).toLocaleString('ro-RO')+' €':'?'}</td>`
         +`<td>${c.suprafata||'?'} mp</td><td><b>${c.pret_mp||'?'}</b></td>`
-        +`<td><a href="${c.url}" target="_blank">link</a>${c.nota?' <span class="err">'+c.nota+'</span>':''}</td></tr>`;
+        +`<td><a href="${c.url}" target="_blank">link</a>${c.nota?' <span class="err">'+c.nota+'</span>':''}</td>`
+        +`<td>${add}</td></tr>`;
     });
-    $("t-rez").innerHTML=h+'</table><p class="hint">Folosește €/mp orientativ în grila de teren de mai sus; ajustările le pui tu.</p>';
+    $("t-rez").innerHTML=h+'</table><p class="hint">„➕ grilă" pune €/mp în prima coloană liberă din grila de teren de mai sus; ajustările le pui tu.</p>';
+    $("t-rez").querySelectorAll(".t-add").forEach(b=>b.addEventListener("click",()=>{
+      if(!inGrilaTeren(b.dataset.mp)) b.textContent="grilă plină";
+      else b.textContent="✓ adăugat";
+    }));
   }catch(e){ $("t-status").textContent="Eroare rețea."; }
 }
 

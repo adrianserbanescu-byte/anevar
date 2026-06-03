@@ -109,6 +109,17 @@ def test_raportul_conform_sev_2025_si_gev_520(tmp_path):
     assert "Baza Imobiliara de Garantii (BIG)" in text
 
 
+def test_raportul_arata_echivalent_lei(tmp_path):
+    ctx = _ctx()
+    ctx.meta.moneda = "EUR"
+    ctx.meta.curs_valutar = Decimal("5")     # 280000 EUR -> 1.400.000 LEI
+    out = tmp_path / "raport.docx"
+    genereaza_raport(ctx, out)
+    text = _all_text(out)
+    assert "echivalent" in text
+    assert "1.400.000 LEI" in text
+
+
 def test_raportul_are_shell_gbf(tmp_path):
     out = tmp_path / "raport.docx"
     genereaza_raport(_ctx(), out)

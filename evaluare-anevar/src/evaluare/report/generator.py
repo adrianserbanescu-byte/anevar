@@ -99,6 +99,15 @@ def _fara_tva(ctx: ReportContext) -> str:
     return "Valoarea nu contine TVA." if ctx.reconciled.valoare_fara_tva else ""
 
 
+def _echiv_lei(ctx: ReportContext) -> str:
+    """Echivalentul in LEI al valorii finale (daca moneda e EUR si exista curs BNR)."""
+    curs = ctx.meta.curs_valutar
+    if curs is None or (ctx.meta.moneda or "").upper() == "LEI":
+        return ""
+    lei = ctx.reconciled.valoare_finala * curs
+    return f" (echivalent ~{_fmt(lei)} LEI la cursul BNR {curs})"
+
+
 def _valoare_teren(ctx: ReportContext):
     """Valoarea terenului folosita in raport (din grila daca exista, altfel din alocare)."""
     if ctx.land_result is not None:
@@ -135,8 +144,8 @@ def _coperta(doc: DocxDocument, ctx: ReportContext, adnotari: bool = False) -> N
     )
     vp = doc.add_paragraph()
     vp.add_run(
-        f"VALOAREA ESTIMATA: {_fmt(ctx.reconciled.valoare_finala)} {meta.moneda}. "
-        f"{_fara_tva(ctx)}"
+        f"VALOAREA ESTIMATA: {_fmt(ctx.reconciled.valoare_finala)} {meta.moneda}"
+        f"{_echiv_lei(ctx)}. {_fara_tva(ctx)}"
     ).bold = True
     doc.add_page_break()
 
@@ -529,8 +538,8 @@ def genereaza_raport(
         or "Reconcilierea metodelor [de completat]."
     )
     doc.add_paragraph(
-        f"Valoarea finala: {_fmt(ctx.reconciled.valoare_finala)} {meta.moneda}. "
-        f"{_fara_tva(ctx)}"
+        f"Valoarea finala: {_fmt(ctx.reconciled.valoare_finala)} {meta.moneda}"
+        f"{_echiv_lei(ctx)}. {_fara_tva(ctx)}"
     )
 
     # --- Shell GBF (back matter) ---
