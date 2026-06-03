@@ -5,7 +5,7 @@
 > `evaluare-anevar/scripts/export_chat.py`. Secretele (chei API) sunt redactate. Se
 > regenereaza la fiecare rulare (actualizare orara). Pentru sinteza, vezi `log.md`.
 
-**Mesaje:** 983.
+**Mesaje:** 1002.
 
 ---
 
@@ -9585,3 +9585,147 @@ Now rebuild the exe so the updated templates ship, and smoke-test the pages:
 ## Assistant  ·  2026-06-03 21:51:06
 
 Exe rebuilt și verificat live — toate cele 4 pagini servesc 200 cu landmark-uri și labels asociate în binarul împachetat. Adaug o intrare în jurnal:
+
+## Assistant  ·  2026-06-03 21:52:00
+
+Gata. Am aplicat **toate** fixurile de accesibilitate pe cele 4 pagini și am scris planul de îmbunătățiri.
+
+## Ce am reparat (Faza 1 — WCAG 2.1 AA)
+
+| # | Fix | Criteriu | Pagini |
+|---|-----|----------|--------|
+| 1 | Asociere `label`↔control (`for`/`id`) — **53 controale** | 4.1.2 / 1.3.1 / 3.3.2 | wizard 31, aml 8, grila 5, descoperire 9 |
+| 2 | `aria-label` pe controalele fără etichetă + inputurile grilei generate | 4.1.2 | toate |
+| 3 | Mesaje de stare anunțate (`role="status"` / `aria-live`) — **18 regiuni** | **4.1.3** | toate |
+| 4 | Bară de progres `role="progressbar"` + `aria-valuenow` actualizat | 4.1.2 | wizard |
+| 5 | Focus mutat pe titlul pasului la navigare (`focusPas()`) | 2.4.3 | wizard |
+| 6 | Landmark `<main>` + `<nav>` | 1.3.1 / 2.4.1 | toate |
+| 7 | `alt` pe imaginile de upload | 1.1.1 | wizard |
+| 8 | Contrast bară progres `#2a7`→`#1c7a52` (**2.56:1 → 4.58:1**) | 1.4.11 | wizard |
+| 9 | Tabel grilă cu `<th scope="col/row">` | 1.3.1 | grila |
+| 10 | **Bug-fix colateral:** helper `$` lipsea în `grila.html` → butoanele „Indice ANEVAR" și „Caută terenuri" **erau nefuncționale** | — | grila |
+
+## Verificare
+- **+11 teste** noi (`tests/test_web_a11y.py`) — landmark, labels asociate, progressbar, status, scope, helper. Suita totală: **280 verzi**.
+- **Exe reîmpachetat** și smoke live: `/wizard`, `/aml`, `/grila`, `/descoperire` → **200**, cu `<main>` și `for=` prezente în binar.
+- Comis pe `master`; `log.md` + `log_complet.md` actualizate.
+
+## Plan de îmbunătățiri — `docs/plan-accesibilitate.md`
+**Now** (impact mare, efort mic): `<form>` + submit pe Enter · `type="date"` pe date · erori legate de câmp prin `aria-describedby` · skip-link.
+**Next:** `autocomplete` · țintă tactilă ≥24px · `aria-busy` la fetch · `<fieldset>/<legend>` în wizard.
+**Later:** testare reală NVDA/VoiceOver + zoom 200%/320px · `prefers-reduced-motion` · linter CI `axe-core`/`pa11y` · `:focus-visible` explicit.
+
+Vrei să continui cu **Faza 2 „Now"** (formulare native + `type=date` + erori legate de câmp + skip-link)? Sunt fixuri mici și sigure, le pot aplica autonom pe toate paginile.
+
+## User  ·  2026-06-03 21:52:05
+
+Base directory for this skill: C:\Users\adyse\.claude\plugins\cache\claude-plugins-official\frontend-design\unknown\skills\frontend-design
+
+This skill guides creation of distinctive, production-grade frontend interfaces that avoid generic "AI slop" aesthetics. Implement real working code with exceptional attention to aesthetic details and creative choices.
+
+The user provides frontend requirements: a component, page, application, or interface to build. They may include context about the purpose, audience, or technical constraints.
+
+## Design Thinking
+
+Before coding, understand the context and commit to a BOLD aesthetic direction:
+- **Purpose**: What problem does this interface solve? Who uses it?
+- **Tone**: Pick an extreme: brutally minimal, maximalist chaos, retro-futuristic, organic/natural, luxury/refined, playful/toy-like, editorial/magazine, brutalist/raw, art deco/geometric, soft/pastel, industrial/utilitarian, etc. There are so many flavors to choose from. Use these for inspiration but design one that is true to the aesthetic direction.
+- **Constraints**: Technical requirements (framework, performance, accessibility).
+- **Differentiation**: What makes this UNFORGETTABLE? What's the one thing someone will remember?
+
+**CRITICAL**: Choose a clear conceptual direction and execute it with precision. Bold maximalism and refined minimalism both work - the key is intentionality, not intensity.
+
+Then implement working code (HTML/CSS/JS, React, Vue, etc.) that is:
+- Production-grade and functional
+- Visually striking and memorable
+- Cohesive with a clear aesthetic point-of-view
+- Meticulously refined in every detail
+
+## Frontend Aesthetics Guidelines
+
+Focus on:
+- **Typography**: Choose fonts that are beautiful, unique, and interesting. Avoid generic fonts like Arial and Inter; opt instead for distinctive choices that elevate the frontend's aesthetics; unexpected, characterful font choices. Pair a distinctive display font with a refined body font.
+- **Color & Theme**: Commit to a cohesive aesthetic. Use CSS variables for consistency. Dominant colors with sharp accents outperform timid, evenly-distributed palettes.
+- **Motion**: Use animations for effects and micro-interactions. Prioritize CSS-only solutions for HTML. Use Motion library for React when available. Focus on high-impact moments: one well-orchestrated page load with staggered reveals (animation-delay) creates more delight than scattered micro-interactions. Use scroll-triggering and hover states that surprise.
+- **Spatial Composition**: Unexpected layouts. Asymmetry. Overlap. Diagonal flow. Grid-breaking elements. Generous negative space OR controlled density.
+- **Backgrounds & Visual Details**: Create atmosphere and depth rather than defaulting to solid colors. Add contextual effects and textures that match the overall aesthetic. Apply creative forms like gradient meshes, noise textures, geometric patterns, layered transparencies, dramatic shadows, decorative borders, custom cursors, and grain overlays.
+
+NEVER use generic AI-generated aesthetics like overused font families (Inter, Roboto, Arial, system fonts), cliched color schemes (particularly purple gradients on white backgrounds), predictable layouts and component patterns, and cookie-cutter design that lacks context-specific character.
+
+Interpret creatively and make unexpected choices that feel genuinely designed for the context. No design should be the same. Vary between light and dark themes, different fonts, different aesthetics. NEVER converge on common choices (Space Grotesk, for example) across generations.
+
+**IMPORTANT**: Match implementation complexity to the aesthetic vision. Maximalist designs need elaborate code with extensive animations and effects. Minimalist or refined designs need restraint, precision, and careful attention to spacing, typography, and subtle details. Elegance comes from executing the vision well.
+
+Remember: Claude is capable of extraordinary creative work. Don't hold back, show what can truly be created when thinking outside the box and committing fully to a distinctive vision.
+
+ARGUMENTS: pentru paginile din app
+
+## Assistant  ·  2026-06-03 21:54:20
+
+Frumos — un redesign vizual complet pentru toate paginile. Mai întâi citesc cele două template-uri pe care nu le-am văzut (`form.html`, `result.html`) ca să acopăr toate clasele într-un sistem de design unitar.
+
+## Assistant  ·  2026-06-03 21:56:51
+
+I have all six templates. I'm committing to a distinctive concept: **"Cadastru" — a surveyor's land-ledger aesthetic.** Warm parchment, deep navy ink, surveyor's sienna + cadastral green, brass hairlines, Windows document serifs (Constantia/Cambria) paired with Segoe UI, tabular figures, a cartographic grid and letterhead rule. Fully offline (system fonts only — critical for the `.exe`), light theme, refined-but-rich.
+
+I'll build it as one shared design system injected via Jinja `{% include %}` (no CDN, works offline, templates dir is already bundled).
+
+## Assistant  ·  2026-06-03 21:58:15
+
+Let me clean up two placeholder artifacts I left in the CSS:
+
+## Assistant  ·  2026-06-03 21:58:35
+
+Now I'll swap each page's inline `<style>` for the shared design system via a small script:
+
+## Assistant  ·  2026-06-03 21:58:58
+
+Design system applied to all six pages. Now I'll convert the two inline dashed boxes to the themed `.callout` class for cohesion:
+
+## Assistant  ·  2026-06-03 21:59:34
+
+Now run the page tests to confirm the Jinja include renders and nothing broke, then clean up the temp script:
+
+## Assistant  ·  2026-06-03 21:59:57
+
+All 34 pass. Let me confirm the CSS actually injects into the served HTML and then take screenshots to QA the visual result:
+
+## Assistant  ·  2026-06-03 22:00:17
+
+The design system injects correctly into every page. Now let me start the dev server and capture screenshots to QA the visual result:
+
+## Assistant  ·  2026-06-03 22:00:33
+
+Server is up. Let me load a browser tool to capture screenshots for visual QA:
+
+## Assistant  ·  2026-06-03 22:01:11
+
+Let me set up a launch config for the preview tool and load the eval tool for navigation:
+
+## Assistant  ·  2026-06-03 22:01:48
+
+The preview tool looks at the workspace root `anevar/`. Let me place the launch config there:
+
+## Assistant  ·  2026-06-03 22:02:37
+
+The "Cadastru" aesthetic is realized beautifully — letterhead band, letterspaced kicker, serif display title, cartographic grid, sienna→gold progress, ledger step-card with margin rule, italic editorial summary, themed callout. Let me check the table-heavy `grila` page:
+
+## Assistant  ·  2026-06-03 22:02:57
+
+Ledger tables look superb — ink header, parchment row-stubs, alternating tints, sienna/blue element labels, right-aligned numeric cells. Now the `aml` page (fieldsets + badges), and I'll trigger an evaluation to see the result/badge styling:
+
+## Assistant  ·  2026-06-03 22:03:37
+
+The fieldsets with serif legend-chips look refined. Let me scroll to the evaluation result to see the badge + result panel:
+
+## Assistant  ·  2026-06-03 22:04:13
+
+The full design is realized and cohesive across wizard, grila, and aml — the result panel shows the soft-red `SPORIT` badge, danger-red motive text, green-bordered result card, and sienna ledger buttons. Let me stop the preview, clean up the one-shot script, rebuild the exe, and commit.
+
+## Assistant  ·  2026-06-03 22:05:11
+
+Clean. Let me run the full suite, then rebuild + smoke the exe:
+
+## Assistant  ·  2026-06-03 22:13:59
+
+The redesigned exe ships the design system offline (tokens present, served from the bundle). Let me commit, then update the log:

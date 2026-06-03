@@ -171,3 +171,13 @@ controale), `aria-label` pe controale fără etichetă, mesaje de stare anunțat
 **Bug-fix colateral:** helper `$` lipsă în `grila.html` (butoanele „Indice ANEVAR"/„Caută terenuri"
 erau nefuncționale). +11 teste (`test_web_a11y.py`); plan faza 2 în `docs/plan-accesibilitate.md`.
 Exe reîmpachetat și verificat (4 pagini → 200). Suita: **280 verzi**.
+
+### 2026-06-04 — redesign vizual „Cadastru" (frontend-design)
+Sistem de design unitar `templates/_design.css`, injectat prin Jinja `{% include %}` în toate cele
+6 pagini (zero CDN — **doar fonturi de sistem**, rulează în `.exe` offline). Estetică de registru
+cadastral/topograf: pergament cald, cerneală bleumarin, **sienna de topograf** + verde cadastral,
+linii de alamă; serife de document (Constantia/Cambria) + Segoe UI; cifre tabulare. Bandă-antet
+tricoloră, kicker de marcă pe titlu, grilă cartografică de fundal, carduri-pas cu margine de registru,
+bară de progres sienna→auriu, tabele-registru, pastile de risc, butoane sienna. QA vizual cu
+preview (wizard/grilă/AML). Păstrează toată structura + accesibilitatea. Exe reîmpachetat și verificat
+live (CSS livrat din bundle, offline). Suita: **280 verzi**.
