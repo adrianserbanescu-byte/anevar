@@ -19,39 +19,40 @@
  ul{margin:4px 0}
 </style></head>
 <body>
-<div class="nav"><a href="/">← wizard</a> · <a href="/grila">grilă</a> · <a href="/descoperire">descoperire</a></div>
+<nav class="nav" aria-label="Alte pagini ale aplicației"><a href="/">← wizard</a> · <a href="/grila">grilă</a> · <a href="/descoperire">descoperire</a></nav>
 <h1>Conformitate AML — Legea 129/2019</h1>
 <p class="hint">Asistă obligațiile evaluatorului ca <b>entitate raportoare</b>: cunoașterea clientelei (KYC),
 beneficiar real, evaluarea de risc, indicatorii de suspiciune și pragul de numerar (10.000 €).
 Datele rămân <b>local</b>; rapoartele suspecte se păstrează separat (interdicție de divulgare, art. 38).
 Modulul propune — <b>evaluatorul decide și transmite</b> (rapoarte.onpcsb.ro).</p>
 
+<main>
 <fieldset>
  <legend>Entitate evaluator</legend>
- <label>Tip</label>
+ <label for="tip_entitate">Tip</label>
  <select id="tip_entitate">
    <option value="PFA">PFA / persoană fizică (fără persoană desemnată — Norme art. 7)</option>
    <option value="PJ">Societate (necesită persoană desemnată)</option>
  </select>
- <label>Data evaluării</label><input type="date" id="azi" value="2026-06-03">
+ <label for="azi">Data evaluării</label><input type="date" id="azi" value="2026-06-03">
 </fieldset>
 
 <fieldset>
  <legend>Client</legend>
- <label>Tip client</label>
+ <label for="tip_client">Tip client</label>
  <select id="tip_client" onchange="document.getElementById('pj').style.display=this.value=='PJ'?'block':'none'">
    <option value="PF">Persoană fizică</option>
    <option value="PJ">Persoană juridică</option>
  </select>
  <div class="row">
-   <div><label>Nume</label><input type="text" id="nume"></div>
-   <div><label>Prenume</label><input type="text" id="prenume"></div>
-   <div><label>CNP</label><input type="text" id="cnp"></div>
+   <div><label for="nume">Nume</label><input type="text" id="nume"></div>
+   <div><label for="prenume">Prenume</label><input type="text" id="prenume"></div>
+   <div><label for="cnp">CNP</label><input type="text" id="cnp"></div>
  </div>
  <div class="chk"><label><input type="checkbox" id="pep"> Client / beneficiar real este PEP (persoană expusă public)</label></div>
  <div id="pj" style="display:none">
-   <label>Denumire PJ</label><input type="text" id="denumire">
-   <label>CUI</label><input type="text" id="cui">
+   <label for="denumire">Denumire PJ</label><input type="text" id="denumire">
+   <label for="cui">CUI</label><input type="text" id="cui">
    <p class="hint">Beneficiarii reali (&gt;25%) se completează în fișa generată.</p>
  </div>
 </fieldset>
@@ -81,7 +82,8 @@ Modulul propune — <b>evaluatorul decide și transmite</b> (rapoarte.onpcsb.ro)
 </fieldset>
 
 <button onclick="evalueaza()">Evaluează relația</button>
-<div id="rez"></div>
+<div id="rez" role="status" aria-live="polite"></div>
+</main>
 
 <script>
 function _client(){

@@ -12,7 +12,7 @@
  input.base{width:96px;text-align:right;font-weight:bold}
  .eur{color:#a60} .pct{color:#06c}
  .hint{color:#666;font-size:0.85em}
- .row-pret td:first-child,.row-supr td:first-child{background:#eef}
+ .row-pret th:first-child,.row-supr th:first-child{background:#eef}
  button{margin:8px 0;padding:7px 16px;font-size:0.95em;cursor:pointer}
  .rez{border:1px solid #2a6;border-radius:6px;padding:10px 14px;margin:10px 0;background:#f6fbf6}
  .rez table{width:auto}
@@ -22,8 +22,9 @@
  .err{color:#b30000}
 </style></head>
 <body>
-<div class="nav"><a href="/">← wizard</a> · <a href="/descoperire">descoperire comparabile</a></div>
+<nav class="nav" aria-label="Alte pagini ale aplicației"><a href="/">← wizard</a> · <a href="/descoperire">descoperire comparabile</a></nav>
 <h1>Grilă de ajustări</h1>
+<main>
 <p class="hint">Completează prețul de pornire și ajustările pe fiecare element, pentru fiecare comparabil.
 Ajustările <span class="pct">procentuale</span> se introduc în <b>puncte %</b> (ex. <code>-10</code> = −10%);
 cele <span class="eur">valorice</span> în <b>EUR</b> (ex. <code>-5000</code>). Gol = neaplicat (0).
@@ -31,27 +32,27 @@ Se aplică <b>secvențial</b>; se alege comparabilul cu <b>ajustarea brută mini
 Pentru ajustarea <b>„Condițiile pieței (timp)"</b> poți folosi <b>Indicele imobiliar ANEVAR</b>
 (dinamica valorilor de piață/mp).
 <button type="button" onclick="incarcaIndice()">↻ Indicele ANEVAR</button>
-<span id="indice-status" class="hint"></span></p>
+<span id="indice-status" class="hint" role="status"></span></p>
 <div id="indice-rez"></div>
 
 <!-- ================= TEREN ================= -->
 <h2>Grilă teren — valoare = preț/mp corectat × suprafață subiect</h2>
 <div id="tabel-teren"></div>
-<p>Suprafață teren subiect (mp): <input id="supr-teren" class="base" value="1000"></p>
+<p><label for="supr-teren">Suprafață teren subiect (mp):</label> <input id="supr-teren" class="base" value="1000"></p>
 <button onclick="calcul('teren')">Calculează grila teren</button>
-<div id="rez-teren"></div>
+<div id="rez-teren" role="status" aria-live="polite"></div>
 
 <div style="border:1px dashed #bbb;border-radius:6px;padding:10px;margin-top:10px">
   <b>Descoperă terenuri în zonă</b> (anunțuri reale → preț/mp orientativ)<br>
   <small class="hint">Județ și localitate fără diacritice (ex: prahova / breaza). Relevanța =
    similaritatea de suprafață cu terenul subiect.</small><br>
-  Portal: <select id="t-portal"><option value="imobiliare">imobiliare.ro</option>
+  <label for="t-portal">Portal:</label> <select id="t-portal"><option value="imobiliare">imobiliare.ro</option>
     <option value="storia">storia.ro</option></select>
-  Județ: <input id="t-judet" size="12" placeholder="prahova">
-  Localitate: <input id="t-loc" size="12" placeholder="breaza">
+  <label for="t-judet">Județ:</label> <input id="t-judet" size="12" placeholder="prahova">
+  <label for="t-loc">Localitate:</label> <input id="t-loc" size="12" placeholder="breaza">
   <button onclick="descoperaTeren()">Caută terenuri</button>
-  <span id="t-status" class="hint"></span>
-  <div id="t-rez"></div>
+  <span id="t-status" class="hint" role="status"></span>
+  <div id="t-rez" role="region" aria-label="Terenuri găsite"></div>
 </div>
 
 <!-- ================= CASĂ ================= -->
@@ -60,11 +61,13 @@ Pentru ajustarea <b>„Condițiile pieței (timp)"</b> poți folosi <b>Indicele 
  fiecare comparabilă e adusă la subiect. „Suprafața subiect" de mai jos nu mai intră în formulă
  (rămâne pentru referință).</p>
 <div id="tabel-casa"></div>
-<p>Suprafață subiect ACD (mp): <input id="supr-casa" class="base" value="120"></p>
+<p><label for="supr-casa">Suprafață subiect ACD (mp):</label> <input id="supr-casa" class="base" value="120"></p>
 <button onclick="calcul('casa')">Calculează grila casă</button>
-<div id="rez-casa"></div>
+<div id="rez-casa" role="status" aria-live="polite"></div>
+</main>
 
 <script>
+const $ = id => document.getElementById(id);
 const NCOMP = 3;
 
 // Catalog elemente. tip: "procentuala" sau "valorica".
@@ -103,19 +106,19 @@ const ELEM = {
 };
 
 function head(){
- let h = "<tr><th>Element</th>";
- for(let i=0;i<NCOMP;i++) h += `<th>Comp ${i+1}</th>`;
+ let h = '<tr><th scope="col">Element</th>';
+ for(let i=0;i<NCOMP;i++) h += `<th scope="col">Comp ${i+1}</th>`;
  return h + "</tr>";
 }
 function baseRows(grid){
  // pret de pornire (+ suprafata comp pentru casa)
  const lblPret = grid==="teren" ? "Preț (EUR/mp)" : "Preț ofertă (EUR)";
- let r = `<tr class="row-pret"><td>${lblPret}</td>`;
- for(let i=0;i<NCOMP;i++) r += `<td><input class="base" data-g="${grid}" data-pret="${i}"></td>`;
+ let r = `<tr class="row-pret"><th scope="row">${lblPret}</th>`;
+ for(let i=0;i<NCOMP;i++) r += `<td><input class="base" data-g="${grid}" data-pret="${i}" aria-label="${lblPret} — Comp ${i+1}"></td>`;
  r += "</tr>";
  if(grid==="casa"){
-   r += `<tr class="row-supr"><td>Suprafață comp (mp)</td>`;
-   for(let i=0;i<NCOMP;i++) r += `<td><input class="base" data-g="${grid}" data-supr="${i}"></td>`;
+   r += `<tr class="row-supr"><th scope="row">Suprafață comp (mp)</th>`;
+   for(let i=0;i<NCOMP;i++) r += `<td><input class="base" data-g="${grid}" data-supr="${i}" aria-label="Suprafață comp (mp) — Comp ${i+1}"></td>`;
    r += "</tr>";
  }
  return r;
@@ -125,9 +128,9 @@ function elemRows(grid){
  ELEM[grid].forEach((el, idx) => {
    const cls = el.tip==="valorica" ? "eur" : "pct";
    const unit = el.tip==="valorica" ? "EUR" : "%";
-   out += `<tr><td><span class="${cls}">${el.nume}</span> <span class="hint">(${unit})</span></td>`;
+   out += `<tr><th scope="row"><span class="${cls}">${el.nume}</span> <span class="hint">(${unit})</span></th>`;
    for(let i=0;i<NCOMP;i++)
-     out += `<td><input class="cell" data-g="${grid}" data-el="${idx}" data-c="${i}"></td>`;
+     out += `<td><input class="cell" data-g="${grid}" data-el="${idx}" data-c="${i}" aria-label="${el.nume} (${unit}) — Comp ${i+1}"></td>`;
    out += "</tr>";
  });
  return out;

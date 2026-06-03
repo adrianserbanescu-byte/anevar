@@ -6,7 +6,7 @@
  .pas{display:none;border:1px solid #ddd;padding:16px;margin-top:10px}
  .pas.activ{display:block}
  .bara{background:#eee;height:8px;border-radius:4px;margin:8px 0}
- .bara>div{background:#2a7;height:8px;border-radius:4px;transition:width .2s}
+ .bara>div{background:#1c7a52;height:8px;border-radius:4px;transition:width .2s}
  label{font-weight:bold;display:block;margin-top:6px}
  .hint{color:#666;font-size:.85em}
  input,select,textarea{font-size:1em}
@@ -21,12 +21,14 @@
 </style></head>
 <body>
 <h1>Evaluare imobiliară — pas cu pas</h1>
-<p class="hint">Alternative: <a href="/formular">formular clasic (toate câmpurile pe o pagină)</a> ·
+<nav class="hint" aria-label="Alte pagini ale aplicației">Alternative: <a href="/formular">formular clasic (toate câmpurile pe o pagină)</a> ·
  <a href="/descoperire">descoperire comparabile</a> ·
  <a href="/grila">grilă detaliată (teren + casă)</a> ·
- <a href="/aml">conformitate AML (Legea 129/2019)</a></p>
-<div class="bara"><div id="progres" style="width:20%"></div></div>
-<p id="eticheta-pas"></p>
+ <a href="/aml">conformitate AML (Legea 129/2019)</a></nav>
+<div class="bara"><div id="progres" role="progressbar" aria-label="Progres completare wizard"
+  aria-valuemin="0" aria-valuemax="100" aria-valuenow="20" style="width:20%"></div></div>
+<p id="eticheta-pas" role="status"></p>
+<main>
 
 <!-- PAS 1 -->
 <section id="pas-1" class="pas activ">
@@ -37,52 +39,52 @@
 
   <div style="border:1px dashed #bbb;border-radius:6px;padding:8px;margin-bottom:8px">
     <b>Pornire rapidă — importă din document (PDF)</b>
-    <select id="doc-tip">
+    <select id="doc-tip" aria-label="Tip document pentru import">
       <option value="cf">Extras carte funciară</option>
       <option value="releveu">Releveu</option>
       <option value="plan">Plan de amplasament</option>
       <option value="cpe">Certificat energetic</option>
     </select>
-    <input type="file" id="doc-ingestie" accept="application/pdf">
-    <span id="ingestie-status" class="hint"></span>
+    <input type="file" id="doc-ingestie" accept="application/pdf" aria-label="Încarcă PDF pentru pre-completare">
+    <span id="ingestie-status" class="hint" role="status"></span>
     <small class="hint">PDF digital → pre-completează câmpurile (cadastral, CF, suprafețe, arii).
      Valorile sunt <b>propuse — verifică-le</b>. Funcționează fără internet/AI.</small>
   </div>
 
-  <label>Județ</label>
+  <label for="judet">Județ</label>
   <select id="judet"></select>
-  <label>Localitate</label>
+  <label for="localitate">Localitate</label>
   <select id="localitate"></select>
-  <input id="localitate_alt" placeholder="ex: baia-de-aries (fara diacritice)" style="display:none">
+  <input id="localitate_alt" placeholder="ex: baia-de-aries (fara diacritice)" style="display:none" aria-label="Altă localitate (cod fără diacritice)">
   <small class="hint">Alegi din liste — <b>numele cu diacritice</b> (ex. „Bistriţa-Năsăud") apar în raport,
    iar codul fără diacritice folosit la căutarea pe portaluri se generează <b>automat</b>. Nu trebuie să faci
    nimic special. <b>Doar</b> dacă folosești „altă localitate (scriu)", scrie codul fără diacritice: litere mici,
    ă→a î→i ș→s ț→t â→a, spațiile și semnele devin cratimă (ex. „Baia de Arieş" → <code>baia-de-aries</code>).</small>
-  <label>Stradă, număr (rest adresă)</label>
+  <label for="adresa_strada">Stradă, număr (rest adresă)</label>
   <input id="adresa_strada" size="50" placeholder="Str. Exemplu nr. 10">
   <small class="hint">Partea de stradă/număr a adresei (text liber). Apare în raport; o poți edita
    cu diacritice la Pas 4.</small>
-  <label>Nume client</label><input id="client_nume">
+  <label for="client_nume">Nume client</label><input id="client_nume">
   <small class="hint">Persoana/firma pentru care se face evaluarea. Apare în raport; anonimizat
    ([CLIENT]) înainte de orice apel AI.</small>
-  <label>Nr. cadastral</label><input id="numar_cadastral">
+  <label for="numar_cadastral">Nr. cadastral</label><input id="numar_cadastral">
   <small class="hint">Identificatorul cadastral unic. Situația juridică; anonimizat ([CADASTRAL]) la AI.</small>
-  <label>Carte funciară</label><input id="carte_funciara">
+  <label for="carte_funciara">Carte funciară</label><input id="carte_funciara">
   <small class="hint">Numărul CF (drept de proprietate, sarcini). Anonimizat ([CF]) la AI.</small>
-  <label>Beneficiar / finanțator (bancă)</label><input id="beneficiar" placeholder="ex: Banca Transilvania SA">
+  <label for="beneficiar">Beneficiar / finanțator (bancă)</label><input id="beneficiar" placeholder="ex: Banca Transilvania SA">
   <small class="hint">Pentru garantare credit: banca/utilizatorul desemnat al raportului. Apare în
    scrisoarea de transmitere și termenii de referință. Lasă gol dacă nu se aplică.</small>
-  <label>Proprietar (dacă diferă de client)</label><input id="proprietar">
+  <label for="proprietar">Proprietar (dacă diferă de client)</label><input id="proprietar">
   <small class="hint">Numele proprietarului, dacă nu coincide cu clientul. Opțional.</small>
-  <label>Evaluator</label><input id="evaluator_nume">
+  <label for="evaluator_nume">Evaluator</label><input id="evaluator_nume">
   <small class="hint">Numele evaluatorului autorizat ANEVAR; apare în declarația de independență.</small>
-  <label>Legitimație</label><input id="evaluator_legitimatie">
+  <label for="evaluator_legitimatie">Legitimație</label><input id="evaluator_legitimatie">
   <small class="hint">Numărul legitimației ANEVAR a evaluatorului.</small>
-  <label>Data evaluării</label><input id="data_evaluarii" value="2026-01-16">
+  <label for="data_evaluarii">Data evaluării</label><input id="data_evaluarii" value="2026-01-16">
   <small class="hint">Data la care se estimează valoarea (data de referință a calculelor).</small>
-  <label>Data raportului</label><input id="data_raportului" value="2026-01-16">
+  <label for="data_raportului">Data raportului</label><input id="data_raportului" value="2026-01-16">
   <small class="hint">Data emiterii raportului (poate diferi de data evaluării).</small>
-  <label>Data inspecției (opțional)</label><input id="data_inspectiei" placeholder="2026-01-15">
+  <label for="data_inspectiei">Data inspecției (opțional)</label><input id="data_inspectiei" placeholder="2026-01-15">
   <small class="hint">Data inspecției proprietății, dacă diferă de data evaluării. Apare în termenii de referință.</small>
 </section>
 
@@ -92,22 +94,22 @@
   <p class="rezumat">Datele fizice ale casei pentru <b>calcul</b> (teren, construcție, elemente de cost,
    depreciere), plus <b>atributele de potrivire</b> care ajută aplicația să găsească cele mai similare
    anunțuri la descoperire.</p>
-  <label>Suprafață teren (mp)</label><input id="suprafata_teren" value="500">
+  <label for="suprafata_teren">Suprafață teren (mp)</label><input id="suprafata_teren" value="500">
   <small class="hint">Suprafața terenului din actul cadastral. Bază pentru valoarea terenului și
    atribut de potrivire a comparabilelor (suprafață teren).</small>
-  <label>Au — arie utilă (mp)</label><input id="au" value="100">
+  <label for="au">Au — arie utilă (mp)</label><input id="au" value="100">
   <small class="hint">Suprafața interioară efectiv folosibilă a casei. Folosită în descriere și verificări (Au ≤ Acd).</small>
-  <label>Acd — arie construită desfășurată (mp)</label><input id="acd" value="120">
+  <label for="acd">Acd — arie construită desfășurată (mp)</label><input id="acd" value="120">
   <small class="hint">Suprafața totală construită pe toate nivelurile. Numitor pentru costul pe mp (CIN)
    <b>și suprafața casei folosită la potrivirea comparabilelor</b> (Pas 3).</small>
-  <label>An referință</label><input id="an_referinta" value="2025">
+  <label for="an_referinta">An referință</label><input id="an_referinta" value="2025">
   <small class="hint">Anul față de care se calculează vârsta construcției (vârstă = an referință − an PIF). Determină deprecierea.</small>
-  <label>Valoare teren (lei)</label><input id="valoare_teren" value="100000">
+  <label for="valoare_teren">Valoare teren (lei)</label><input id="valoare_teren" value="100000">
   <small class="hint">Valoarea estimată a terenului; se adaugă la costul net al construcției (CIN) pentru valoarea prin cost.</small>
-  <label>Elemente de cost (element;cod;um;cantitate;cost_unitar;an_pif)</label>
+  <label for="elemente">Elemente de cost (element;cod;um;cantitate;cost_unitar;an_pif)</label>
   <textarea id="elemente" rows="3" cols="80">Structura;X;mp;120;2000;2015</textarea>
   <small class="hint">Elemente constructive (catalog IROVAL): Σ(cantitate × cost_unitar) = costul de înlocuire brut (CIB).</small>
-  <label>Depreciere fizică (varsta;fractie)</label>
+  <label for="depreciere">Depreciere fizică (varsta;fractie)</label>
   <textarea id="depreciere" rows="2" cols="30">5;0.05
 15;0.15</textarea>
   <small class="hint">Puncte (vârstă;fracție) între care se interpolează deprecierea fizică în funcție de vârsta ponderată.</small>
@@ -123,8 +125,8 @@
   <h3>Atribute pentru potrivire</h3>
   <small class="hint">Descriu casa subiect și sunt folosite ca să găsim comparabile cât mai apropiate.
    Suprafața casei (Acd) și terenul (din Pas 2) intră automat ca atribute de potrivire.</small>
-  <label>An construcție</label><input id="attr_an" value="2013" size="5">
-  <label>Stare construcție</label>
+  <label for="attr_an">An construcție</label><input id="attr_an" value="2013" size="5">
+  <label for="attr_stare">Stare construcție</label>
   <select id="attr_stare">
     <option value="1">Degradată / necesită reparații majore</option>
     <option value="2">Necesită renovare</option>
@@ -132,31 +134,31 @@
     <option value="4">Foarte bună / renovată recent</option>
     <option value="5">Nouă</option>
   </select>
-  <label>Nivel finisaj</label>
+  <label for="attr_finisaj">Nivel finisaj</label>
   <select id="attr_finisaj">
     <option value="1">Modest</option>
     <option value="2">Standard</option>
     <option value="3">Superior</option>
     <option value="4" selected>Lux</option>
   </select>
-  <label>Tip încălzire</label>
+  <label for="attr_incalzire">Tip încălzire</label>
   <input id="attr_incalzire" value="centrala_gaz" size="18">
   <small class="hint">Categorie normalizată: litere mici, <b>cu „_" în loc de spațiu</b>.
    Ex.: <code>centrala_gaz</code>, <code>pompa_caldura</code>, <code>sobe</code>. Familia (partea
    dinainte de „_") contează la potrivire.</small>
 
-  <label>Atribute secundare de verificat (opțional, unul pe linie)</label>
+  <label for="atribute_secundare">Atribute secundare de verificat (opțional, unul pe linie)</label>
   <textarea id="atribute_secundare" rows="3" cols="40" placeholder="tamplarie: termopan&#10;garaj: da&#10;panouri solare"></textarea>
   <small class="hint">Doar <b>FYI</b> (NU influențează ranking-ul). Pentru fiecare, AI-ul caută în
    descrierea anunțului și raportează: ✅ potrivit / ⚠️ diferit / ➖ nementionat, plus ce a găsit.
    Format „nume: valoare_dorită" (valoarea e opțională). Necesită cheie AI activă.</small>
   <br><button type="button" id="btn-descopera">Descoperă comparabile în zonă</button>
-  <span id="desc_status" class="hint"></span>
+  <span id="desc_status" class="hint" role="status"></span>
   <div id="candidati"></div>
   <p>Sau adaugă un anunț individual după link (imobiliare.ro / storia.ro):
-    <input id="url_import_w" size="45" placeholder="https://...">
+    <input id="url_import_w" size="45" placeholder="https://..." aria-label="Link anunț pentru import (imobiliare.ro / storia.ro)">
     <button type="button" id="btn-import-url">Import din URL</button>
-    <span id="import_url_status" class="hint"></span></p>
+    <span id="import_url_status" class="hint" role="status"></span></p>
   <label>Comparabile pentru grila de comparație</label>
   <small class="hint">Aici se adună automat comparabilele <b>bifate</b> mai sus (o linie = un comparabil,
    format <code>preț;suprafață</code>). Le poți edita sau adăuga manual. Acestea intră în grila de
@@ -169,42 +171,42 @@
   <h2>Pas 4 — Metodă & calcul</h2>
   <p class="rezumat">Alegi <b>metoda</b> (cost / piață / ponderată) și calculezi valoarea finală.
    Tot aici apar <b>alertele de validare</b> (ex. prea puține comparabile, outlier, ajustare prea mare).</p>
-  <label>Adresă pentru raport (adaugă diacriticele dacă e cazul)</label>
+  <label for="adresa_raport">Adresă pentru raport (adaugă diacriticele dacă e cazul)</label>
   <textarea id="adresa_raport" rows="2" cols="60"></textarea>
   <small class="hint">Aceasta este adresa care apare în <b>raportul final</b>. Județul și localitatea
    sunt deja cu diacritice (din liste); completează/corectează diacriticele pentru stradă și restul
    adresei înainte de a genera raportul.</small><br>
-  <label>Metodă</label>
+  <label for="metoda">Metodă</label>
   <select id="metoda">
     <option value="cost">Cost (CIN + teren)</option>
     <option value="piata">Piață (comparație)</option>
     <option value="ponderata">Ponderată</option>
   </select>
-  <label>Monedă raportare</label>
+  <label for="moneda">Monedă raportare</label>
   <select id="moneda">
     <option value="EUR">EUR</option>
     <option value="LEI" selected>LEI</option>
   </select>
   <small class="hint">Moneda în care se exprimă valoarea în raport. Rapoartele de garanție folosesc de
    regulă EUR (cu echivalent în LEI la cursul BNR).</small>
-  <label>Curs valutar EUR/LEI (opțional)</label>
+  <label for="curs_valutar">Curs valutar EUR/LEI (opțional)</label>
   <input id="curs_valutar" placeholder="ex: 4.9750">
   <button type="button" id="btn-curs-bnr">↻ Curs BNR (azi)</button>
-  <span id="curs_status" class="hint"></span>
+  <span id="curs_status" class="hint" role="status"></span>
   <small class="hint">Cursul BNR la data evaluării. Apare în termenii de referință pentru conversia
    EUR ↔ LEI. Butonul preia cursul oficial BNR de azi (necesită internet).</small>
-  <label>Fotografii proprietate (pentru Anexa foto)</label>
+  <label for="foto">Fotografii proprietate (pentru Anexa foto)</label>
   <input type="file" id="foto" accept="image/*" multiple>
   <small class="hint">Pozele alese intră în <b>Anexa 2 — Planșe fotografice</b> din raport. Poți adăuga
    mai multe (se cumulează). Rămân doar în această sesiune (nu se salvează în browser).</small>
   <div id="foto-preview"></div>
-  <label>Documente (scanuri CF / cadastral — pentru Anexa 3)</label>
+  <label for="doc">Documente (scanuri CF / cadastral — pentru Anexa 3)</label>
   <input type="file" id="doc" accept="image/*" multiple>
   <small class="hint">Scanuri/poze ale documentelor (extras CF, plan cadastral). Intră în
    <b>Anexa 3</b> a raportului. Rămân doar în această sesiune.</small>
   <div id="doc-preview"></div>
   <button type="button" id="btn-calc">Calculează</button>
-  <div id="rezultat-calc"></div>
+  <div id="rezultat-calc" role="status" aria-live="polite"></div>
 </section>
 
 <!-- PAS 5 -->
@@ -221,7 +223,7 @@
    proveniența informației (calculat / extras / AI / exemplu / placeholder) — util pentru review.
    Notele NU apar în raportul normal.<br>
    <b>PDF:</b> raportul e .docx editabil; pentru PDF, deschide-l în Word și „Salvează ca → PDF".</small>
-  <div id="link-raport" class="hint"></div>
+  <div id="link-raport" class="hint" role="status"></div>
 </section>
 
 <div>
@@ -229,6 +231,7 @@
   <button type="button" id="inainte">Înainte ▶</button>
   <button type="button" id="reset">Reset dosar</button>
 </div>
+</main>
 
 <script>
 const PASI = 5; let pas = 1; let evaluareId = null;
@@ -246,14 +249,18 @@ function salveaza(){ const s={}; CAMPURI.forEach(c=>{if($(c))s[c]=$(c).value});
 function incarca(){ try{ const s=JSON.parse(localStorage.getItem("wizard")||"{}");
   CAMPURI.forEach(c=>{if($(c)&&s[c]!=null)$(c).value=s[c]}); }catch(e){} }
 function arata(){ for(let i=1;i<=PASI;i++) $("pas-"+i).classList.toggle("activ", i===pas);
-  $("progres").style.width=(pas*100/PASI)+"%"; $("eticheta-pas").textContent="Pas "+pas+" / "+PASI;
+  const proc=Math.round(pas*100/PASI);
+  $("progres").style.width=proc+"%"; $("progres").setAttribute("aria-valuenow", proc);
+  $("eticheta-pas").textContent="Pas "+pas+" / "+PASI;
   $("inapoi").disabled=(pas===1);
   if(pas===4 && !$("adresa_raport").value.trim()) $("adresa_raport").value=composeAdresa(); }
+function focusPas(){ const h=document.querySelector("#pas-"+pas+" h2");
+  if(h){ h.setAttribute("tabindex","-1"); h.focus(); } }
 
 $("inainte").addEventListener("click", ()=>{
-  if(pas<PASI){ pas++; salveaza(); arata(); }
+  if(pas<PASI){ pas++; salveaza(); arata(); focusPas(); }
 });
-$("inapoi").addEventListener("click", ()=>{ if(pas>1){pas--; arata();} });
+$("inapoi").addEventListener("click", ()=>{ if(pas>1){pas--; arata(); focusPas();} });
 $("reset").addEventListener("click", ()=>{ localStorage.removeItem("wizard"); location.reload(); });
 
 let LOCALITATI = {};
@@ -349,7 +356,7 @@ function randUpload(arr, previewId, eticheta){
   if(!arr.length){ d.innerHTML=""; return; }
   d.innerHTML = '<p class="hint">'+arr.length+' '+eticheta+' atașat(e):</p>' +
     arr.map((src,i)=>`<span style="display:inline-block;margin:3px;text-align:center">
-      <img src="${src}" style="height:64px;border:1px solid #ccc;border-radius:4px"><br>
+      <img src="${src}" alt="${eticheta} ${i+1}" style="height:64px;border:1px solid #ccc;border-radius:4px"><br>
       <button type="button" data-i="${i}" class="del-up" style="font-size:.75em">șterge</button></span>`).join("");
   d.querySelectorAll(".del-up").forEach(b=>b.addEventListener("click",()=>{
     arr.splice(+b.dataset.i,1); randUpload(arr, previewId, eticheta); }));

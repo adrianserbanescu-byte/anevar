@@ -21,24 +21,28 @@
 </style></head>
 <body>
 <h1>Descoperire comparabile</h1>
+<main>
 <form id="f">
-  Portal: <select name="portal"><option value="imobiliare">imobiliare.ro</option>
+  <label for="portal">Portal:</label> <select id="portal" name="portal"><option value="imobiliare">imobiliare.ro</option>
     <option value="storia">storia.ro</option></select>
-  Judet: <input name="judet" value="ilfov"> Localitate: <input name="localitate" value="otopeni"><br>
-  <b>Casa subiect:</b> An <input name="an" value="2013" size="5">
-   Stare(1-5) <input name="stare" value="3" size="3">
-   Finisaj(1-4) <input name="finisaj" value="4" size="3">
-   Incalzire <input name="incalzire" value="centrala_gaz" size="14">
-   Teren mp <input name="teren" value="500" size="6"><br>
-  Atribute secundare (unul pe linie, „nume: valoare"):<br>
-  <textarea name="secundare" rows="3" cols="40" placeholder="tamplarie: termopan"></textarea><br>
+  <label for="judet">Judet:</label> <input id="judet" name="judet" value="ilfov">
+  <label for="localitate">Localitate:</label> <input id="localitate" name="localitate" value="otopeni"><br>
+  <b>Casa subiect:</b> <label for="an">An</label> <input id="an" name="an" value="2013" size="5">
+   <label for="stare">Stare(1-5)</label> <input id="stare" name="stare" value="3" size="3">
+   <label for="finisaj">Finisaj(1-4)</label> <input id="finisaj" name="finisaj" value="4" size="3">
+   <label for="incalzire">Incalzire</label> <input id="incalzire" name="incalzire" value="centrala_gaz" size="14">
+   <label for="teren">Teren mp</label> <input id="teren" name="teren" value="500" size="6"><br>
+  <label for="secundare">Atribute secundare (unul pe linie, „nume: valoare"):</label><br>
+  <textarea id="secundare" name="secundare" rows="3" cols="40" placeholder="tamplarie: termopan"></textarea><br>
   <button type="submit">Caută comparabile</button>
+  <span id="desc-status" class="hint" role="status" aria-live="polite"></span>
 </form>
 
 <!-- Tabelul de metodologie: ÎNAINTE de rezultate -->
 <div id="metodologie"></div>
 <h2>Rezultate</h2>
-<div id="rezultate"></div>
+<div id="rezultate" role="region" aria-label="Rezultate descoperire"></div>
+</main>
 
 <script>
 function randMetodologie(m){
@@ -99,6 +103,7 @@ document.getElementById('f').addEventListener('submit', async (e)=>{
   const r = await fetch('/api/descopera',{method:'POST',
     headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
   const res = await r.json();
+  document.getElementById('desc-status').textContent = res.candidati.length + ' candidați găsiți';
   document.getElementById('metodologie').innerHTML = randMetodologie(res.metodologie);
   document.getElementById('rezultate').innerHTML =
     res.candidati.map(randCandidat).join('')
