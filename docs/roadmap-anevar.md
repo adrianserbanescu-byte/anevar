@@ -63,11 +63,11 @@ Legea 129/2019 AML, IROVAL). Format: **Now / Next / Later** (evită falsa preciz
 
 | # | Item | Driver ANEVAR | Efort | Dependență |
 |---|---|---|---|---|
-| 8 | **Indicele imobiliar ANEVAR** → input pentru ajustarea „condițiile pieței (timp)" în grile | Indicele ANEVAR | M | Date publice ANEVAR |
-| 9 | **Grilă de teren cu comparabile reale** (descoperire de anunțuri de teren, nu doar casă) | Acuratețe | M | — |
-| 10 | **Import catalog costuri IROVAL** pentru CIN (€/mp actualizat pe categorii) | IROVAL | M | Acces catalog IROVAL |
-| 11 | **Anexa 3 — upload documente** (extras CF, plan cadastral, acte) | Structură raport | S | — |
-| 12 | **exe semnat + instrucțiuni evaluator** (evită SmartScreen, distribuție curată) | Distribuție | M | Certificat code-signing |
+| 8 | **Indicele imobiliar ANEVAR** → input pentru ajustarea „condițiile pieței (timp)" în grile | Indicele ANEVAR | M | **Parțial** — hint în grilă spre Indicele ANEVAR; auto-fetch blocat (date cu acces membru) |
+| 9 | **Grilă de teren cu comparabile reale** (descoperire de anunțuri de teren, nu doar casă) | Acuratețe | M | Not started (rămâne în Next) |
+| 10 | **Import catalog costuri IROVAL** pentru CIN (€/mp actualizat pe categorii) | IROVAL | M | Blocat — catalog cu acces |
+| 11 | **Anexa 3 — upload documente** (extras CF, plan cadastral, acte) | Structură raport | S | **Done** |
+| 12 | **exe semnat + instrucțiuni evaluator** (evită SmartScreen, distribuție curată) | Distribuție | M | Documentat — necesită certificat code-signing |
 
 ---
 

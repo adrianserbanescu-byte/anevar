@@ -416,7 +416,19 @@ def _adauga_anexe(doc: DocxDocument, ctx: ReportContext, adnotari: bool = False)
     if inserate == 0:
         doc.add_paragraph("[de atasat].")
 
-    doc.add_paragraph("Anexa 3 — Documente cadastrale, extras CF si acte juridice [de atasat].")
+    doc.add_paragraph("Anexa 3 — Documente cadastrale, extras CF si acte juridice:")
+    doc_inserate = 0
+    for data_url in ctx.documente:
+        stream = _decode_foto(data_url)
+        if stream is None:
+            continue
+        try:
+            doc.add_picture(stream, width=Inches(5.5))
+            doc_inserate += 1
+        except Exception:
+            continue
+    if doc_inserate == 0:
+        doc.add_paragraph("[de atasat].")
 
 
 def _adauga_semnatura(doc: DocxDocument, ctx: ReportContext, adnotari: bool = False) -> None:

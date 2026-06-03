@@ -182,6 +182,11 @@
   <small class="hint">Pozele alese intră în <b>Anexa 2 — Planșe fotografice</b> din raport. Poți adăuga
    mai multe (se cumulează). Rămân doar în această sesiune (nu se salvează în browser).</small>
   <div id="foto-preview"></div>
+  <label>Documente (scanuri CF / cadastral — pentru Anexa 3)</label>
+  <input type="file" id="doc" accept="image/*" multiple>
+  <small class="hint">Scanuri/poze ale documentelor (extras CF, plan cadastral). Intră în
+   <b>Anexa 3</b> a raportului. Rămân doar în această sesiune.</small>
+  <div id="doc-preview"></div>
   <button type="button" id="btn-calc">Calculează</button>
   <div id="rezultat-calc"></div>
 </section>
@@ -320,29 +325,32 @@ $("btn-import-url").addEventListener("click", async ()=>{
   }catch(e){ $("import_url_status").textContent="Eroare la import."; }
 });
 
-// --- Fotografii pentru anexa (in memorie, nu in localStorage) ---
-let FOTOS = [];
-function randFoto(){
-  const d=$("foto-preview");
-  if(!FOTOS.length){ d.innerHTML=""; return; }
-  d.innerHTML = '<p class="hint">'+FOTOS.length+' poză(e) atașate:</p>' +
-    FOTOS.map((src,i)=>`<span style="display:inline-block;margin:3px;text-align:center">
+// --- Fișiere pentru anexe (poze + documente), în memorie, nu în localStorage ---
+let FOTOS = [], DOCUMENTE = [];
+function randUpload(arr, previewId, eticheta){
+  const d=$(previewId);
+  if(!arr.length){ d.innerHTML=""; return; }
+  d.innerHTML = '<p class="hint">'+arr.length+' '+eticheta+' atașat(e):</p>' +
+    arr.map((src,i)=>`<span style="display:inline-block;margin:3px;text-align:center">
       <img src="${src}" style="height:64px;border:1px solid #ccc;border-radius:4px"><br>
-      <button type="button" data-foto="${i}" class="del-foto" style="font-size:.75em">șterge</button></span>`).join("");
-  d.querySelectorAll(".del-foto").forEach(b=>b.addEventListener("click",()=>{
-    FOTOS.splice(+b.dataset.foto,1); randFoto(); }));
+      <button type="button" data-i="${i}" class="del-up" style="font-size:.75em">șterge</button></span>`).join("");
+  d.querySelectorAll(".del-up").forEach(b=>b.addEventListener("click",()=>{
+    arr.splice(+b.dataset.i,1); randUpload(arr, previewId, eticheta); }));
 }
-$("foto").addEventListener("change", (e)=>{
-  const files=[...e.target.files];
-  let ramase=files.length;
-  files.forEach(f=>{
-    const r=new FileReader();
-    r.onload=()=>{ FOTOS.push(r.result); if(--ramase===0) randFoto(); };
-    r.onerror=()=>{ if(--ramase===0) randFoto(); };
-    r.readAsDataURL(f);
+function wireUpload(inputId, arr, previewId, eticheta){
+  $(inputId).addEventListener("change", (e)=>{
+    const files=[...e.target.files]; let ramase=files.length;
+    files.forEach(f=>{
+      const r=new FileReader();
+      r.onload=()=>{ arr.push(r.result); if(--ramase===0) randUpload(arr,previewId,eticheta); };
+      r.onerror=()=>{ if(--ramase===0) randUpload(arr,previewId,eticheta); };
+      r.readAsDataURL(f);
+    });
+    e.target.value="";
   });
-  e.target.value=""; // permite re-selectarea aceluiasi fisier
-});
+}
+wireUpload("foto", FOTOS, "foto-preview", "poză(e)");
+wireUpload("doc", DOCUMENTE, "doc-preview", "document(e)");
 
 $("btn-curs-bnr").addEventListener("click", async ()=>{
   $("curs_status").textContent = "Preiau cursul…";
@@ -378,7 +386,8 @@ function asambleaza(){
     land:{suprafata:$("suprafata_teren").value},
     building:{au:$("au").value,acd:$("acd").value,an_referinta:parseInt($("an_referinta").value),
       elements,depreciation_points:dp}, comparables,
-    valoare_teren:$("valoare_teren").value, metoda:$("metoda").value, photos:FOTOS};
+    valoare_teren:$("valoare_teren").value, metoda:$("metoda").value, photos:FOTOS,
+    documente:DOCUMENTE};
 }
 
 $("btn-calc").addEventListener("click", async ()=>{

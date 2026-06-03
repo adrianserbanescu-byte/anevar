@@ -157,6 +157,18 @@ def test_raportul_embeddeaza_fotografiile(tmp_path):
     assert "[de atasat]" not in text.split("Anexa 2")[1].split("Anexa 3")[0]
 
 
+def test_raportul_embeddeaza_documentele_anexa3(tmp_path):
+    ctx = _ctx()
+    ctx.documente = [_PNG_1x1]
+    out = tmp_path / "raport.docx"
+    genereaza_raport(ctx, out)
+    doc = Document(str(out))
+    assert len(doc.inline_shapes) >= 1
+    text = _all_text(out)
+    dupa_anexa3 = text.split("Anexa 3")[1]
+    assert "[de atasat]" not in dupa_anexa3
+
+
 def test_raportul_anexa_foto_placeholder_fara_poze(tmp_path):
     out = tmp_path / "raport.docx"
     genereaza_raport(_ctx(), out)   # fara photos
