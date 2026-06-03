@@ -69,7 +69,7 @@ Legendă status: ✅ implementat · 🟡 parțial · 📋 planificat (cu spec).
 |---|---|---|
 | `engine/validation.py` | Validări SEV (min comparabile, outlier, limită ajustare) | ✅ |
 | `report/anonymizer.py` | Anonimizare GDPR înainte de orice apel AI | ✅ |
-| **`audit/`** | **Audit trail** (jurnal append-only + hash) + **validare încrucișată** sistematizată | 📋 [spec](superpowers/specs/2026-06-03-modul-audit-trail-design.md) |
+| **`audit/`** | **Audit trail** (jurnal append-only + hash) + snapshot + **validare încrucișată** (cablată în `/api/evaluare`) + export | ✅ schelet implementat (TDD, 9 teste) · [spec](superpowers/specs/2026-06-03-modul-audit-trail-design.md) |
 | **`aml/`** | **Conformitate Legea 129/2019 (AML)** — KYC, screening sancțiuni/PEP, risc SB/FT, raport ONPCSB | 📋 [spec](superpowers/specs/2026-06-03-modul-aml-129-2019-design.md) |
 
 ➡️ **Status sistem: 🟡 parțial** (validări + GDPR gata; audit trail și AML planificate).
@@ -92,7 +92,7 @@ Legendă status: ✅ implementat · 🟡 parțial · 📋 planificat (cu spec).
 | 2. Conectivitate date externe | 🟡 parțial (portaluri + BNR ✅; ANCPI + BIG 📋) |
 | 3. Motor matematic | ✅ |
 | 4. Generator raport SEV | ✅ |
-| 5. Validare & conformitate | 🟡 parțial (validări + GDPR ✅; audit + AML 📋) |
+| 5. Validare & conformitate | 🟡 parțial (validări + GDPR + audit ✅; AML 📋) |
 
 **Module planificate (toate cu spec):** `ingestie/`, `ancpi/`, `big/`, `audit/`, `aml/`.
 Dependențe comune: acces extern (ANCPI, BIG — membru ANEVAR), validare juridică (AML), cost model VLM

@@ -71,9 +71,11 @@ def create_app(storage: Storage, client: Optional[NarrativeClient],
 
     @app.post("/api/evaluare")
     def creeaza_evaluare(inp: EvaluationInput) -> dict:
+        from evaluare.audit.validare_x import valideaza_incrucisat
         ctx = construieste_context(inp, client=client)
         eid = storage.save(ctx)
         alerte = [a.model_dump() for a in valideaza(inp)]
+        alerte += [a.model_dump() for a in valideaza_incrucisat(ctx)]  # validare incrucisata (audit)
         return {
             "id": eid,
             "valoare_finala": str(ctx.reconciled.valoare_finala),
