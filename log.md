@@ -122,6 +122,9 @@ de piață), model norme interne. Rezultat:
 
 ## Actualizări (orare)
 
+> Regulă: se adaugă o intrare **doar dacă există ceva nou** de consemnat în ultima oră. Dacă nu e
+> nimic nou, nu se scrie nimic.
+
 ### 2026-06-03 — jurnal creat
 Sinteza completă a sesiunii (secțiunile 1–11 de mai sus). Ultimul livrat: planul de implementare AML
 ancorat în Legea 129/2019 + Norme 37/2021 + HCD 58. Programată actualizarea orară a acestui jurnal.
