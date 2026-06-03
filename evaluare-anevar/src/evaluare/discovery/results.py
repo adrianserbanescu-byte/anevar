@@ -33,6 +33,7 @@ class CandidateResult(BaseModel):
     titlu: str = ""
     pret: Optional[Decimal] = None
     suprafata: Optional[Decimal] = None             # suprafata casei
+    teren: Optional[Decimal] = None                 # suprafata terenului
     pret_mp: Optional[Decimal] = None               # €/mp construit - DOAR daca terenul e comparabil
     breakdown: ScoreBreakdown
     secundare: list[SecondaryAttributeResult] = Field(default_factory=list)

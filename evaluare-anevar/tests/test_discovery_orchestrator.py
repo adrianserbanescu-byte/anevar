@@ -58,3 +58,4 @@ def test_descopera_pipeline_complet():
     assert relev == sorted(relev, reverse=True)
     assert rez[0].pret == Decimal("249900")
     assert rez[0].suprafata == Decimal("130")
+    assert rez[0].teren == Decimal("400")   # terenul e propagat in rezultat (afisare)

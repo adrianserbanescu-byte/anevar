@@ -267,6 +267,7 @@ $("btn-descopera").addEventListener("click", async ()=>{
       const sec=secId.map(s=>s.nume+': '+s.stare+(s.valoare_gasita?' („'+s.valoare_gasita+'")':'')).join(' · ');
       return `<div class="candidat"><label><input type="checkbox" class="bif" data-pret="${c.pret||''}"
        data-supr="${c.suprafata||''}"> <b>${c.relevanta}%</b> — ${c.pret||'?'} EUR / ${c.suprafata||'?'} mp
+       · teren ${c.teren||'?'} mp
        ${c.pret_mp?'<b>('+c.pret_mp+' €/mp construit · teren comparabil)</b>':''}
        <a href="${c.url}" target="_blank">link</a></label>
        ${tabelAtribute(c)}

@@ -132,7 +132,8 @@ def descopera(
         pret_mp = _pret_mp_daca_teren_comparabil(parsed, subiect, extraction.profile.teren)
         rezultate.append(CandidateResult(
             url=url, titlu=parsed.titlu, pret=parsed.pret, suprafata=parsed.suprafata,
-            pret_mp=pret_mp, breakdown=breakdown, secundare=extraction.secundare,
+            teren=extraction.profile.teren, pret_mp=pret_mp, breakdown=breakdown,
+            secundare=extraction.secundare,
         ))
     rezultate.sort(key=lambda r: r.breakdown.relevanta, reverse=True)
     return rezultate
