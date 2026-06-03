@@ -36,6 +36,11 @@ class ZonaRequest(BaseModel):
     adresa: str
 
 
+class IngestieRequest(BaseModel):
+    tip: str               # cf | releveu | plan | cpe
+    continut: str          # data-URL base64 (PDF)
+
+
 class DescoperaTerenRequest(BaseModel):
     portal: str = "imobiliare"
     judet: str
@@ -188,6 +193,25 @@ def create_app(storage: Storage, client: Optional[NarrativeClient],
     @app.get("/descoperire", response_class=HTMLResponse)
     def pagina_descoperire(request: Request) -> HTMLResponse:
         return templates.TemplateResponse(request, "descoperire.html", {})
+
+    @app.post("/api/ingestie")
+    def ingestie_endpoint(req: IngestieRequest) -> dict:
+        import base64
+        from evaluare.ingestie.ocr import extrage_text
+        from evaluare.ingestie import extractoare
+        extractor = {
+            "cf": extractoare.extrage_cf, "releveu": extractoare.extrage_releveu,
+            "plan": extractoare.extrage_plan, "cpe": extractoare.extrage_cpe,
+        }.get(req.tip)
+        if extractor is None:
+            raise HTTPException(status_code=400, detail="Tip document necunoscut (cf/releveu/plan/cpe).")
+        payload = req.continut.split(",", 1)[1] if req.continut.startswith("data:") else req.continut
+        try:
+            raw = base64.b64decode(payload, validate=True)
+        except Exception:
+            raise HTTPException(status_code=400, detail="Continut document invalid.")
+        text = extrage_text(raw)
+        return extractor(text).model_dump(mode="json")
 
     @app.post("/api/zona")
     def deriva_zona(req: ZonaRequest) -> dict:

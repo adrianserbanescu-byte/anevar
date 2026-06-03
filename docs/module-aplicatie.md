@@ -14,9 +14,9 @@ Legendă status: ✅ implementat · 🟡 parțial · 📋 planificat (cu spec).
 |---|---|---|
 | `importers/url_parser.py` | Parsare **anunțuri** (preț, suprafețe, caracteristici structurate) | ✅ |
 | upload foto + documente | Documente atașate în Anexa 2/3 a raportului (fără parsare) | ✅ |
-| **`ingestie/`** | **OCR + vision-language**: extrage câmpuri din CF, releveu, plan, CPE → pre-completare | 📋 [spec](superpowers/specs/2026-06-03-modul-ingestie-documente-design.md) |
+| **`ingestie/`** | **OCR + extractoare + VLM injectabil**: extrage câmpuri din CF, releveu, plan, CPE (`/api/ingestie`) → pre-completare | ✅ schelet implementat (TDD, 7 teste) · [spec](superpowers/specs/2026-06-03-modul-ingestie-documente-design.md) |
 
-➡️ **Status sistem: 🟡 parțial** (parsăm anunțuri și atașăm documente; parsarea documentelor oficiale e planificată).
+➡️ **Status sistem: 🟡 parțial** (parsăm anunțuri ✅ + documente CF/releveu/plan/CPE ✅ schelet; rămâne wiring UI + VLM real).
 
 ---
 
@@ -88,13 +88,13 @@ Legendă status: ✅ implementat · 🟡 parțial · 📋 planificat (cu spec).
 
 | Sistem | Status |
 |---|---|
-| 1. Ingestie documente | 🟡 parțial (parsare anunțuri ✅; OCR/VLM documente 📋) |
+| 1. Ingestie documente | 🟡 parțial (parsare anunțuri ✅; extractoare CF/releveu/plan/CPE ✅ schelet; VLM real + UI 📋) |
 | 2. Conectivitate date externe | 🟡 parțial (portaluri + BNR ✅; ANCPI + BIG 📋) |
 | 3. Motor matematic | ✅ |
 | 4. Generator raport SEV | ✅ |
 | 5. Validare & conformitate | 🟡 parțial (validări + GDPR + audit ✅; AML 📋) |
 
-**Implementat recent:** `audit/` (schelet TDD). **Module planificate (cu spec):** `ingestie/`,
+**Implementat recent (schelet TDD):** `audit/`, `ingestie/`. **Module planificate (cu spec):** `ingestie/`,
 `ancpi/`, `big/`, `aml/`.
 Dependențe comune: acces extern (ANCPI, BIG — membru ANEVAR), validare juridică (AML), cost model VLM
 (ingestie). De clarificat înainte de implementare.
