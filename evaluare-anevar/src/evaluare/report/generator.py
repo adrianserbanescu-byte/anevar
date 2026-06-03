@@ -237,6 +237,35 @@ def _termeni_referinta(doc: DocxDocument, ctx: ReportContext, adnotari: bool = F
         "speciala este valabila numai la data evaluarii si poate sa nu fie realizabila la o data "
         "viitoare (GEV 520, A4-A5)."
     )
+    # SEV 101, 20.1 — elemente suplimentare ale termenilor de referinta
+    doc.add_paragraph(
+        f"Evaluatorul: {meta.evaluator_nume}, membru ANEVAR, legitimatia "
+        f"{meta.evaluator_legitimatie} (SEV 101, 20.1 e)."
+    )
+    doc.add_paragraph(
+        "Natura si amploarea activitatilor: inspectia si analiza in limitele mandatului de evaluator "
+        "autorizat, fara investigatii distructive, geotehnice sau juridice de specialitate (SEV 101, "
+        "20.1 i)."
+    )
+    doc.add_paragraph(
+        "Sursa informatiilor: documentele proprietatii puse la dispozitie, date de piata din oferte "
+        "publice (cu caracter indicativ, verificate de evaluator) si cursul de schimb BNR (SEV 101, "
+        "20.1 j)."
+    )
+    doc.add_paragraph(
+        "Factori de mediu, sociali si de guvernanta (ESG): se au in vedere factorii cunoscuti, "
+        "relevanti pentru valoare (ex. performanta energetica conform certificatului energetic, daca "
+        "exista); nu s-au efectuat investigatii de mediu specializate (SEV 101/106, 20.1/30.6 m)."
+    )
+    doc.add_paragraph(
+        "Specialist: nu a fost cazul utilizarii unui specialist sau furnizor extern de servicii "
+        "(SEV 106, 30.6 o)."
+    )
+    doc.add_paragraph(
+        "Tipul raportului si restrictii: raport scris, narativ. Raportul poate fi utilizat exclusiv "
+        "in scopul declarat, de catre utilizatorul desemnat; difuzarea sau publicarea, integrala ori "
+        "partiala, se face numai cu acordul scris al evaluatorului (SEV 101, 20.1 n, o)."
+    )
 
 
 # --------------------------------------------------------------------------- #

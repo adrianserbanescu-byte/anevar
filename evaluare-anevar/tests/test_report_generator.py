@@ -92,6 +92,17 @@ def test_adnotari_demo_doar_cand_sunt_cerute(tmp_path):
     assert "[CALCULAT]" in text and "[AI]" in text and "[EXEMPLU]" in text
 
 
+def test_termeni_referinta_acopera_sev_101_si_esg(tmp_path):
+    out = tmp_path / "raport.docx"
+    genereaza_raport(_ctx(), out)
+    text = _all_text(out)
+    assert "Sursa informatiilor" in text          # SEV 101 20.1 j
+    assert "ESG" in text and "guvernanta" in text  # SEV 101/106 m (nou 2025)
+    assert "Natura si amploarea activitatilor" in text  # 20.1 i
+    assert "difuzarea sau publicarea" in text      # 20.1 o
+    assert "Specialist" in text                    # 30.6 o
+
+
 def test_raportul_conform_sev_2025_si_gev_520(tmp_path):
     out = tmp_path / "raport.docx"
     genereaza_raport(_ctx(), out)
