@@ -5,7 +5,7 @@
 > `evaluare-anevar/scripts/export_chat.py`. Secretele (chei API) sunt redactate. Se
 > regenereaza la fiecare rulare (actualizare orara). Pentru sinteza, vezi `log.md`.
 
-**Mesaje:** 1005.
+**Mesaje:** 1022.
 
 ---
 
@@ -9769,3 +9769,81 @@ Actualizare orară a logurilor proiectului:
 ## Assistant  ·  2026-06-03 22:15:14
 
 I'll run the hourly log update: regenerate the verbatim transcript, commit if changed, then assess whether anything new needs a log.md entry.
+
+## Assistant  ·  2026-06-03 22:15:24
+
+The transcript grew (1002→1005 messages). `log_complet.md` is at the repo root — let me commit from there:
+
+## Assistant  ·  2026-06-03 22:15:44
+
+Transcript committed (1005 messages, +3 new). 
+
+**log.md** — verific: ultima intrare substanțială este deja „redesign vizual «Cadastru»", adăugată în tura precedentă. De atunci nu a apărut nimic nou de consemnat (doar această mentenanță orară). Conform regulii, **nu scriu nimic în log.md**.
+
+Reprogramez actualizarea peste o oră:
+
+## Assistant  ·  2026-06-03 22:15:56
+
+Actualizare orară făcută:
+
+1. **`log_complet.md`** — regenerat (1005 mesaje, +3 față de ultima rulare) și **comis**.
+2. **`log.md`** — nimic nou de consemnat în ultima oră (ultima livrare, redesign-ul „Cadastru", e deja în jurnal). Conform regulii, nu am scris nimic.
+3. **Reprogramat** — următoarea actualizare la **02:16** (peste ~1h), cu același prompt.
+
+## User  ·  2026-06-03 22:16:03
+
+poti sa refaci logica pasilor si a celolalte componente pe care le-ai aduagat independent in wizard?
+
+## Assistant  ·  2026-06-03 22:16:39
+
+Mă uit întâi la cum arată acum logica pașilor și componentele pe care le-am adăugat, ca să-ți propun ceva concret.
+
+## Assistant  ·  2026-06-03 22:17:32
+
+Înțeleg — vrei să regândesc logica pașilor și componentele pe care le-am adăugat din proprie inițiativă (bara de progres + eticheta „Pas X/Y", mutarea focusului, navigarea Înainte/Înapoi). Acum observ și o inconsecvență reală: „Înapoi" se dezactivează la pasul 1, dar „Înainte" rămâne activ la pasul 5 (nu mai face nimic).
+
+Înainte să reconstruiesc, am nevoie de o singură lămurire de direcție ca să nu fac altceva decât vrei:
+
+## Assistant  ·  2026-06-03 22:22:15
+
+Perfect — stepper numerotat și clickabil. Construiesc asta acum: un indicator cu 5 pași etichetați, cu stări făcut/activ/următor, clickabil pentru salt direct, păstrând accesibilitatea. Întâi adaug stilul în sistemul de design.
+
+## Assistant  ·  2026-06-03 22:22:59
+
+Let me simplify the "done" state — green fill is unambiguous; I'll drop the fragile `font-size:0` checkmark hack:
+
+## Assistant  ·  2026-06-03 22:23:07
+
+Now replace the progress block in the wizard body with the stepper:
+
+## Assistant  ·  2026-06-03 22:23:19
+
+Now rewrite the step navigation logic (`arata`, `focusPas`, handlers) to drive the stepper:
+
+## Assistant  ·  2026-06-03 22:23:35
+
+Now update the a11y regression test to reflect the stepper replacing the progress bar:
+
+## Assistant  ·  2026-06-03 22:24:25
+
+Tests pass. Let me QA the stepper visually via the preview server — load the wizard, step through, and screenshot:
+
+## Assistant  ·  2026-06-03 22:24:29
+
+I removed the launch config earlier; let me recreate it for QA:
+
+## Assistant  ·  2026-06-03 22:25:38
+
+The stepper is exactly right — steps 1–2 green (done) with filled connectors, step 3 sienna (active) with ring, steps 4–5 muted (upcoming), all labeled. Let me verify the last-step button logic and clickable jump:
+
+## Assistant  ·  2026-06-03 22:25:58
+
+The navigation logic is now consistent: "Înainte" disabled on the last step, "Înapoi" on the first, clickable jumps work, and the screen-reader label updates. Let me stop the preview, clean up, run the full suite, and rebuild:
+
+## Assistant  ·  2026-06-03 22:31:43
+
+The `False` is a PowerShell quoting artifact (escaped quotes in the match string). Let me re-check with a clean substring match:
+
+## Assistant  ·  2026-06-03 22:32:07
+
+Totul verificat în exe. Commit + log:

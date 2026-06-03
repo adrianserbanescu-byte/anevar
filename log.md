@@ -181,3 +181,11 @@ tricoloră, kicker de marcă pe titlu, grilă cartografică de fundal, carduri-p
 bară de progres sienna→auriu, tabele-registru, pastile de risc, butoane sienna. QA vizual cu
 preview (wizard/grilă/AML). Păstrează toată structura + accesibilitatea. Exe reîmpachetat și verificat
 live (CSS livrat din bundle, offline). Suita: **280 verzi**.
+
+### 2026-06-04 — wizard: stepper numerotat clickabil
+La cererea userului, refăcută logica pașilor: bara de progres + „Pas X/Y" înlocuite cu un **stepper
+cu 5 pași etichetați** (Adresă · Subiect · Comparabile · Calcul · Raport), stări făcut(verde)/
+activ(sienna)/următor, **clickabil** pentru salt direct (`mergiLa`), conectori care se umplu.
+Corectată inconsecvența: „Înainte" se dezactivează la ultimul pas. Accesibil (aria-current=step,
+etichetă sr-only role=status, focus pe titlu, tastatură). Stil în `_design.css`; test actualizat
+(stepper în loc de progressbar). Exe reîmpachetat și verificat. Suita: **280 verzi**.
