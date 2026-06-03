@@ -189,3 +189,8 @@ activ(sienna)/următor, **clickabil** pentru salt direct (`mergiLa`), conectori 
 Corectată inconsecvența: „Înainte" se dezactivează la ultimul pas. Accesibil (aria-current=step,
 etichetă sr-only role=status, focus pe titlu, tastatură). Stil în `_design.css`; test actualizat
 (stepper în loc de progressbar). Exe reîmpachetat și verificat. Suita: **280 verzi**.
+
+### 2026-06-04 — wizard: bara de sus reorganizată
+Eticheta „Alternative:" grupa greșit toate cele 4 linkuri ca alternative la wizard (artefact istoric).
+Separate: **„Instrumente:"** (descoperire · grilă · AML — complementare) și **„Vizualizare alternativă:"**
+(formular clasic — singura cu adevărat alternativă). Exe reîmpachetat.
