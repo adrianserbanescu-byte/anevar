@@ -18,17 +18,27 @@ BAZE = {
 }
 
 
-def build_search_url(portal: str, judet: str, localitate: str = "") -> str:
-    """Construieste URL-ul paginii de cautare. Fara localitate -> cautare pe judet."""
+# Segmentul de URL per portal si categorie (casa vs teren)
+_SEGMENT = {
+    ("imobiliare", "casa"): "vanzare-case-vile/judetul-{j}",
+    ("imobiliare", "teren"): "vanzare-terenuri/judetul-{j}",
+    ("storia", "casa"): "ro/rezultate/vanzare/casa/{j}",
+    ("storia", "teren"): "ro/rezultate/vanzare/teren/{j}",
+}
+
+
+def build_search_url(portal: str, judet: str, localitate: str = "",
+                     categorie: str = "casa") -> str:
+    """Construieste URL-ul paginii de cautare (casa sau teren). Fara localitate -> pe judet."""
     judet = judet.strip().lower()
     localitate = (localitate or "").strip().lower()
-    if portal == "imobiliare":
-        baza = f"{BAZE['imobiliare']}/vanzare-case-vile/judetul-{judet}"
-        return f"{baza}/{localitate}" if localitate else baza
-    if portal == "storia":
-        baza = f"{BAZE['storia']}/ro/rezultate/vanzare/casa/{judet}"
-        return f"{baza}/{localitate}" if localitate else baza
-    raise ValueError(f"Portal necunoscut: {portal}")
+    if portal not in BAZE:
+        raise ValueError(f"Portal necunoscut: {portal}")
+    seg = _SEGMENT.get((portal, categorie))
+    if seg is None:
+        raise ValueError(f"Categorie necunoscuta: {categorie}")
+    baza = f"{BAZE[portal]}/{seg.format(j=judet)}"
+    return f"{baza}/{localitate}" if localitate else baza
 
 
 def extract_listing_urls(html: str, baza: str) -> list[str]:
@@ -48,7 +58,7 @@ def extract_listing_urls(html: str, baza: str) -> list[str]:
 
 def cauta_anunturi(
     portal: str, judet: str, localitate: str,
-    fetcher: Callable[[str], str] = fetch_html,
+    fetcher: Callable[[str], str] = fetch_html, categorie: str = "casa",
 ) -> list[str]:
     """Descarca pagina de cautare si intoarce URL-urile anunturilor. Fetcher injectabil.
 
@@ -58,7 +68,7 @@ def cauta_anunturi(
     incercari = [localitate, ""] if localitate else [""]
     for loc in incercari:
         try:
-            html = fetcher(build_search_url(portal, judet, loc))
+            html = fetcher(build_search_url(portal, judet, loc, categorie))
         except Exception:
             continue
         urls = extract_listing_urls(html, baza=BAZE[portal])

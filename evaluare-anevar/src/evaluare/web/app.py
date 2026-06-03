@@ -36,6 +36,14 @@ class ZonaRequest(BaseModel):
     adresa: str
 
 
+class DescoperaTerenRequest(BaseModel):
+    portal: str = "imobiliare"
+    judet: str
+    localitate: str = ""
+    suprafata_subiect: Optional[Decimal] = None
+    max_candidati: int = 8
+
+
 class GrilaTerenRequest(BaseModel):
     suprafata_subiect: Decimal
     comparabile: list[LandComparable]
@@ -161,6 +169,19 @@ def create_app(storage: Storage, client: Optional[NarrativeClient],
                 "secundare": [s.model_dump() for s in r.secundare],
             })
         return {"metodologie": metodologie(), "candidati": candidati}
+
+    @app.post("/api/descopera-teren")
+    def descopera_teren_endpoint(req: DescoperaTerenRequest) -> dict:
+        from evaluare.discovery.orchestrator import descopera_teren
+        rez = descopera_teren(req.portal, req.judet, req.localitate, req.suprafata_subiect,
+                              fetcher=fetcher, max_candidati=req.max_candidati)
+        return {"candidati": [{
+            "url": r.url, "titlu": r.titlu,
+            "pret": str(r.pret) if r.pret is not None else None,
+            "suprafata": str(r.suprafata) if r.suprafata is not None else None,
+            "pret_mp": str(r.pret_mp) if r.pret_mp is not None else None,
+            "relevanta": r.relevanta, "nota": r.nota,
+        } for r in rez]}
 
     @app.get("/descoperire", response_class=HTMLResponse)
     def pagina_descoperire(request: Request) -> HTMLResponse:

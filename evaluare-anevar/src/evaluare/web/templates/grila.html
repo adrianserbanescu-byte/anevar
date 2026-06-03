@@ -38,6 +38,19 @@ Pentru ajustarea <b>„Condițiile pieței (timp)"</b> poți folosi <b>Indicele 
 <button onclick="calcul('teren')">Calculează grila teren</button>
 <div id="rez-teren"></div>
 
+<div style="border:1px dashed #bbb;border-radius:6px;padding:10px;margin-top:10px">
+  <b>Descoperă terenuri în zonă</b> (anunțuri reale → preț/mp orientativ)<br>
+  <small class="hint">Județ și localitate fără diacritice (ex: prahova / breaza). Relevanța =
+   similaritatea de suprafață cu terenul subiect.</small><br>
+  Portal: <select id="t-portal"><option value="imobiliare">imobiliare.ro</option>
+    <option value="storia">storia.ro</option></select>
+  Județ: <input id="t-judet" size="12" placeholder="prahova">
+  Localitate: <input id="t-loc" size="12" placeholder="breaza">
+  <button onclick="descoperaTeren()">Caută terenuri</button>
+  <span id="t-status" class="hint"></span>
+  <div id="t-rez"></div>
+</div>
+
 <!-- ================= CASĂ ================= -->
 <h2>Grilă casă — pe preț total; valoare = prețul total corectat al comparabilei alese</h2>
 <p class="hint">Diferența de suprafață se tratează ca ajustare valorică (arie utilă: EUR/mp × Δ), deci
@@ -160,6 +173,28 @@ function colecteaza(grid){
    }
  }
  return comps;
+}
+
+async function descoperaTeren(){
+  const judet=$("t-judet").value.trim(), loc=$("t-loc").value.trim();
+  if(!judet){ $("t-status").textContent="Completează județul."; return; }
+  $("t-status").textContent="Caut…"; $("t-rez").innerHTML="";
+  const supr=num($("supr-teren").value);
+  const body={portal:$("t-portal").value, judet, localitate:loc, suprafata_subiect:supr?String(supr):null, max_candidati:8};
+  try{
+    const r=await fetch("/api/descopera-teren",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(body)});
+    if(!r.ok){ $("t-status").textContent="Eroare căutare ("+r.status+")."; return; }
+    const d=await r.json();
+    $("t-status").textContent=d.candidati.length+" terenuri";
+    if(!d.candidati.length){ $("t-rez").innerHTML='<p class="hint">Niciun rezultat. Încearcă doar județul.</p>'; return; }
+    let h='<table><tr><th>Rel.</th><th>Preț</th><th>Supr.</th><th>€/mp</th><th>Anunț</th></tr>';
+    d.candidati.forEach(c=>{
+      h+=`<tr><td>${c.relevanta}%</td><td>${c.pret?(+c.pret).toLocaleString('ro-RO')+' €':'?'}</td>`
+        +`<td>${c.suprafata||'?'} mp</td><td><b>${c.pret_mp||'?'}</b></td>`
+        +`<td><a href="${c.url}" target="_blank">link</a>${c.nota?' <span class="err">'+c.nota+'</span>':''}</td></tr>`;
+    });
+    $("t-rez").innerHTML=h+'</table><p class="hint">Folosește €/mp orientativ în grila de teren de mai sus; ajustările le pui tu.</p>';
+  }catch(e){ $("t-status").textContent="Eroare rețea."; }
 }
 
 async function calcul(grid){

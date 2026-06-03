@@ -26,6 +26,18 @@ class CandidateExtraction(BaseModel):
     secundare: list[SecondaryAttributeResult] = Field(default_factory=list)
 
 
+class LandDiscoveryResult(BaseModel):
+    """Un comparabil de teren descoperit: preț/mp + relevanță pe suprafață."""
+
+    url: str
+    titlu: str = ""
+    pret: Optional[Decimal] = None
+    suprafata: Optional[Decimal] = None     # suprafata terenului (mp)
+    pret_mp: Optional[Decimal] = None       # EUR/mp = pret / suprafata
+    relevanta: int = 0                       # 0-100, pe baza similaritatii de suprafata
+    nota: str = ""
+
+
 class CandidateResult(BaseModel):
     """Un candidat complet, scorat și gata de afișat/selectat."""
 

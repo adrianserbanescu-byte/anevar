@@ -13,7 +13,7 @@ from evaluare.discovery.profiles import SubjectProfile
 from evaluare.discovery.portal_search import cauta_anunturi
 from evaluare.discovery.extractor import extrage_atribute
 from evaluare.discovery.scoring import scor_candidat
-from evaluare.discovery.results import CandidateResult
+from evaluare.discovery.results import CandidateResult, LandDiscoveryResult
 
 
 def _descriere_din_nextdata(soup, max_caractere: int) -> str:
@@ -136,4 +136,43 @@ def descopera(
             secundare=extraction.secundare,
         ))
     rezultate.sort(key=lambda r: r.breakdown.relevanta, reverse=True)
+    return rezultate
+
+
+def _relevanta_teren(supr, subiect_supr) -> int:
+    """Relevanta 0-100 pe baza similaritatii de suprafata (criteriul dominant la teren)."""
+    if not supr or supr <= 0 or not subiect_supr or subiect_supr <= 0:
+        return 50
+    dif = abs(supr - subiect_supr) / subiect_supr
+    return max(0, round(100 * (1 - min(Decimal("1"), dif))))
+
+
+def descopera_teren(
+    portal: str, judet: str, localitate: str, suprafata_subiect: Optional[Decimal] = None,
+    fetcher: Callable[[str], str] = fetch_html, max_candidati: int = 8,
+) -> list[LandDiscoveryResult]:
+    """Descopera comparabile de TEREN: cauta anunturi de teren, calculeaza EUR/mp si relevanta.
+
+    Relevanta = similaritatea de suprafata (la teren, pretul/mp depinde puternic de suprafata).
+    """
+    from evaluare.discovery.portal_search import cauta_anunturi
+
+    urls = cauta_anunturi(portal, judet, localitate, fetcher=fetcher, categorie="teren")
+    urls = urls[:max_candidati]
+    rezultate: list[LandDiscoveryResult] = []
+    for url in urls:
+        try:
+            parsed = parse_listing_html(fetcher(url), sursa_url=url)
+        except Exception:
+            continue
+        supr = parsed.suprafata_teren or parsed.suprafata
+        pret_mp = None
+        if parsed.pret is not None and supr and supr > 0:
+            pret_mp = round(parsed.pret / supr)
+        nota = "" if pret_mp is not None else "fara pret/suprafata clare — verifica manual"
+        rezultate.append(LandDiscoveryResult(
+            url=url, titlu=parsed.titlu, pret=parsed.pret, suprafata=supr, pret_mp=pret_mp,
+            relevanta=_relevanta_teren(supr, suprafata_subiect), nota=nota,
+        ))
+    rezultate.sort(key=lambda r: r.relevanta, reverse=True)
     return rezultate
