@@ -126,8 +126,16 @@ def create_app(storage: Storage, client: Optional[NarrativeClient],
             "pret": str(parsed.pret) if parsed.pret is not None else None,
             "moneda": parsed.moneda,
             "suprafata": str(parsed.suprafata) if parsed.suprafata is not None else None,
+            "suprafata_teren": str(parsed.suprafata_teren) if parsed.suprafata_teren is not None else None,
             "titlu": parsed.titlu,
             "sursa_url": parsed.sursa_url,
+            "an": parsed.an,
+            "incalzire": parsed.incalzire,
+            "material": parsed.material,
+            "tip_cladire": parsed.tip_cladire,
+            "stare_text": parsed.stare_text,
+            "nr_camere": parsed.nr_camere,
+            "etaje": parsed.etaje,
         }
 
     @app.post("/api/descopera")

@@ -32,6 +32,14 @@ class ParsedListing(BaseModel):
     suprafata_teren: Optional[Decimal] = None   # suprafata terenului, daca e in date structurate
     titlu: str = ""
     sursa_url: str = ""
+    # caracteristici structurate (din __NEXT_DATA__ storia: target/characteristics)
+    an: Optional[int] = None                    # anul constructiei
+    incalzire: Optional[str] = None             # normalizat: centrala_gaz, sobe, ...
+    material: Optional[str] = None              # lemn, caramida, beton, bca, ...
+    tip_cladire: Optional[str] = None           # casa individuala / insiruita ...
+    stare_text: Optional[str] = None            # stare normalizata (din construction_status)
+    nr_camere: Optional[int] = None
+    etaje: Optional[str] = None                 # ex. un nivel
 
 
 def _to_decimal(value) -> Optional[Decimal]:
@@ -93,9 +101,11 @@ def _din_nextdata(soup) -> tuple:
             if "price" in node and isinstance(node["price"], dict):
                 pret = pret or _to_decimal(node["price"].get("value"))
                 moneda = moneda or node["price"].get("currency")
-            # imobiliare: {key: "surface", value: "130"}
-            if node.get("key") == "surface":
+            # imobiliare: {key: "surface", value: "130"}; storia characteristics: {key: "m", value: "220"}
+            if node.get("key") in ("surface", "m"):
                 supr = supr or _to_decimal(node.get("value"))
+            if node.get("key") == "terrain_area" and node.get("value") is not None:
+                teren = teren or _to_decimal(node.get("value"))
             # storia: {label: "area", values: ["220"]} = casa; "terrain_area" = teren
             lbl = node.get("label")
             if lbl == "area" and isinstance(node.get("values"), list) and node["values"]:
@@ -106,6 +116,85 @@ def _din_nextdata(soup) -> tuple:
         elif isinstance(node, list):
             stack.extend(node)
     return pret, moneda, supr, teren
+
+
+_HEATING = {"gas": "centrala_gaz", "urban": "termoficare", "electrical": "electrica",
+            "tiles": "sobe", "stove": "sobe", "boiler": "centrala_proprie", "biomass": "biomasa"}
+_MATERIAL = {"wood": "lemn", "brick": "caramida", "concrete": "beton", "bricks": "caramida",
+             "cellular_concrete": "bca", "reinforced_concrete": "beton_armat"}
+_TIP_CLADIRE = {"detached": "casa individuala", "semi_detached": "casa cuplata",
+                "terraced": "casa insiruita", "house": "casa"}
+_FLOORS = {"one_floor": "un nivel", "ground_floor": "parter", "two_floors": "doua niveluri",
+           "three_floors": "trei niveluri"}
+_STARE = {"ready_to_use": "buna / locuibila", "to_completion": "in curs de finalizare",
+          "to_renovation": "necesita renovare"}
+
+
+def _to_int(value) -> Optional[int]:
+    try:
+        return int(str(value).strip())
+    except (ValueError, TypeError):
+        return None
+
+
+def _caracteristici_storia(soup) -> dict:
+    """Extrage caracteristici structurate din __NEXT_DATA__ (storia: dict `target`).
+
+    Acopera: anul constructiei, incalzire, material, tip cladire, stare, nr. camere, etaje.
+    Returneaza un dict cu cheile gasite (normalizate in romana).
+    """
+    tag = soup.find("script", id="__NEXT_DATA__")
+    if not tag:
+        return {}
+    raw = tag.get_text()
+    if not raw:
+        return {}
+    try:
+        data = json.loads(raw)
+    except (ValueError, TypeError):
+        return {}
+
+    def primul(v):
+        return v[0] if isinstance(v, list) and v else v
+
+    out: dict = {}
+    stack = [data]
+    while stack:
+        node = stack.pop()
+        if isinstance(node, dict):
+            # dict-ul `target` din storia contine cheile cu majuscula
+            if "Build_year" in node and "an" not in out:
+                an = _to_int(node.get("Build_year"))
+                if an:
+                    out["an"] = an
+            if "Heating_types" in node and "incalzire" not in out:
+                h = primul(node.get("Heating_types"))
+                if h:
+                    out["incalzire"] = _HEATING.get(str(h), str(h))
+            if "Building_material" in node and "material" not in out:
+                m = primul(node.get("Building_material"))
+                if m:
+                    out["material"] = _MATERIAL.get(str(m), str(m))
+            if "Building_type" in node and "tip_cladire" not in out:
+                t = primul(node.get("Building_type"))
+                if t:
+                    out["tip_cladire"] = _TIP_CLADIRE.get(str(t), str(t))
+            if "Construction_status" in node and "stare_text" not in out:
+                s = primul(node.get("Construction_status"))
+                if s:
+                    out["stare_text"] = _STARE.get(str(s), str(s))
+            if "Rooms_num" in node and "nr_camere" not in out:
+                c = _to_int(primul(node.get("Rooms_num")))
+                if c:
+                    out["nr_camere"] = c
+            if "Floors_num" in node and "etaje" not in out:
+                f = primul(node.get("Floors_num"))
+                if f:
+                    out["etaje"] = _FLOORS.get(str(f), str(f))
+            stack.extend(node.values())
+        elif isinstance(node, list):
+            stack.extend(node)
+    return out
 
 
 def _cauta_in_jsonld(data) -> tuple:
@@ -198,8 +287,15 @@ def parse_listing_html(html: str, sursa_url: str = "") -> ParsedListing:
         if m:
             suprafata_teren = _to_decimal_ro(m.group(1))
 
+    # 6) caracteristici structurate (an, incalzire, material, stare, camere, etaje)
+    car = _caracteristici_storia(soup)
+
     return ParsedListing(pret=pret, moneda=moneda, suprafata=suprafata,
-                         suprafata_teren=suprafata_teren, titlu=titlu, sursa_url=sursa_url)
+                         suprafata_teren=suprafata_teren, titlu=titlu, sursa_url=sursa_url,
+                         an=car.get("an"), incalzire=car.get("incalzire"),
+                         material=car.get("material"), tip_cladire=car.get("tip_cladire"),
+                         stare_text=car.get("stare_text"), nr_camere=car.get("nr_camere"),
+                         etaje=car.get("etaje"))
 
 
 def to_comparable(parsed: ParsedListing) -> Comparable:

@@ -59,3 +59,18 @@ def test_to_decimal_ro_format_romanesc():
     assert _to_decimal_ro("1.910") == Decimal("1910")
     assert _to_decimal_ro("351,46") == Decimal("351.46")
     assert _to_decimal_ro("149") == Decimal("149")
+
+
+def test_extrage_caracteristici_structurate_storia():
+    # storia.ro: dict `target` din __NEXT_DATA__ contine an, incalzire, material etc.
+    html = (FIXTURES / "storia_caracteristici.html").read_text(encoding="utf-8")
+    parsed = parse_listing_html(html, sursa_url="https://storia.ro/ro/oferta/x")
+    assert parsed.an == 2010
+    assert parsed.incalzire == "centrala_gaz"
+    assert parsed.material == "lemn"
+    assert parsed.tip_cladire == "casa individuala"
+    assert parsed.stare_text == "buna / locuibila"
+    assert parsed.nr_camere == 5
+    assert parsed.etaje == "un nivel"
+    assert parsed.suprafata == Decimal("220")
+    assert parsed.suprafata_teren == Decimal("700")
