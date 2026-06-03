@@ -45,9 +45,9 @@ Legea 129/2019 AML, IROVAL). Format: **Now / Next / Later** (evită falsa preciz
 
 | # | Item | Driver ANEVAR | Efort | Status |
 |---|---|---|---|---|
-| 1 | **Citează explicit SEV ediția 2025** (HCN 2/2025) în declarația de conformitate și termenii de referință | SEV 2025 | S | Not started |
-| 2 | **Checklist GEV 520** — verifică secțiunea de risc față de ghidul oficial 2025 (adecvare garanție, lichiditate, vandabilitate, scenariu de vânzare forțată) | GEV 520 | M | Not started |
-| 3 | **Aliniere terminologie IVS 2025** (IVS 106 Documentare și raportare etc.) în titluri/declarații | SEV 2025 | S | Not started |
+| 1 | **Citează explicit SEV ediția 2025** (HCN 2/2025) în declarația de conformitate și termenii de referință | SEV 2025 | S | **Done** |
+| 2 | **Checklist GEV 520** — secțiunea de risc include acum factorii obligatorii A5 (a–d), ipoteze speciale/vânzare forțată (A4), independență/implicare materială (A3), ipoteza transfer liber (A8), înregistrare BIG (§7) | GEV 520 | M | **Done** |
+| 3 | **Aliniere terminologie SEV 2025** (tip valoare → SEV 102; raportare → SEV 106; termeni → SEV 101) | SEV 2025 | S | **Done** |
 | 4 | **Disclaimer permanent pe comparabile** „surse indicative, verificate de evaluator" (nu doar în modul demo) | Constrângere ANEVAR | S | Not started |
 | 5 | **Curs BNR automat** EUR/LEI la data evaluării | Practică | S | Not started |
 | 6 | **Export PDF** al raportului | Cerere utilizator | S | Not started |

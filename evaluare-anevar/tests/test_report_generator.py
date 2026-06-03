@@ -92,6 +92,23 @@ def test_adnotari_demo_doar_cand_sunt_cerute(tmp_path):
     assert "[CALCULAT]" in text and "[AI]" in text and "[EXEMPLU]" in text
 
 
+def test_raportul_conform_sev_2025_si_gev_520(tmp_path):
+    out = tmp_path / "raport.docx"
+    genereaza_raport(_ctx(), out)
+    text = _all_text(out)
+    # editia 2025 citata
+    assert "editia 2025" in text or "ediția 2025" in text
+    # tip valoare actualizat (SEV 102, nu SEV 104)
+    assert "SEV 102" in text
+    assert "SEV 104" not in text
+    # factorii obligatorii GEV 520 A5
+    assert "GEV 520, A5" in text
+    assert "tendintele pietei" in text
+    assert "valorii viitoare a garantiei" in text
+    # inregistrare BIG
+    assert "Baza Imobiliara de Garantii (BIG)" in text
+
+
 def test_raportul_are_shell_gbf(tmp_path):
     out = tmp_path / "raport.docx"
     genereaza_raport(_ctx(), out)

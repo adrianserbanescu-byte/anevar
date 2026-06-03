@@ -1,7 +1,7 @@
 """Generator de raport .docx in structura GBF / SEV (shell complet + 7 capitole).
 
 Shell GBF: copertA, scrisoare de transmitere, declaratie de conformitate, termeni de
-referintA, cele 7 capitole SEV 103, alocarea valorii, riscul GEV 520, anexe, semnatura.
+referintA, cele 7 capitole de analiza (raportare conform SEV 106), alocarea valorii, riscul GEV 520, anexe, semnatura.
 """
 from __future__ import annotations
 
@@ -155,7 +155,9 @@ def _scrisoare_transmitere(doc: DocxDocument, ctx: ReportContext, adnotari: bool
     )
     doc.add_paragraph(
         "Raportul a fost elaborat in conformitate cu Standardele de evaluare a bunurilor "
-        "ANEVAR in vigoare si poate fi utilizat exclusiv in scopul mentionat."
+        "ANEVAR, editia 2025 (in vigoare de la 1 iulie 2025, aprobate prin HCN nr. 2/2025), "
+        "si cu Ghidul GEV 520 — Evaluarea pentru garantarea imprumutului. Poate fi utilizat "
+        "exclusiv in scopul mentionat, de catre utilizatorul desemnat."
     )
     doc.add_paragraph(
         f"Cu deosebita consideratie, {meta.evaluator_nume}, "
@@ -167,8 +169,9 @@ def _declaratie_conformitate(doc: DocxDocument, ctx: ReportContext, adnotari: bo
     doc.add_heading("DECLARATIE DE CONFORMITATE SI CERTIFICARE", level=1)
     _nota(doc, "declaratie", adnotari)
     afirmatii = [
-        "Prezentul raport a fost elaborat in conformitate cu Standardele de evaluare ANEVAR "
-        "(SEV) in vigoare la data raportului.",
+        "Prezentul raport a fost elaborat in conformitate cu Standardele de evaluare a bunurilor "
+        "ANEVAR (SEV), editia 2025, in vigoare de la 1 iulie 2025 (HCN nr. 2/2025), "
+        "incluzand Ghidul GEV 520 — Evaluarea pentru garantarea imprumutului.",
         "Faptele prezentate in raport sunt reale si corecte, dupa cunostinta evaluatorului.",
         "Analizele, opiniile si concluziile sunt limitate numai de ipotezele si conditiile "
         "limitative prezentate.",
@@ -208,7 +211,22 @@ def _termeni_referinta(doc: DocxDocument, ctx: ReportContext, adnotari: bool = F
     )
     doc.add_paragraph(
         "Premise: proprietatea este evaluata in ipoteza utilizarii continue, libera de sarcini, "
-        "cu exceptia celor mentionate explicit in raport."
+        "cu exceptia celor mentionate explicit in raport. Daca este ocupata de proprietar, se "
+        "evalueaza in ipoteza transferului ca bun liber/disponibil (GEV 520, A8)."
+    )
+    # GEV 520 A3 (SEV 101): independenta / implicare materiala
+    doc.add_paragraph(
+        "Independenta: evaluatorul declara ca nu are nicio implicare materiala, prezenta sau "
+        "anterioara, cu bunul evaluat, cu debitorul sau cu un debitor potential, care sa afecteze "
+        "obiectivitatea (GEV 520, A3; SEV 101). Utilizatorul desemnat al raportului este creditorul "
+        "nominalizat; orice alta utilizare necesita personalizare de catre evaluator."
+    )
+    # GEV 520 A4: ipoteze speciale (ex. vanzare fortata / perioada de marketing limitata)
+    doc.add_paragraph(
+        "Ipoteze speciale: daca se solicita o valoare in premisa unei vanzari fortate sau cu "
+        "perioada de marketing limitata, aceasta se precizeaza distinct; valoarea pe ipoteza "
+        "speciala este valabila numai la data evaluarii si poate sa nu fie realizabila la o data "
+        "viitoare (GEV 520, A4-A5)."
     )
 
 
@@ -328,16 +346,30 @@ def _adauga_risc_garantie(doc: DocxDocument, ctx: ReportContext, adnotari: bool 
     doc.add_heading("RISCUL ASOCIAT GARANTIEI (GEV 520)", level=1)
     _nota(doc, "gev520", adnotari)
     txt = _narativ(ctx, "Riscul asociat garantiei (GEV 520)")
-    if txt:
-        doc.add_paragraph(txt)
-    else:
-        doc.add_paragraph(
-            "Evaluarea pentru garantarea imprumutului respecta cerintele GEV 520. Au fost "
-            "analizate: lichiditatea si activitatea pietei locale, gradul de adecvare al "
-            "proprietatii ca garantie, vandabilitatea si expunerea estimata pe piata, precum si "
-            "sensibilitatea valorii la variatiile conditiilor de piata. In opinia evaluatorului, "
-            "proprietatea este adecvata ca garantie pentru scopul declarat."
-        )
+    doc.add_paragraph(
+        txt or
+        "Evaluarea pentru garantarea imprumutului respecta cerintele Ghidului GEV 520. Au fost "
+        "analizati factorii relevanti pentru estimarea de catre creditor a performantei garantiei "
+        "pe perioada creditului, precum si gradul de adecvare al proprietatii ca garantie."
+    )
+    # GEV 520, Anexa A5: factorii obligatorii de comentat
+    doc.add_paragraph("Factori relevanti pentru performanta garantiei (GEV 520, A5):")
+    for f in (
+        "activitatea curenta si tendintele pietei relevante;",
+        "cererea anterioara, curenta si viitoare pentru tipul de bun si pentru localizare;",
+        "cererea potentiala sau probabila pentru alte utilizari, la data evaluarii;",
+        "impactul evenimentelor previzibile la data evaluarii asupra valorii viitoare a garantiei "
+        "pe perioada creditului.",
+    ):
+        doc.add_paragraph(f, style="List Bullet")
+    doc.add_paragraph(
+        "Lichiditate si vandabilitate: se apreciaza lichiditatea pietei locale, gradul de adecvare "
+        "al proprietatii ca garantie si perioada de comercializare estimata."
+    )
+    doc.add_paragraph(
+        "Inregistrare BIG: raportul, avand utilizarea desemnata de garantare a imprumutului, se "
+        "inregistreaza in Baza Imobiliara de Garantii (BIG), conform reglementarilor ANEVAR."
+    )
 
 
 def _decode_foto(data_url: str) -> Optional[BytesIO]:
@@ -414,7 +446,7 @@ def genereaza_raport(
     _declaratie_conformitate(doc, ctx, adnotari)
     _termeni_referinta(doc, ctx, adnotari)
 
-    # --- Cele 7 capitole SEV 103 ---
+    # --- Cele 7 capitole de analiza (raportare conform SEV 106 Documentare si raportare) ---
     doc.add_heading("1. SINTEZA EVALUARII SI CERTIFICARE", level=1)
     _nota(doc, "cap1", adnotari)
     doc.add_paragraph(f"Client: {meta.client_nume} ({meta.client_tip}).")

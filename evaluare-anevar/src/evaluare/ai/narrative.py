@@ -52,9 +52,11 @@ GHID_CAPITOL = {
         "concluzioneaza valoarea finala."
     ),
     "Riscul asociat garantiei (GEV 520)": (
-        "Analizeaza riscul pentru garantarea creditului conform GEV 520: lichiditatea si "
-        "activitatea pietei locale, gradul de adecvare al proprietatii ca garantie, "
-        "vandabilitatea si expunerea estimata, sensibilitatea valorii la conditiile pietei."
+        "Comenteaza, conform GEV 520 Anexa A5, factorii relevanti pentru performanta garantiei pe "
+        "perioada creditului: (a) activitatea curenta si tendintele pietei; (b) cererea anterioara, "
+        "curenta si viitoare pentru tipul de bun si localizare; (c) cererea pentru alte utilizari; "
+        "(d) impactul evenimentelor previzibile asupra valorii viitoare a garantiei. Adauga aprecieri "
+        "privind lichiditatea, vandabilitatea si gradul de adecvare ca garantie."
     ),
 }
 

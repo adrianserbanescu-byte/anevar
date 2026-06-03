@@ -18,7 +18,7 @@ class EvaluationMeta(BaseModel):
     numar_cadastral: str
     carte_funciara: str
     scop: str = "Garantarea creditului ipotecar"
-    tip_valoare: str = "Valoarea de piata (SEV 104)"
+    tip_valoare: str = "Valoarea de piață (SEV 102)"
     data_evaluarii: str                 # ISO sau text, ex. "2026-01-16"
     data_raportului: str
     data_inspectiei: Optional[str] = None

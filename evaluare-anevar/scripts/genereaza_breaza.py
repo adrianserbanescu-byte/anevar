@@ -85,7 +85,7 @@ meta = EvaluationMeta(
     beneficiar="Banca Comerciala Exemplu S.A.", proprietar="Client demonstrativ",
     adresa="Breaza de Sus, jud. Prahova", numar_cadastral="2xxxx (demo)",
     carte_funciara="CF xxxxx Breaza (demo)", scop="Garantarea creditului ipotecar",
-    tip_valoare="Valoarea de piata (SEV 104)",
+    tip_valoare="Valoarea de piață (SEV 102)",
     data_evaluarii="2026-05-25", data_raportului="2026-05-27", data_inspectiei="2026-05-23",
     valabilitate="6 luni", evaluator_nume="[Nume evaluator autorizat ANEVAR]",
     evaluator_legitimatie="[nr. legitimatie]", moneda="EUR", curs_valutar=Decimal("4.9750"),
