@@ -5,7 +5,7 @@ suspecta) catre persoana responsabila / ONPCSB (Legea art. 6; HCD 58 art. 7).
 """
 from __future__ import annotations
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel
 
 
 class Indicator(BaseModel):
