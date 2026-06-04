@@ -50,3 +50,20 @@ AGRICOL = ProfilEvaluare(
     tip_activ="agricol", scop="garantare_credit", tip_valoare="piata",
     abordari_aplicabile=["comparatie"], ghid="GEV_630",
 )
+
+RAPORTARE_FINANCIARA = ProfilEvaluare(
+    tip_activ="comercial", scop="raportare_financiara", tip_valoare="justa",
+    abordari_aplicabile=["venit", "comparatie", "cost"], ghid="GEV_500",
+)
+ASIGURARE = ProfilEvaluare(
+    tip_activ="casa", scop="asigurare", tip_valoare="asigurare",
+    abordari_aplicabile=["cost"], ghid="GEV_630",
+)
+IMPOZITARE = ProfilEvaluare(
+    tip_activ="casa", scop="impozitare", tip_valoare="piata",
+    abordari_aplicabile=["comparatie", "cost"], ghid="GEV_630",
+)
+LITIGII = ProfilEvaluare(
+    tip_activ="casa", scop="litigii", tip_valoare="piata",
+    abordari_aplicabile=["comparatie", "cost"], ghid="GEV_630",
+)
