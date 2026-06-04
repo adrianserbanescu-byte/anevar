@@ -49,6 +49,12 @@ class BuildingData(BaseModel):
     finisaje: Optional[str] = None
     clasa_energetica: Optional[str] = None
 
+    # apartament (optionale; None pentru casa)
+    etaj: Optional[int] = None
+    nr_niveluri_bloc: Optional[int] = None
+    an_bloc: Optional[int] = None
+    cota_teren_indiviza: Optional[Decimal] = None
+
 
 class LandData(BaseModel):
     """Datele terenului."""

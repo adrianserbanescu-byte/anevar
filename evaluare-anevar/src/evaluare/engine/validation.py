@@ -36,6 +36,10 @@ def valideaza_proprietate(land: LandData, building: BuildingData) -> list[Issue]
         issues.append(Issue(nivel="blocheaza", mesaj="Aria construita desfasurata (Acd) trebuie sa fie > 0."))
     if building.au > building.acd:
         issues.append(Issue(nivel="blocheaza", mesaj="Au nu poate depasi Acd."))
+    if (building.etaj is not None and building.nr_niveluri_bloc is not None
+            and building.etaj > building.nr_niveluri_bloc):
+        issues.append(Issue(nivel="blocheaza",
+                            mesaj="Etajul nu poate depasi numarul de niveluri ale blocului."))
     return issues
 
 
