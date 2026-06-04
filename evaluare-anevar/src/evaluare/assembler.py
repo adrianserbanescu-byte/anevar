@@ -21,6 +21,7 @@ from evaluare.profil import ProfilEvaluare, CASA_TEREN_GARANTARE
 from evaluare.engine.validation import (
     Issue, valideaza_proprietate, valideaza_comparabile, valideaza_depreciere,
 )
+from evaluare.engine.venit import DateVenit, evalueaza_venit
 
 
 class EvaluationInput(BaseModel):
@@ -32,9 +33,10 @@ class EvaluationInput(BaseModel):
     comparables: list[Comparable] = Field(default_factory=list)
     land_comparables: list[LandComparable] = Field(default_factory=list)
     valoare_teren: Optional[Decimal] = None
-    metoda: Literal["piata", "cost", "ponderata"] = "cost"
+    metoda: Literal["piata", "cost", "ponderata", "venit"] = "cost"
     pondere_piata: Decimal = Decimal("0.5")
     profil: ProfilEvaluare = CASA_TEREN_GARANTARE
+    date_venit: Optional[DateVenit] = None
     photos: list[str] = Field(default_factory=list)   # data-URL base64 pentru anexa foto
     documente: list[str] = Field(default_factory=list)  # data-URL base64 (scanuri CF/cadastral) -> Anexa 3
 
@@ -73,16 +75,24 @@ def construieste_context(
     if inp.comparables:
         market_result = evaluate_market(inp.comparables, suprafata_subiect=inp.building.acd)
 
+    venit_result = None
+    if inp.date_venit is not None:
+        venit_result = evalueaza_venit(inp.date_venit)
+
     rezultate = []
     if cost_result is not None:
         rezultate.append(RezultatAbordare(abordare="cost", valoare=cost_result.valoare_cost))
     if market_result is not None:
         rezultate.append(RezultatAbordare(abordare="comparatie", valoare=market_result.valoare_piata))
-    if inp.metoda == "cost":
+    if venit_result is not None:
+        rezultate.append(RezultatAbordare(abordare="venit", valoare=venit_result.valoare))
+    if inp.metoda == "venit":
+        primara, ponderi = "venit", None
+    elif inp.metoda == "cost":
         primara, ponderi = "cost", None
     elif inp.metoda == "piata":
         primara, ponderi = "comparatie", None
-    else:  # ponderata
+    else:
         primara = "comparatie"
         ponderi = {"comparatie": inp.pondere_piata, "cost": Decimal("1") - inp.pondere_piata}
     reconciled = reconcile_profil(rezultate, primara=primara, ponderi=ponderi)
@@ -97,6 +107,7 @@ def construieste_context(
         cost_result=cost_result, market_result=market_result, reconciled=reconciled,
         land_result=land_result, alocare_constructii=alocare, photos=inp.photos,
         documente=inp.documente, profil=inp.profil,
+        venit_result=venit_result, date_venit=inp.date_venit,
     )
 
     anonymizer = build_anonymizer(inp.meta)
