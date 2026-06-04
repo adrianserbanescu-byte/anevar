@@ -237,3 +237,14 @@ Cadrul e **dormant** (referit doar de teste). Review-ul final (opus): READY, fă
 în re-spec. **Re-spec post-fază** (regula standing): roadmap-ul fazelor 1–7 actualizat cu interfețele reale
 + **Faza 0.5 „Cablare"** (promovează cadrul din dormant în live, regresie strictă) ca următoarea sarcină +
 recomandări (Protocol `Abordare`, `detalii` tipizat, `SectiuneSpec`, `valideaza_profil`). Comituri `add75bf … dd3f54b`.
+
+### 2026-06-04 — quick-wins UI/a11y (G1.1 + Grup 3) + Faza 0.5 (Cablare)
+La cererea userului (autonomie totală): mai întâi **quick-wins UI/a11y** — G1.1 contrast `.hint`
+(`#6c7686`→`#5a6270`, 3.9:1→5.3:1 WCAG AA) + **Grup 3 `/result` ca certificat** (valoare hero ro-RO +
+echivalent EUR/LEI la curs BNR + butoane CTA; helper `_fmt_numar`). Apoi **Faza 0.5 — Cablare**
+(subagent-driven, 3 task-uri): `valideaza_profil` (consistență abordări/ponderi) + `construieste_context`
+reconciliază prin `reconcile_profil` (peste `RezultatAbordare`) + `EvaluationInput.profil` — **pipeline-ul
+de calcul promovat din dormant în LIVE, value-echivalent** (toate regresiile cu valori identice).
+**311 teste verzi**, pyflakes curat, exe reîmpachetat + smoke (`/api/evaluare`=316.000,00; `/evaluare/{id}`=200).
+Amânate explicit: refactor generator pe registru, Protocol `Abordare`, `detalii` tipizat, `SectiuneSpec`
+(când le cere o fază). Următorul: **Faza 1 — Apartament** (autonom).
