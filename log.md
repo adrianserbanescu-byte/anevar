@@ -317,3 +317,14 @@ evaluează cu abordările existente; metodele specializate de profit rămân ava
 proprietate specială**, prin **4 abordări** (cost, comparație, venit-capitalizare, venit-DCF), în **5 scopuri**
 (garantare/IFRS/asigurare/impozitare/litigiu), cu raport adaptat. Strict aditiv — fluxul casă+teren validat
 GBF rămâne neschimbat. **Rămas:** Track B (accesibilitate Faza 2 rămasă) + **Track C** (calitate/raport/docs).
+
+### 2026-06-04 — Track B (accesibilitate) + Track C (calitate/docs)
+**Track B (a11y, batch sigur):** skip-link „Sari la conținut" + `<main id="continut">` pe toate paginile,
+ținte tactile ≥24px, `aria-busy`, `type="date"` pe câmpurile de dată, `autocomplete` pe identitate.
+(Rămas, opțional: form+Enter, aria-describedby, densitate descoperire/grilă, fieldset wizard.)
+**Track C:** documentație actualizată (`instructiuni-evaluator.md` + `taskuri-ramase.md` la platforma completă);
+**auto-review** cu `silent-failure-hunter` (opus) pe codul platformei → a găsit **3 probleme critice de
+corectitudine** în rutarea venit/DCF + ponderare (DCF suprascria capitalizarea; metodă cerută fără date
+cădea tăcut pe altă abordare; `pondere_piata` neconstrâns → extrapolare) + NOI≤0 tăcut. **Toate reparate**
+(metoda decide venit↔DCF; erori clare; `Field(ge=0,le=1)`; NOI≤0 ridică eroare; rotunjire ponderată) +5 teste
+de regresie. **358 teste verzi**, pyflakes curat, exe reîmpachetat.
