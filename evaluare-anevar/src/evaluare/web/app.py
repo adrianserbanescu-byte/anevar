@@ -12,9 +12,10 @@ from fastapi.templating import Jinja2Templates
 from pydantic import BaseModel
 
 from evaluare.assembler import EvaluationInput, construieste_context, valideaza
-from evaluare.models.comparable import Comparable, LandComparable
+from evaluare.models.comparable import Comparable, LandComparable, RentComparable
 from evaluare.engine.land import evaluate_land
 from evaluare.engine.market import evaluate_market
+from evaluare.engine.chirie import evalueaza_chirie
 from evaluare.ai.narrative import NarrativeClient
 from evaluare.db.storage import Storage
 from evaluare.importers.url_parser import fetch_html, import_from_url
@@ -64,6 +65,11 @@ class GrilaTerenRequest(BaseModel):
 class GrilaCasaRequest(BaseModel):
     suprafata_subiect: Decimal
     comparabile: list[Comparable]
+
+
+class GrilaChiriiRequest(BaseModel):
+    suprafata_subiect: Decimal
+    comparabile: list[RentComparable]
 
 
 class DescoperaRequest(BaseModel):
@@ -340,6 +346,22 @@ def create_app(storage: Storage, client: Optional[NarrativeClient],
             "ajustari_nete": [str(n) for n in r.ajustari_nete],
             "index_selectat": r.index_selectat,
             "valoare_piata": str(r.valoare_piata),
+        }
+
+    @app.post("/api/grila-chirii")
+    def grila_chirii(req: GrilaChiriiRequest) -> dict:
+        try:
+            r = evalueaza_chirie(req.comparabile, req.suprafata_subiect)
+        except ValueError as e:
+            raise HTTPException(status_code=422, detail=str(e))
+        return {
+            "chirii_mp_corectate": [str(p) for p in r.chirii_mp_corectate],
+            "ajustari_brute": [str(b) for b in r.ajustari_brute],
+            "ajustari_nete": [str(n) for n in r.ajustari_nete],
+            "index_selectat": r.index_selectat,
+            "chirie_mp_aleasa": str(r.chirie_mp_aleasa),
+            "chirie_lunara": str(r.chirie_lunara),
+            "venit_brut_potential": str(r.venit_brut_potential),
         }
 
     @app.get("/grila", response_class=HTMLResponse)

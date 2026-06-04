@@ -49,3 +49,18 @@ class LandComparable(BaseModel):
     localizare: Optional[str] = None
     data: Optional[str] = None
     adjustments: list[Adjustment] = Field(default_factory=list)
+
+
+class RentComparable(BaseModel):
+    """Un comparabil de inchiriere (chirie lunara pe mp), pentru grila de chirii.
+
+    `chirie_mp` e chiria lunara pe metru patrat (ex. EUR/mp/luna). Ajustarile
+    folosesc aceeasi metodologie in doua etape (tranzactie compus + proprietate aditiv)
+    ca grila de teren; doar etapa de proprietate conteaza in ajustarea bruta.
+    """
+
+    chirie_mp: Decimal = Field(gt=0)
+    suprafata: Decimal
+    localizare: Optional[str] = None
+    data: Optional[str] = None
+    adjustments: list[Adjustment] = Field(default_factory=list)

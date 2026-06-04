@@ -46,6 +46,16 @@ Pentru ajustarea <b>„Condițiile pieței (timp)"</b> poți folosi <b>Indicele 
 <p><label for="supr-casa">Suprafață subiect ACD (mp):</label> <input id="supr-casa" class="base" value="120"></p>
 <button onclick="calcul('casa')">Calculează grila casă</button>
 <div id="rez-casa" role="status" aria-live="polite"></div>
+
+<!-- ================= CHIRII ================= -->
+<h2>Grilă chirii — chirie de piață → abordarea prin venit</h2>
+<p class="hint">Prețul de pornire este <b>chiria lunară pe mp</b> (ex. EUR/mp/lună) a fiecărui comparabil de
+ închiriere. Se alege comparabilul cu ajustarea brută minimă; chiria/mp aleasă × suprafața subiectului ×
+ 12 = <b>venitul brut potențial anual</b>, care intră în capitalizarea directă (abordarea prin venit).</p>
+<div id="tabel-chirii"></div>
+<p><label for="supr-chirii">Suprafață închiriabilă subiect (mp):</label> <input id="supr-chirii" class="base" value="100"></p>
+<button onclick="calcul('chirii')">Calculează grila chirii</button>
+<div id="rez-chirii" role="status" aria-live="polite"></div>
 </main>
 
 <script>
@@ -85,6 +95,17 @@ const ELEM = {
   {nume:"Sistem încălzire", tip:"procentuala"},
   {nume:"Alte elemente (garaj, anexe)", tip:"valorica"},
  ].map(e => ({nume:e.nume, tip:e.tip, etapa:e.etapa||"proprietate"})),
+ chirii: [
+  {nume:"Ofertă→Contract (negociere)", tip:"procentuala", etapa:"tranzactie"},
+  {nume:"Condițiile pieței (timp)", tip:"procentuala", etapa:"tranzactie"},
+  {nume:"Localizare", tip:"procentuala"},
+  {nume:"Suprafață", tip:"procentuala"},
+  {nume:"Etaj / poziție", tip:"procentuala"},
+  {nume:"Finisaje / stare", tip:"procentuala"},
+  {nume:"Dotări (mobilat/utilat)", tip:"procentuala"},
+  {nume:"Destinație (rezid./comercial)", tip:"procentuala"},
+  {nume:"Cheltuieli incluse (ajustare EUR/mp)", tip:"valorica"},
+ ].map(e => ({nume:e.nume, tip:e.tip, etapa:e.etapa||"proprietate"})),
 };
 
 function head(){
@@ -94,7 +115,8 @@ function head(){
 }
 function baseRows(grid){
  // pret de pornire (+ suprafata comp pentru casa)
- const lblPret = grid==="teren" ? "Preț (EUR/mp)" : "Preț ofertă (EUR)";
+ const lblPret = grid==="teren" ? "Preț (EUR/mp)"
+   : grid==="chirii" ? "Chirie (EUR/mp/lună)" : "Preț ofertă (EUR)";
  let r = `<tr class="row-pret"><th scope="row">${lblPret}</th>`;
  for(let i=0;i<NCOMP;i++) r += `<td><input class="base" data-g="${grid}" data-pret="${i}" aria-label="${lblPret} — Comp ${i+1}"></td>`;
  r += "</tr>";
@@ -121,7 +143,7 @@ function buildTable(grid){
  document.getElementById("tabel-"+grid).innerHTML =
    "<table>" + head() + baseRows(grid) + elemRows(grid) + "</table>";
 }
-buildTable("teren"); buildTable("casa");
+buildTable("teren"); buildTable("casa"); buildTable("chirii");
 
 // Pre-popularea grilei casă din comparabilele bifate la descoperire.
 (function prefillCasa(){
@@ -158,6 +180,8 @@ function colecteaza(grid){
    });
    if(grid==="teren"){
      comps.push({pret_mp:String(pret), suprafata:"1", adjustments:adj});
+   } else if(grid==="chirii"){
+     comps.push({chirie_mp:String(pret), suprafata:"1", adjustments:adj});
    } else {
      const supr = num(document.querySelector(`[data-g="${grid}"][data-supr="${i}"]`).value) || 1;
      comps.push({pret:String(pret), suprafata:String(supr), adjustments:adj});
@@ -224,7 +248,8 @@ async function calcul(grid){
  if(comparabile.length===0){ rezDiv.innerHTML = '<p class="err">Completează cel puțin un preț de pornire.</p>'; return; }
  const supr = num(document.getElementById("supr-"+grid).value);
  if(supr===null){ rezDiv.innerHTML = '<p class="err">Completează suprafața subiectului.</p>'; return; }
- const url = grid==="teren" ? "/api/grila-teren" : "/api/grila-casa";
+ const url = grid==="teren" ? "/api/grila-teren"
+   : grid==="chirii" ? "/api/grila-chirii" : "/api/grila-casa";
  rezDiv.innerHTML = "Se calculează…";
  try{
    const resp = await fetch(url, {method:"POST", headers:{"Content-Type":"application/json"},
@@ -236,8 +261,10 @@ async function calcul(grid){
 }
 
 function afiseaza(grid, d, div){
- const preturi = grid==="teren" ? d.preturi_mp_corectate : d.preturi_unitare_corectate;
- const unitLbl = grid==="teren" ? "Preț/mp corectat" : "Preț total corectat";
+ const preturi = grid==="teren" ? d.preturi_mp_corectate
+   : grid==="chirii" ? d.chirii_mp_corectate : d.preturi_unitare_corectate;
+ const unitLbl = grid==="teren" ? "Preț/mp corectat"
+   : grid==="chirii" ? "Chirie/mp corectată" : "Preț total corectat";
  let t = '<div class="rez"><table><tr><th>Comparabil</th><th>'+unitLbl+'</th><th>Ajustare brută</th><th>Selecție</th></tr>';
  preturi.forEach((p,i) => {
    const sel = i===d.index_selectat;
@@ -247,6 +274,11 @@ function afiseaza(grid, d, div){
  t += "</table>";
  if(grid==="teren")
    t += `<p class="val">Valoare teren = ${fmtRo(d.pret_mp_ales)} EUR/mp × suprafață = ${fmtRo(d.valoare_teren)} EUR</p>`;
+ else if(grid==="chirii")
+   t += `<p class="val">Chirie de piață = ${fmtRo(d.chirie_mp_aleasa)} EUR/mp/lună · chirie lunară = `
+      + `${fmtRo(d.chirie_lunara)} EUR · <b>venit brut potențial anual = ${fmtRo(d.venit_brut_potential)} EUR</b></p>`
+      + `<p class="hint">Folosește venitul brut potențial anual în „Pas 3 → metoda venit" din wizard `
+      + `(câmpul „Venit brut potențial").</p>`;
  else
    t += `<p class="val">Valoare prin comparație = ${fmtRo(d.valoare_piata)} EUR</p>`;
  t += "</div>";
