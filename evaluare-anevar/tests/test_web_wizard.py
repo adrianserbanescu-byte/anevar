@@ -83,3 +83,9 @@ def test_wizard_are_metoda_venit(tmp_path):
     body = _client(tmp_path).get("/wizard").text
     assert 'value="venit"' in body
     assert 'id="vbp"' in body and 'id="rata_cap"' in body
+
+
+def test_wizard_are_industrial(tmp_path):
+    body = _client(tmp_path).get("/wizard").text
+    assert 'value="industrial"' in body
+    assert 'id="inaltime_libera"' in body
