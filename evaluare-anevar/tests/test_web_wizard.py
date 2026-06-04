@@ -62,6 +62,12 @@ def test_wizard_are_buton_raport_demo(tmp_path):
     assert "?demo=1" in body
 
 
+def test_wizard_are_selector_tip_proprietate(tmp_path):
+    body = _client(tmp_path).get("/wizard").text
+    assert 'id="tip_proprietate"' in body
+    assert 'id="etaj"' in body and 'id="an_bloc"' in body
+
+
 def test_wizard_retine_identitatea_evaluatorului(tmp_path):
     # B3: nume + legitimatie evaluator retinute intre sesiuni, separat de dosar
     body = _client(tmp_path).get("/wizard").text

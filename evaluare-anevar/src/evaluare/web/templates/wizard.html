@@ -86,6 +86,18 @@
   <p class="rezumat">Datele fizice ale casei pentru <b>calcul</b> (teren, construcție, elemente de cost,
    depreciere), plus <b>atributele de potrivire</b> care ajută aplicația să găsească cele mai similare
    anunțuri la descoperire.</p>
+  <label for="tip_proprietate">Tip proprietate</label>
+  <select id="tip_proprietate" onchange="document.getElementById('ap-fields').style.display=this.value==='apartament'?'block':'none'">
+    <option value="casa">Casă individuală + teren</option>
+    <option value="apartament">Apartament</option>
+  </select>
+  <div id="ap-fields" style="display:none">
+    <label for="etaj">Etaj</label><input id="etaj" type="number">
+    <label for="nr_niveluri_bloc">Număr niveluri bloc</label><input id="nr_niveluri_bloc" type="number">
+    <label for="an_bloc">An construcție bloc</label><input id="an_bloc" type="number">
+    <label for="cota_teren_indiviza">Cotă teren indiviză (mp)</label><input id="cota_teren_indiviza">
+    <small class="hint">Câmpuri pentru apartament; la „Casă" se ignoră.</small>
+  </div>
   <label for="suprafata_teren">Suprafață teren (mp)</label><input id="suprafata_teren" value="500">
   <small class="hint">Suprafața terenului din actul cadastral. Bază pentru valoarea terenului și
    atribut de potrivire a comparabilelor (suprafață teren).</small>
@@ -231,6 +243,7 @@ const $ = id => document.getElementById(id);
 const CAMPURI = ["judet","localitate","localitate_alt","adresa_strada","client_nume",
  "numar_cadastral","carte_funciara","beneficiar","proprietar","evaluator_nume",
  "evaluator_legitimatie","data_evaluarii","data_raportului","data_inspectiei",
+ "tip_proprietate","etaj","nr_niveluri_bloc","an_bloc","cota_teren_indiviza",
  "suprafata_teren","au","acd","an_referinta",
  "valoare_teren","elemente","depreciere","attr_an","attr_stare","attr_finisaj",
  "attr_incalzire","atribute_secundare","comparabile","metoda","moneda","curs_valutar",
@@ -446,10 +459,15 @@ function asambleaza(){
   if($("proprietar").value.trim()) meta.proprietar=$("proprietar").value.trim();
   if($("data_inspectiei").value.trim()) meta.data_inspectiei=$("data_inspectiei").value.trim();
   if($("curs_valutar").value.trim()) meta.curs_valutar=$("curs_valutar").value.trim();
+  const building={au:$("au").value,acd:$("acd").value,an_referinta:parseInt($("an_referinta").value),
+    elements,depreciation_points:dp};
+  if($("etaj").value) building.etaj=parseInt($("etaj").value);
+  if($("nr_niveluri_bloc").value) building.nr_niveluri_bloc=parseInt($("nr_niveluri_bloc").value);
+  if($("an_bloc").value) building.an_bloc=parseInt($("an_bloc").value);
+  if($("cota_teren_indiviza").value) building.cota_teren_indiviza=$("cota_teren_indiviza").value;
   return{meta,
     land:{suprafata:$("suprafata_teren").value},
-    building:{au:$("au").value,acd:$("acd").value,an_referinta:parseInt($("an_referinta").value),
-      elements,depreciation_points:dp}, comparables,
+    building, comparables,
     valoare_teren:$("valoare_teren").value, metoda:$("metoda").value, photos:FOTOS,
     documente:DOCUMENTE};
 }
