@@ -277,12 +277,19 @@ function afiseaza(grid, d, div){
  else if(grid==="chirii")
    t += `<p class="val">Chirie de piață = ${fmtRo(d.chirie_mp_aleasa)} EUR/mp/lună · chirie lunară = `
       + `${fmtRo(d.chirie_lunara)} EUR · <b>venit brut potențial anual = ${fmtRo(d.venit_brut_potential)} EUR</b></p>`
-      + `<p class="hint">Folosește venitul brut potențial anual în „Pas 3 → metoda venit" din wizard `
-      + `(câmpul „Venit brut potențial").</p>`;
+      + `<p><button type="button" onclick="trimiteVbpWizard('${d.venit_brut_potential}')">➕ trimite VBP în wizard (metoda venit)</button>`
+      + ` <span id="vbp-trimis" class="hint" role="status"></span></p>`;
  else
    t += `<p class="val">Valoare prin comparație = ${fmtRo(d.valoare_piata)} EUR</p>`;
  t += "</div>";
  div.innerHTML = t;
+}
+
+// Trimite venitul brut potential anual catre wizard (preia automat in metoda venit).
+function trimiteVbpWizard(vbp){
+  try{ localStorage.setItem("vbp_din_grila", vbp); }catch(e){}
+  const s=$("vbp-trimis");
+  if(s) s.textContent = "✓ trimis ("+fmtRo(vbp)+" EUR). Deschide wizardul → Pas 3 → metoda venit.";
 }
 </script>
 </body>

@@ -587,6 +587,19 @@ function wireAjutor(){
     if(!ex.includes(h.id)){ ex.push(h.id); ctrl.setAttribute("aria-describedby", ex.join(" ")); }
   });
 }
-incarcaLocalitati().then(()=>{ incarca(); incarcaEvaluator(); populeazaLocalitati(); arata(); wireAjutor(); });
+// Preia venitul brut potential calculat in grila de chirii (o singura data).
+function preiaVbpGrila(){
+  let vbp; try{ vbp = localStorage.getItem("vbp_din_grila"); }catch(e){ return; }
+  if(!vbp) return;
+  if($("metoda")){ $("metoda").value = "venit";
+    if($("venit-fields")) $("venit-fields").style.display = "block"; }
+  if($("vbp")) $("vbp").value = vbp;
+  try{ localStorage.removeItem("vbp_din_grila"); }catch(e){}
+  if($("rezultat-calc"))
+    $("rezultat-calc").innerHTML =
+      '<p class="hint">✓ Venit brut potențial preluat din grila de chirii: '+fmtRo(vbp)+
+      ' EUR. Completează rata de capitalizare la Pas 3 și calculează.</p>';
+}
+incarcaLocalitati().then(()=>{ incarca(); incarcaEvaluator(); populeazaLocalitati(); arata(); wireAjutor(); preiaVbpGrila(); });
 </script>
 </body></html>

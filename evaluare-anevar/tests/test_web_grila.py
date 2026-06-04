@@ -88,3 +88,12 @@ def test_pagina_grila_se_incarca(tmp_path):
     assert "/api/grila-teren" in resp.text
     assert "/api/grila-casa" in resp.text
     assert "/api/grila-chirii" in resp.text
+    assert "trimiteVbpWizard" in resp.text          # punte VBP grila -> wizard
+
+
+def test_wizard_preia_vbp_din_grila(tmp_path):
+    client = _client(tmp_path)
+    resp = client.get("/wizard")
+    assert resp.status_code == 200
+    assert "preiaVbpGrila" in resp.text
+    assert "vbp_din_grila" in resp.text
