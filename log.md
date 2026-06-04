@@ -258,3 +258,12 @@ Motorul de comparație neschimbat. **319 teste verzi**, pyflakes curat, **exe re
 (apartament prin piață → 250.000; `/wizard` are selectorul). Comituri `9c3cd86 … 461070c`.
 Următorul: **Faza 2 — Comercial/venit** (cablează `venit` în flux + UI DateVenit + secțiune raport venit;
 necesită refactorul amânat al generatorului + ideal un dosar real de validare — se construiește pe standard).
+
+### 2026-06-04 — Faza 2 (Comercial/venit) IMPLEMENTATĂ (subagent-driven)
+Abordarea prin venit (capitalizare directă) end-to-end, aditiv, 5 task-uri: profil `COMERCIAL_INCHIRIAT`
+(GEV 630, venit+comparație); `EvaluationInput.date_venit` + `metoda="venit"` + `construieste_context`
+rulează `evalueaza_venit` și reconciliază prin `reconcile_profil` (primara „venit"); `venit_result`+`date_venit`
+pe `ReportContext`; secțiune de raport „Abordarea prin venit" (condițional → 12 teste de raport verzi);
+wizard cu metoda „venit" + câmpuri (VBP/neocupare/cheltuieli/rată). **324 teste verzi**, pyflakes curat,
+**exe reîmpachetat + smoke** (comercial prin venit → 937.500,00; wizard are opțiunea). Construit pe standard;
+validare pe dosar real comercial — marcată. Comituri `66c601b … 63e2950`. Următorul: **Faza 3 — Industrial**.
