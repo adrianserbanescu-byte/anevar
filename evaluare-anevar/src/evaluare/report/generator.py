@@ -162,16 +162,32 @@ def _scrisoare_transmitere(doc: DocxDocument, ctx: ReportContext, adnotari: bool
         f"valoarea de piata estimata a proprietatii este de {_fmt(ctx.reconciled.valoare_finala)} "
         f"{meta.moneda}, la data evaluarii ({meta.data_evaluarii}). {_fara_tva(ctx)}"
     )
-    doc.add_paragraph(
+    conformitate = (
         "Raportul a fost elaborat in conformitate cu Standardele de evaluare a bunurilor "
-        "ANEVAR, editia 2025 (in vigoare de la 1 iulie 2025, aprobate prin HCN nr. 2/2025), "
-        "si cu Ghidul GEV 520 — Evaluarea pentru garantarea imprumutului. Poate fi utilizat "
-        "exclusiv in scopul mentionat, de catre utilizatorul desemnat."
+        "ANEVAR, editia 2025 (in vigoare de la 1 iulie 2025, aprobate prin HCN nr. 2/2025)"
     )
+    clauza = _ghid_clauza(ctx)
+    if clauza:
+        conformitate += " si cu Ghidul " + clauza.removeprefix("incluzand Ghidul ")
+    conformitate += " Poate fi utilizat exclusiv in scopul mentionat, de catre utilizatorul desemnat."
+    doc.add_paragraph(conformitate)
     doc.add_paragraph(
         f"Cu deosebita consideratie, {meta.evaluator_nume}, "
         f"membru ANEVAR, legitimatia {meta.evaluator_legitimatie}."
     )
+
+
+_GHID_CLAUZA = {
+    "GEV_520": "incluzand Ghidul GEV 520 — Evaluarea pentru garantarea imprumutului.",
+    "GEV_630": "incluzand Ghidul GEV 630 — Evaluarea bunurilor imobile.",
+    "GEV_500": "incluzand Ghidul GEV 500 — Estimarea valorii impozabile a cladirilor.",
+    "none": "",
+}
+
+
+def _ghid_clauza(ctx: ReportContext) -> str:
+    """Clauza de ghid aplicabil (GEV) din profilul evaluarii, pentru declaratia de conformitate."""
+    return _GHID_CLAUZA.get(ctx.profil.ghid, "")
 
 
 def _declaratie_conformitate(doc: DocxDocument, ctx: ReportContext, adnotari: bool = False) -> None:
@@ -180,7 +196,7 @@ def _declaratie_conformitate(doc: DocxDocument, ctx: ReportContext, adnotari: bo
     afirmatii = [
         "Prezentul raport a fost elaborat in conformitate cu Standardele de evaluare a bunurilor "
         "ANEVAR (SEV), editia 2025, in vigoare de la 1 iulie 2025 (HCN nr. 2/2025), "
-        "incluzand Ghidul GEV 520 — Evaluarea pentru garantarea imprumutului.",
+        + _ghid_clauza(ctx),
         "Faptele prezentate in raport sunt reale si corecte, dupa cunostinta evaluatorului.",
         "Analizele, opiniile si concluziile sunt limitate numai de ipotezele si conditiile "
         "limitative prezentate.",
@@ -218,25 +234,31 @@ def _termeni_referinta(doc: DocxDocument, ctx: ReportContext, adnotari: bool = F
         f"Identificarea proprietatii: {meta.adresa}, nr. cadastral {meta.numar_cadastral}, "
         f"{meta.carte_funciara}."
     )
-    doc.add_paragraph(
+    premisa = (
         "Premise: proprietatea este evaluata in ipoteza utilizarii continue, libera de sarcini, "
-        "cu exceptia celor mentionate explicit in raport. Daca este ocupata de proprietar, se "
-        "evalueaza in ipoteza transferului ca bun liber/disponibil (GEV 520, A8)."
+        "cu exceptia celor mentionate explicit in raport."
     )
-    # GEV 520 A3 (SEV 101): independenta / implicare materiala
-    doc.add_paragraph(
-        "Independenta: evaluatorul declara ca nu are nicio implicare materiala, prezenta sau "
-        "anterioara, cu bunul evaluat, cu debitorul sau cu un debitor potential, care sa afecteze "
-        "obiectivitatea (GEV 520, A3; SEV 101). Utilizatorul desemnat al raportului este creditorul "
-        "nominalizat; orice alta utilizare necesita personalizare de catre evaluator."
-    )
-    # GEV 520 A4: ipoteze speciale (ex. vanzare fortata / perioada de marketing limitata)
-    doc.add_paragraph(
-        "Ipoteze speciale: daca se solicita o valoare in premisa unei vanzari fortate sau cu "
-        "perioada de marketing limitata, aceasta se precizeaza distinct; valoarea pe ipoteza "
-        "speciala este valabila numai la data evaluarii si poate sa nu fie realizabila la o data "
-        "viitoare (GEV 520, A4-A5)."
-    )
+    if ctx.profil.ghid == "GEV_520":
+        premisa += (
+            " Daca este ocupata de proprietar, se evalueaza in ipoteza transferului ca bun "
+            "liber/disponibil (GEV 520, A8)."
+        )
+    doc.add_paragraph(premisa)
+    if ctx.profil.ghid == "GEV_520":
+        # GEV 520 A3 (SEV 101): independenta / implicare materiala
+        doc.add_paragraph(
+            "Independenta: evaluatorul declara ca nu are nicio implicare materiala, prezenta sau "
+            "anterioara, cu bunul evaluat, cu debitorul sau cu un debitor potential, care sa afecteze "
+            "obiectivitatea (GEV 520, A3; SEV 101). Utilizatorul desemnat al raportului este creditorul "
+            "nominalizat; orice alta utilizare necesita personalizare de catre evaluator."
+        )
+        # GEV 520 A4: ipoteze speciale (ex. vanzare fortata / perioada de marketing limitata)
+        doc.add_paragraph(
+            "Ipoteze speciale: daca se solicita o valoare in premisa unei vanzari fortate sau cu "
+            "perioada de marketing limitata, aceasta se precizeaza distinct; valoarea pe ipoteza "
+            "speciala este valabila numai la data evaluarii si poate sa nu fie realizabila la o data "
+            "viitoare (GEV 520, A4-A5)."
+        )
     # SEV 101, 20.1 — elemente suplimentare ale termenilor de referinta
     doc.add_paragraph(
         f"Evaluatorul: {meta.evaluator_nume}, membru ANEVAR, legitimatia "
@@ -604,7 +626,8 @@ def genereaza_raport(
 
     # --- Shell GBF (back matter) ---
     _adauga_alocare(doc, ctx, adnotari)
-    _adauga_risc_garantie(doc, ctx, adnotari)
+    if ctx.profil.ghid == "GEV_520":   # sectiunea de risc e specifica garantarii imprumutului
+        _adauga_risc_garantie(doc, ctx, adnotari)
     _adauga_anexe(doc, ctx, adnotari)
     _adauga_semnatura(doc, ctx, adnotari)
 
