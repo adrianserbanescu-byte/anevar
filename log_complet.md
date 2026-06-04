@@ -5,7 +5,7 @@
 > `evaluare-anevar/scripts/export_chat.py`. Secretele (chei API) sunt redactate. Se
 > regenereaza la fiecare rulare (actualizare orara). Pentru sinteza, vezi `log.md`.
 
-**Mesaje:** 1136.
+**Mesaje:** 1168.
 
 ---
 
@@ -11609,3 +11609,185 @@ Actualizare orară a logurilor proiectului:
 ## Assistant  ·  2026-06-04 02:27:28
 
 Rulez actualizarea orară.
+
+## Assistant  ·  2026-06-04 02:27:59
+
+Transcript comis (1136 mesaje). **log.md**: ultima intrare („Faza 0 implementată + re-spec") acoperă tot ce s-a făcut; de atunci nu a apărut nimic nou. Conform regulii, nu scriu nimic.
+
+Reprogramez:
+
+## Assistant  ·  2026-06-04 02:28:12
+
+Actualizare orară făcută:
+
+1. **`log_complet.md`** — regenerat (1136 mesaje) și **comis**.
+2. **`log.md`** — nimic nou (intrarea Faza 0 + re-spec din ora precedentă acoperă tot). N-am scris nimic.
+3. **Reprogramat** — următoarea actualizare la **06:29**.
+
+Aștept semnalul tău pentru **Faza 0.5 (Cablare)** — prima fază care atinge hot-path-ul validat. O pornesc subagent-driven cu regresie strictă, dacă nu schimbi ordinea.
+
+## User  ·  2026-06-04 02:41:28
+
+ai intrat  docs/plan-ui-accesibilitate.md și &  docs/taskuri-ramase.md ?
+
+## Assistant  ·  2026-06-04 02:42:13
+
+Verific starea celor două documente (existență, dacă sunt comise, ce e făcut din ele):
+
+## Assistant  ·  2026-06-04 02:42:53
+
+Da, ambele sunt **create, comise și urmărite** — dar trebuie să fiu sincer: le-am **ținut cont** (sunt Track B și Track C din recapitulare), însă **nu le-am executat** — am mers platformă-întâi (Faza 0), exact pe firul pe care l-ai cerut.
+
+## Status real
+
+**`docs/plan-ui-accesibilitate.md`** (Track B — UI + accesibilitate) — comis, **0 din 4 grupuri executate.**
+- ⚠️ **G1.1 e un bug AA real, încă prezent**: `--ink-faint:#6c7686` dă contrast ≈3.9:1 (sub 4.5:1) pe textul-indiciu — regresie pe care eu am introdus-o la redesign. E fix de **o linie**.
+- G1.2–1.5 (skip-link, type=date, autocomplete, ținte tactile), Grup 2 (form/aria), **Grup 3 `/result` certificat** (încă minimal, arată `316000.0000`), Grup 4 — toate **în așteptare**.
+
+**`docs/taskuri-ramase.md`** (Track C — backlog calitate/raport/docs) — comis, actualizat cu deciziile: **B1** „nu e cazul", **B3** făcut (identitate evaluator). Restul (auto-review, teste eroare, IVS/SEV, documentație, pregătire module externe) **în așteptare.**
+
+## Două note de igienă
+1. Am **două** documente de accesibilitate: `plan-accesibilitate.md` (vechi, Faza 1+2) și `plan-ui-accesibilitate.md` (consolidat). Pot să-l marchez pe primul „înlocuit de" ca să nu existe confuzie.
+2. Track B și C **nu sunt în coada de execuție a platformei** (Faza 0–7) — sunt paralele. De-asta n-au avansat cât am lucrat la Faza 0.
+
+Deci: **da, sunt contabilizate; nu, nu sunt încă făcute.** Cum vrei să continui?
+
+## Assistant  ·  2026-06-04 02:52:42
+
+Bun — quick-wins UI/a11y întâi: **G1.1 (contrast AA)** + **Grup 3 (`/result` ca certificat)**, apoi revin la Faza 0.5. Le fac direct (cu QA vizual în preview), fiind mici și vizuale.
+
+## Assistant  ·  2026-06-04 02:53:05
+
+G1.1 (contrast AA) done. Now `/result` — let me read the meta model and the result route to format the value + add EUR/LEI equivalent:
+
+## Assistant  ·  2026-06-04 02:53:16
+
+`meta` has `moneda` + `curs_valutar`. Let me read the current `/result` route to update it:
+
+## Assistant  ·  2026-06-04 02:53:55
+
+Let me check existing tests for the result page before changing template variables:
+
+## Assistant  ·  2026-06-04 02:54:12
+
+No test renders the result HTML — safe to restructure. Let me add a number-format helper + equivalent to the route:
+
+## Assistant  ·  2026-06-04 02:54:32
+
+Now the certificate template and the `.btn` style:
+
+## Assistant  ·  2026-06-04 02:55:20
+
+Now add the reusable `a.btn` style to the design system:
+
+## Assistant  ·  2026-06-04 02:55:48
+
+Now a regression test for the certificate page. Let me append to `test_web_api.py`:
+
+## Assistant  ·  2026-06-04 02:56:40
+
+6 pass (certificate test confirms `316.000,00` formatting), pyflakes clean. Full suite + visual QA:
+
+## Assistant  ·  2026-06-04 02:57:21
+
+306 green. Visual QA via preview:
+
+## Assistant  ·  2026-06-04 02:58:06
+
+The `/result` certificate is exactly right: hero value **316.000,00 LEI** (ro-RO formatted), **≈ 63.517,59 EUR** equivalent (316000 ÷ 4.975 ✓), client/method grid, sienna + ghost CTA buttons, green-bordered card. Contrast fix also visibly applied. Stopping preview, rebuilding, committing:
+
+## Assistant  ·  2026-06-04 03:06:15
+
+Let me mark these done in the plan, then I'll proceed to Faza 0.5 as you chose:
+
+## Assistant  ·  2026-06-04 03:06:26
+
+Let me read the G1.1 line to mark it done:
+
+## Assistant  ·  2026-06-04 03:07:34
+
+Quick-wins UI/a11y livrate și verificate:
+
+| Item | Rezultat |
+|---|---|
+| **G1.1 — Contrast `.hint`** | `--ink-faint` `#6c7686` → `#5a6270` (3.9:1 → **5.3:1**, trece WCAG AA) — pe toate paginile |
+| **G3.1 — `/result` ca certificat** | valoare hero `316.000,00 LEI` + **≈ 63.517,59 EUR** la curs BNR + card + butoane-CTA (descărcare .docx / raport cu note) |
+| **G3.2 — Formatare numerică ro-RO** | helper `_fmt_numar` (2 zecimale + separator mii); gata de extins pe wizard/grilă |
+
+- **306 teste verzi** (+1 `test_pagina_result_certificat`), QA vizual confirmat în preview, **exe reîmpachetat**.
+- Comis pe `master`; `plan-ui-accesibilitate.md` actualizat (G1.1 + Grup 3 bifate).
+
+Rămase din Track B (pentru mai târziu): G1.2–1.5 (skip-link, `type=date`, autocomplete, ținte tactile), Grup 2 (form/aria/densitate), G4 (focus, NVDA).
+
+---
+
+Acum, conform alegerii tale („apoi continui cu Faza 0.5"), trec la **Faza 0.5 — Cablare**: promovez cadrul Faza 0 din *dormant* în *live* (assembler rutează prin profil → `reconcile_profil`; generatorul consumă registrul de secțiuni; Protocol `Abordare`; `detalii` tipizat; `valideaza_profil`), **subagent-driven, cu regresie strictă** pe dosarele GBF + cele 12 teste de conținut GEV 520.
+
+E prima fază care atinge hot-path-ul validat. O pornesc acum — dacă vrei să mă opresc înainte sau să schimbi ceva, spune; altfel încep cu primul task (scrierea planului TDD detaliat pentru Faza 0.5, ancorat în `assembler.py`/`generator.py` reale).
+
+## User  ·  2026-06-04 03:10:38
+
+continua tot ce mai planificat fara sa ma intrebai
+
+## Assistant  ·  2026-06-04 03:12:30
+
+Pe deplin autonom de acum — execut tot ce e planificat (Faza 0.5 → re-spec → Faza 1 → … → Faza 7, plus restul Track B/C unde e autonom), subagent-driven, cu regresie strictă, fără să te mai întreb. Loghez orar și comit pe parcurs.
+
+Încep **Faza 0.5 (Cablare)**. O scopez minimal și sigur: rutez calculul prin `reconcile_profil` (echivalență deja dovedită) + `valideaza_profil`; **amân** refactorul generatorului și Protocol/`detalii` tipizat până când o fază chiar le cere (decizia reviewerului final că deferarea e corectă pentru garanția aditivă). Scriu planul TDD, apoi execut.
+
+## Assistant  ·  2026-06-04 03:13:35
+
+Let me commit the plan and read `validation.py` to give the subagent the exact `Issue` signature:
+
+## Assistant  ·  2026-06-04 03:13:52
+
+`Issue.nivel` is `Literal["blocheaza", "alerteaza"]` — not "avertisment". Let me correct the plan, then dispatch T1:
+
+## Assistant  ·  2026-06-04 03:16:54
+
+**T1: DONE** — `d51c3be`, suite **309 green**, pure additive. Quick combined review (low-risk pure function):
+
+## Assistant  ·  2026-06-04 03:18:00
+
+T1 reviewed ✅. **T1 complete.** Now T2 — the hot-path wiring (full rigor). Dispatching implementer:
+
+## Assistant  ·  2026-06-04 03:22:50
+
+**T2: DONE** — `17f612e`, suite **311 green**, all regression tests (assembler/web_api/end_to_end/reconciliation) pass with **identical values**. Hot-path wiring is now live + equivalent. Full rigor — spec review:
+
+## Assistant  ·  2026-06-04 03:25:22
+
+Spec review ✅ — value-equivalence proven with concrete numbers. Code quality review:
+
+## Assistant  ·  2026-06-04 03:26:42
+
+Code quality: **Approved** (the two notes are doc/test-robustness, non-blocking). **T2 complete.** T3 — verification + rebuild (controller):
+
+## Assistant  ·  2026-06-04 03:34:34
+
+**Faza 0.5 — Cablare: COMPLETĂ.** ✅ Pipeline-ul de calcul e acum **live** (producția rutează prin `reconcile_profil`), value-identic: smoke pe exe → `POST /api/evaluare` = **316.000,00**, metoda `cost`, `/evaluare/{id}` → 200 (certificat). 311 teste verzi, pyflakes curat.
+
+## Assistant  ·  2026-06-04 03:35:57
+
+**Stadiu (autonom, fără întreruperi):**
+
+✅ **Quick-wins UI/a11y** — G1.1 contrast AA + `/result` ca certificat.
+✅ **Faza 0 — Fundația** (cadru profil + abordări + venit + reconciliere + secțiuni).
+✅ **Faza 0.5 — Cablare** — pipeline-ul de calcul promovat din *dormant* în **live**, value-echivalent.
+
+**311 teste verzi**, exe reîmpachetat și verificat la fiecare pas. Tot comis pe `master`.
+
+**Următorul (continui autonom): Faza 1 — Apartament** — profil `APARTAMENT_GARANTARE` + câmpuri specifice (etaj, an bloc, cotă teren) + elemente de grilă + selector tip proprietate în wizard. Aditiv, risc mic. Îl pornesc subagent-driven cu același tipar (plan TDD ancorat în `property.py`/`market.py`/`wizard.html` reale → execuție → re-spec → Faza 2 …).
+
+Continuă lanțul fără să te mai întreb; loghez orar și la fiecare fază. Dacă vrei să intervii (să schimbi ordinea, să-mi dai un dosar real de validare pentru venit, etc.), scrie oricând — altfel merg înainte.
+
+## User  ·  2026-06-04 03:36:06
+
+Actualizare orară a logurilor proiectului:
+1) Rulează `cd C:\Users\adyse\anevar\evaluare-anevar && python scripts/export_chat.py` ca să regenerezi log_complet.md (transcript verbatim, include mesajele noi). Dacă fișierul s-a schimbat, comite-l.
+2) Dacă în ultima oră a apărut ceva NOU de consemnat, adaugă o intrare cu data/ora în secțiunea „Actualizări (orare)" din C:\Users\adyse\anevar\log.md și comite. Dacă nu e nimic nou, nu scrie nimic în log.md.
+3) Reprogramează această actualizare peste încă o oră (ScheduleWakeup 3600s cu același prompt).
+
+## Assistant  ·  2026-06-04 03:36:18
+
+Rulez actualizarea orară, apoi continui cu Faza 1 (directiva ta de execuție autonomă).
