@@ -30,3 +30,8 @@ CASA_TEREN_GARANTARE = ProfilEvaluare(
     tip_activ="casa", scop="garantare_credit", tip_valoare="piata",
     abordari_aplicabile=["cost", "comparatie"], ghid="GEV_520",
 )
+
+APARTAMENT_GARANTARE = ProfilEvaluare(
+    tip_activ="apartament", scop="garantare_credit", tip_valoare="piata",
+    abordari_aplicabile=["comparatie", "cost"], ghid="GEV_520",
+)
