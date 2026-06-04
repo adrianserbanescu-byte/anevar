@@ -10,7 +10,7 @@
   <h2>Client si lucrare</h2>
 
   <label>Nume client</label>
-  <input name="client_nume" required>
+  <input name="client_nume" autocomplete="name" required>
   <small class="hint">Persoana/firma pentru care se face evaluarea. Apare in raport; este
    anonimizat (inlocuit cu [CLIENT]) inainte de orice trimitere catre AI.</small>
 
@@ -30,7 +30,7 @@
    sarcini; anonimizat ([CF]) la AI.</small>
 
   <label>Evaluator</label>
-  <input name="evaluator_nume" required>
+  <input name="evaluator_nume" autocomplete="name" required>
   <small class="hint">Numele evaluatorului autorizat ANEVAR. Apare in declaratia de independenta
    din raport.</small>
 
@@ -40,12 +40,12 @@
    raportul.</small>
 
   <label>Data evaluarii</label>
-  <input name="data_evaluarii" value="2026-01-16">
+  <input type="date" name="data_evaluarii" value="2026-01-16">
   <small class="hint">Data la care se estimeaza valoarea (data de referinta a calculelor). Aici se
    raporteaza varsta constructiei si conditiile de piata.</small>
 
   <label>Data raportului</label>
-  <input name="data_raportului" value="2026-01-16">
+  <input type="date" name="data_raportului" value="2026-01-16">
   <small class="hint">Data emiterii raportului. Poate diferi de data evaluarii.</small>
 
   <h2>Teren si constructie</h2>

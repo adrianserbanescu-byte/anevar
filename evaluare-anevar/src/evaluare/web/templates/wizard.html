@@ -56,7 +56,7 @@
   <input id="adresa_strada" size="50" placeholder="Str. Exemplu nr. 10">
   <small class="hint">Partea de stradă/număr a adresei (text liber). Apare în raport; o poți edita
    cu diacritice la Pas 4.</small>
-  <label for="client_nume">Nume client</label><input id="client_nume">
+  <label for="client_nume">Nume client</label><input id="client_nume" autocomplete="name">
   <small class="hint">Persoana/firma pentru care se face evaluarea. Apare în raport; anonimizat
    ([CLIENT]) înainte de orice apel AI.</small>
   <label for="numar_cadastral">Nr. cadastral</label><input id="numar_cadastral">
@@ -75,18 +75,18 @@
     <option value="litigii">Litigiu / instanță</option>
   </select>
   <small class="hint">Determină scopul și tipul valorii din termenii de referință ai raportului.</small>
-  <label for="proprietar">Proprietar (dacă diferă de client)</label><input id="proprietar">
+  <label for="proprietar">Proprietar (dacă diferă de client)</label><input id="proprietar" autocomplete="name">
   <small class="hint">Numele proprietarului, dacă nu coincide cu clientul. Opțional.</small>
-  <label for="evaluator_nume">Evaluator</label><input id="evaluator_nume">
+  <label for="evaluator_nume">Evaluator</label><input id="evaluator_nume" autocomplete="name">
   <small class="hint">Numele evaluatorului autorizat ANEVAR; apare în declarația de independență.
    <b>Se reține între sesiuni</b> (numele + legitimația) — îl poți modifica oricând; rămâne și după „Reset dosar".</small>
   <label for="evaluator_legitimatie">Legitimație</label><input id="evaluator_legitimatie">
   <small class="hint">Numărul legitimației ANEVAR a evaluatorului.</small>
-  <label for="data_evaluarii">Data evaluării</label><input id="data_evaluarii" value="2026-01-16">
+  <label for="data_evaluarii">Data evaluării</label><input type="date" id="data_evaluarii" value="2026-01-16">
   <small class="hint">Data la care se estimează valoarea (data de referință a calculelor).</small>
-  <label for="data_raportului">Data raportului</label><input id="data_raportului" value="2026-01-16">
+  <label for="data_raportului">Data raportului</label><input type="date" id="data_raportului" value="2026-01-16">
   <small class="hint">Data emiterii raportului (poate diferi de data evaluării).</small>
-  <label for="data_inspectiei">Data inspecției (opțional)</label><input id="data_inspectiei" placeholder="2026-01-15">
+  <label for="data_inspectiei">Data inspecției (opțional)</label><input type="date" id="data_inspectiei" placeholder="2026-01-15">
   <small class="hint">Data inspecției proprietății, dacă diferă de data evaluării. Apare în termenii de referință.</small>
 </section>
 

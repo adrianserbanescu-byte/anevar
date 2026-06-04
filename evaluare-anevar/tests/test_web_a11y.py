@@ -58,3 +58,13 @@ def test_pagina_are_skip_link(client, ruta):
     html = client.get(ruta).text
     assert 'class="skip-link"' in html
     assert 'id="continut"' in html
+
+
+def test_wizard_date_inputs_au_type_date(client):
+    html = client.get("/wizard").text
+    assert 'id="data_evaluarii"' in html
+    # campul de data foloseste type="date"
+    import re
+    assert re.search(r'<input[^>]*id="data_evaluarii"[^>]*type="date"', html) or \
+           re.search(r'<input[^>]*type="date"[^>]*id="data_evaluarii"', html)
+    assert 'autocomplete="name"' in html
