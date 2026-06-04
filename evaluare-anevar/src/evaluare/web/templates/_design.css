@@ -159,12 +159,14 @@ input,select,textarea{
 }
 input:hover,select:hover,textarea:hover{border-color:#a59470;}
 input:focus,select:focus,textarea:focus{
-  outline:none; background:#fff;
+  outline:none; background-color:#fff;
   border-color:var(--sienna);
   box-shadow:0 0 0 3px rgba(157,74,37,.16);
 }
 textarea{ font-family:var(--mono); font-size:.86rem; line-height:1.5; resize:vertical; }
-select{ cursor:pointer; }
+select{ cursor:pointer; appearance:none; -webkit-appearance:none; padding-right:30px;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 8' fill='none' stroke='%2316263d' stroke-width='1.5'%3E%3Cpath d='M1 1l5 5 5-5'/%3E%3C/svg%3E");
+  background-repeat:no-repeat; background-position:right 11px center; background-size:12px 8px; }
 
 input[type=file]{
   background:transparent; border:1px dashed var(--line-2); padding:6px;
@@ -265,11 +267,14 @@ small.hint{ font-style:normal; }
 /* ----------------------------------------------------- Wizard: pași */
 main{ display:block; }
 .pas{
-  display:none; background:var(--paper-card);
+  display:none; position:relative; background:var(--paper-card);
   border:1px solid var(--line); border-left:4px solid var(--line-2);
   border-radius:var(--radius); padding:22px 26px; margin-top:14px;
-  box-shadow:var(--shadow);
+  box-shadow:var(--shadow); overflow:hidden;
 }
+/* riglă de alamă în partea de sus a cardului (ca PaperCard din concept) */
+.pas::before{ content:""; position:absolute; left:0; right:0; top:0; height:2px;
+  background:linear-gradient(to right, transparent, var(--brass) 18%, var(--brass-hi) 50%, var(--brass) 82%, transparent); }
 .pas.activ{ display:block; border-left-color:var(--sienna);
   animation:rise .45s var(--ease) both; }
 
@@ -382,6 +387,12 @@ pre{ font-family:var(--mono); font-size:.82rem; background:var(--paper-sunk);
    Decor de document (port din conceptul Lovable): riglă de alamă,
    cartuș de hartă, kicker de marcă, sigiliu ANEVAR. Clase reutilizabile.
    =================================================================== */
+
+/* ---- Subsol de document ---- */
+.doc-foot{ margin:44px 0 0; font-family:var(--sans); font-size:.78rem; color:var(--ink-faint); }
+.doc-foot .brass-rule{ margin:0 0 10px; }
+.doc-foot-row{ display:flex; justify-content:space-between; gap:12px; flex-wrap:wrap; }
+.doc-foot-mark{ font-family:var(--serif); font-style:italic; }
 
 /* ---- Bara de brand + navigare (sus, pe toate paginile) ---- */
 .topbar{ display:flex; align-items:center; justify-content:space-between; gap:18px;
