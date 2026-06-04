@@ -101,3 +101,9 @@ def test_wizard_are_selector_scop(tmp_path):
     body = _client(tmp_path).get("/wizard").text
     assert 'id="scop"' in body
     assert 'value="raportare_financiara"' in body and 'value="litigii"' in body
+
+
+def test_wizard_are_metoda_dcf(tmp_path):
+    body = _client(tmp_path).get("/wizard").text
+    assert 'value="dcf"' in body
+    assert 'id="dcf_fluxuri"' in body and 'id="dcf_rata"' in body
