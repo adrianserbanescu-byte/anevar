@@ -15,7 +15,9 @@ from evaluare.report.anonymizer import build_anonymizer
 from evaluare.engine.cost import evaluate_cost
 from evaluare.engine.land import evaluate_land
 from evaluare.engine.market import evaluate_market
-from evaluare.engine.reconciliation import reconcile, aloca_constructii
+from evaluare.engine.reconciliation import aloca_constructii, reconcile_profil
+from evaluare.engine.abordari import RezultatAbordare
+from evaluare.profil import ProfilEvaluare, CASA_TEREN_GARANTARE
 from evaluare.engine.validation import (
     Issue, valideaza_proprietate, valideaza_comparabile, valideaza_depreciere,
 )
@@ -32,6 +34,7 @@ class EvaluationInput(BaseModel):
     valoare_teren: Optional[Decimal] = None
     metoda: Literal["piata", "cost", "ponderata"] = "cost"
     pondere_piata: Decimal = Decimal("0.5")
+    profil: ProfilEvaluare = CASA_TEREN_GARANTARE
     photos: list[str] = Field(default_factory=list)   # data-URL base64 pentru anexa foto
     documente: list[str] = Field(default_factory=list)  # data-URL base64 (scanuri CF/cadastral) -> Anexa 3
 
@@ -70,10 +73,19 @@ def construieste_context(
     if inp.comparables:
         market_result = evaluate_market(inp.comparables, suprafata_subiect=inp.building.acd)
 
-    reconciled = reconcile(
-        market=market_result, cost=cost_result,
-        metoda=inp.metoda, pondere_piata=inp.pondere_piata,
-    )
+    rezultate = []
+    if cost_result is not None:
+        rezultate.append(RezultatAbordare(abordare="cost", valoare=cost_result.valoare_cost))
+    if market_result is not None:
+        rezultate.append(RezultatAbordare(abordare="comparatie", valoare=market_result.valoare_piata))
+    if inp.metoda == "cost":
+        primara, ponderi = "cost", None
+    elif inp.metoda == "piata":
+        primara, ponderi = "comparatie", None
+    else:  # ponderata
+        primara = "comparatie"
+        ponderi = {"comparatie": inp.pondere_piata, "cost": Decimal("1") - inp.pondere_piata}
+    reconciled = reconcile_profil(rezultate, primara=primara, ponderi=ponderi)
 
     alocare = None
     if valoare_teren is not None:
@@ -84,7 +96,7 @@ def construieste_context(
         comparables=inp.comparables, land_comparables=inp.land_comparables,
         cost_result=cost_result, market_result=market_result, reconciled=reconciled,
         land_result=land_result, alocare_constructii=alocare, photos=inp.photos,
-        documente=inp.documente,
+        documente=inp.documente, profil=inp.profil,
     )
 
     anonymizer = build_anonymizer(inp.meta)
