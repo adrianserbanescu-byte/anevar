@@ -1,7 +1,7 @@
 """Reconcilierea valorilor din abordarea prin piata si prin cost."""
 from __future__ import annotations
 
-from decimal import Decimal
+from decimal import ROUND_HALF_UP, Decimal
 from typing import Literal, Optional
 
 from evaluare.models.results import CostResult, MarketResult, ReconciledResult
@@ -88,7 +88,8 @@ def reconcile_profil(
         disponibile = [a for a in ponderi if a in valori]
         total_pondere = sum(ponderi[a] for a in disponibile)
         if len(disponibile) >= 2 and total_pondere > 0:
-            valoare = sum(valori[a] * ponderi[a] for a in disponibile) / total_pondere
+            valoare = (sum(valori[a] * ponderi[a] for a in disponibile) / total_pondere
+                       ).quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
             return ReconciledResult(valoare_finala=valoare, metoda_selectata="ponderata")
         # sub doua abordari disponibile -> ponderarea nu se aplica; selectie cu nota
         nota = "Ponderarea nu s-a putut aplica (sub doua abordari disponibile)."

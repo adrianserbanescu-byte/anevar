@@ -34,7 +34,7 @@ class EvaluationInput(BaseModel):
     land_comparables: list[LandComparable] = Field(default_factory=list)
     valoare_teren: Optional[Decimal] = None
     metoda: Literal["piata", "cost", "ponderata", "venit", "dcf"] = "cost"
-    pondere_piata: Decimal = Decimal("0.5")
+    pondere_piata: Decimal = Field(default=Decimal("0.5"), ge=0, le=1)
     profil: ProfilEvaluare = CASA_TEREN_GARANTARE
     date_venit: Optional[DateVenit] = None
     date_dcf: Optional[DateDCF] = None
@@ -90,10 +90,21 @@ def construieste_context(
         rezultate.append(RezultatAbordare(abordare="cost", valoare=cost_result.valoare_cost))
     if market_result is not None:
         rezultate.append(RezultatAbordare(abordare="comparatie", valoare=market_result.valoare_piata))
-    if venit_result is not None:
-        rezultate.append(RezultatAbordare(abordare="venit", valoare=venit_result.valoare))
-    if dcf_valoare is not None:
-        rezultate.append(RezultatAbordare(abordare="venit", valoare=dcf_valoare))
+    # Abordarea prin venit: capitalizare directa SAU DCF (nu ambele) — DCF doar daca metoda e "dcf".
+    venit_pt_reconciliere = None
+    if inp.metoda == "dcf":
+        venit_pt_reconciliere = dcf_valoare
+    elif venit_result is not None:
+        venit_pt_reconciliere = venit_result.valoare
+    if venit_pt_reconciliere is not None:
+        rezultate.append(RezultatAbordare(abordare="venit", valoare=venit_pt_reconciliere))
+
+    # Metoda ceruta explicit trebuie sa aiba date — altfel eroare clara, nu fallback tacut.
+    if inp.metoda == "venit" and venit_result is None:
+        raise ValueError("Metoda 'venit' ceruta, dar lipsesc datele de venit (date_venit).")
+    if inp.metoda == "dcf" and dcf_valoare is None:
+        raise ValueError("Metoda 'dcf' ceruta, dar lipsesc fluxurile DCF (date_dcf).")
+
     if inp.metoda in ("venit", "dcf"):
         primara, ponderi = "venit", None
     elif inp.metoda == "cost":

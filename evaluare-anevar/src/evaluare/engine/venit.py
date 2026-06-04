@@ -39,6 +39,11 @@ def evalueaza_venit(d: DateVenit) -> RezultatVenit:
     pierdere = d.venit_brut_potential * d.grad_neocupare
     venit_efectiv = d.venit_brut_potential - pierdere
     noi = (venit_efectiv - d.cheltuieli_exploatare).quantize(_BANI, rounding=ROUND_HALF_UP)
+    if noi <= 0:
+        raise ValueError(
+            f"Venitul net din exploatare (NOI) rezultat este <= 0 ({noi}); "
+            "verificati cheltuielile / gradul de neocupare fata de venitul brut."
+        )
     valoare = (noi / d.rata_capitalizare).quantize(_BANI, rounding=ROUND_HALF_UP)
     return RezultatVenit(noi=noi, valoare=valoare)
 
