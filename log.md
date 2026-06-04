@@ -292,3 +292,10 @@ se adaptează automat (raportul randa deja `meta.scop`/`meta.tip_valoare` în co
 **339 teste verzi**, pyflakes curat, exe reîmpachetat + smoke (evaluare IFRS + selector prezent). 9 profiluri
 predefinite total. Comituri `3192cf9`, `971812c`. Amânat: secțiunea GEV 500 dedicată (refactor generator).
 Următorul: **Faza 6 — DCF + grilă chirii**.
+
+### 2026-06-04 — Faza 6 (DCF) — motor implementat (subagent-driven)
+Aditiv: `evalueaza_dcf(fluxuri, rata_actualizare, valoare_reziduala)` în `engine/venit.py` — actualizarea
+fluxurilor de numerar multi-anuale + valoare reziduală; validări (rată > 0, fluxuri nevide). 5 teste
+(verificat manual: 3 ani × 100.000 la 10% = 248.685,20). **344 teste verzi**, pyflakes curat. Comit `4cbe67d`.
+**Rămas în Faza 6:** cablarea DCF în wizard (metoda „dcf" + fluxuri) + grila de chirii comparabile (chirie de
+piață) — motorul e gata, cablarea/UI urmează. Apoi Faza 7 (Special), Track B (a11y rămas), Track C.
