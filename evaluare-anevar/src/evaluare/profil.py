@@ -35,3 +35,8 @@ APARTAMENT_GARANTARE = ProfilEvaluare(
     tip_activ="apartament", scop="garantare_credit", tip_valoare="piata",
     abordari_aplicabile=["comparatie", "cost"], ghid="GEV_520",
 )
+
+COMERCIAL_INCHIRIAT = ProfilEvaluare(
+    tip_activ="comercial", scop="garantare_credit", tip_valoare="piata",
+    abordari_aplicabile=["venit", "comparatie"], ghid="GEV_630",
+)
