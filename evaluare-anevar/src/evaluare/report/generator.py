@@ -536,6 +536,9 @@ def genereaza_raport(
     doc.add_heading("4. DESCRIEREA JURIDICA SI FIZICA A PROPRIETATII", level=1)
     _nota(doc, "cap4", adnotari)
     doc.add_paragraph(f"Teren: {ctx.land.suprafata} mp, categorie {ctx.land.categorie}.")
+    if ctx.land.categorie_folosinta is not None:
+        clasa = f", clasa de calitate {ctx.land.clasa_calitate}" if ctx.land.clasa_calitate is not None else ""
+        doc.add_paragraph(f"Teren agricol: categorie de folosinta {ctx.land.categorie_folosinta}{clasa}.")
     doc.add_paragraph(
         f"Constructie: Au {ctx.building.au} mp, Acd {ctx.building.acd} mp, "
         f"an referinta {ctx.building.an_referinta}."

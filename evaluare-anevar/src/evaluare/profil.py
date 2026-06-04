@@ -45,3 +45,8 @@ INDUSTRIAL = ProfilEvaluare(
     tip_activ="industrial", scop="garantare_credit", tip_valoare="piata",
     abordari_aplicabile=["cost", "venit", "comparatie"], ghid="GEV_630",
 )
+
+AGRICOL = ProfilEvaluare(
+    tip_activ="agricol", scop="garantare_credit", tip_valoare="piata",
+    abordari_aplicabile=["comparatie"], ghid="GEV_630",
+)

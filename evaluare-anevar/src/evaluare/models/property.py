@@ -65,3 +65,5 @@ class LandData(BaseModel):
     deschidere: Optional[Decimal] = None
     utilitati: list[str] = Field(default_factory=list)
     restrictii_urbanism: Optional[str] = None
+    categorie_folosinta: Optional[str] = None   # arabil / pasune / vie / livada / padure
+    clasa_calitate: Optional[int] = None         # 1..5 (1 = cea mai bună)
