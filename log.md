@@ -216,3 +216,12 @@ matrice 5 axe (tip activ × scop × tip valoare × abordare × ghid), arhitectur
 evaluare + registru de abordări + raport pe secțiuni), **abordarea prin venit v1 = capitalizare directă**,
 roadmap fazat (Fazele 0–7). Validare pe standard acum + dosar real ulterior. Urmează plan pentru Faza 0
 (Fundația) după review-ul userului pe spec.
+
+### 2026-06-04 — planuri de implementare platformă (Faza 0 TDD + Fazele 1–7)
+Scrise (writing-plans): `docs/superpowers/plans/2026-06-04-faza0-fundatie.md` — plan **TDD complet,
+executabil** pentru Faza 0 (7 task-uri: `ProfilEvaluare`, `RezultatAbordare`+adaptoare, motor venit
+capitalizare directă, `reconcile_profil` aditiv, registru secțiuni, profil în `ReportContext`, verificare),
+ancorat în codul real, **strict aditiv** (281 teste rămân plasa de siguranță). Și
+`docs/superpowers/plans/2026-06-04-faze-1-7-roadmap-implementare.md` — planuri structurate pentru Fazele
+1–7 (apartament · comercial/venit · industrial · agricol · scopuri noi · DCF+chirii · special), cu
+dependențe + input extern necesar. Urmează execuția Faza 0 (subagent-driven sau inline — la alegerea userului).
