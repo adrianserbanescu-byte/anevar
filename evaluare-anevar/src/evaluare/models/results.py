@@ -32,7 +32,7 @@ class ReconciledResult(BaseModel):
     """Rezultatul reconcilierii finale."""
 
     valoare_finala: Decimal
-    metoda_selectata: Literal["piata", "cost", "ponderata"]
+    metoda_selectata: Literal["piata", "cost", "ponderata", "venit"]
     valoare_fara_tva: bool = True
     nota: str = ""
 

@@ -62,3 +62,35 @@ def aloca_constructii(
 ) -> Decimal:
     """Alocarea valorii (din rapoarte): valoarea constructiilor = proprietate - teren."""
     return valoare_proprietate - valoare_teren
+
+
+# Maparea numelui de abordare la eticheta de metodă din raport.
+_METODA = {"cost": "cost", "comparatie": "piata", "venit": "venit"}
+
+
+def reconcile_profil(rezultate, primara, ponderi=None):
+    """Reconciliază o listă de RezultatAbordare după profil.
+
+    - `primara`: numele abordării preferate (cost/comparatie/venit).
+    - `ponderi`: dacă e dat (dict nume->Decimal), face medie ponderată pe abordările cu valoare.
+    Dacă primara lipsește, cade pe prima abordare disponibilă și notează motivul.
+    """
+    valori = {r.abordare: r.valoare for r in rezultate if r.valoare is not None}
+    if not valori:
+        raise ValueError("Nicio abordare nu produce o valoare utilizabilă.")
+
+    if ponderi:
+        total_pondere = sum(ponderi[a] for a in ponderi if a in valori)
+        if total_pondere > 0:
+            valoare = sum(valori[a] * ponderi[a] for a in ponderi if a in valori) / total_pondere
+            return ReconciledResult(valoare_finala=valoare, metoda_selectata="ponderata")
+
+    if primara in valori:
+        return ReconciledResult(valoare_finala=valori[primara],
+                                metoda_selectata=_METODA[primara])
+    # fallback
+    abordare_disp = next(iter(valori))
+    return ReconciledResult(
+        valoare_finala=valori[abordare_disp], metoda_selectata=_METODA[abordare_disp],
+        nota=f'Abordarea "{primara}" indisponibila; s-a folosit "{abordare_disp}".',
+    )
