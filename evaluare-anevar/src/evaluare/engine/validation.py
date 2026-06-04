@@ -81,3 +81,16 @@ def valideaza_depreciere(building: BuildingData) -> list[Issue]:
             mesaj="Deprecierea functionala/externa nenula necesita justificare scrisa.",
         ))
     return issues
+
+
+def valideaza_profil(profil) -> list[Issue]:
+    """Avertismente de consistenta a profilului de evaluare."""
+    issues: list[Issue] = []
+    if not profil.abordari_aplicabile:
+        issues.append(Issue(nivel="blocheaza",
+                            mesaj="Profilul nu are nicio abordare aplicabila."))
+    for cheie in profil.ponderi:
+        if cheie not in profil.abordari_aplicabile:
+            issues.append(Issue(nivel="alerteaza",
+                                mesaj=f"Ponderea {cheie} nu corespunde unei abordari aplicabile."))
+    return issues
