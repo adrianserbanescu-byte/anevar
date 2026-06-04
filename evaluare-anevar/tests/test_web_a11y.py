@@ -16,7 +16,7 @@ def client(tmp_path):
 @pytest.mark.parametrize("ruta", ["/wizard", "/aml", "/grila", "/descoperire"])
 def test_pagina_are_landmark_main(client, ruta):
     html = client.get(ruta).text
-    assert "<main>" in html and "</main>" in html
+    assert "<main" in html and "</main>" in html
 
 
 @pytest.mark.parametrize("ruta", ["/wizard", "/aml", "/grila"])
@@ -51,3 +51,10 @@ def test_descoperire_labels(client):
     html = client.get("/descoperire").text
     assert 'for="judet"' in html and 'for="incalzire"' in html
     assert 'role="status"' in html
+
+
+@pytest.mark.parametrize("ruta", ["/wizard", "/aml", "/grila", "/descoperire"])
+def test_pagina_are_skip_link(client, ruta):
+    html = client.get(ruta).text
+    assert 'class="skip-link"' in html
+    assert 'id="continut"' in html

@@ -344,3 +344,13 @@ pre{ font-family:var(--mono); font-size:.82rem; background:var(--paper-sunk);
   body::before, .nav, button, input[type=file]{ display:none !important; }
   .pas{ display:block !important; box-shadow:none; border:1px solid #ccc; }
 }
+
+/* skip-link: vizibil doar la focus (WCAG 2.4.1) */
+.skip-link{ position:absolute; left:-9999px; top:0; background:var(--ink); color:#fff;
+  padding:8px 14px; border-radius:0 0 6px 0; z-index:100; text-decoration:none; }
+.skip-link:focus{ left:0; }
+/* tinte tactile minime (WCAG 2.5.8) */
+button, a.btn, input[type=file]::file-selector-button{ min-height:24px; }
+.del-up, .t-add{ min-height:24px; padding:4px 8px; }
+/* indicator de incarcare */
+[aria-busy="true"]{ cursor:progress; opacity:.7; }
