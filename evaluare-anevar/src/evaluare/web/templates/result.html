@@ -2,10 +2,42 @@
 <html lang="ro">
 <head><meta charset="utf-8"><title>Rezultat evaluare</title><style>{% include "_design.css" %}</style></head>
 <body>
+<nav class="nav" aria-label="Alte pagini ale aplicației"><a href="/">← evaluare nouă</a></nav>
 <h1>Rezultat evaluare</h1>
-<p>Client: <strong>{{ client_nume }}</strong></p>
-<p>Valoare finala: <strong>{{ valoare_finala }} LEI</strong> (metoda: {{ metoda }})</p>
-<p><a href="/api/evaluare/{{ eid }}/raport.docx">Descarca raport.docx</a></p>
-<p><a href="/">Evaluare noua</a></p>
+<main>
+<div class="rez certificat">
+  <p class="kicker">Valoare estimată</p>
+  <p class="val val-hero">{{ valoare_fmt }} <span class="moneda">{{ moneda }}</span></p>
+  {% if echiv %}<p class="hint echiv">≈ {{ echiv }} (la cursul BNR de la data evaluării)</p>{% endif %}
+  <hr class="rule">
+  <dl class="meta-grid">
+    <dt>Client</dt><dd>{{ client_nume }}</dd>
+    <dt>Metodă</dt><dd>{{ metoda }}</dd>
+  </dl>
+  <p class="actiuni">
+    <a class="btn" href="/api/evaluare/{{ eid }}/raport.docx">📄 Descarcă raportul .docx</a>
+    <a class="btn ghost" href="/api/evaluare/{{ eid }}/raport.docx?demo=1">📝 Raport cu note</a>
+  </p>
+</div>
+<p class="hint">Raportul este un <code>.docx</code> editabil în Word (pentru PDF: „Salvează ca → PDF").
+ Pentru o evaluare nouă, <a href="/">deschide wizardul</a>.</p>
+</main>
+
+<style>
+ .certificat{ text-align:center; padding:30px 26px; max-width:560px; margin:18px auto; }
+ .certificat .kicker{ font-family:var(--sans); text-transform:uppercase; letter-spacing:.18em;
+   font-size:.74rem; color:var(--sienna); font-weight:700; margin:0; }
+ .val-hero{ font-size:clamp(2.1rem,1.4rem + 2.6vw,3rem); margin:.12em 0 .05em; color:var(--sienna-deep); }
+ .val-hero .moneda{ font-size:.5em; color:var(--ink-2); font-family:var(--sans); font-weight:600;
+   letter-spacing:.04em; }
+ .certificat .echiv{ margin:0 0 4px; }
+ .rule{ border:0; border-top:1px solid var(--line); width:60%; margin:18px auto; }
+ .meta-grid{ display:grid; grid-template-columns:auto 1fr; gap:4px 16px; max-width:340px;
+   margin:0 auto 4px; text-align:left; font-size:.92rem; }
+ .meta-grid dt{ color:var(--ink-faint); font-weight:600; } .meta-grid dd{ margin:0; }
+ .actiuni{ margin-top:20px; display:flex; gap:10px; justify-content:center; flex-wrap:wrap; }
+ a.btn.ghost{ background:var(--paper-card); color:var(--sienna-deep); border-color:var(--line-2); }
+ a.btn.ghost:hover{ background:var(--paper-sunk); }
+</style>
 </body>
 </html>

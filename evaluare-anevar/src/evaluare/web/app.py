@@ -28,6 +28,13 @@ from evaluare.zona import extrage_zona
 DOCX_MIME = "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
 
 
+def _fmt_numar(v: Decimal) -> str:
+    """Format ro-RO cu 2 zecimale: mii separate cu '.', zecimale cu ','. Ex: 316000 -> '316.000,00'."""
+    q = v.quantize(Decimal("0.01"))
+    s = f"{q:,.2f}"                                  # en: 316,000.00
+    return s.replace(",", "·").replace(".", ",").replace("·", ".")
+
+
 class ImportUrlRequest(BaseModel):
     url: str
 
@@ -181,10 +188,21 @@ def create_app(storage: Storage, client: Optional[NarrativeClient],
             ctx = storage.load(eid)
         except KeyError:
             raise HTTPException(status_code=404, detail="Dosar inexistent.")
+        val = ctx.reconciled.valoare_finala
+        moneda = (ctx.meta.moneda or "LEI").upper()
+        curs = ctx.meta.curs_valutar
+        echiv = None
+        if curs:
+            if moneda == "LEI":
+                echiv = _fmt_numar(val / curs) + " EUR"
+            elif moneda == "EUR":
+                echiv = _fmt_numar(val * curs) + " LEI"
         return templates.TemplateResponse(request, "result.html", {
             "eid": eid,
             "client_nume": ctx.meta.client_nume,
-            "valoare_finala": str(ctx.reconciled.valoare_finala),
+            "valoare_fmt": _fmt_numar(val),
+            "moneda": moneda,
+            "echiv": echiv,
             "metoda": ctx.reconciled.metoda_selectata,
         })
 

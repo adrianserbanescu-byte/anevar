@@ -11,7 +11,7 @@
   --paper-sunk:#e9e2d0;      /* casetă adâncită */
   --ink:#16263d;             /* cerneală bleumarin */
   --ink-2:#3a4a60;
-  --ink-faint:#6c7686;
+  --ink-faint:#5a6270;       /* contrast ≥4.5:1 pe hârtie (WCAG AA) */
   --line:#d7cdb4;            /* hairline cald (alamă pal) */
   --line-2:#bcae8c;
   --sienna:#9d4a25;          /* roșu-brun de topograf (acțiuni, accent) */
@@ -173,6 +173,14 @@ button:hover{ background:var(--sienna-deep); transform:translateY(-1px);
 button:active{ transform:translateY(0); }
 button:disabled{ background:var(--paper-sunk); color:var(--ink-faint);
   border-color:var(--line-2); box-shadow:none; cursor:not-allowed; transform:none; }
+
+/* link stilizat ca buton (CTA, ex. descărcare raport) */
+a.btn{ display:inline-block; text-decoration:none; color:#fdf8ef; background:var(--sienna);
+  border:1px solid var(--sienna-deep); border-radius:6px; padding:10px 20px; font-weight:600;
+  font-family:var(--sans); font-size:.9rem; letter-spacing:.015em;
+  box-shadow:0 1px 0 rgba(255,255,255,.25) inset, 0 6px 14px -8px rgba(124,58,27,.6);
+  transition:transform .12s, background .15s; }
+a.btn:hover{ background:var(--sienna-deep); color:#fdf8ef; text-decoration:none; transform:translateY(-1px); }
 
 :focus-visible{ outline:2px solid var(--sienna); outline-offset:2px; }
 

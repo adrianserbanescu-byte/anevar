@@ -52,6 +52,17 @@ def test_get_evaluare_returns_summary(tmp_path):
     assert resp.json()["client_nume"] == "Ion Popescu"
 
 
+def test_pagina_result_certificat(tmp_path):
+    # Grup 3: /result ca „certificat" — valoare hero formatată ro-RO + buton de descărcare
+    client = _client(tmp_path)
+    eid = client.post("/api/evaluare", json=_payload()).json()["id"]
+    html = client.get(f"/evaluare/{eid}").text
+    assert "val-hero" in html                     # valoarea ca element hero
+    assert "316.000,00" in html                   # 316000 -> format ro-RO, 2 zecimale
+    assert "316000.0000" not in html              # nu mai apare valoarea neformatată
+    assert 'class="btn"' in html and "/raport.docx" in html   # CTA de descărcare
+
+
 def test_download_raport_docx(tmp_path):
     client = _client(tmp_path)
     eid = client.post("/api/evaluare", json=_payload()).json()["id"]
