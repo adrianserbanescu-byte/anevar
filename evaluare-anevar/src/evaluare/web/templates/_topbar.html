@@ -1,0 +1,17 @@
+{# Bara de brand + navigare. Setează {% set pagina %} pentru evidențierea paginii curente. #}
+<div class="topbar">
+  <a class="brand" href="/wizard" aria-label="Acasă — Registru de evaluare">
+    <span class="brand-seal" aria-hidden="true">EA</span>
+    <span class="brand-text">
+      <span class="kicker">Registru de evaluare</span>
+      <span class="brand-title">ANEVAR · Cabinet de evaluare imobiliară</span>
+    </span>
+  </a>
+  <nav class="topnav" aria-label="Navigare principală">
+    <a href="/wizard"      {% if pagina == 'wizard' %}aria-current="page"{% endif %}>Wizard</a>
+    <a href="/grila"       {% if pagina == 'grila' %}aria-current="page"{% endif %}>Grile</a>
+    <a href="/descoperire" {% if pagina == 'descoperire' %}aria-current="page"{% endif %}>Descoperire</a>
+    <a href="/aml"         {% if pagina == 'aml' %}aria-current="page"{% endif %}>AML</a>
+    <a href="/formular"    {% if pagina == 'formular' %}aria-current="page"{% endif %}>Formular</a>
+  </nav>
+</div>

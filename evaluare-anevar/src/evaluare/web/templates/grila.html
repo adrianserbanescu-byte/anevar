@@ -4,7 +4,7 @@
 <style>{% include "_design.css" %}</style></head>
 <body>
 <a class="skip-link" href="#continut">Sari la conținut</a>
-<nav class="nav" aria-label="Alte pagini ale aplicației"><a href="/">← wizard</a> · <a href="/descoperire">descoperire comparabile</a></nav>
+{% set pagina = "grila" %}{% include "_topbar.html" %}
 {% set kicker = "Registru de evaluare" %}{% set titlu = "Grilă de ajustări" %}{% set subtitlu = "Grile de comparabile: teren · casă · chirii." %}{% include "_cartus.html" %}
 <main id="continut">
 <p class="hint">Completează prețul de pornire și ajustările pe fiecare element, pentru fiecare comparabil.

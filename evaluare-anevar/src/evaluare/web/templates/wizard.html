@@ -4,6 +4,7 @@
 <style>{% include "_design.css" %}</style></head>
 <body>
 <a class="skip-link" href="#continut">Sari la conținut</a>
+{% set pagina = "wizard" %}{% include "_topbar.html" %}
 {% set kicker = "Registru de evaluare" %}
 {% set titlu = "Evaluare imobiliară — pas cu pas" %}
 {% set subtitlu = "Flux ghidat: adresă · subiect · comparabile · calcul · raport." %}
@@ -23,6 +24,7 @@
   </ol>
 </nav>
 <p id="eticheta-pas" role="status" class="sr-only"></p>
+<div class="wizard-grid">
 <main id="continut">
 
 <!-- PAS 1 -->
@@ -288,6 +290,22 @@
   <button type="button" id="reset">Reset dosar</button>
 </div>
 </main>
+<aside class="recap" aria-label="Recapitulare dosar">
+  <div class="recap-card">
+    <div class="kicker">Date dosar</div>
+    <dl class="recap-list">
+      <dt>Nr. dosar</dt><dd id="r_dosar">nesalvat</dd>
+      <dt>Client</dt><dd id="r_client_nume">—</dd>
+      <dt>Beneficiar</dt><dd id="r_beneficiar">—</dd>
+      <dt>Proprietar</dt><dd id="r_proprietar">—</dd>
+      <dt>Scop</dt><dd id="r_scop">—</dd>
+      <dt>Adresă</dt><dd id="r_adresa">—</dd>
+      <dt>Cadastral</dt><dd id="r_numar_cadastral">—</dd>
+      <dt>Evaluator</dt><dd id="r_evaluator_nume">—</dd>
+    </dl>
+  </div>
+</aside>
+</div>
 
 <script>{% include "_helpers.js" %}</script>
 <script>
@@ -600,6 +618,22 @@ function preiaVbpGrila(){
       '<p class="hint">✓ Venit brut potențial preluat din grila de chirii: '+fmtRo(vbp)+
       ' EUR. Completează rata de capitalizare la Pas 3 și calculează.</p>';
 }
-incarcaLocalitati().then(()=>{ incarca(); incarcaEvaluator(); populeazaLocalitati(); arata(); wireAjutor(); preiaVbpGrila(); });
+// Recapitulare live „Date dosar" (panoul lateral).
+function actualizeazaRecap(){
+  const set=(id,val)=>{ const el=$("r_"+id); if(el) el.textContent=(val&&String(val).trim())||"—"; };
+  ["client_nume","beneficiar","proprietar","scop","numar_cadastral","evaluator_nume"].forEach(c=>{
+    set(c, $(c)?$(c).value:"");
+  });
+  let loc="";
+  const sl=$("localitate");
+  if(sl){ loc = (sl.selectedOptions && sl.selectedOptions[0] && sl.selectedOptions[0].value) ? sl.selectedOptions[0].text : sl.value; }
+  const strada=$("adresa_strada")?$("adresa_strada").value:"";
+  set("adresa", [strada, loc].filter(Boolean).join(", "));
+  const nd=$("r_dosar"); if(nd) nd.textContent = evaluareId ? ("#"+evaluareId) : "nesalvat";
+}
+document.addEventListener("input", actualizeazaRecap);
+document.addEventListener("change", actualizeazaRecap);
+
+incarcaLocalitati().then(()=>{ incarca(); incarcaEvaluator(); populeazaLocalitati(); arata(); wireAjutor(); preiaVbpGrila(); actualizeazaRecap(); });
 </script>
 </body></html>

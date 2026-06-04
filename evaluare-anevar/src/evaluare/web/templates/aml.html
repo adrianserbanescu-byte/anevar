@@ -4,7 +4,7 @@
 <style>{% include "_design.css" %}</style></head>
 <body>
 <a class="skip-link" href="#continut">Sari la conținut</a>
-<nav class="nav" aria-label="Alte pagini ale aplicației"><a href="/">← wizard</a> · <a href="/grila">grilă</a> · <a href="/descoperire">descoperire</a></nav>
+{% set pagina = "aml" %}{% include "_topbar.html" %}
 {% set kicker = "Conformitate" %}{% set titlu = "Conformitate AML — Legea 129/2019" %}{% set subtitlu = "KYC · evaluare de risc · documente de raportare." %}{% include "_cartus.html" %}
 <p class="hint">Asistă obligațiile evaluatorului ca <b>entitate raportoare</b>: cunoașterea clientelei (KYC),
 beneficiar real, evaluarea de risc, indicatorii de suspiciune și pragul de numerar (10.000 €).

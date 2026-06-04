@@ -383,6 +383,24 @@ pre{ font-family:var(--mono); font-size:.82rem; background:var(--paper-sunk);
    cartuș de hartă, kicker de marcă, sigiliu ANEVAR. Clase reutilizabile.
    =================================================================== */
 
+/* ---- Bara de brand + navigare (sus, pe toate paginile) ---- */
+.topbar{ display:flex; align-items:center; justify-content:space-between; gap:18px;
+  flex-wrap:wrap; padding:6px 0 12px; margin-bottom:10px; border-bottom:1px solid var(--line); }
+.brand{ display:flex; align-items:center; gap:12px; text-decoration:none; }
+.brand:hover{ text-decoration:none; }
+.brand-seal{ width:38px; height:38px; border-radius:50%; flex:none; display:grid; place-items:center;
+  font-family:var(--serif); font-weight:700; font-size:.92rem; color:var(--ink);
+  border:2px solid var(--brass); box-shadow:var(--emboss);
+  background:radial-gradient(circle at 32% 30%, #fff, var(--paper-sunk)); }
+.brand-text{ display:flex; flex-direction:column; line-height:1.18; }
+.brand-title{ font-family:var(--serif); color:var(--ink); font-size:1rem; letter-spacing:-.005em; }
+.topnav{ display:flex; gap:4px; flex-wrap:wrap; font-family:var(--sans); font-size:.9rem; }
+.topnav a{ padding:6px 13px; border-radius:var(--radius-sm); color:var(--ink-faint);
+  border:1px solid transparent; text-decoration:none; transition:color .15s, border-color .15s, background .15s; }
+.topnav a:hover{ color:var(--ink); border-color:var(--line); text-decoration:none; }
+.topnav a[aria-current=page]{ color:var(--ink); background:var(--paper-sunk); border-color:var(--line-2); font-weight:600; }
+@media (max-width:640px){ .brand-text .kicker{ display:none; } .topnav{ font-size:.82rem; width:100%; } }
+
 /* ---- Cartuș de hartă cadastrală: antet de pagină încadrat ---- */
 .cartus{
   position:relative; margin:6px 0 22px; padding:22px 30px;
@@ -410,6 +428,17 @@ pre{ font-family:var(--mono); font-size:.82rem; background:var(--paper-sunk);
   .cartus{ padding:16px 18px; } .cartus .compas{ display:none; }
   .cartus .coord{ display:none; } .colt-wrap{ width:16px; height:16px; }
 }
+
+/* ---- Wizard: grilă cu panou lateral „Date dosar" ---- */
+.wizard-grid{ display:grid; grid-template-columns:1fr; gap:18px; align-items:start; }
+@media (min-width:980px){ .wizard-grid{ grid-template-columns:minmax(0,1fr) 270px; } }
+.recap-card{ background:var(--paper-card); border:1px solid var(--line);
+  border-radius:var(--radius-sm); box-shadow:var(--shadow); padding:16px 18px;
+  position:sticky; top:16px; }
+.recap-card .kicker{ display:block; margin-bottom:10px; padding-bottom:8px; border-bottom:1px solid var(--line); }
+.recap-list{ display:grid; grid-template-columns:auto 1fr; gap:7px 12px; margin:0; font-size:.88rem; }
+.recap-list dt{ color:var(--ink-faint); font-weight:600; }
+.recap-list dd{ margin:0; color:var(--ink); word-break:break-word; font-variant-numeric:tabular-nums; }
 
 /* antet de pagină cu busolă de topograf în dreapta */
 .page-head{ position:relative; }
