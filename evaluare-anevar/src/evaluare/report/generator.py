@@ -566,6 +566,19 @@ def genereaza_raport(
     _adauga_grila_comparatie(doc, ctx)
     _adauga_grila_teren(doc, ctx)
     _adauga_tabel_cost(doc, ctx)
+    if ctx.venit_result is not None:
+        doc.add_heading("Abordarea prin venit (capitalizare directă)", level=2)
+        dv, vr = ctx.date_venit, ctx.venit_result
+        if dv is not None:
+            doc.add_paragraph(
+                f"Venit brut potențial: {dv.venit_brut_potential} lei/an; "
+                f"neocupare {dv.grad_neocupare}; cheltuieli {dv.cheltuieli_exploatare} lei/an; "
+                f"rată de capitalizare {dv.rata_capitalizare}."
+            )
+        doc.add_paragraph(
+            f"Venit net din exploatare (NOI): {vr.noi} lei. "
+            f"Valoare = NOI / rată = {vr.valoare} lei."
+        )
     justificare = _narativ(ctx, "Justificarea ajustarilor aplicate")
     if justificare:
         doc.add_paragraph(justificare)
