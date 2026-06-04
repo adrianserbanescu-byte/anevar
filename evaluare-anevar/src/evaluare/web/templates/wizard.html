@@ -181,11 +181,19 @@
    sunt deja cu diacritice (din liste); completează/corectează diacriticele pentru stradă și restul
    adresei înainte de a genera raportul.</small><br>
   <label for="metoda">Metodă</label>
-  <select id="metoda">
+  <select id="metoda" onchange="document.getElementById('venit-fields').style.display=this.value==='venit'?'block':'none'">
     <option value="cost">Cost (CIN + teren)</option>
     <option value="piata">Piață (comparație)</option>
     <option value="ponderata">Ponderată</option>
+    <option value="venit">Venit (capitalizare directă)</option>
   </select>
+  <div id="venit-fields" style="display:none">
+    <label for="vbp">Venit brut potențial (lei/an)</label><input id="vbp">
+    <label for="neocupare">Grad neocupare (0–1)</label><input id="neocupare" value="0">
+    <label for="cheltuieli">Cheltuieli exploatare (lei/an)</label><input id="cheltuieli" value="0">
+    <label for="rata_cap">Rată de capitalizare (0–1)</label><input id="rata_cap">
+    <small class="hint">Pentru metoda „venit": valoare = NOI ÷ rată de capitalizare.</small>
+  </div>
   <label for="moneda">Monedă raportare</label>
   <select id="moneda">
     <option value="EUR">EUR</option>
@@ -247,7 +255,7 @@ const CAMPURI = ["judet","localitate","localitate_alt","adresa_strada","client_n
  "suprafata_teren","au","acd","an_referinta",
  "valoare_teren","elemente","depreciere","attr_an","attr_stare","attr_finisaj",
  "attr_incalzire","atribute_secundare","comparabile","metoda","moneda","curs_valutar",
- "adresa_raport"];
+ "adresa_raport","vbp","neocupare","cheltuieli","rata_cap"];
 
 function salveaza(){ const s={}; CAMPURI.forEach(c=>{if($(c))s[c]=$(c).value});
   localStorage.setItem("wizard", JSON.stringify(s)); }
@@ -465,10 +473,15 @@ function asambleaza(){
   if($("nr_niveluri_bloc").value) building.nr_niveluri_bloc=parseInt($("nr_niveluri_bloc").value);
   if($("an_bloc").value) building.an_bloc=parseInt($("an_bloc").value);
   if($("cota_teren_indiviza").value) building.cota_teren_indiviza=$("cota_teren_indiviza").value;
+  let date_venit=null;
+  if($("metoda").value==="venit" && $("vbp").value && $("rata_cap").value){
+    date_venit={venit_brut_potential:$("vbp").value, grad_neocupare:$("neocupare").value||"0",
+      cheltuieli_exploatare:$("cheltuieli").value||"0", rata_capitalizare:$("rata_cap").value};
+  }
   return{meta,
     land:{suprafata:$("suprafata_teren").value},
     building, comparables,
-    valoare_teren:$("valoare_teren").value, metoda:$("metoda").value, photos:FOTOS,
+    valoare_teren:$("valoare_teren").value, metoda:$("metoda").value, date_venit, photos:FOTOS,
     documente:DOCUMENTE};
 }
 

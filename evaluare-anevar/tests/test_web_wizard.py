@@ -77,3 +77,9 @@ def test_wizard_retine_identitatea_evaluatorului(tmp_path):
     # reset sterge doar dosarul, nu identitatea evaluatorului
     assert 'localStorage.removeItem("wizard")' in body
     assert 'localStorage.removeItem("evaluator")' not in body
+
+
+def test_wizard_are_metoda_venit(tmp_path):
+    body = _client(tmp_path).get("/wizard").text
+    assert 'value="venit"' in body
+    assert 'id="vbp"' in body and 'id="rata_cap"' in body
