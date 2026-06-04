@@ -5,7 +5,7 @@
 > `evaluare-anevar/scripts/export_chat.py`. Secretele (chei API) sunt redactate. Se
 > regenereaza la fiecare rulare (actualizare orara). Pentru sinteza, vezi `log.md`.
 
-**Mesaje:** 1317.
+**Mesaje:** 1328.
 
 ---
 
@@ -12636,3 +12636,74 @@ The commit failed (PowerShell here-string mangled the message). The spec is stag
 ## Assistant  ·  2026-06-04 08:03:33
 
 All four list-A items done, exe rebuilt + smoke-passed, fixes committed. Per standing rules, let me update the project log. First regenerate `log_complet.md`:
+
+## Assistant  ·  2026-06-04 08:04:19
+
+Now let me append a new log entry covering this session's work:
+
+## Assistant  ·  2026-06-04 08:04:47
+
+All four list-A items are complete, the exe is rebuilt and smoke-passed, and everything is committed with the log updated. Let me close the loop on the rent-grid story by bridging it into the wizard (so the computed VBP flows into the income method instead of being copied by hand). First, add a "send to wizard" action in the grila result:
+
+## Assistant  ·  2026-06-04 08:05:16
+
+Now the wizard side — consume the VBP on load into the income method:
+
+## Assistant  ·  2026-06-04 08:05:28
+
+Let me run the web tests and verify nothing broke:
+
+## Assistant  ·  2026-06-04 08:06:21
+
+68 passed. Let me add a regression assertion for the bridge and run the full suite:
+
+## Assistant  ·  2026-06-04 08:07:11
+
+371 passed, pyflakes clean. Let me commit the wizard bridge, then do a final exe rebuild to ship the updated templates:
+
+## Assistant  ·  2026-06-04 08:16:41
+
+PowerShell 5.1 has no ternary — let me rerun without that dead block:
+
+## Assistant  ·  2026-06-04 08:17:43
+
+Final exe smoke fully green: ready, `/wizard` 200 (bridge present), `/grila` 200 (button present), `/api/grila-chirii` 200 (VBP 12000.00). Let me confirm a clean tree:
+
+## Assistant  ·  2026-06-04 08:18:08
+
+Tree clean, totul livrat. Am dus la capăt autonom întreaga listă „A" peste platforma deja completă, strict aditiv:
+
+## Ce am făcut în această sesiune
+
+**A3.1 — Raport conștient de ghid (GEV)** — `b6ffaa5`
+Raportul cita „GEV 520" indiferent de scop. Acum declarația de conformitate + scrisoarea de transmitere citează ghidul din profil (GEV 520/630/500), iar termenii de referință GEV 520 (A3/A4/A5/A8) și secțiunea de risc al garanției apar **doar** la garantarea împrumutului. Pentru `CASA_TEREN_GARANTARE` ieșirea rămâne byte-identică (cele 12 teste de conținut verzi). +`test_report_ghid.py`.
+
+**A3.2 — Formatare ro-RO** — `ce33861`
+Helper `fmtRo()` (separator mii „.", virgulă zecimală, 2 zecimale) pe rezultatele din wizard și grilă, în loc de punct/fără zecimale.
+
+**A3.3 — Accesibilitate WCAG** — `bef12b0`
+`aria-describedby` auto-legat câmp↔text-ajutor (`wireAjutor`) și `<fieldset>/<legend>` pe grupurile condiționale de tip proprietate. Enter-to-submit omis deliberat (ar rupe navigarea liberă între pași — decizia ta fermă).
+
+**A3.4 — Grilă de chirii comparabile → venit** — `d782914` + `4b6df4a`
+`engine/chirie.py` (aceeași metodologie în 2 etape ca grila de teren) → chirie de piață → **venit brut potențial anual** care alimentează capitalizarea directă. Modele `RentComparable`/`RentResult`, endpoint `POST /api/grila-chirii`, a treia grilă în `/grila`, plus **punte automată** în wizard (butonul „➕ trimite VBP în wizard" → preluat la deschidere în metoda venit). +`test_chirie.py` (7) + teste API + punte.
+
+**Fix critic exe** — `1912572`
+Exe-ul nou nu pornea: Pillow 12.2 a inclus binarul `_avif` care corupea arhiva PKG („decompression −1"). Exclus din spec (nu folosim AVIF). 
+
+## Stare finală
+- **371 teste verzi**, pyflakes curat
+- **Exe reconstruit + smoke live**: `/wizard`, `/grila`, `/api/grila-chirii` → 200, VBP corect (12000.00), puntea prezentă în ambele pagini
+- Logurile actualizate (`log.md` + `log_complet.md`), tree curat
+
+Toate cele 4 abordări (cost, comparație, venit-capitalizare, venit-DCF) au acum și calea de la chirii comparabile la chiria de piață, iar raportul e corect din punct de vedere al ghidului aplicabil pentru toate cele 5 scopuri.
+
+## User  ·  2026-06-04 08:18:18
+
+Actualizare orară a logurilor proiectului:
+1) Rulează `cd C:\Users\adyse\anevar\evaluare-anevar && python scripts/export_chat.py` ca să regenerezi log_complet.md (transcript verbatim, include mesajele noi). Dacă fișierul s-a schimbat, comite-l.
+2) Dacă în ultima oră a apărut ceva NOU de consemnat, adaugă o intrare cu data/ora în secțiunea „Actualizări (orare)" din C:\Users\adyse\anevar\log.md și comite. Dacă nu e nimic nou, nu scrie nimic în log.md.
+3) Reprogramează această actualizare peste încă o oră (ScheduleWakeup 3600s cu același prompt).
+
+## Assistant  ·  2026-06-04 08:18:30
+
+Rulez actualizarea orară a logurilor.

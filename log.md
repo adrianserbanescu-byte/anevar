@@ -350,3 +350,10 @@ endpoint `POST /api/grila-chirii`, a treia grilă în `/grila`. +`test_chirie.py
 **Fix critic exe:** Pillow 12.2 a inclus binarul `_avif` care corupea arhiva PKG („decompression -1"); exclus din spec
 (nu folosim AVIF). Exe reconstruit + smoke live: `/wizard`, `/grila`, `/api/grila-chirii` → 200 (VBP 12000.00 corect).
 **370 teste verzi**, pyflakes curat.
+
+### 2026-06-04 — punte VBP grilă chirii → wizard + exe final
+Completat povestea grilei de chirii: în `/grila`, rezultatul are buton **„➕ trimite VBP în wizard"** care
+salvează venitul brut potențial anual în `localStorage`; la deschiderea wizardului `preiaVbpGrila()` îl preia
+o singură dată (setează metoda=venit, completează câmpul VBP, anunță utilizatorul). +2 teste (punte prezentă în
+`/grila` și `/wizard`). **371 teste verzi**, pyflakes curat. Exe reconstruit cu toate șabloanele A3 și
+**smoke live**: `/wizard`+`/grila`+`/api/grila-chirii` → 200, puntea prezentă în ambele pagini, VBP 12000.00.
