@@ -14,6 +14,7 @@
   --ink-faint:#5a6270;       /* contrast ≥4.5:1 pe hârtie (WCAG AA) */
   --line:#d7cdb4;            /* hairline cald (alamă pal) */
   --line-2:#bcae8c;
+  --field-border:#9c8a62;    /* bordură control: contrast ≥3:1 pe card (WCAG 1.4.11) */
   --sienna:#9d4a25;          /* roșu-brun de topograf (acțiuni, accent) */
   --sienna-deep:#7c3a1b;
   --green:#2f6b4f;           /* verde cadastral (succes / relevanță) */
@@ -133,7 +134,7 @@ label{ display:block; font-family:var(--sans); font-weight:600; color:var(--ink)
 input,select,textarea{
   font-family:var(--sans); font-size:.95rem; color:var(--ink);
   background:var(--paper-card);
-  border:1px solid var(--line-2); border-radius:6px;
+  border:1px solid var(--field-border); border-radius:6px;
   padding:8px 10px; max-width:100%;
   font-variant-numeric:tabular-nums;
   box-shadow:var(--emboss);
