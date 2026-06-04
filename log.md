@@ -196,3 +196,23 @@ etichetă sr-only role=status, focus pe titlu, tastatură). Stil în `_design.cs
 Eticheta „Alternative:" grupa greșit toate cele 4 linkuri ca alternative la wizard (artefact istoric).
 Separate: **„Instrumente:"** (descoperire · grilă · AML — complementare) și **„Vizualizare alternativă:"**
 (formular clasic — singura cu adevărat alternativă). Exe reîmpachetat.
+
+### 2026-06-04 — identitate evaluator persistentă (B3) + decizii
+**B3 făcut:** numele + legitimația evaluatorului se cer la Pas 1 și se **rețin între sesiuni**
+(`localStorage["evaluator"]` separat de dosar — supraviețuiește la „Reset dosar"), pre-completate la
+fiecare deschidere, editabile. +1 test; verificat live + smoke exe (281 teste). **B1 (export PDF
+in-app): decis „nu e cazul"** (rămâne Word→PDF). Liste de lucru noi: `docs/taskuri-ramase.md`.
+
+### 2026-06-04 — critica de design + plan UI/accesibilitate consolidat
+Rulat `design-critique` pe app (preview live). Findings cheie: `/result` prea minimal (valoare
+neevidențiată, `316000.0000` neformatat, descărcare ca link text); **contrast `.hint` ≈3.9:1 < AA**
+(regresie din redesign); densitate pierdută pe descoperire/grilă (labeluri inline → bloc). Consolidat
+cu Accesibilitate Faza 2 în `docs/plan-ui-accesibilitate.md` (Grupuri 1–4, ordonate, autonome).
+
+### 2026-06-04 — plan-master extindere platformă (B2, brainstorming)
+Decizie user (B2): extindere la **toate tipurile de evaluări imobiliare în toate condițiile**.
+Brainstorming → spec `docs/superpowers/specs/2026-06-04-platforma-evaluare-imobiliara-master-design.md`:
+matrice 5 axe (tip activ × scop × tip valoare × abordare × ghid), arhitectură **Varianta 1** (profil de
+evaluare + registru de abordări + raport pe secțiuni), **abordarea prin venit v1 = capitalizare directă**,
+roadmap fazat (Fazele 0–7). Validare pe standard acum + dosar real ulterior. Urmează plan pentru Faza 0
+(Fundația) după review-ul userului pe spec.
