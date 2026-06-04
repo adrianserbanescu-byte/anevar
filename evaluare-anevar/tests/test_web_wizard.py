@@ -107,3 +107,8 @@ def test_wizard_are_metoda_dcf(tmp_path):
     body = _client(tmp_path).get("/wizard").text
     assert 'value="dcf"' in body
     assert 'id="dcf_fluxuri"' in body and 'id="dcf_rata"' in body
+
+
+def test_wizard_are_special(tmp_path):
+    body = _client(tmp_path).get("/wizard").text
+    assert 'value="special"' in body

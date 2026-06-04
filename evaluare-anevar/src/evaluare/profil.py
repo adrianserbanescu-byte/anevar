@@ -67,3 +67,8 @@ LITIGII = ProfilEvaluare(
     tip_activ="casa", scop="litigii", tip_valoare="piata",
     abordari_aplicabile=["comparatie", "cost"], ghid="GEV_630",
 )
+
+SPECIAL = ProfilEvaluare(
+    tip_activ="special", scop="garantare_credit", tip_valoare="piata",
+    abordari_aplicabile=["venit", "comparatie", "cost"], ghid="GEV_630",
+)
