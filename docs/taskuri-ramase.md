@@ -39,8 +39,10 @@
 ## B. Necesită INPUT / DECIZIE de la tine
 
 - [x] ~~**B1. Export PDF in-app**~~ — **decis: nu e cazul.** Rămâne „Word → Salvează ca PDF".
-- [ ] **B2. Suport multi-tip proprietate** (apartament, spațiu comercial) dincolo de casă+teren — scope mare;
-      îl vrei? *(roadmap Later #16)* **L**
+- [x] ~~**B2. Suport multi-tip proprietate**~~ — **FĂCUT** (2026-06-04, platforma Fazele 0–7): casă,
+      apartament, comercial, industrial, agricol, special; abordări cost/comparație/venit-capitalizare/
+      venit-DCF; 5 scopuri (garantare/IFRS/asigurare/impozitare/litigiu). Vezi `log.md` §Faze 0–7.
+      Rămas (Later): grilă de chirii comparabile; metode specializate (profit) pentru hotel/benzinărie.
 - [x] ~~**B3. Date evaluator implicite**~~ — **FĂCUT** (2026-06-04): identitatea evaluatorului (nume +
       legitimație) se cere la Pas 1, se **reține între sesiuni** (store `localStorage["evaluator"]` separat,
       supraviețuiește la „Reset dosar"), pre-completată la fiecare deschidere, **editabilă**.
