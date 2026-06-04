@@ -11,16 +11,16 @@ recomandată de execuție. Efort: **S** mic · **M** mediu. Sursă în paranteze
 
 ## Grup 1 — Corecturi de conformitate (rapide, impact mare)
 - [x] **G1.1** ✅ Contrast `.hint` — `--ink-faint` `#6c7686` → `#5a6270` (≈3.9:1 → ≈5.3:1, WCAG AA). `[critică #1]`
-- [ ] **G1.2** **Skip-link** „Sari la conținut" → `<main id="continut">`, pe toate paginile. `[A1.4]` **S**
-- [ ] **G1.3** `type="date"` pe câmpurile de dată (wizard + form: data_evaluarii/raportului/inspectiei). `[A1.2]` **S**
-- [ ] **G1.4** `autocomplete` pe câmpurile de identitate (evaluator, client, proprietar). `[A1.5]` **S**
-- [ ] **G1.5** Țintă tactilă **≥24px** pentru butoanele mici („șterge" upload, „➕ grilă", del-up). `[A1.6 + critică]` **S**
+- [x] **G1.2** ✅ **Skip-link** „Sari la conținut" → `<main id="continut">`, pe toate paginile. `[A1.4]` **S**
+- [x] **G1.3** ✅ `type="date"` pe câmpurile de dată (wizard + form: data_evaluarii/raportului/inspectiei). `[A1.2]` **S**
+- [x] **G1.4** ✅ `autocomplete` pe câmpurile de identitate (evaluator, client, proprietar). `[A1.5]` **S**
+- [x] **G1.5** ✅ Țintă tactilă **≥24px** pentru butoanele mici („șterge" upload, „➕ grilă", del-up). `[A1.6 + critică]` **S**
 
 ## Grup 2 — Formulare (semantică + densitate)
 - [ ] **G2.1** `<form>` real + **submit pe Enter** (wizard/grila/descoperire/aml/form). Butoanele de acțiune
       devin `type="submit"` unde e cazul; **fără gating** pe wizard (rămâne navigare liberă). `[A1.1]` **M**
 - [ ] **G2.2** `aria-describedby` — leagă mesajele de stare/eroare de câmpurile corespunzătoare. `[A1.3]` **M**
-- [ ] **G2.3** `aria-busy="true"` pe regiunile în timpul fetch (descoperire, calcul, curs BNR, ingestie). `[A1.7]` **S**
+- [x] **G2.3** ✅ `aria-busy="true"` pe regiunile în timpul fetch (descoperire, calcul, curs BNR, ingestie). `[A1.7]` **S**
 - [ ] **G2.4** `<fieldset>`/`<legend>` pentru grupurile de câmpuri din wizard (ca în `/aml`). `[A1.8]` **S**
 - [ ] **G2.5** **Densitate descoperire/grila** — labelurile inline ale mini-formularelor au devenit bloc
       (din `label{display:block}` global + `<label for>`); fă-le compacte (label inline / grid). `[critică #3]` **S-M**
