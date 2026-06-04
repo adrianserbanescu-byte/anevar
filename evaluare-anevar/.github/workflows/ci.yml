@@ -26,5 +26,5 @@ jobs:
       - name: Verifica lockfile la zi
         run: python scripts/lock.py --check
 
-      - name: Teste (pytest)
-        run: pytest -q
+      - name: Teste (pytest + acoperire)
+        run: pytest -q --cov=evaluare --cov-report=term-missing

@@ -22,6 +22,7 @@ from packaging.requirements import Requirement
 ROOTS = [
     "pydantic", "python-docx", "anthropic", "fastapi", "uvicorn", "jinja2",
     "requests", "beautifulsoup4", "PyMuPDF", "Pillow", "pytest", "httpx", "ruff",
+    "pytest-cov",
 ]
 LOCK = Path(__file__).resolve().parent.parent / "requirements.lock"
 HEADER = [
