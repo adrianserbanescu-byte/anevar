@@ -5,7 +5,7 @@
 > `evaluare-anevar/scripts/export_chat.py`. Secretele (chei API) sunt redactate. Se
 > regenereaza la fiecare rulare (actualizare orara). Pentru sinteza, vezi `log.md`.
 
-**Mesaje:** 1096.
+**Mesaje:** 1136.
 
 ---
 
@@ -10937,5 +10937,675 @@ Actualizare orară a logurilor proiectului:
 3) Reprogramează această actualizare peste încă o oră (ScheduleWakeup 3600s cu același prompt).
 
 ## Assistant  ·  2026-06-04 01:20:13
+
+Rulez actualizarea orară.
+
+## Assistant  ·  2026-06-04 01:20:38
+
+Transcript comis (1096 mesaje). Pentru **log.md**: de la ultima intrare am scris planurile de implementare — e ceva nou de consemnat. Adaug o intrare.
+
+## Assistant  ·  2026-06-04 01:21:10
+
+Reprogramez actualizarea peste încă o oră:
+
+## Assistant  ·  2026-06-04 01:21:24
+
+Actualizare orară făcută:
+
+1. **`log_complet.md`** — regenerat (1096 mesaje) și **comis**.
+2. **`log.md`** — am adăugat o intrare nouă pentru planurile de implementare scrise (Faza 0 TDD + Fazele 1–7). **Comis.**
+3. **Reprogramat** — următoarea actualizare la **05:22** (peste ~1h).
+
+Aștept în continuare decizia ta pentru **execuția Faza 0**: subagent-driven (recomandat) sau inline.
+
+## User  ·  2026-06-04 01:25:40
+
+Base directory for this skill: C:\Users\adyse\.claude\plugins\cache\claude-plugins-official\superpowers\5.1.0\skills\writing-plans
+
+# Writing Plans
+
+## Overview
+
+Write comprehensive implementation plans assuming the engineer has zero context for our codebase and questionable taste. Document everything they need to know: which files to touch for each task, code, testing, docs they might need to check, how to test it. Give them the whole plan as bite-sized tasks. DRY. YAGNI. TDD. Frequent commits.
+
+Assume they are a skilled developer, but know almost nothing about our toolset or problem domain. Assume they don't know good test design very well.
+
+**Announce at start:** "I'm using the writing-plans skill to create the implementation plan."
+
+**Context:** If working in an isolated worktree, it should have been created via the `superpowers:using-git-worktrees` skill at execution time.
+
+**Save plans to:** `docs/superpowers/plans/YYYY-MM-DD-<feature-name>.md`
+- (User preferences for plan location override this default)
+
+## Scope Check
+
+If the spec covers multiple independent subsystems, it should have been broken into sub-project specs during brainstorming. If it wasn't, suggest breaking this into separate plans — one per subsystem. Each plan should produce working, testable software on its own.
+
+## File Structure
+
+Before defining tasks, map out which files will be created or modified and what each one is responsible for. This is where decomposition decisions get locked in.
+
+- Design units with clear boundaries and well-defined interfaces. Each file should have one clear responsibility.
+- You reason best about code you can hold in context at once, and your edits are more reliable when files are focused. Prefer smaller, focused files over large ones that do too much.
+- Files that change together should live together. Split by responsibility, not by technical layer.
+- In existing codebases, follow established patterns. If the codebase uses large files, don't unilaterally restructure - but if a file you're modifying has grown unwieldy, including a split in the plan is reasonable.
+
+This structure informs the task decomposition. Each task should produce self-contained changes that make sense independently.
+
+## Bite-Sized Task Granularity
+
+**Each step is one action (2-5 minutes):**
+- "Write the failing test" - step
+- "Run it to make sure it fails" - step
+- "Implement the minimal code to make the test pass" - step
+- "Run the tests and make sure they pass" - step
+- "Commit" - step
+
+## Plan Document Header
+
+**Every plan MUST start with this header:**
+
+```markdown
+# [Feature Name] Implementation Plan
+
+> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
+
+**Goal:** [One sentence describing what this builds]
+
+**Architecture:** [2-3 sentences about approach]
+
+**Tech Stack:** [Key technologies/libraries]
+
+---
+```
+
+## Task Structure
+
+````markdown
+### Task N: [Component Name]
+
+**Files:**
+- Create: `exact/path/to/file.py`
+- Modify: `exact/path/to/existing.py:123-145`
+- Test: `tests/exact/path/to/test.py`
+
+- [ ] **Step 1: Write the failing test**
+
+```python
+def test_specific_behavior():
+    result = function(input)
+    assert result == expected
+```
+
+- [ ] **Step 2: Run test to verify it fails**
+
+Run: `pytest tests/path/test.py::test_name -v`
+Expected: FAIL with "function not defined"
+
+- [ ] **Step 3: Write minimal implementation**
+
+```python
+def function(input):
+    return expected
+```
+
+- [ ] **Step 4: Run test to verify it passes**
+
+Run: `pytest tests/path/test.py::test_name -v`
+Expected: PASS
+
+- [ ] **Step 5: Commit**
+
+```bash
+git add tests/path/test.py src/path/file.py
+git commit -m "feat: add specific feature"
+```
+````
+
+## No Placeholders
+
+Every step must contain the actual content an engineer needs. These are **plan failures** — never write them:
+- "TBD", "TODO", "implement later", "fill in details"
+- "Add appropriate error handling" / "add validation" / "handle edge cases"
+- "Write tests for the above" (without actual test code)
+- "Similar to Task N" (repeat the code — the engineer may be reading tasks out of order)
+- Steps that describe what to do without showing how (code blocks required for code steps)
+- References to types, functions, or methods not defined in any task
+
+## Remember
+- Exact file paths always
+- Complete code in every step — if a step changes code, show the code
+- Exact commands with expected output
+- DRY, YAGNI, TDD, frequent commits
+
+## Self-Review
+
+After writing the complete plan, look at the spec with fresh eyes and check the plan against it. This is a checklist you run yourself — not a subagent dispatch.
+
+**1. Spec coverage:** Skim each section/requirement in the spec. Can you point to a task that implements it? List any gaps.
+
+**2. Placeholder scan:** Search your plan for red flags — any of the patterns from the "No Placeholders" section above. Fix them.
+
+**3. Type consistency:** Do the types, method signatures, and property names you used in later tasks match what you defined in earlier tasks? A function called `clearLayers()` in Task 3 but `clearFullLayers()` in Task 7 is a bug.
+
+If you find issues, fix them inline. No need to re-review — just fix and move on. If you find a spec requirement with no task, add the task.
+
+## Execution Handoff
+
+After saving the plan, offer execution choice:
+
+**"Plan complete and saved to `docs/superpowers/plans/<filename>.md`. Two execution options:**
+
+**1. Subagent-Driven (recommended)** - I dispatch a fresh subagent per task, review between tasks, fast iteration
+
+**2. Inline Execution** - Execute tasks in this session using executing-plans, batch execution with checkpoints
+
+**Which approach?"**
+
+**If Subagent-Driven chosen:**
+- **REQUIRED SUB-SKILL:** Use superpowers:subagent-driven-development
+- Fresh subagent per task + two-stage review
+
+**If Inline Execution chosen:**
+- **REQUIRED SUB-SKILL:** Use superpowers:executing-plans
+- Batch execution with checkpoints for review
+
+
+ARGUMENTS: dupa fiecare faza programeaza un update pentru specificatiile pasilor umatori astfel incat interferentele reale din pasii precedenti. toate fazele de executie vor fi subagent driven. poti recapitula tot ce ai de facut? docs/plan-ui-accesibilitate.md +  docs/taskuri-ramase.md + docs/superpowers/specs/2026-06-04-platforma-evaluare-imobiliara-master-design.md +docs/superpowers/plans/2026 + docs/superpowers/plans/2026-06-04-faze-1-7-roadmap-implementare.md.  pentru fiecare faza dupa faza0 rescrie specifcatiile pentru celelalte faze si procedeaza sa continui cu urmatoare ,apoi rescrii si tot asa.
+
+## Assistant  ·  2026-06-04 01:27:08
+
+I'm using the writing-plans skill to finalize the execution process, then I'll recap everything and start.
+
+First, I'll bake your two standing rules into the roadmap plan: **subagent-driven for all phases** + **re-spec the remaining phases after each one** (so later plans use the real interfaces).
+
+## Assistant  ·  2026-06-04 01:28:31
+
+Recap gata. Iată **tot ce am de făcut**, integrând toate documentele pe care le-ai listat.
+
+## Reguli standing (acum formalizate în roadmap)
+1. **Execuție subagent-driven pentru TOATE fazele** — un subagent proaspăt per task, review între task-uri.
+2. **Re-specificare între faze** — după fiecare fază, *înainte* de următoarea, rescriu specs+planurile fazelor rămase cu **interfețele reale** produse până atunci.
+
+## Track A — Platformă (firul principal, multi-sesiune)
+Buclă: **Faza N → verde+rebuild+smoke → re-spec fazele rămase → Faza N+1 → …**
+
+| | Fază | Stare |
+|---|---|---|
+| ▶ | **Faza 0 — Fundația** (profil + abordări + venit capitalizare + reconcile_profil + secțiuni) | plan TDD gata, **se execută acum** |
+| | re-spec 1–7 cu interfețele reale | după Faza 0 |
+| | Faza 1 — Apartament | plan structurat → se rescrie TDD |
+| | Faza 2 — Comercial/venit (GEV 630) | „ |
+| | Faza 3 — Industrial · Faza 4 — Agricol · Faza 5 — Scopuri noi (IFRS/asigurare/litigii) | „ |
+| | Faza 6 — DCF + grilă chirii · Faza 7 — Special | „ |
+
+## Track B — Lustruire UI + Accesibilitate (`docs/plan-ui-accesibilitate.md`)
+Grupuri 1–4: contrast `.hint` (bug AA), skip-link, `type=date`, autocomplete, ținte tactile, `<form>`+Enter, `aria-describedby`, `aria-busy`, fieldset, densitate descoperire/grilă, **`/result` ca certificat**, formatare numerică. **Mic, autonom — îl pot intercala** (recomand Grup 1 contrast + Grup 3 `/result` ca quick-wins).
+
+## Track C — Backlog calitate/raport/docs (`docs/taskuri-ramase.md`)
+Auto-review cu agenți de PR, teste de eroare, aliniere IVS/SEV în raport, actualizare documentație evaluator, pregătire module blocate extern (`big/`, `ancpi/`, IROVAL, code-signing). **Autonom.**
+
+## Blocat extern (nu oprește nimic din A/B/C acum)
+Catalog IROVAL · acces BIG/ANCPI · dosare reale (validare venit Faza 2/6) · GEV 630/500 oficiale · liste AML live · validare juridică · certificat de semnare.
+
+---
+
+**Pornesc execuția Faza 0, subagent-driven.** Invoc sub-skill-ul de execuție:
+
+## User  ·  2026-06-04 01:28:33
+
+Base directory for this skill: C:\Users\adyse\.claude\plugins\cache\claude-plugins-official\superpowers\5.1.0\skills\subagent-driven-development
+
+# Subagent-Driven Development
+
+Execute plan by dispatching fresh subagent per task, with two-stage review after each: spec compliance review first, then code quality review.
+
+**Why subagents:** You delegate tasks to specialized agents with isolated context. By precisely crafting their instructions and context, you ensure they stay focused and succeed at their task. They should never inherit your session's context or history — you construct exactly what they need. This also preserves your own context for coordination work.
+
+**Core principle:** Fresh subagent per task + two-stage review (spec then quality) = high quality, fast iteration
+
+**Continuous execution:** Do not pause to check in with your human partner between tasks. Execute all tasks from the plan without stopping. The only reasons to stop are: BLOCKED status you cannot resolve, ambiguity that genuinely prevents progress, or all tasks complete. "Should I continue?" prompts and progress summaries waste their time — they asked you to execute the plan, so execute it.
+
+## When to Use
+
+```dot
+digraph when_to_use {
+    "Have implementation plan?" [shape=diamond];
+    "Tasks mostly independent?" [shape=diamond];
+    "Stay in this session?" [shape=diamond];
+    "subagent-driven-development" [shape=box];
+    "executing-plans" [shape=box];
+    "Manual execution or brainstorm first" [shape=box];
+
+    "Have implementation plan?" -> "Tasks mostly independent?" [label="yes"];
+    "Have implementation plan?" -> "Manual execution or brainstorm first" [label="no"];
+    "Tasks mostly independent?" -> "Stay in this session?" [label="yes"];
+    "Tasks mostly independent?" -> "Manual execution or brainstorm first" [label="no - tightly coupled"];
+    "Stay in this session?" -> "subagent-driven-development" [label="yes"];
+    "Stay in this session?" -> "executing-plans" [label="no - parallel session"];
+}
+```
+
+**vs. Executing Plans (parallel session):**
+- Same session (no context switch)
+- Fresh subagent per task (no context pollution)
+- Two-stage review after each task: spec compliance first, then code quality
+- Faster iteration (no human-in-loop between tasks)
+
+## The Process
+
+```dot
+digraph process {
+    rankdir=TB;
+
+    subgraph cluster_per_task {
+        label="Per Task";
+        "Dispatch implementer subagent (./implementer-prompt.md)" [shape=box];
+        "Implementer subagent asks questions?" [shape=diamond];
+        "Answer questions, provide context" [shape=box];
+        "Implementer subagent implements, tests, commits, self-reviews" [shape=box];
+        "Dispatch spec reviewer subagent (./spec-reviewer-prompt.md)" [shape=box];
+        "Spec reviewer subagent confirms code matches spec?" [shape=diamond];
+        "Implementer subagent fixes spec gaps" [shape=box];
+        "Dispatch code quality reviewer subagent (./code-quality-reviewer-prompt.md)" [shape=box];
+        "Code quality reviewer subagent approves?" [shape=diamond];
+        "Implementer subagent fixes quality issues" [shape=box];
+        "Mark task complete in TodoWrite" [shape=box];
+    }
+
+    "Read plan, extract all tasks with full text, note context, create TodoWrite" [shape=box];
+    "More tasks remain?" [shape=diamond];
+    "Dispatch final code reviewer subagent for entire implementation" [shape=box];
+    "Use superpowers:finishing-a-development-branch" [shape=box style=filled fillcolor=lightgreen];
+
+    "Read plan, extract all tasks with full text, note context, create TodoWrite" -> "Dispatch implementer subagent (./implementer-prompt.md)";
+    "Dispatch implementer subagent (./implementer-prompt.md)" -> "Implementer subagent asks questions?";
+    "Implementer subagent asks questions?" -> "Answer questions, provide context" [label="yes"];
+    "Answer questions, provide context" -> "Dispatch implementer subagent (./implementer-prompt.md)";
+    "Implementer subagent asks questions?" -> "Implementer subagent implements, tests, commits, self-reviews" [label="no"];
+    "Implementer subagent implements, tests, commits, self-reviews" -> "Dispatch spec reviewer subagent (./spec-reviewer-prompt.md)";
+    "Dispatch spec reviewer subagent (./spec-reviewer-prompt.md)" -> "Spec reviewer subagent confirms code matches spec?";
+    "Spec reviewer subagent confirms code matches spec?" -> "Implementer subagent fixes spec gaps" [label="no"];
+    "Implementer subagent fixes spec gaps" -> "Dispatch spec reviewer subagent (./spec-reviewer-prompt.md)" [label="re-review"];
+    "Spec reviewer subagent confirms code matches spec?" -> "Dispatch code quality reviewer subagent (./code-quality-reviewer-prompt.md)" [label="yes"];
+    "Dispatch code quality reviewer subagent (./code-quality-reviewer-prompt.md)" -> "Code quality reviewer subagent approves?";
+    "Code quality reviewer subagent approves?" -> "Implementer subagent fixes quality issues" [label="no"];
+    "Implementer subagent fixes quality issues" -> "Dispatch code quality reviewer subagent (./code-quality-reviewer-prompt.md)" [label="re-review"];
+    "Code quality reviewer subagent approves?" -> "Mark task complete in TodoWrite" [label="yes"];
+    "Mark task complete in TodoWrite" -> "More tasks remain?";
+    "More tasks remain?" -> "Dispatch implementer subagent (./implementer-prompt.md)" [label="yes"];
+    "More tasks remain?" -> "Dispatch final code reviewer subagent for entire implementation" [label="no"];
+    "Dispatch final code reviewer subagent for entire implementation" -> "Use superpowers:finishing-a-development-branch";
+}
+```
+
+## Model Selection
+
+Use the least powerful model that can handle each role to conserve cost and increase speed.
+
+**Mechanical implementation tasks** (isolated functions, clear specs, 1-2 files): use a fast, cheap model. Most implementation tasks are mechanical when the plan is well-specified.
+
+**Integration and judgment tasks** (multi-file coordination, pattern matching, debugging): use a standard model.
+
+**Architecture, design, and review tasks**: use the most capable available model.
+
+**Task complexity signals:**
+- Touches 1-2 files with a complete spec → cheap model
+- Touches multiple files with integration concerns → standard model
+- Requires design judgment or broad codebase understanding → most capable model
+
+## Handling Implementer Status
+
+Implementer subagents report one of four statuses. Handle each appropriately:
+
+**DONE:** Proceed to spec compliance review.
+
+**DONE_WITH_CONCERNS:** The implementer completed the work but flagged doubts. Read the concerns before proceeding. If the concerns are about correctness or scope, address them before review. If they're observations (e.g., "this file is getting large"), note them and proceed to review.
+
+**NEEDS_CONTEXT:** The implementer needs information that wasn't provided. Provide the missing context and re-dispatch.
+
+**BLOCKED:** The implementer cannot complete the task. Assess the blocker:
+1. If it's a context problem, provide more context and re-dispatch with the same model
+2. If the task requires more reasoning, re-dispatch with a more capable model
+3. If the task is too large, break it into smaller pieces
+4. If the plan itself is wrong, escalate to the human
+
+**Never** ignore an escalation or force the same model to retry without changes. If the implementer said it's stuck, something needs to change.
+
+## Prompt Templates
+
+- `./implementer-prompt.md` - Dispatch implementer subagent
+- `./spec-reviewer-prompt.md` - Dispatch spec compliance reviewer subagent
+- `./code-quality-reviewer-prompt.md` - Dispatch code quality reviewer subagent
+
+## Example Workflow
+
+```
+You: I'm using Subagent-Driven Development to execute this plan.
+
+[Read plan file once: docs/superpowers/plans/feature-plan.md]
+[Extract all 5 tasks with full text and context]
+[Create TodoWrite with all tasks]
+
+Task 1: Hook installation script
+
+[Get Task 1 text and context (already extracted)]
+[Dispatch implementation subagent with full task text + context]
+
+Implementer: "Before I begin - should the hook be installed at user or system level?"
+
+You: "User level (~/.config/superpowers/hooks/)"
+
+Implementer: "Got it. Implementing now..."
+[Later] Implementer:
+  - Implemented install-hook command
+  - Added tests, 5/5 passing
+  - Self-review: Found I missed --force flag, added it
+  - Committed
+
+[Dispatch spec compliance reviewer]
+Spec reviewer: ✅ Spec compliant - all requirements met, nothing extra
+
+[Get git SHAs, dispatch code quality reviewer]
+Code reviewer: Strengths: Good test coverage, clean. Issues: None. Approved.
+
+[Mark Task 1 complete]
+
+Task 2: Recovery modes
+
+[Get Task 2 text and context (already extracted)]
+[Dispatch implementation subagent with full task text + context]
+
+Implementer: [No questions, proceeds]
+Implementer:
+  - Added verify/repair modes
+  - 8/8 tests passing
+  - Self-review: All good
+  - Committed
+
+[Dispatch spec compliance reviewer]
+Spec reviewer: ❌ Issues:
+  - Missing: Progress reporting (spec says "report every 100 items")
+  - Extra: Added --json flag (not requested)
+
+[Implementer fixes issues]
+Implementer: Removed --json flag, added progress reporting
+
+[Spec reviewer reviews again]
+Spec reviewer: ✅ Spec compliant now
+
+[Dispatch code quality reviewer]
+Code reviewer: Strengths: Solid. Issues (Important): Magic number (100)
+
+[Implementer fixes]
+Implementer: Extracted PROGRESS_INTERVAL constant
+
+[Code reviewer reviews again]
+Code reviewer: ✅ Approved
+
+[Mark Task 2 complete]
+
+...
+
+[After all tasks]
+[Dispatch final code-reviewer]
+Final reviewer: All requirements met, ready to merge
+
+Done!
+```
+
+## Advantages
+
+**vs. Manual execution:**
+- Subagents follow TDD naturally
+- Fresh context per task (no confusion)
+- Parallel-safe (subagents don't interfere)
+- Subagent can ask questions (before AND during work)
+
+**vs. Executing Plans:**
+- Same session (no handoff)
+- Continuous progress (no waiting)
+- Review checkpoints automatic
+
+**Efficiency gains:**
+- No file reading overhead (controller provides full text)
+- Controller curates exactly what context is needed
+- Subagent gets complete information upfront
+- Questions surfaced before work begins (not after)
+
+**Quality gates:**
+- Self-review catches issues before handoff
+- Two-stage review: spec compliance, then code quality
+- Review loops ensure fixes actually work
+- Spec compliance prevents over/under-building
+- Code quality ensures implementation is well-built
+
+**Cost:**
+- More subagent invocations (implementer + 2 reviewers per task)
+- Controller does more prep work (extracting all tasks upfront)
+- Review loops add iterations
+- But catches issues early (cheaper than debugging later)
+
+## Red Flags
+
+**Never:**
+- Start implementation on main/master branch without explicit user consent
+- Skip reviews (spec compliance OR code quality)
+- Proceed with unfixed issues
+- Dispatch multiple implementation subagents in parallel (conflicts)
+- Make subagent read plan file (provide full text instead)
+- Skip scene-setting context (subagent needs to understand where task fits)
+- Ignore subagent questions (answer before letting them proceed)
+- Accept "close enough" on spec compliance (spec reviewer found issues = not done)
+- Skip review loops (reviewer found issues = implementer fixes = review again)
+- Let implementer self-review replace actual review (both are needed)
+- **Start code quality review before spec compliance is ✅** (wrong order)
+- Move to next task while either review has open issues
+
+**If subagent asks questions:**
+- Answer clearly and completely
+- Provide additional context if needed
+- Don't rush them into implementation
+
+**If reviewer finds issues:**
+- Implementer (same subagent) fixes them
+- Reviewer reviews again
+- Repeat until approved
+- Don't skip the re-review
+
+**If subagent fails task:**
+- Dispatch fix subagent with specific instructions
+- Don't try to fix manually (context pollution)
+
+## Integration
+
+**Required workflow skills:**
+- **superpowers:using-git-worktrees** - Ensures isolated workspace (creates one or verifies existing)
+- **superpowers:writing-plans** - Creates the plan this skill executes
+- **superpowers:requesting-code-review** - Code review template for reviewer subagents
+- **superpowers:finishing-a-development-branch** - Complete development after all tasks
+
+**Subagents should use:**
+- **superpowers:test-driven-development** - Subagents follow TDD for each task
+
+**Alternative workflow:**
+- **superpowers:executing-plans** - Use for parallel session instead of same-session execution
+
+
+ARGUMENTS: Execută planul docs/superpowers/plans/2026-06-04-faza0-fundatie.md (Faza 0 — Fundația platformei), task cu task, subagent proaspăt per task, review între task-uri. Strict aditiv: cele 281 de teste existente trebuie să rămână verzi.
+
+## Assistant  ·  2026-06-04 01:29:01
+
+I'm executing Faza 0 with Subagent-Driven Development.
+
+**Branch note:** this project's documented convention is working on `master` (per project memory: "Lucru pe master"), and the entire session — including the hourly log automation — commits there. I'll continue on `master`, consistent with that standing preference.
+
+Let me read the dispatch prompt templates, then extract tasks into a todo list.
+
+## Assistant  ·  2026-06-04 01:29:29
+
+Tasks extracted. Creating the Faza 0 todo list, then dispatching the first implementer subagent.
+
+## Assistant  ·  2026-06-04 01:29:52
+
+Dispatching the Task 1 implementer subagent (full task text + context):
+
+## Assistant  ·  2026-06-04 01:32:16
+
+**Task 1: DONE** — `add75bf`, 3 new tests, full suite **284 green** (281+3). Now the two-stage review. First, spec compliance:
+
+## Assistant  ·  2026-06-04 01:33:12
+
+Spec review: ✅ compliant. Now code quality review of the diff:
+
+## Assistant  ·  2026-06-04 01:34:30
+
+Code quality: **Approved** (with minor reservations). The one "Important" note — validating `ponderi` keys — is genuinely handled downstream in Task 4 (`reconcile_profil` normalizes only over approaches that produced a value, so stray keys are ignored), and adding a sum-to-1 constraint would wrongly reject valid intermediate edits (om-în-buclă). Per YAGNI + the plan as contract, I accept Task 1 and note the validation lives where `ponderi` is consumed.
+
+**Task 1 ✅ complete.** Proceeding to Task 2.
+
+## Assistant  ·  2026-06-04 01:37:15
+
+**Task 2: DONE** — `dbd9ec4`, 2 tests, suite **286 green**, verbatim (no deviations). Spec review:
+
+## Assistant  ·  2026-06-04 01:38:18
+
+Spec ✅. Code quality review:
+
+## Assistant  ·  2026-06-04 01:39:21
+
+Code quality: **Approved**. The two notes are non-blocking: `suprafata_subiect` matches the existing `evaluate_market` API (kept for compatibility by design), and `detalii` is intentionally loose — Task 4's `reconcile_profil` reads only `.valoare`, never iterates `detalii`. Per plan, I keep them as-is.
+
+**Task 2 ✅ complete.** Task 3 (venit.py):
+
+## Assistant  ·  2026-06-04 01:41:58
+
+**Task 3: DONE** — `0aab901`, 4 tests, suite **290 green**. This is the new income engine — careful spec review (including the numbers):
+
+## Assistant  ·  2026-06-04 01:42:57
+
+Spec ✅ (math hand-verified). Code quality review:
+
+## Assistant  ·  2026-06-04 01:44:31
+
+Code quality flagged a **real spec gap**: the master spec (§3) explicitly requires "validări (rată > 0, procente în [0,1], valori ≥ 0)", but the plan's code only checked `rata > 0`. The reviewer correctly caught this — my plan under-specified it. This is a spec-compliance fix, not scope creep. Dispatching a fix:
+
+## Assistant  ·  2026-06-04 01:46:40
+
+Fix applied: `9a4359b`, venit 6 tests, suite **292 green** — the income engine now matches spec §3 fully (rata>0, procente [0,1), valori ≥0).
+
+**Task 3 ✅ complete.** Task 4 (`reconcile_profil`):
+
+## Assistant  ·  2026-06-04 01:50:01
+
+**Task 4: DONE** — `1cf3815`, 4 tests, suite **296 green**. The implementer fixed a real bug in my plan: the `nota` f-string had a typographic `"` that broke the string literal — they used ASCII quotes (cosmetic, message-only). Spec review:
+
+## Assistant  ·  2026-06-04 01:51:52
+
+Spec ✅ + backwards-compatible. Code quality review:
+
+## Assistant  ·  2026-06-04 01:53:28
+
+Code quality flagged issues — assessment "Needs changes." Reviewing them: the **type-hint gap is legitimate** (the codebase is typed). The "Critical KeyError" and "stale `Metoda` alias" are **false positives** — `_METODA[primara]` is only reached when `primara in valori`, and `valori` keys come from the `RezultatAbordare.abordare` Literal, so they're always valid `_METODA` keys; and `Metoda` is the input type of the *old* `reconcile()` (correctly excludes "venit"). I'll apply the real fix (type hints + defensive `.get` + an empty-results test):
+
+## Assistant  ·  2026-06-04 01:55:31
+
+Fix applied: `79e92ee`, 5 tests, suite **297 green**, pyflakes clean. **Task 4 ✅ complete.** Task 5 (report/sectiuni.py):
+
+## Assistant  ·  2026-06-04 01:57:47
+
+**Task 5: DONE** — `6334034`, 3 tests, suite **300 green**. Spec review:
+
+## Assistant  ·  2026-06-04 01:58:38
+
+Spec ✅. Code quality review:
+
+## Assistant  ·  2026-06-04 01:59:59
+
+Code quality: **Approved** with one legitimate issue worth fixing now (#2): `sectiuni_pentru_profil` filtered only by `ghid`, ignoring `profil.abordari_aplicabile` — so a GEV 630 profile using only `["venit","comparatie"]` would still list an `abordare_cost` section. The spec says "**profilul** + ghidul decid ce secțiuni apar", and the profile carries `abordari_aplicabile`, so the approach-sections should follow it. Cheap, correct, makes the test's `abordari_aplicabile` arg meaningful. (I'll skip the NamedTuple refactor — YAGNI for a small registry.) Dispatching the fix:
+
+## Assistant  ·  2026-06-04 02:02:00
+
+Fix applied: `d75ab90`, 4 tests, suite **301 green**, pyflakes clean. **Task 5 ✅ complete** (now honors `abordari_aplicabile`). Task 6 (profil in ReportContext + equivalence):
+
+## Assistant  ·  2026-06-04 02:04:59
+
+**Task 6: DONE** — `ba674aa`, 3 tests (incl. the equivalence proofs that `reconcile_profil` == `reconcile` for casă+teren), suite **304 green**, backwards-compatible. Spec review:
+
+## Assistant  ·  2026-06-04 02:06:14
+
+Spec ✅ (equivalence tests confirmed meaningful & backwards-compatible). Code quality review:
+
+## Assistant  ·  2026-06-04 02:07:33
+
+Code quality: **Approved** — the minor notes (`_building()` fixture, equivalence-test symmetry, optionally freezing `ProfilEvaluare`) are non-blockers; I'll leave per YAGNI.
+
+**Task 6 ✅ complete.** Task 7 is operational (suite + pyflakes + rebuild + smoke) — I'll run it directly as controller rather than via a subagent.
+
+## Assistant  ·  2026-06-04 02:08:10
+
+Suite **304 green**, pyflakes clean. Rebuild exe + smoke:
+
+## Assistant  ·  2026-06-04 02:15:46
+
+Exe rebuilt + smoke **/wizard 200**. **Faza 0 fully verified: 304 tests green, pyflakes clean, exe rebuilt.** Let me confirm nothing uncommitted, and dispatch the final whole-implementation review:
+
+## Assistant  ·  2026-06-04 02:16:01
+
+Working tree clean; all Faza 0 commits landed (Task 7 is verification-only, nothing to commit). Dispatching the **final whole-implementation review** of Faza 0:
+
+## Assistant  ·  2026-06-04 02:22:15
+
+Excellent final review (opus) — **Faza 0: READY, no blockers**, 304 green, hot path untouched. It flagged one Important in-phase fix and several **re-spec recommendations for Fazele 1-7** (exactly the between-phase step you asked for).
+
+**In-phase fix (Issue 1):** `reconcile_profil` labels a degenerate weighting (only one approach actually present) as `"ponderata"` with no note, diverging from how the legacy `reconcile` handles it. Since `reconcile_profil` becomes the primary path in Faza 2, I'll fix it now:
+
+## Assistant  ·  2026-06-04 02:24:46
+
+**Issue 1 fixed:** `dd3f54b`, suite **305 green**, pyflakes clean. **Faza 0 is complete and verified.**
+
+Now the between-phase **re-spec** (your standing rule). Per the final review, I'll lock the real Faza 0 interfaces, insert a **Faza 0.5 "wiring"** sub-project (promote the dormant framework to live), and fold the reviewer's recommendations into the later phases.
+
+## Assistant  ·  2026-06-04 02:25:47
+
+Re-spec done. Committing the roadmap update + logging the Faza 0 completion:
+
+## Assistant  ·  2026-06-04 02:27:15
+
+**Faza 0 — Fundația: COMPLETĂ și verificată.** ✅
+
+## Ce s-a livrat (subagent-driven, 7 task-uri + review în 2 etape per task + review final opus)
+| Modul | Conținut |
+|---|---|
+| `profil.py` | `ProfilEvaluare` + `CASA_TEREN_GARANTARE` |
+| `engine/abordari.py` | `RezultatAbordare` + adaptoare cost/comparație |
+| `engine/venit.py` | abordarea prin venit (capitalizare directă) + validări spec §3 |
+| `engine/reconciliation.py` | `reconcile_profil` (aditiv) + `metoda_selectata` cu „venit" + ponderare degenerată consistentă |
+| `report/sectiuni.py` | registru de secțiuni filtrat pe ghid + abordări |
+| `models/report_context.py` | câmpul `profil` (default casă+teren) |
+
+- **305 teste verzi** (281→305), pyflakes curat, **exe reîmpachetat + smoke /wizard 200**.
+- **Strict aditiv** — hot-path-ul (`assembler`/`generator`/`reconcile`) neatins; cadrul e *dormant* (referit doar de teste). Testele de echivalență dovedesc că `reconcile_profil` reproduce exact `reconcile` pentru casă+teren.
+- Review final (opus): **READY, fără blocaje.** Un singur fix in-fază aplicat (ponderare degenerată).
+
+## Re-spec post-fază (regula ta standing) — făcut
+Roadmap-ul fazelor 1–7 actualizat cu **interfețele reale** + recomandările review-ului, și am inserat:
+
+**▶ Faza 0.5 — Cablare (wiring)** ca *următoarea* sarcină: promovează cadrul din dormant în **live** (assembler rutează prin profil → `reconcile_profil`; generatorul consumă registrul de secțiuni; Protocol `Abordare`; `detalii` tipizat; `valideaza_profil`) — cu **regresie strictă**: profilul casă+teren trebuie să producă *exact* aceeași valoare și același raport (cele 12 teste de conținut GEV 520 + reproducerea dosarelor GBF rămân plasa de siguranță).
+
+Totul comis pe `master` (`add75bf … dd3f54b` + re-spec + log).
+
+---
+
+**Următorul pas:** Faza 0.5 (cablarea). Atenție: e prima fază care **atinge hot-path-ul validat** (assembler/generator), deci o execut tot subagent-driven dar cu regresie strictă pe dosarele GBF. O pornesc în continuare. Dacă vrei să schimbi ordinea (ex. să sari direct la Faza 1, sau să intercalez Track B — `/result` + contrast), spune acum; altfel continui cu Faza 0.5.
+
+## User  ·  2026-06-04 02:27:22
+
+Actualizare orară a logurilor proiectului:
+1) Rulează `cd C:\Users\adyse\anevar\evaluare-anevar && python scripts/export_chat.py` ca să regenerezi log_complet.md (transcript verbatim, include mesajele noi). Dacă fișierul s-a schimbat, comite-l.
+2) Dacă în ultima oră a apărut ceva NOU de consemnat, adaugă o intrare cu data/ora în secțiunea „Actualizări (orare)" din C:\Users\adyse\anevar\log.md și comite. Dacă nu e nimic nou, nu scrie nimic în log.md.
+3) Reprogramează această actualizare peste încă o oră (ScheduleWakeup 3600s cu același prompt).
+
+## Assistant  ·  2026-06-04 02:27:28
 
 Rulez actualizarea orară.
