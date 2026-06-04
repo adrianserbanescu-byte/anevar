@@ -283,3 +283,12 @@ raport verzi); wizard cu opțiunea „agricol" în selector + câmpuri (categori
 Comituri `22ba0af`, `4b9994d`. Următorul: **Faza 5 — Scopuri noi** (IFRS/asigurare/impozitare/litigii:
 profiluri + tip valoare + secțiuni de raport per ghid GEV 500 — mai substanțial). Apoi Faza 6 (DCF+chirii),
 Faza 7 (Special), Track B (a11y rămas), **Track C** (calitate/raport/docs).
+
+### 2026-06-04 — Faza 5 (Scopuri noi) IMPLEMENTATĂ (subagent-driven)
+Aditiv: 4 profiluri noi (`RAPORTARE_FINANCIARA` GEV 500/valoare justă, `ASIGURARE` valoare de asigurare,
+`IMPOZITARE`, `LITIGII`); wizard cu **selector „Scopul evaluării"** (garantare/IFRS/asigurare/impozitare/
+litigiu) care setează `meta.scop` + `meta.tip_valoare` → termenii de referință + tipul valorii din raport
+se adaptează automat (raportul randa deja `meta.scop`/`meta.tip_valoare` în copertă/termeni/declarație).
+**339 teste verzi**, pyflakes curat, exe reîmpachetat + smoke (evaluare IFRS + selector prezent). 9 profiluri
+predefinite total. Comituri `3192cf9`, `971812c`. Amânat: secțiunea GEV 500 dedicată (refactor generator).
+Următorul: **Faza 6 — DCF + grilă chirii**.
