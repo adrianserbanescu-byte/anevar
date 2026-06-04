@@ -7,6 +7,19 @@
 <h1>Rezultat evaluare</h1>
 <main id="continut">
 <div class="rez certificat">
+  <svg class="sigiliu seal-stamp" viewBox="0 0 140 140" width="120" height="120" aria-hidden="true" focusable="false">
+    <defs>
+      <path id="seal-arc" d="M 70,70 m -52,0 a 52,52 0 1,1 104,0 a 52,52 0 1,1 -104,0" fill="none"/>
+    </defs>
+    <circle cx="70" cy="70" r="66" fill="none" stroke="var(--sienna-deep)" stroke-width="2.5" opacity=".85"/>
+    <circle cx="70" cy="70" r="48" fill="none" stroke="var(--sienna-deep)" stroke-width="1.2" opacity=".7"/>
+    <text fill="var(--sienna-deep)" font-family="Georgia,Cambria,serif" font-size="9" letter-spacing="2" opacity=".92">
+      <textPath href="#seal-arc" startOffset="0%">EVALUATOR AUTORIZAT · ANEVAR · ROMÂNIA · </textPath>
+    </text>
+    <text x="70" y="64" text-anchor="middle" font-family="Georgia,Cambria,serif" font-size="11" fill="var(--sienna-deep)" opacity=".9">SEV 2025</text>
+    <text x="70" y="82" text-anchor="middle" font-family="Georgia,Cambria,serif" font-weight="700" font-size="17" fill="var(--sienna-deep)" opacity=".95">VALIDAT</text>
+    <line x1="48" y1="90" x2="92" y2="90" stroke="var(--sienna-deep)" stroke-width="1" opacity=".7"/>
+  </svg>
   <p class="kicker">Valoare estimată</p>
   <p class="val val-hero">{{ valoare_fmt }} <span class="moneda">{{ moneda }}</span></p>
   {% if echiv %}<p class="hint echiv">≈ {{ echiv }} (la cursul BNR de la data evaluării)</p>{% endif %}
@@ -25,7 +38,9 @@
 </main>
 
 <style>
- .certificat{ text-align:center; padding:30px 26px; max-width:560px; margin:18px auto; }
+ .certificat{ text-align:center; padding:30px 26px; max-width:560px; margin:18px auto; position:relative; }
+ .sigiliu{ position:absolute; top:14px; right:16px; opacity:.9; }
+ @media (max-width:560px){ .sigiliu{ position:static; display:block; margin:0 auto 6px; } }
  .certificat .kicker{ font-family:var(--sans); text-transform:uppercase; letter-spacing:.18em;
    font-size:.74rem; color:var(--sienna); font-weight:700; margin:0; }
  .val-hero{ font-size:clamp(2.1rem,1.4rem + 2.6vw,3rem); margin:.12em 0 .05em; color:var(--sienna-deep); }

@@ -364,6 +364,13 @@ pre{ font-family:var(--mono); font-size:.82rem; background:var(--paper-sunk);
    cartuș de hartă, kicker de marcă, sigiliu ANEVAR. Clase reutilizabile.
    =================================================================== */
 
+/* antet de pagină cu busolă de topograf în dreapta */
+.page-head{ position:relative; }
+.page-head h1{ margin-right:64px; }
+.page-head .compas{ position:absolute; top:6px; right:0; opacity:.92; }
+.page-head .brass-rule{ margin:.2em 0 1.4em; }
+@media (max-width:560px){ .page-head .compas{ display:none; } .page-head h1{ margin-right:0; } }
+
 /* linie subțire de alamă cu reflexie metalică */
 .brass-rule{ height:2px; border:0; margin:14px 0;
   background:linear-gradient(to bottom, transparent, var(--brass) 45%, var(--brass-hi) 50%, var(--brass) 55%, transparent); }
