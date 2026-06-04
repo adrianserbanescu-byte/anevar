@@ -28,7 +28,9 @@ a = Analysis(
     hookspath=[],
     hooksconfig={},
     runtime_hooks=[],
-    excludes=[],
+    # PIL._avif (Pillow 12 AVIF) corupea arhiva PKG -> „decompression -1" la
+    # pornirea exe-ului; nu folosim AVIF (doar poze standard in raport).
+    excludes=["PIL._avif", "PIL.AvifImagePlugin"],
     noarchive=False,
 )
 
