@@ -14,6 +14,22 @@ GDPR-first · offline · TDD + rebuild + smoke · ancorat în SEV 2025/IVS + GEV
 
 ---
 
+## Proces de execuție (STANDING — stabilit de user 2026-06-04)
+
+- **Execuție subagent-driven pentru TOATE fazele** (`superpowers:subagent-driven-development`): un subagent
+  proaspăt per task, review în două etape între task-uri.
+- **Buclă de re-specificare între faze:** după ce **Faza N** e terminată și verde, **ÎNAINTE** de a porni
+  Faza N+1, se **rescriu specificațiile + planurile** fazelor rămase (N+1…7) ca să reflecte **interfețele
+  reale** produse de fazele 0…N (nume de tipuri/funcții, semnături, decizii, abateri de la plan). Apoi se
+  execută Faza N+1. Se repetă pentru fiecare fază.
+  *Motiv:* planurile fazelor viitoare au fost lăsate intenționat structurate (nu linie-cu-linie), fiindcă
+  depind de cod care nu există încă; după fiecare fază devin precise.
+- **Rutina după fiecare fază:** (1) suită verde + `pyflakes` + rebuild exe + smoke; (2) `writing-plans`
+  pe fazele rămase, ancorat în interfețele reale; (3) commit specs/planuri actualizate + intrare în `log.md`;
+  (4) start faza următoare (subagent-driven).
+
+---
+
 ## Faza 1 — Apartament (rezidențial, garantare credit)
 **Depinde de:** Faza 0. **Abordări:** comparație (primară) + cost.
 **Fișiere (estimat):**
