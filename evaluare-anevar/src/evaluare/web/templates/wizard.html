@@ -104,18 +104,21 @@
     <option value="agricol">Teren agricol</option>
     <option value="special">Proprietate specială (hotel, benzinărie…)</option>
   </select>
-  <div id="ap-fields" style="display:none">
+  <fieldset id="ap-fields" style="display:none">
+    <legend>Date apartament</legend>
     <label for="etaj">Etaj</label><input id="etaj" type="number">
     <label for="nr_niveluri_bloc">Număr niveluri bloc</label><input id="nr_niveluri_bloc" type="number">
     <label for="an_bloc">An construcție bloc</label><input id="an_bloc" type="number">
     <label for="cota_teren_indiviza">Cotă teren indiviză (mp)</label><input id="cota_teren_indiviza">
     <small class="hint">Câmpuri pentru apartament; la „Casă" se ignoră.</small>
-  </div>
-  <div id="ind-fields" style="display:none">
+  </fieldset>
+  <fieldset id="ind-fields" style="display:none">
+    <legend>Date spațiu industrial</legend>
     <label for="inaltime_libera">Înălțime liberă (m)</label><input id="inaltime_libera">
     <small class="hint">Câmp pentru spații industriale (hală/depozit).</small>
-  </div>
-  <div id="agr-fields" style="display:none">
+  </fieldset>
+  <fieldset id="agr-fields" style="display:none">
+    <legend>Date teren agricol</legend>
     <label for="categorie_folosinta">Categorie de folosință</label>
     <select id="categorie_folosinta">
       <option value="">—</option>
@@ -127,7 +130,7 @@
     </select>
     <label for="clasa_calitate">Clasă de calitate (1–5)</label><input id="clasa_calitate" type="number">
     <small class="hint">Câmpuri pentru teren agricol.</small>
-  </div>
+  </fieldset>
   <label for="suprafata_teren">Suprafață teren (mp)</label><input id="suprafata_teren" value="500">
   <small class="hint">Suprafața terenului din actul cadastral. Bază pentru valoarea terenului și
    atribut de potrivire a comparabilelor (suprafață teren).</small>
@@ -571,6 +574,19 @@ $("btn-audit").addEventListener("click", ()=>{
   window.location = "/api/evaluare/"+evaluareId+"/audit.txt";
 });
 
-incarcaLocalitati().then(()=>{ incarca(); incarcaEvaluator(); populeazaLocalitati(); arata(); });
+// a11y: leaga fiecare camp de textul-ajutor care il urmeaza (WCAG 3.3.2 / 1.3.1)
+// astfel incat cititoarele de ecran anunta instructiunea odata cu campul.
+function wireAjutor(){
+  let seq=0;
+  document.querySelectorAll(".pas .hint").forEach(h=>{
+    let ctrl=h.previousElementSibling;
+    while(ctrl && !/^(INPUT|SELECT|TEXTAREA)$/.test(ctrl.tagName)) ctrl=ctrl.previousElementSibling;
+    if(!ctrl) return;
+    if(!h.id) h.id="hint-"+(seq++);
+    const ex=(ctrl.getAttribute("aria-describedby")||"").split(/\s+/).filter(Boolean);
+    if(!ex.includes(h.id)){ ex.push(h.id); ctrl.setAttribute("aria-describedby", ex.join(" ")); }
+  });
+}
+incarcaLocalitati().then(()=>{ incarca(); incarcaEvaluator(); populeazaLocalitati(); arata(); wireAjutor(); });
 </script>
 </body></html>
