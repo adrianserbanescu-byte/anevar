@@ -1,6 +1,6 @@
 # ADR-001: Decompoziția aplicației web în routere pe domenii
 
-**Status:** Proposed
+**Status:** Accepted — implementat (app.py 460 → 27 linii; 6 routere pe domenii)
 **Date:** 2026-06-04
 **Deciders:** proprietarul proiectului (Adrian)
 

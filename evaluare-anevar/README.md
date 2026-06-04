@@ -94,7 +94,12 @@ src/evaluare/
   discovery/     # descoperire comparabile din portaluri
   ingestie/      # extragere text din PDF (CF, CPE) + OCR injectabil
   aml/           # modul AML (risc, indicatori, raportare, documente)
-  web/           # aplicația FastAPI + șabloane HTML
+  web/           # aplicația FastAPI
+    app.py       #   composition root (compune routerele)
+    deps.py      #   Deps (storage/client/fetcher/templates) — vezi docs/adr/ADR-001
+    schemas.py   #   modele Pydantic pentru request bodies
+    routers/     #   routere pe domenii: evaluare, grile, descoperire, aml, piata, pagini
+    templates/   #   șabloane HTML + _design.css + _helpers.js
   logging_setup.py
 scripts/         # utilitare (lock.py, build_localitati.py, export_chat.py, …)
 tests/           # 370+ teste pytest
