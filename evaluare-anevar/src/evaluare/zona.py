@@ -4,7 +4,6 @@ from __future__ import annotations
 import json
 import re
 import unicodedata
-from typing import Optional
 
 from evaluare.ai.narrative import NarrativeClient
 
@@ -15,7 +14,7 @@ SYSTEM_ZONA = (
 )
 
 
-def _normalizeaza(text: Optional[str]) -> Optional[str]:
+def _normalizeaza(text: str | None) -> str | None:
     if not text:
         return None
     t = unicodedata.normalize("NFKD", text)
@@ -23,7 +22,7 @@ def _normalizeaza(text: Optional[str]) -> Optional[str]:
     return t.strip().lower() or None
 
 
-def _fallback(adresa: str) -> tuple[Optional[str], Optional[str]]:
+def _fallback(adresa: str) -> tuple[str | None, str | None]:
     parti = [p.strip() for p in adresa.split(",") if p.strip()]
     if len(parti) >= 2:
         return _normalizeaza(parti[-1]), _normalizeaza(parti[-2])
@@ -33,8 +32,8 @@ def _fallback(adresa: str) -> tuple[Optional[str], Optional[str]]:
 
 
 def extrage_zona(
-    adresa: str, client: Optional[NarrativeClient]
-) -> tuple[Optional[str], Optional[str]]:
+    adresa: str, client: NarrativeClient | None
+) -> tuple[str | None, str | None]:
     """Intoarce (judet, localitate) din adresa. LLM daca exista client, altfel fallback."""
     if client is not None:
         try:

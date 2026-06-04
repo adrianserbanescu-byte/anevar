@@ -10,7 +10,6 @@ import binascii
 from decimal import Decimal
 from io import BytesIO
 from pathlib import Path
-from typing import Optional
 
 from docx import Document
 from docx.document import Document as DocxDocument
@@ -62,7 +61,7 @@ def _nota(doc: DocxDocument, cheie: str, adnotari: bool) -> None:
     run.font.color.rgb = RGBColor(0xB0, 0x6A, 0x00)
 
 
-def _narativ(ctx: ReportContext, capitol: str) -> Optional[str]:
+def _narativ(ctx: ReportContext, capitol: str) -> str | None:
     """Returneaza textul narativ pentru un capitol, daca exista."""
     for sectiune in ctx.narrative:
         if sectiune.capitol == capitol:
@@ -306,7 +305,7 @@ def _adauga_grila_comparatie(doc: DocxDocument, ctx: ReportContext) -> None:
     hdr[1].text = "Pret total corectat"
     hdr[2].text = "Ajustare bruta"
     hdr[3].text = "Selectat"
-    for i, comp in enumerate(ctx.comparables):
+    for i, _comp in enumerate(ctx.comparables):
         pret = m.preturi_unitare_corectate[i] if i < len(m.preturi_unitare_corectate) else ""
         bruta = m.ajustari_brute[i] if i < len(m.ajustari_brute) else ""
         row = table.add_row().cells
@@ -437,7 +436,7 @@ def _adauga_risc_garantie(doc: DocxDocument, ctx: ReportContext, adnotari: bool 
     )
 
 
-def _decode_foto(data_url: str) -> Optional[BytesIO]:
+def _decode_foto(data_url: str) -> BytesIO | None:
     """Extrage bytes dintr-un data-URL base64 (sau base64 simplu). None daca e invalid."""
     if not data_url:
         return None

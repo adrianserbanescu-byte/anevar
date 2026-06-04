@@ -7,7 +7,6 @@ tipping-off). Continutul e pre-completat; evaluatorul verifica si semneaza/trans
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Optional, Union
 
 from docx import Document
 from docx.document import Document as DocxDocument
@@ -15,14 +14,18 @@ from docx.shared import Pt
 
 from evaluare.aml.incadrare import necesita_persoana_desemnata
 from evaluare.aml.models import (
-    ClientPF, ClientPJ, EvaluareRisc, PersoanaFizica, StatutPEP,
+    ClientPF,
+    ClientPJ,
+    EvaluareRisc,
+    PersoanaFizica,
+    StatutPEP,
 )
 from evaluare.aml.raportare import RaportRTN, RaportRTS
 
-Client = Union[ClientPF, ClientPJ]
+Client = ClientPF | ClientPJ
 
 
-def _antet(doc: DocxDocument, antet: Optional[dict]) -> None:
+def _antet(doc: DocxDocument, antet: dict | None) -> None:
     """Antet uzual: entitate, data, versiune, clauza de aprobare/revizuire."""
     antet = antet or {}
     entitate = antet.get("entitate", "______________________ (entitatea raportoare)")
@@ -87,7 +90,7 @@ _CAPITOLE_NORME = [
 ]
 
 
-def genereaza_norme_interne(antet: Optional[dict] = None) -> DocxDocument:
+def genereaza_norme_interne(antet: dict | None = None) -> DocxDocument:
     doc = Document()
     doc.add_heading("NORME INTERNE DE PREVENIRE A SPĂLĂRII BANILOR ȘI FINANȚĂRII TERORISMULUI", level=0)
     _antet(doc, antet)
@@ -105,7 +108,7 @@ def genereaza_norme_interne(antet: Optional[dict] = None) -> DocxDocument:
 # --------------------------------------------------------------------------- #
 # 2. Evaluarea proprie de risc
 # --------------------------------------------------------------------------- #
-def genereaza_evaluare_risc(evaluare: EvaluareRisc, antet: Optional[dict] = None) -> DocxDocument:
+def genereaza_evaluare_risc(evaluare: EvaluareRisc, antet: dict | None = None) -> DocxDocument:
     doc = Document()
     doc.add_heading("EVALUAREA DE RISC A RELAȚIEI DE AFACERI", level=0)
     _antet(doc, antet)
@@ -135,7 +138,7 @@ def genereaza_evaluare_risc(evaluare: EvaluareRisc, antet: Optional[dict] = None
 # 3. Decizie de desemnare a persoanei responsabile — DOAR societate
 # --------------------------------------------------------------------------- #
 def genereaza_decizie_desemnare(
-    tip_entitate: str, persoana: PersoanaFizica, antet: Optional[dict] = None,
+    tip_entitate: str, persoana: PersoanaFizica, antet: dict | None = None,
 ) -> DocxDocument:
     if not necesita_persoana_desemnata(tip_entitate):
         raise ValueError(
@@ -181,7 +184,7 @@ def _pep_text(pep: StatutPEP) -> str:
 
 
 def genereaza_fisa_kyc(
-    client: Client, evaluare: Optional[EvaluareRisc] = None, antet: Optional[dict] = None,
+    client: Client, evaluare: EvaluareRisc | None = None, antet: dict | None = None,
 ) -> DocxDocument:
     doc = Document()
     doc.add_heading("FIȘĂ DE CUNOAȘTERE A CLIENTELEI (KYC)", level=0)
@@ -223,7 +226,7 @@ def genereaza_fisa_kyc(
 # --------------------------------------------------------------------------- #
 # 5. Draft RTN (numerar)
 # --------------------------------------------------------------------------- #
-def genereaza_rtn(raport: RaportRTN, antet: Optional[dict] = None) -> DocxDocument:
+def genereaza_rtn(raport: RaportRTN, antet: dict | None = None) -> DocxDocument:
     doc = Document()
     doc.add_heading("RAPORT PENTRU TRANZACȚII CU NUMERAR (RTN)", level=0)
     _antet(doc, antet)
@@ -241,7 +244,7 @@ def genereaza_rtn(raport: RaportRTN, antet: Optional[dict] = None) -> DocxDocume
 # --------------------------------------------------------------------------- #
 # 6. Draft RTS (suspiciune) — cu avertisment tipping-off
 # --------------------------------------------------------------------------- #
-def genereaza_rts(raport: RaportRTS, antet: Optional[dict] = None) -> DocxDocument:
+def genereaza_rts(raport: RaportRTS, antet: dict | None = None) -> DocxDocument:
     doc = Document()
     doc.add_heading("RAPORT PENTRU TRANZACȚII SUSPECTE (RTS)", level=0)
     # avertisment vizibil sus
@@ -267,7 +270,7 @@ def genereaza_rts(raport: RaportRTS, antet: Optional[dict] = None) -> DocxDocume
 # --------------------------------------------------------------------------- #
 # salvare
 # --------------------------------------------------------------------------- #
-def salveaza(doc: DocxDocument, cale: Union[str, Path]) -> Path:
+def salveaza(doc: DocxDocument, cale: str | Path) -> Path:
     cale = Path(cale)
     cale.parent.mkdir(parents=True, exist_ok=True)
     doc.save(str(cale))

@@ -1,9 +1,9 @@
 from decimal import Decimal
 
+from evaluare.assembler import EvaluationInput, construieste_context, valideaza
+from evaluare.models.comparable import Adjustment, Comparable, LandComparable
 from evaluare.models.meta import EvaluationMeta
 from evaluare.models.property import BuildingData, CostElement, DepreciationPoint, LandData
-from evaluare.models.comparable import Adjustment, Comparable, LandComparable
-from evaluare.assembler import EvaluationInput, construieste_context, valideaza
 
 
 def _meta() -> EvaluationMeta:

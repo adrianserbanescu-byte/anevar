@@ -3,13 +3,13 @@ from decimal import Decimal
 
 from docx import Document
 
-from evaluare.models.meta import EvaluationMeta
-from evaluare.models.property import BuildingData, CostElement, DepreciationPoint, LandData
-from evaluare.models.results import CostResult, ReconciledResult
-from evaluare.models.report_context import ReportContext
-from evaluare.models.narrative import NarrativeSection
-from evaluare.report.generator import genereaza_raport
 from evaluare.engine.venit import DateVenit, RezultatVenit
+from evaluare.models.meta import EvaluationMeta
+from evaluare.models.narrative import NarrativeSection
+from evaluare.models.property import BuildingData, CostElement, DepreciationPoint, LandData
+from evaluare.models.report_context import ReportContext
+from evaluare.models.results import CostResult, ReconciledResult
+from evaluare.report.generator import genereaza_raport
 
 
 def _ctx() -> ReportContext:

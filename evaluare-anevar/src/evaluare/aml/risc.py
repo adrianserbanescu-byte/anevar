@@ -7,13 +7,18 @@ from __future__ import annotations
 
 from datetime import date
 from decimal import Decimal
-from typing import Optional
 
 from pydantic import BaseModel
 
 from evaluare.aml.constante import PERIOADA_POST_PEP_LUNI
 from evaluare.aml.models import (
-    CategorieRisc, ClientPF, ClientPJ, EvaluareRisc, FactorRisc, NivelMasuri, StatutPEP,
+    CategorieRisc,
+    ClientPF,
+    ClientPJ,
+    EvaluareRisc,
+    FactorRisc,
+    NivelMasuri,
+    StatutPEP,
 )
 
 # Cate luni inainte trebuie reevaluata relatia, pe categorie de risc (politica interna uzuala).
@@ -70,9 +75,8 @@ def _adauga_luni(d: str, luni: int) -> str:
 
 
 def _client_pep_efectiv(client, azi: str) -> bool:
-    if isinstance(client, ClientPF):
-        if pep_efectiv(client.pep, azi):
-            return True
+    if isinstance(client, ClientPF) and pep_efectiv(client.pep, azi):
+        return True
     if isinstance(client, ClientPJ):
         for br in client.beneficiari_reali:
             if pep_efectiv(br.pep, azi):
@@ -80,7 +84,7 @@ def _client_pep_efectiv(client, azi: str) -> bool:
     return False
 
 
-def evalueaza_risc(client, semnale: Optional[Semnale] = None, *, azi: str) -> EvaluareRisc:
+def evalueaza_risc(client, semnale: Semnale | None = None, *, azi: str) -> EvaluareRisc:
     """Calculeaza categoria de risc a relatiei (Norme art. 12-14) + reguli HARD (Legea art. 17)."""
     semnale = semnale or Semnale()
 

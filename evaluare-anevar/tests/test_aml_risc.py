@@ -1,7 +1,10 @@
 """Motor de risc AML — scor, categorie, nivel de masuri, reguli HARD (Legea art. 16/17)."""
 from evaluare.aml.models import ClientPF, ClientPJ, PersoanaFizica, StatutPEP
 from evaluare.aml.risc import (
-    Semnale, evalueaza_risc, nivel_masuri, pep_efectiv,
+    Semnale,
+    evalueaza_risc,
+    nivel_masuri,
+    pep_efectiv,
 )
 
 

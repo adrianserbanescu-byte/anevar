@@ -1,0 +1,19 @@
+# Carlige pre-commit. Instalare: pip install pre-commit && pre-commit install
+# Rulare manuala pe tot codul: pre-commit run --all-files
+repos:
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.6.9
+    hooks:
+      - id: ruff           # lint (cu --fix)
+        args: [--fix]
+      - id: ruff-format    # formatare (optional; nu rescrie agresiv)
+        stages: [manual]
+
+  - repo: local
+    hooks:
+      - id: pytest
+        name: pytest (suita rapida)
+        entry: python -m pytest -q
+        language: system
+        pass_filenames: false
+        always_run: true

@@ -1,8 +1,8 @@
 from decimal import Decimal
 from pathlib import Path
 
+from evaluare.discovery.orchestrator import descopera, extrage_descriere
 from evaluare.discovery.profiles import SubjectProfile
-from evaluare.discovery.orchestrator import extrage_descriere, descopera
 
 FIXTURES = Path(__file__).parent / "fixtures"
 
@@ -71,6 +71,7 @@ def test_build_search_url_teren():
 
 def test_descopera_teren_pipeline():
     from decimal import Decimal
+
     from evaluare.discovery.orchestrator import descopera_teren
     search = '<html><body><a href="/oferta/teren-breaza-1">t1</a></body></html>'
     listing = ('<html><head><title>Teren Breaza 1000 mp</title>'

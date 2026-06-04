@@ -3,10 +3,11 @@ from __future__ import annotations
 
 import os
 from pathlib import Path
-from typing import Optional
 
 from evaluare.ai.narrative import (
-    AnthropicNarrativeClient, PerplexityNarrativeClient, NarrativeClient,
+    AnthropicNarrativeClient,
+    NarrativeClient,
+    PerplexityNarrativeClient,
 )
 
 
@@ -26,8 +27,8 @@ def load_env_file(path: Path | str = ".env") -> None:
 class Settings:
     """Setarile efective ale aplicatiei, citite din mediu."""
 
-    def __init__(self, api_key: Optional[str], model: str, output_dir: Path, db_path: Path,
-                 perplexity_key: Optional[str] = None, perplexity_model: str = "sonar"):
+    def __init__(self, api_key: str | None, model: str, output_dir: Path, db_path: Path,
+                 perplexity_key: str | None = None, perplexity_model: str = "sonar"):
         self.api_key = api_key                  # Anthropic
         self.model = model
         self.perplexity_key = perplexity_key
@@ -36,7 +37,7 @@ class Settings:
         self.db_path = db_path
 
     @classmethod
-    def from_env(cls) -> "Settings":
+    def from_env(cls) -> Settings:
         api_key = os.environ.get("ANTHROPIC_API_KEY") or None
         model = os.environ.get("NARRATIVE_MODEL", "claude-sonnet-4-6")
         perplexity_key = os.environ.get("PERPLEXITY_API_KEY") or None
@@ -46,7 +47,7 @@ class Settings:
         return cls(api_key=api_key, model=model, output_dir=output_dir, db_path=db_path,
                    perplexity_key=perplexity_key, perplexity_model=perplexity_model)
 
-    def narrative_client(self) -> Optional[NarrativeClient]:
+    def narrative_client(self) -> NarrativeClient | None:
         """Clientul AI: Anthropic daca exista cheie, altfel Perplexity, altfel None (fallback)."""
         if self.api_key:
             return AnthropicNarrativeClient(api_key=self.api_key, model=self.model)

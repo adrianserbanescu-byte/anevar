@@ -1,8 +1,8 @@
 from decimal import Decimal
 
-from evaluare.engine.abordari import RezultatAbordare, abordare_cost, abordare_comparatie
-from evaluare.models.property import BuildingData
+from evaluare.engine.abordari import RezultatAbordare, abordare_comparatie, abordare_cost
 from evaluare.models.comparable import Comparable
+from evaluare.models.property import BuildingData
 
 
 def _building():

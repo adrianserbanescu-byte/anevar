@@ -3,10 +3,10 @@ from decimal import Decimal
 from docx import Document
 
 from evaluare.models.meta import EvaluationMeta
-from evaluare.models.property import BuildingData, CostElement, DepreciationPoint, LandData
-from evaluare.models.results import CostResult, ReconciledResult
-from evaluare.models.report_context import ReportContext
 from evaluare.models.narrative import NarrativeSection
+from evaluare.models.property import BuildingData, CostElement, DepreciationPoint, LandData
+from evaluare.models.report_context import ReportContext
+from evaluare.models.results import CostResult, ReconciledResult
 from evaluare.report.generator import genereaza_raport
 
 
@@ -142,10 +142,9 @@ def test_raportul_are_shell_gbf(tmp_path):
 
 
 def _ctx_cu_teren() -> ReportContext:
-    from evaluare.models.comparable import Adjustment, LandComparable
-    from evaluare.models.results import LandResult
     from evaluare.engine.land import evaluate_land
     from evaluare.engine.reconciliation import aloca_constructii
+    from evaluare.models.comparable import Adjustment, LandComparable
     ctx = _ctx()
     comps = [
         LandComparable(pret_mp=Decimal("100"), suprafata=Decimal("450"), localizare="Zona A",

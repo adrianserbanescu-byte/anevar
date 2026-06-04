@@ -10,9 +10,12 @@ from pathlib import Path
 
 import uvicorn
 
-from evaluare.config import load_env_file, Settings
+from evaluare.config import Settings, load_env_file
 from evaluare.db.storage import Storage
+from evaluare.logging_setup import configure_logging, get_logger
 from evaluare.web.app import create_app
+
+log = get_logger(__name__)
 
 HOST = "127.0.0.1"
 PORT = 8000
@@ -41,12 +44,14 @@ def _deschide_browser_cand_e_gata() -> None:
 
 
 def main() -> None:
+    configure_logging()
     _incarca_env()
     settings = Settings.from_env()
     storage = Storage(settings.db_path)
     storage.init()
     app = create_app(storage=storage, client=settings.narrative_client())
 
+    log.info("Pornire server pe http://%s:%s", HOST, PORT)
     threading.Thread(target=_deschide_browser_cand_e_gata, daemon=True).start()
     uvicorn.run(app, host=HOST, port=PORT)
 

@@ -1,10 +1,10 @@
 from decimal import Decimal
 
+from evaluare.db.storage import Storage
 from evaluare.models.meta import EvaluationMeta
 from evaluare.models.property import BuildingData, LandData
-from evaluare.models.results import ReconciledResult
 from evaluare.models.report_context import ReportContext
-from evaluare.db.storage import Storage
+from evaluare.models.results import ReconciledResult
 
 
 def _ctx() -> ReportContext:

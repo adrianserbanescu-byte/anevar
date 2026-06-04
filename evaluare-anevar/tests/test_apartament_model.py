@@ -1,7 +1,7 @@
 from decimal import Decimal
 
-from evaluare.models.property import BuildingData, LandData
 from evaluare.engine.validation import valideaza_proprietate
+from evaluare.models.property import BuildingData, LandData
 
 
 def _land():
@@ -9,7 +9,7 @@ def _land():
 
 
 def _ap(**kw):
-    base = dict(au=Decimal("60"), acd=Decimal("70"), an_referinta=2025)
+    base = {"au": Decimal("60"), "acd": Decimal("70"), "an_referinta": 2025}
     base.update(kw)
     return BuildingData(**base)
 

@@ -6,10 +6,12 @@ astfel incat rezultatul sa fie inteles fara a citi specificatia.
 from __future__ import annotations
 
 from decimal import Decimal
-from typing import Optional
 
 from evaluare.discovery.profiles import (
-    SubjectProfile, CandidateProfile, AttributeBreakdown, ScoreBreakdown,
+    AttributeBreakdown,
+    CandidateProfile,
+    ScoreBreakdown,
+    SubjectProfile,
 )
 
 # Ponderi dupa prioritatea atributelor (spec 5.3). De calibrat ulterior.
@@ -63,7 +65,7 @@ def d_suprafata(s: Decimal, c: Decimal) -> float:
     return _d_relativ(s, c)
 
 
-def _d_pentru(nume: str, sv, cv) -> Optional[float]:
+def _d_pentru(nume: str, sv, cv) -> float | None:
     if sv is None or cv is None:
         return None
     if nume == "suprafata_construita":

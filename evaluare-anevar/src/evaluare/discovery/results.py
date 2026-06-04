@@ -2,7 +2,7 @@
 from __future__ import annotations
 
 from decimal import Decimal
-from typing import Literal, Optional
+from typing import Literal
 
 from pydantic import BaseModel, Field
 
@@ -16,7 +16,7 @@ class SecondaryAttributeResult(BaseModel):
 
     nume: str
     stare: StareSecundar
-    valoare_gasita: Optional[str] = None
+    valoare_gasita: str | None = None
 
 
 class CandidateExtraction(BaseModel):
@@ -31,9 +31,9 @@ class LandDiscoveryResult(BaseModel):
 
     url: str
     titlu: str = ""
-    pret: Optional[Decimal] = None
-    suprafata: Optional[Decimal] = None     # suprafata terenului (mp)
-    pret_mp: Optional[Decimal] = None       # EUR/mp = pret / suprafata
+    pret: Decimal | None = None
+    suprafata: Decimal | None = None     # suprafata terenului (mp)
+    pret_mp: Decimal | None = None       # EUR/mp = pret / suprafata
     relevanta: int = 0                       # 0-100, pe baza similaritatii de suprafata
     nota: str = ""
 
@@ -43,9 +43,9 @@ class CandidateResult(BaseModel):
 
     url: str
     titlu: str = ""
-    pret: Optional[Decimal] = None
-    suprafata: Optional[Decimal] = None             # suprafata casei
-    teren: Optional[Decimal] = None                 # suprafata terenului
-    pret_mp: Optional[Decimal] = None               # €/mp construit - DOAR daca terenul e comparabil
+    pret: Decimal | None = None
+    suprafata: Decimal | None = None             # suprafata casei
+    teren: Decimal | None = None                 # suprafata terenului
+    pret_mp: Decimal | None = None               # €/mp construit - DOAR daca terenul e comparabil
     breakdown: ScoreBreakdown
     secundare: list[SecondaryAttributeResult] = Field(default_factory=list)

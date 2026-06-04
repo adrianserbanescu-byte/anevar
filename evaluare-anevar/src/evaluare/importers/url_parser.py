@@ -8,8 +8,8 @@ from __future__ import annotations
 
 import json
 import re
+from collections.abc import Callable
 from decimal import Decimal, InvalidOperation
-from typing import Callable, Optional
 
 import requests
 from bs4 import BeautifulSoup
@@ -26,23 +26,23 @@ USER_AGENT = (
 class ParsedListing(BaseModel):
     """Datele extrase dintr-un anunt (partiale, de confirmat de evaluator)."""
 
-    pret: Optional[Decimal] = None
-    moneda: Optional[str] = None
-    suprafata: Optional[Decimal] = None         # suprafata casei (construita/utila)
-    suprafata_teren: Optional[Decimal] = None   # suprafata terenului, daca e in date structurate
+    pret: Decimal | None = None
+    moneda: str | None = None
+    suprafata: Decimal | None = None         # suprafata casei (construita/utila)
+    suprafata_teren: Decimal | None = None   # suprafata terenului, daca e in date structurate
     titlu: str = ""
     sursa_url: str = ""
     # caracteristici structurate (din __NEXT_DATA__ storia: target/characteristics)
-    an: Optional[int] = None                    # anul constructiei
-    incalzire: Optional[str] = None             # normalizat: centrala_gaz, sobe, ...
-    material: Optional[str] = None              # lemn, caramida, beton, bca, ...
-    tip_cladire: Optional[str] = None           # casa individuala / insiruita ...
-    stare_text: Optional[str] = None            # stare normalizata (din construction_status)
-    nr_camere: Optional[int] = None
-    etaje: Optional[str] = None                 # ex. un nivel
+    an: int | None = None                    # anul constructiei
+    incalzire: str | None = None             # normalizat: centrala_gaz, sobe, ...
+    material: str | None = None              # lemn, caramida, beton, bca, ...
+    tip_cladire: str | None = None           # casa individuala / insiruita ...
+    stare_text: str | None = None            # stare normalizata (din construction_status)
+    nr_camere: int | None = None
+    etaje: str | None = None                 # ex. un nivel
 
 
-def _to_decimal(value) -> Optional[Decimal]:
+def _to_decimal(value) -> Decimal | None:
     """Pentru valori din date structurate (JSON-LD): '.' = zecimale (format international)."""
     if value is None:
         return None
@@ -52,7 +52,7 @@ def _to_decimal(value) -> Optional[Decimal]:
         return None
 
 
-def _to_decimal_ro(value) -> Optional[Decimal]:
+def _to_decimal_ro(value) -> Decimal | None:
     """Pentru numere din TEXT de afisare romanesc: '.' = separator de mii, ',' = zecimale.
 
     Ex.: '1.910' -> 1910 ; '351,46' -> 351.46.
@@ -130,7 +130,7 @@ _STARE = {"ready_to_use": "buna / locuibila", "to_completion": "in curs de final
           "to_renovation": "necesita renovare"}
 
 
-def _to_int(value) -> Optional[int]:
+def _to_int(value) -> int | None:
     try:
         return int(str(value).strip())
     except (ValueError, TypeError):
@@ -272,10 +272,10 @@ def parse_listing_html(html: str, sursa_url: str = "") -> ParsedListing:
     """Extrage pret, moneda si suprafata; incearca, in ordine: JSON-LD (recursiv),
     __NEXT_DATA__, og:meta + regex pe titlu/descriere."""
     soup = BeautifulSoup(html, "html.parser")
-    pret: Optional[Decimal] = None
-    moneda: Optional[str] = None
-    suprafata: Optional[Decimal] = None
-    suprafata_teren: Optional[Decimal] = None
+    pret: Decimal | None = None
+    moneda: str | None = None
+    suprafata: Decimal | None = None
+    suprafata_teren: Decimal | None = None
 
     # 1) JSON-LD (recursiv, robust la nesting real: priceSpecification, floorSize scalar)
     for script in soup.find_all("script", type="application/ld+json"):

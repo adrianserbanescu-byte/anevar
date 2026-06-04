@@ -2,7 +2,9 @@ from decimal import Decimal
 
 from evaluare.discovery.profiles import CandidateProfile, ScoreBreakdown
 from evaluare.discovery.results import (
-    SecondaryAttributeResult, CandidateExtraction, CandidateResult,
+    CandidateExtraction,
+    CandidateResult,
+    SecondaryAttributeResult,
 )
 
 

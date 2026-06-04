@@ -1,8 +1,14 @@
 from decimal import Decimal
 
-from evaluare.discovery.profiles import SubjectProfile, CandidateProfile
+from evaluare.discovery.profiles import CandidateProfile, SubjectProfile
 from evaluare.discovery.scoring import (
-    d_an, d_stare, d_finisaj, d_incalzire, d_teren, PONDERI, scor_candidat,
+    PONDERI,
+    d_an,
+    d_finisaj,
+    d_incalzire,
+    d_stare,
+    d_teren,
+    scor_candidat,
 )
 
 

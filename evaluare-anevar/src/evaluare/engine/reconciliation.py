@@ -2,17 +2,17 @@
 from __future__ import annotations
 
 from decimal import ROUND_HALF_UP, Decimal
-from typing import Literal, Optional
+from typing import Literal
 
-from evaluare.models.results import CostResult, MarketResult, ReconciledResult
 from evaluare.engine.abordari import RezultatAbordare
+from evaluare.models.results import CostResult, MarketResult, ReconciledResult
 
 Metoda = Literal["piata", "cost", "ponderata"]
 
 
 def reconcile(
-    market: Optional[MarketResult],
-    cost: Optional[CostResult],
+    market: MarketResult | None,
+    cost: CostResult | None,
     metoda: Metoda = "piata",
     pondere_piata: Decimal = Decimal("0.5"),
 ) -> ReconciledResult:
@@ -72,7 +72,7 @@ _METODA = {"cost": "cost", "comparatie": "piata", "venit": "venit"}
 def reconcile_profil(
     rezultate: list[RezultatAbordare],
     primara: str,
-    ponderi: Optional[dict[str, Decimal]] = None,
+    ponderi: dict[str, Decimal] | None = None,
 ) -> ReconciledResult:
     """Reconciliază o listă de RezultatAbordare după profil.
 

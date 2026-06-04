@@ -1,5 +1,6 @@
 from decimal import Decimal
-from evaluare.profil import ProfilEvaluare, CASA_TEREN_GARANTARE
+
+from evaluare.profil import CASA_TEREN_GARANTARE, ProfilEvaluare
 
 
 def test_profil_default():

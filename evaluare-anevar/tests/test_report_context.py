@@ -2,8 +2,8 @@ from decimal import Decimal
 
 from evaluare.models.meta import EvaluationMeta
 from evaluare.models.property import BuildingData, CostElement, DepreciationPoint, LandData
-from evaluare.models.results import CostResult, ReconciledResult
 from evaluare.models.report_context import ReportContext
+from evaluare.models.results import CostResult, ReconciledResult
 
 
 def _meta() -> EvaluationMeta:

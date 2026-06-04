@@ -3,7 +3,6 @@ from docx import Document
 
 from evaluare.profil import ProfilEvaluare
 from evaluare.report.generator import genereaza_raport
-
 from tests.test_report_generator import _ctx
 
 

@@ -5,12 +5,15 @@ AVERTISMENT: scraping direct - poate incalca ToS si se poate strica la schimbari
 from __future__ import annotations
 
 import re
-from typing import Callable
+from collections.abc import Callable
 from urllib.parse import urljoin
 
 from bs4 import BeautifulSoup
 
 from evaluare.importers.url_parser import fetch_html
+from evaluare.logging_setup import get_logger
+
+log = get_logger(__name__)
 
 BAZE = {
     "imobiliare": "https://www.imobiliare.ro",
@@ -69,7 +72,8 @@ def cauta_anunturi(
     for loc in incercari:
         try:
             html = fetcher(build_search_url(portal, judet, loc, categorie))
-        except Exception:
+        except Exception as e:
+            log.debug("Cautare esuata (portal=%s, judet=%s, loc=%r): %s", portal, judet, loc, e)
             continue
         urls = extract_listing_urls(html, baza=BAZE[portal])
         if urls:

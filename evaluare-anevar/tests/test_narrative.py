@@ -1,11 +1,11 @@
 from decimal import Decimal
 
+from evaluare.ai.narrative import CAPITOLE_NARATIVE, generate_narrative
 from evaluare.models.meta import EvaluationMeta
 from evaluare.models.property import BuildingData, LandData
-from evaluare.models.results import ReconciledResult, CostResult
 from evaluare.models.report_context import ReportContext
+from evaluare.models.results import CostResult, ReconciledResult
 from evaluare.report.anonymizer import build_anonymizer
-from evaluare.ai.narrative import generate_narrative, CAPITOLE_NARATIVE
 
 
 def _ctx() -> ReportContext:

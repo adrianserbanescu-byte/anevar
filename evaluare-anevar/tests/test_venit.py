@@ -2,7 +2,7 @@ from decimal import Decimal
 
 import pytest
 
-from evaluare.engine.venit import DateVenit, RezultatVenit, evalueaza_venit, abordare_venit
+from evaluare.engine.venit import DateVenit, RezultatVenit, abordare_venit, evalueaza_venit
 
 
 def test_capitalizare_directa_simpla():

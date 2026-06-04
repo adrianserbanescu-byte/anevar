@@ -1,4 +1,4 @@
-from evaluare.localitati import slugify, judete, localitati
+from evaluare.localitati import judete, localitati, slugify
 
 
 def test_slugify_normalizeaza():

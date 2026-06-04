@@ -1,7 +1,7 @@
 """Conversie si rotunjire monetara consistenta (Decimal)."""
 from __future__ import annotations
 
-from decimal import Decimal, ROUND_HALF_UP
+from decimal import ROUND_HALF_UP, Decimal
 
 
 def to_money(value: float | int | str | Decimal) -> Decimal:

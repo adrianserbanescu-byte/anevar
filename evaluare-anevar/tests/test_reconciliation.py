@@ -2,8 +2,8 @@ from decimal import Decimal
 
 import pytest
 
-from evaluare.models.results import CostResult, MarketResult
 from evaluare.engine.reconciliation import reconcile
+from evaluare.models.results import CostResult, MarketResult
 
 
 def make_market(value: Decimal) -> MarketResult:

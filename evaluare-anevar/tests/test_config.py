@@ -1,4 +1,4 @@
-from evaluare.config import load_env_file, Settings
+from evaluare.config import Settings, load_env_file
 
 
 def test_load_env_file_sets_environ(tmp_path, monkeypatch):

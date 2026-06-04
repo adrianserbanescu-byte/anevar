@@ -2,7 +2,7 @@
 from __future__ import annotations
 
 from decimal import Decimal
-from typing import Literal, Optional
+from typing import Literal
 
 from pydantic import BaseModel, Field
 
@@ -10,12 +10,12 @@ from pydantic import BaseModel, Field
 class CostResult(BaseModel):
     """Rezultatul abordarii prin cost."""
 
-    valoare_teren: Optional[Decimal] = None
+    valoare_teren: Decimal | None = None
     cib: Decimal                        # cost de inlocuire brut
     vcp: Decimal                        # varsta cronologica ponderata
     depreciere_fizica: Decimal          # fractie (Dfn)
     cin: Decimal                        # cost de inlocuire net
-    valoare_cost: Optional[Decimal] = None   # teren + CIN (None daca terenul nu e evaluat)
+    valoare_cost: Decimal | None = None   # teren + CIN (None daca terenul nu e evaluat)
 
 
 class MarketResult(BaseModel):

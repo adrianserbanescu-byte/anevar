@@ -4,11 +4,22 @@ from decimal import Decimal
 import pytest
 
 from evaluare.aml.documente import (
-    genereaza_decizie_desemnare, genereaza_evaluare_risc, genereaza_fisa_kyc,
-    genereaza_norme_interne, genereaza_rtn, genereaza_rts, salveaza,
+    genereaza_decizie_desemnare,
+    genereaza_evaluare_risc,
+    genereaza_fisa_kyc,
+    genereaza_norme_interne,
+    genereaza_rtn,
+    genereaza_rts,
+    salveaza,
 )
 from evaluare.aml.models import (
-    BeneficiarReal, ClientPF, ClientPJ, EvaluareRisc, FactorRisc, PersoanaFizica, StatutPEP,
+    BeneficiarReal,
+    ClientPF,
+    ClientPJ,
+    EvaluareRisc,
+    FactorRisc,
+    PersoanaFizica,
+    StatutPEP,
 )
 from evaluare.aml.raportare import RaportRTN, RaportRTS
 

@@ -1,15 +1,13 @@
 from decimal import Decimal
-from pathlib import Path
 
 from docx import Document
 
-from evaluare.profil import AGRICOL
-from evaluare.models.property import LandData
 from evaluare.models.meta import EvaluationMeta
-from evaluare.models.property import BuildingData, CostElement, DepreciationPoint
-from evaluare.models.results import CostResult, ReconciledResult
-from evaluare.models.report_context import ReportContext
 from evaluare.models.narrative import NarrativeSection
+from evaluare.models.property import BuildingData, CostElement, DepreciationPoint, LandData
+from evaluare.models.report_context import ReportContext
+from evaluare.models.results import CostResult, ReconciledResult
+from evaluare.profil import AGRICOL
 from evaluare.report.generator import genereaza_raport
 
 
@@ -20,8 +18,8 @@ def test_profil_agricol():
 
 
 def test_land_campuri_agricole_optionale():
-    l = LandData(suprafata=Decimal("5000"), categorie_folosinta="arabil", clasa_calitate=2)
-    assert l.categorie_folosinta == "arabil" and l.clasa_calitate == 2
+    land = LandData(suprafata=Decimal("5000"), categorie_folosinta="arabil", clasa_calitate=2)
+    assert land.categorie_folosinta == "arabil" and land.clasa_calitate == 2
     l2 = LandData(suprafata=Decimal("500"))
     assert l2.categorie_folosinta is None
 

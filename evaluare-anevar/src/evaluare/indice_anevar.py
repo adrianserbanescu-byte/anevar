@@ -8,7 +8,7 @@ from __future__ import annotations
 
 import json
 import re
-from typing import Callable, Optional
+from collections.abc import Callable
 
 from bs4 import BeautifulSoup
 
@@ -36,13 +36,13 @@ def _parse(html: str) -> dict:
         return {"orase": [], "perioade": []}
     orase = [str(x) for x in data[0][1:]]
     perioade = [
-        {"perioada": str(row[0]).strip(), "valori": dict(zip(orase, row[1:]))}
+        {"perioada": str(row[0]).strip(), "valori": dict(zip(orase, row[1:], strict=False))}
         for row in data[1:] if isinstance(row, list) and len(row) > 1
     ]
     return {"orase": orase, "perioade": perioade}
 
 
-def indice_anevar(fetcher: Optional[Callable[[str], str]] = None) -> dict:
+def indice_anevar(fetcher: Callable[[str], str] | None = None) -> dict:
     """Returneaza indicele imobiliar ANEVAR (orase + variatii trimestriale %)."""
     html = (fetcher or fetch_html)(INDICE_URL)
     return _parse(html)

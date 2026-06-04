@@ -1,4 +1,4 @@
-from evaluare.indice_anevar import indice_anevar, _parse
+from evaluare.indice_anevar import _parse, indice_anevar
 
 _HTML = """<html><body><script>
 google.charts.load("current", {"packages":["corechart"]});

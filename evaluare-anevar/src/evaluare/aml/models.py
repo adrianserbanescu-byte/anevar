@@ -6,7 +6,7 @@ Toate campurile optionale unde legea permite „de completat de evaluator". Date
 from __future__ import annotations
 
 from decimal import Decimal
-from typing import Literal, Optional
+from typing import Literal
 
 from pydantic import BaseModel, Field
 
@@ -29,29 +29,29 @@ class PersoanaFizica(BaseModel):
 
     nume: str = ""
     prenume: str = ""
-    cnp: Optional[str] = None
-    tip_act: Optional[TipAct] = None
-    serie_act: Optional[str] = None
-    nr_act: Optional[str] = None
-    cetatenie: Optional[str] = None
-    domiciliu: Optional[str] = None
-    ocupatie: Optional[str] = None
+    cnp: str | None = None
+    tip_act: TipAct | None = None
+    serie_act: str | None = None
+    nr_act: str | None = None
+    cetatenie: str | None = None
+    domiciliu: str | None = None
+    ocupatie: str | None = None
 
 
 class StatutPEP(BaseModel):
     """Statut de persoana expusa public — Legea art. 3."""
 
     este_pep: bool = False
-    categorie: Optional[CategoriePEP] = None
-    tip: Optional[TipPEP] = None
-    data_incetare_functie: Optional[str] = None   # ISO; pentru calculul celor 12 luni
+    categorie: CategoriePEP | None = None
+    tip: TipPEP | None = None
+    data_incetare_functie: str | None = None   # ISO; pentru calculul celor 12 luni
 
 
 class BeneficiarReal(PersoanaFizica):
     """Beneficiar real — Legea art. 4. `procent` = cota de detinere/control."""
 
-    procent: Optional[Decimal] = None
-    tip_control: Optional[TipControlBR] = None
+    procent: Decimal | None = None
+    tip_control: TipControlBR | None = None
     pep: StatutPEP = Field(default_factory=StatutPEP)
     consultat_registru_central: bool = False
     neconcordanta_registru: bool = False
@@ -70,12 +70,12 @@ class ClientPJ(BaseModel):
 
     tip: Literal["PJ", "PJ_straina"] = "PJ"
     denumire: str = ""
-    cui: Optional[str] = None
-    sediu: Optional[str] = None
-    acte_constituire: Optional[str] = None
+    cui: str | None = None
+    sediu: str | None = None
+    acte_constituire: str | None = None
     reprezentant_legal: PersoanaFizica = Field(default_factory=PersoanaFizica)
-    imputernicit: Optional[PersoanaFizica] = None
-    document_imputernicire: Optional[str] = None
+    imputernicit: PersoanaFizica | None = None
+    document_imputernicire: str | None = None
     traducere_legalizata: bool = False              # obligatoriu daca PJ straina (art. 15(2))
     beneficiari_reali: list[BeneficiarReal] = Field(default_factory=list)
 
@@ -96,18 +96,18 @@ class EvaluareRisc(BaseModel):
     categorie: CategorieRisc = "standard"
     nivel_masuri: NivelMasuri = "standard"
     motive_sporit: list[str] = Field(default_factory=list)
-    data: Optional[str] = None
-    data_reevaluare: Optional[str] = None
+    data: str | None = None
+    data_reevaluare: str | None = None
 
 
 class DosarAML(BaseModel):
     """Dosarul AML al unei relatii de afaceri (separat de dosarul de evaluare)."""
 
     tip_entitate_evaluator: Literal["PJ", "PFA"] = "PFA"
-    persoana_desemnata: Optional[str] = None
-    client_pf: Optional[ClientPF] = None
-    client_pj: Optional[ClientPJ] = None
-    evaluare_risc: Optional[EvaluareRisc] = None
+    persoana_desemnata: str | None = None
+    client_pf: ClientPF | None = None
+    client_pj: ClientPJ | None = None
+    evaluare_risc: EvaluareRisc | None = None
     indicatori_suspiciune: list[str] = Field(default_factory=list)
-    data_creare: Optional[str] = None
-    data_retentie: Optional[str] = None
+    data_creare: str | None = None
+    data_retentie: str | None = None

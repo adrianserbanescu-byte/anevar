@@ -2,8 +2,14 @@
 from decimal import Decimal
 
 from evaluare.aml.raportare import (
-    RaportRTN, RaportRTS, eur_din_lei, lei_din_eur, necesita_rtn,
-    suspendare_pana_la, termen_rtn, tranzactii_legate,
+    RaportRTN,
+    RaportRTS,
+    eur_din_lei,
+    lei_din_eur,
+    necesita_rtn,
+    suspendare_pana_la,
+    termen_rtn,
+    tranzactii_legate,
 )
 
 

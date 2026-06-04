@@ -8,7 +8,6 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
-from typing import Optional
 
 from evaluare.aml.constante import RETENTIE_ANI
 
@@ -47,7 +46,7 @@ class StoreAML:
         cale.write_text(json.dumps(inreg, ensure_ascii=False, indent=2), encoding="utf-8")
         return inreg
 
-    def listeaza(self, tip: Optional[str] = None) -> list[dict]:
+    def listeaza(self, tip: str | None = None) -> list[dict]:
         prefix = tip or "*"
         fisiere = sorted(self.dir.glob(f"{prefix}_*.json"))
         return [json.loads(f.read_text(encoding="utf-8")) for f in fisiere]

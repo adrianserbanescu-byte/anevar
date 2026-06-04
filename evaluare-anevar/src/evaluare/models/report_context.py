@@ -2,17 +2,16 @@
 from __future__ import annotations
 
 from decimal import Decimal
-from typing import Optional
 
 from pydantic import BaseModel, Field
 
-from evaluare.models.meta import EvaluationMeta
-from evaluare.models.property import BuildingData, LandData
-from evaluare.models.comparable import Comparable, LandComparable
-from evaluare.models.results import CostResult, MarketResult, ReconciledResult, LandResult
-from evaluare.models.narrative import NarrativeSection
-from evaluare.profil import ProfilEvaluare, CASA_TEREN_GARANTARE
 from evaluare.engine.venit import DateVenit, RezultatVenit
+from evaluare.models.comparable import Comparable, LandComparable
+from evaluare.models.meta import EvaluationMeta
+from evaluare.models.narrative import NarrativeSection
+from evaluare.models.property import BuildingData, LandData
+from evaluare.models.results import CostResult, LandResult, MarketResult, ReconciledResult
+from evaluare.profil import CASA_TEREN_GARANTARE, ProfilEvaluare
 
 
 class ReportContext(BaseModel):
@@ -23,15 +22,15 @@ class ReportContext(BaseModel):
     building: BuildingData
     comparables: list[Comparable] = Field(default_factory=list)
     land_comparables: list[LandComparable] = Field(default_factory=list)
-    cost_result: Optional[CostResult] = None
-    market_result: Optional[MarketResult] = None
+    cost_result: CostResult | None = None
+    market_result: MarketResult | None = None
     reconciled: ReconciledResult
-    land_result: Optional[LandResult] = None
-    alocare_constructii: Optional[Decimal] = None
+    land_result: LandResult | None = None
+    alocare_constructii: Decimal | None = None
     photos: list[str] = Field(default_factory=list)   # data-URL base64 pentru anexa foto
     documente: list[str] = Field(default_factory=list)  # data-URL base64 (scanuri) -> Anexa 3
     narrative: list[NarrativeSection] = Field(default_factory=list)
     profil: ProfilEvaluare = Field(default_factory=lambda: CASA_TEREN_GARANTARE)
-    venit_result: Optional[RezultatVenit] = None
-    date_venit: Optional[DateVenit] = None
-    dcf_valoare: Optional[Decimal] = None
+    venit_result: RezultatVenit | None = None
+    date_venit: DateVenit | None = None
+    dcf_valoare: Decimal | None = None

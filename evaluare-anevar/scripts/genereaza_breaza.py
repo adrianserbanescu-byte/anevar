@@ -21,13 +21,13 @@ if env.exists():
             k, v = line.split("=", 1)
             os.environ.setdefault(k.strip(), v.strip())
 
+from evaluare.assembler import EvaluationInput, construieste_context
+from evaluare.config import Settings
+from evaluare.importers.url_parser import fetch_html, parse_listing_html
+from evaluare.models.comparable import Adjustment, Comparable, LandComparable
 from evaluare.models.meta import EvaluationMeta
 from evaluare.models.property import BuildingData, CostElement, DepreciationPoint, LandData
-from evaluare.models.comparable import Adjustment, Comparable, LandComparable
-from evaluare.importers.url_parser import fetch_html, parse_listing_html
-from evaluare.assembler import EvaluationInput, construieste_context
 from evaluare.report.generator import genereaza_raport
-from evaluare.config import Settings
 
 
 def adj(el, val, etapa="proprietate", tip="procentuala"):

@@ -1,5 +1,5 @@
 from evaluare.profil import CASA_TEREN_GARANTARE, ProfilEvaluare
-from evaluare.report.sectiuni import sectiuni_pentru_profil, ID_SECTIUNI
+from evaluare.report.sectiuni import ID_SECTIUNI, sectiuni_pentru_profil
 
 
 def test_casa_teren_garantare_are_gev520_fara_venit():

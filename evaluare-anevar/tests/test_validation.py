@@ -1,13 +1,12 @@
 from decimal import Decimal
 
-from evaluare.models.property import BuildingData, CostElement, DepreciationPoint, LandData
-from evaluare.models.comparable import Adjustment, Comparable
 from evaluare.engine.validation import (
-    Issue,
-    valideaza_proprietate,
     valideaza_comparabile,
     valideaza_depreciere,
+    valideaza_proprietate,
 )
+from evaluare.models.comparable import Adjustment, Comparable
+from evaluare.models.property import BuildingData, CostElement, DepreciationPoint, LandData
 
 
 def _building(au="322.75", acd="351.46", c_nf="0", justif_nf="") -> BuildingData:

@@ -7,7 +7,7 @@ from __future__ import annotations
 
 import hashlib
 import json
-from typing import Callable, Optional
+from collections.abc import Callable
 
 from pydantic import BaseModel, Field
 
@@ -42,7 +42,7 @@ class JurnalAudit(BaseModel):
     evenimente: list[EvenimentAudit] = Field(default_factory=list)
 
     def inregistreaza(
-        self, tip: str, detalii: Optional[dict | str] = None,
+        self, tip: str, detalii: dict | str | None = None,
         clock: Callable[[], str] = _acum,
     ) -> EvenimentAudit:
         """Adauga un eveniment legat prin hash de cel anterior."""

@@ -2,7 +2,7 @@
 from __future__ import annotations
 
 from decimal import Decimal
-from typing import Literal, Optional
+from typing import Literal
 
 from pydantic import BaseModel, Field
 
@@ -18,11 +18,11 @@ class RezultatAbordare(BaseModel):
     """Ieșirea comună a oricărei abordări — folosită la reconciliere pe profil."""
 
     abordare: NumeAbordare
-    valoare: Optional[Decimal] = None
+    valoare: Decimal | None = None
     detalii: dict = Field(default_factory=dict)
 
 
-def abordare_cost(building: BuildingData, valoare_teren: Optional[Decimal]) -> RezultatAbordare:
+def abordare_cost(building: BuildingData, valoare_teren: Decimal | None) -> RezultatAbordare:
     res = evaluate_cost(building, valoare_teren=valoare_teren)
     return RezultatAbordare(
         abordare="cost", valoare=res.valoare_cost,

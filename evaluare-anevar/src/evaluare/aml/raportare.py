@@ -8,12 +8,13 @@ from __future__ import annotations
 
 from datetime import date, timedelta
 from decimal import ROUND_HALF_UP, Decimal
-from typing import Optional
 
 from pydantic import BaseModel, Field
 
 from evaluare.aml.constante import (
-    PRAG_ANTIFRAGMENTARE_EUR, PRAG_NUMERAR_EUR, TERMEN_RTN_ZILE_LUCRATOARE,
+    PRAG_ANTIFRAGMENTARE_EUR,
+    PRAG_NUMERAR_EUR,
+    TERMEN_RTN_ZILE_LUCRATOARE,
 )
 
 _AVERTISMENT_TIPPING_OFF = (
@@ -115,7 +116,7 @@ class RaportRTN(BaseModel):
     data_tranzactie: str
     descriere: str = ""
     transmis: bool = False
-    data_transmitere: Optional[str] = None
+    data_transmitere: str | None = None
 
     @property
     def termen(self) -> str:
@@ -130,7 +131,7 @@ class RaportRTS(BaseModel):
     data_inregistrare: str
     indicatori: list[str] = Field(default_factory=list)
     transmis: bool = False
-    data_transmitere: Optional[str] = None
+    data_transmitere: str | None = None
     avertisment_tipping_off: str = _AVERTISMENT_TIPPING_OFF
 
     @property

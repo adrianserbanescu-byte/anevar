@@ -2,8 +2,14 @@
 from decimal import Decimal
 
 from evaluare.aml.models import (
-    BeneficiarReal, ClientPF, ClientPJ, DosarAML, EvaluareRisc, FactorRisc,
-    PersoanaFizica, StatutPEP,
+    BeneficiarReal,
+    ClientPF,
+    ClientPJ,
+    DosarAML,
+    EvaluareRisc,
+    FactorRisc,
+    PersoanaFizica,
+    StatutPEP,
 )
 
 

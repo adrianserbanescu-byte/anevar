@@ -7,12 +7,11 @@ from __future__ import annotations
 
 import re
 from decimal import Decimal, InvalidOperation
-from typing import Optional
 
-from evaluare.ingestie.models import DateExtraseCF, DateReleveu, DatePlan, DateCPE
+from evaluare.ingestie.models import DateCPE, DateExtraseCF, DatePlan, DateReleveu
 
 
-def _num(s: str) -> Optional[Decimal]:
+def _num(s: str) -> Decimal | None:
     """Parseaza un numar din text RO. '.' = mii daca urmeaza 3 cifre; ',' = zecimala."""
     s = (s or "").strip()
     if not s:

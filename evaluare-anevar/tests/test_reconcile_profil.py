@@ -1,5 +1,6 @@
-import pytest
 from decimal import Decimal
+
+import pytest
 
 from evaluare.engine.abordari import RezultatAbordare
 from evaluare.engine.reconciliation import reconcile_profil

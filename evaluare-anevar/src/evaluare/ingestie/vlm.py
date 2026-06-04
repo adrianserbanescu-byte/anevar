@@ -7,7 +7,7 @@ prealabil (reutilizeaza report/anonymizer), apoi demascat local.
 from __future__ import annotations
 
 import json
-from typing import Optional, Protocol
+from typing import Protocol
 
 
 class VlmClient(Protocol):
@@ -18,8 +18,8 @@ class VlmClient(Protocol):
 
 
 def extrage_campuri_vlm(
-    continut: str, instructiune: str, client: Optional[VlmClient]
-) -> Optional[dict]:
+    continut: str, instructiune: str, client: VlmClient | None
+) -> dict | None:
     """Cere VLM-ului campuri structurate (JSON). None daca nu exista client sau raspunsul e invalid."""
     if client is None:
         return None

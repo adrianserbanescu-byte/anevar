@@ -2,8 +2,8 @@ from decimal import Decimal
 
 import pytest
 
+from evaluare.engine.land import evaluate_land, pret_mp_corectat
 from evaluare.models.comparable import Adjustment, LandComparable
-from evaluare.engine.land import pret_mp_corectat, evaluate_land
 
 
 def _adj(element, valoare, etapa="proprietate", tip="procentuala"):

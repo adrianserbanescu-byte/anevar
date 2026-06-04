@@ -4,7 +4,9 @@ from decimal import Decimal
 import pytest
 
 from evaluare.engine.chirie import (
-    chirie_mp_corectata, date_venit_din_chirie, evalueaza_chirie,
+    chirie_mp_corectata,
+    date_venit_din_chirie,
+    evalueaza_chirie,
 )
 from evaluare.engine.venit import evalueaza_venit
 from evaluare.models.comparable import Adjustment, RentComparable

@@ -5,15 +5,13 @@ endpoint-ul il expune evaluatorului (om-in-bucla).
 """
 from __future__ import annotations
 
-from typing import Optional, Union
-
 from evaluare.aml.incadrare import necesita_persoana_desemnata
 from evaluare.aml.indicatori import SemnaleIndicatori, evalueaza_indicatori, propune_rts
 from evaluare.aml.liste import Liste, screening
 from evaluare.aml.models import ClientPF, ClientPJ, EvaluareRisc
 from evaluare.aml.risc import Semnale, evalueaza_risc
 
-Client = Union[ClientPF, ClientPJ]
+Client = ClientPF | ClientPJ
 
 
 def _nume_screening(client: Client) -> list[str]:
@@ -34,9 +32,9 @@ def evalueaza_relatie(
     client: Client,
     *,
     azi: str,
-    semnale_risc: Optional[Semnale] = None,
-    semnale_indicatori: Optional[SemnaleIndicatori] = None,
-    liste: Optional[Liste] = None,
+    semnale_risc: Semnale | None = None,
+    semnale_indicatori: SemnaleIndicatori | None = None,
+    liste: Liste | None = None,
 ) -> dict:
     """Evalueaza o relatie de afaceri: categorie risc, indicatori, screening, documente necesare."""
     semnale_indicatori = semnale_indicatori or SemnaleIndicatori()

@@ -2,14 +2,14 @@ from decimal import Decimal
 
 import pytest
 
-from evaluare.models.comparable import Adjustment, Comparable
 from evaluare.engine.market import (
-    pret_unitar_brut,
-    pret_total_corectat,
     ajustare_bruta,
     ajustare_neta,
     evaluate_market,
+    pret_total_corectat,
+    pret_unitar_brut,
 )
+from evaluare.models.comparable import Adjustment, Comparable
 
 
 def _adj(element, valoare, etapa="proprietate", tip="procentuala"):
@@ -147,7 +147,7 @@ def test_regresie_casa_busteni_grila_completa():
     r = evaluate_market(comps)
     # toate preturile totale corectate reproduc celulele reale
     asteptate = [Decimal(f) for _, f in BUSTENI_CASA]
-    for got, exp in zip(r.preturi_unitare_corectate, asteptate):
+    for got, exp in zip(r.preturi_unitare_corectate, asteptate, strict=True):
         assert round(got, 4) == round(exp, 4)
     # selectia foloseste regula curata (ajustare bruta minima pe etapa de proprietate)
     assert r.valoare_piata == r.preturi_unitare_corectate[r.index_selectat]

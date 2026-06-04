@@ -2,26 +2,29 @@
 from __future__ import annotations
 
 from decimal import Decimal
-from typing import Literal, Optional
+from typing import Literal
 
 from pydantic import BaseModel, Field
 
-from evaluare.models.meta import EvaluationMeta
-from evaluare.models.property import BuildingData, LandData
-from evaluare.models.comparable import Comparable, LandComparable
-from evaluare.models.report_context import ReportContext
-from evaluare.ai.narrative import generate_narrative, NarrativeClient
-from evaluare.report.anonymizer import build_anonymizer
+from evaluare.ai.narrative import NarrativeClient, generate_narrative
+from evaluare.engine.abordari import RezultatAbordare
 from evaluare.engine.cost import evaluate_cost
 from evaluare.engine.land import evaluate_land
 from evaluare.engine.market import evaluate_market
 from evaluare.engine.reconciliation import aloca_constructii, reconcile_profil
-from evaluare.engine.abordari import RezultatAbordare
-from evaluare.profil import ProfilEvaluare, CASA_TEREN_GARANTARE
 from evaluare.engine.validation import (
-    Issue, valideaza_proprietate, valideaza_comparabile, valideaza_depreciere,
+    Issue,
+    valideaza_comparabile,
+    valideaza_depreciere,
+    valideaza_proprietate,
 )
-from evaluare.engine.venit import DateVenit, evalueaza_venit, DateDCF, evalueaza_dcf
+from evaluare.engine.venit import DateDCF, DateVenit, evalueaza_dcf, evalueaza_venit
+from evaluare.models.comparable import Comparable, LandComparable
+from evaluare.models.meta import EvaluationMeta
+from evaluare.models.property import BuildingData, LandData
+from evaluare.models.report_context import ReportContext
+from evaluare.profil import CASA_TEREN_GARANTARE, ProfilEvaluare
+from evaluare.report.anonymizer import build_anonymizer
 
 
 class EvaluationInput(BaseModel):
@@ -32,12 +35,12 @@ class EvaluationInput(BaseModel):
     building: BuildingData
     comparables: list[Comparable] = Field(default_factory=list)
     land_comparables: list[LandComparable] = Field(default_factory=list)
-    valoare_teren: Optional[Decimal] = None
+    valoare_teren: Decimal | None = None
     metoda: Literal["piata", "cost", "ponderata", "venit", "dcf"] = "cost"
     pondere_piata: Decimal = Field(default=Decimal("0.5"), ge=0, le=1)
     profil: ProfilEvaluare = CASA_TEREN_GARANTARE
-    date_venit: Optional[DateVenit] = None
-    date_dcf: Optional[DateDCF] = None
+    date_venit: DateVenit | None = None
+    date_dcf: DateDCF | None = None
     photos: list[str] = Field(default_factory=list)   # data-URL base64 pentru anexa foto
     documente: list[str] = Field(default_factory=list)  # data-URL base64 (scanuri CF/cadastral) -> Anexa 3
 
@@ -57,7 +60,7 @@ def valideaza(inp: EvaluationInput) -> list[Issue]:
 
 
 def construieste_context(
-    inp: EvaluationInput, client: Optional[NarrativeClient]
+    inp: EvaluationInput, client: NarrativeClient | None
 ) -> ReportContext:
     """Ruleaza motoarele si asambleaza ReportContext (inclusiv narativul)."""
     # Teren: daca exista comparabile de teren, valoarea se calculeaza prin grila;

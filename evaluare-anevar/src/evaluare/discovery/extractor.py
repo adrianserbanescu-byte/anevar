@@ -7,7 +7,6 @@ from __future__ import annotations
 import json
 import re
 from decimal import Decimal
-from typing import Optional
 
 from evaluare.ai.narrative import NarrativeClient
 from evaluare.discovery.profiles import CandidateProfile
@@ -20,9 +19,9 @@ SYSTEM_EXTRACT = (
 )
 
 
-def parse_atribute_secundare(text: str) -> list[tuple[str, Optional[str]]]:
+def parse_atribute_secundare(text: str) -> list[tuple[str, str | None]]:
     """Parsează textul (un atribut pe linie, „nume: valoare_dorită") în perechi."""
-    rezultat: list[tuple[str, Optional[str]]] = []
+    rezultat: list[tuple[str, str | None]] = []
     for linie in (text or "").splitlines():
         linie = linie.strip()
         if not linie:
@@ -41,7 +40,7 @@ def _curata_json(text: str) -> str:
     return m.group(0) if m else text
 
 
-def _to_decimal(value) -> Optional[Decimal]:
+def _to_decimal(value) -> Decimal | None:
     if value is None:
         return None
     try:
@@ -60,7 +59,7 @@ def _scalar(v, *subkeys):
     return v
 
 
-def _int_safe(x) -> Optional[int]:
+def _int_safe(x) -> int | None:
     try:
         return int(x)
     except (TypeError, ValueError):
@@ -135,8 +134,8 @@ def _fallback(atribute_secundare) -> CandidateExtraction:
 
 def extrage_atribute(
     descriere: str,
-    atribute_secundare: list[tuple[str, Optional[str]]],
-    client: Optional[NarrativeClient],
+    atribute_secundare: list[tuple[str, str | None]],
+    client: NarrativeClient | None,
 ) -> CandidateExtraction:
     """Extrage atributele primare + starea celor secundare din descrierea anuntului."""
     if client is None:

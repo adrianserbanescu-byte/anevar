@@ -4,7 +4,9 @@ from __future__ import annotations
 from decimal import Decimal
 
 from evaluare.aml.constante import (
-    PRAG_AUDIT_ACTIVE_LEI, PRAG_AUDIT_CA_LEI, PRAG_AUDIT_SALARIATI,
+    PRAG_AUDIT_ACTIVE_LEI,
+    PRAG_AUDIT_CA_LEI,
+    PRAG_AUDIT_SALARIATI,
 )
 
 

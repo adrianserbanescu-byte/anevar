@@ -1,9 +1,9 @@
 from decimal import Decimal
 
 from evaluare.models.property import (
+    BuildingData,
     CostElement,
     DepreciationPoint,
-    BuildingData,
     LandData,
 )
 

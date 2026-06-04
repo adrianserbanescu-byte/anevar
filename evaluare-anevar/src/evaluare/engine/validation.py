@@ -7,9 +7,9 @@ from typing import Literal
 
 from pydantic import BaseModel
 
-from evaluare.models.property import BuildingData, LandData
+from evaluare.engine.market import ajustare_bruta, pret_unitar_brut
 from evaluare.models.comparable import Comparable
-from evaluare.engine.market import pret_unitar_brut, ajustare_bruta
+from evaluare.models.property import BuildingData, LandData
 
 Nivel = Literal["blocheaza", "alerteaza"]
 

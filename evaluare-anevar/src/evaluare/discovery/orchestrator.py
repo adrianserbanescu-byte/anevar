@@ -2,18 +2,21 @@
 from __future__ import annotations
 
 import json
+from collections.abc import Callable
 from decimal import Decimal
-from typing import Callable, Optional
 
 from bs4 import BeautifulSoup
 
 from evaluare.ai.narrative import NarrativeClient
-from evaluare.importers.url_parser import fetch_html, parse_listing_html
-from evaluare.discovery.profiles import SubjectProfile
-from evaluare.discovery.portal_search import cauta_anunturi
 from evaluare.discovery.extractor import extrage_atribute
-from evaluare.discovery.scoring import scor_candidat
+from evaluare.discovery.portal_search import cauta_anunturi
+from evaluare.discovery.profiles import SubjectProfile
 from evaluare.discovery.results import CandidateResult, LandDiscoveryResult
+from evaluare.discovery.scoring import scor_candidat
+from evaluare.importers.url_parser import fetch_html, parse_listing_html
+from evaluare.logging_setup import get_logger
+
+log = get_logger(__name__)
 
 
 def _descriere_din_nextdata(soup, max_caractere: int) -> str:
@@ -107,7 +110,7 @@ def _pret_mp_daca_teren_comparabil(parsed, subiect, teren_candidat):
 def descopera(
     portal: str, judet: str, localitate: str, subiect: SubjectProfile,
     atribute_secundare: list, fetcher: Callable[[str], str] = fetch_html,
-    client: Optional[NarrativeClient] = None, max_candidati: int = 8,
+    client: NarrativeClient | None = None, max_candidati: int = 8,
 ) -> list[CandidateResult]:
     """Pipeline complet de descoperire. Întoarce candidați rankați după relevanță."""
     urls = cauta_anunturi(portal, judet, localitate, fetcher=fetcher)[:max_candidati]
@@ -115,7 +118,8 @@ def descopera(
     for url in urls:
         try:
             html = fetcher(url)
-        except Exception:
+        except Exception as e:
+            log.debug("Anunt sarit (fetch esuat) %s: %s", url, e)
             continue
         parsed = parse_listing_html(html, sursa_url=url)
         descriere = extrage_descriere(html)
@@ -148,7 +152,7 @@ def _relevanta_teren(supr, subiect_supr) -> int:
 
 
 def descopera_teren(
-    portal: str, judet: str, localitate: str, suprafata_subiect: Optional[Decimal] = None,
+    portal: str, judet: str, localitate: str, suprafata_subiect: Decimal | None = None,
     fetcher: Callable[[str], str] = fetch_html, max_candidati: int = 8,
 ) -> list[LandDiscoveryResult]:
     """Descopera comparabile de TEREN: cauta anunturi de teren, calculeaza EUR/mp si relevanta.
@@ -163,7 +167,8 @@ def descopera_teren(
     for url in urls:
         try:
             parsed = parse_listing_html(fetcher(url), sursa_url=url)
-        except Exception:
+        except Exception as e:
+            log.debug("Anunt teren sarit (fetch/parse esuat) %s: %s", url, e)
             continue
         supr = parsed.suprafata_teren or parsed.suprafata
         pret_mp = None

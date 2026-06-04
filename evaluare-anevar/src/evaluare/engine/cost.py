@@ -1,8 +1,7 @@
 """Abordarea prin cost: CIB segregat, Vcp, depreciere fizica, CIN."""
 from __future__ import annotations
 
-from decimal import Decimal, ROUND_HALF_UP
-from typing import Optional
+from decimal import ROUND_HALF_UP, Decimal
 
 from evaluare.models.property import BuildingData, CostElement, DepreciationPoint
 from evaluare.models.results import CostResult
@@ -40,7 +39,7 @@ def interpolate_depreciation(
         return ordered[0].depreciere
     if vcp >= ordered[-1].varsta:
         return ordered[-1].depreciere
-    for low, high in zip(ordered, ordered[1:]):
+    for low, high in zip(ordered, ordered[1:], strict=False):  # perechi consecutive (lungimi diferite intentionat)
         if low.varsta <= vcp <= high.varsta:
             v1, d1 = Decimal(low.varsta), low.depreciere
             v2, d2 = Decimal(high.varsta), high.depreciere
@@ -57,7 +56,7 @@ def compute_cin(
 
 
 def evaluate_cost(
-    building: BuildingData, valoare_teren: Optional[Decimal] = None
+    building: BuildingData, valoare_teren: Decimal | None = None
 ) -> CostResult:
     """Ruleaza abordarea prin cost completa pentru o constructie."""
     cib = compute_cib(building.elements)

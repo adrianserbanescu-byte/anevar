@@ -1,7 +1,11 @@
 from decimal import Decimal
 
 from evaluare.ingestie.extractoare import (
-    extrage_cf, extrage_releveu, extrage_plan, extrage_cpe, _num,
+    _num,
+    extrage_cf,
+    extrage_cpe,
+    extrage_plan,
+    extrage_releveu,
 )
 from evaluare.ingestie.ocr import extrage_text
 from evaluare.ingestie.vlm import extrage_campuri_vlm

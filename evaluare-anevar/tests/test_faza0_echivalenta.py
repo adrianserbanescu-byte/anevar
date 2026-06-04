@@ -1,13 +1,12 @@
 from decimal import Decimal
 
-from evaluare.engine.abordari import abordare_cost, abordare_comparatie
+from evaluare.engine.abordari import abordare_comparatie, abordare_cost
+from evaluare.engine.cost import evaluate_cost
+from evaluare.engine.market import evaluate_market
 from evaluare.engine.reconciliation import reconcile, reconcile_profil
 from evaluare.models.comparable import Comparable
 from evaluare.models.property import BuildingData
-from evaluare.engine.cost import evaluate_cost
-from evaluare.engine.market import evaluate_market
 from evaluare.models.report_context import ReportContext
-from evaluare.profil import CASA_TEREN_GARANTARE
 
 
 def _building():

@@ -7,10 +7,10 @@ from __future__ import annotations
 
 import re
 from decimal import Decimal, InvalidOperation
-from typing import Optional, Protocol
+from typing import Protocol
 
-from evaluare.models.report_context import ReportContext
 from evaluare.models.narrative import NarrativeSection
+from evaluare.models.report_context import ReportContext
 from evaluare.report.anonymizer import Anonymizer
 
 # Capitolele analitice pentru care AI genereaza text (numerele raman deterministe).
@@ -161,8 +161,8 @@ def _curata_narativ(text: str) -> str:
 
 def generate_narrative(
     ctx: ReportContext,
-    client: Optional[NarrativeClient],
-    anonymizer: Optional[Anonymizer],
+    client: NarrativeClient | None,
+    anonymizer: Anonymizer | None,
 ) -> list[NarrativeSection]:
     """Genereaza cate o sectiune narativa per capitol.
 

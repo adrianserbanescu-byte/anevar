@@ -1,10 +1,10 @@
 from decimal import Decimal
 
 from evaluare.discovery.profiles import (
-    SubjectProfile,
-    CandidateProfile,
     AttributeBreakdown,
+    CandidateProfile,
     ScoreBreakdown,
+    SubjectProfile,
 )
 
 

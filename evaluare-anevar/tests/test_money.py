@@ -1,6 +1,6 @@
 from decimal import Decimal
 
-from evaluare.money import to_money, round_lei, pct
+from evaluare.money import pct, round_lei, to_money
 
 
 def test_to_money_from_float_and_str():

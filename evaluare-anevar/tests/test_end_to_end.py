@@ -2,13 +2,13 @@ from decimal import Decimal
 
 from docx import Document
 
+from evaluare.ai.narrative import generate_narrative
+from evaluare.engine.cost import evaluate_cost
+from evaluare.engine.reconciliation import reconcile
 from evaluare.models.meta import EvaluationMeta
 from evaluare.models.property import BuildingData, CostElement, DepreciationPoint, LandData
 from evaluare.models.report_context import ReportContext
-from evaluare.engine.cost import evaluate_cost
-from evaluare.engine.reconciliation import reconcile
-from evaluare.ai.narrative import generate_narrative
-from evaluare.report.generator import genereaza_raport, _fmt
+from evaluare.report.generator import _fmt, genereaza_raport
 
 
 def test_full_pipeline_cost_only(tmp_path):

@@ -6,8 +6,8 @@ Pentru unele valute exista un multiplicator (ex. HUF: per 100). Pentru EUR multi
 from __future__ import annotations
 
 import re
+from collections.abc import Callable
 from decimal import Decimal
-from typing import Callable, Optional
 
 BNR_URL = "https://www.bnr.ro/nbrfxrates.xml"
 
@@ -20,7 +20,7 @@ def _fetch(url: str) -> str:
     return resp.text
 
 
-def curs_bnr(moneda: str = "EUR", fetcher: Optional[Callable[[str], str]] = None) -> Optional[dict]:
+def curs_bnr(moneda: str = "EUR", fetcher: Callable[[str], str] | None = None) -> dict | None:
     """Returneaza {moneda, curs (Decimal, RON/unitate), data} sau None daca nu se gaseste."""
     text = (fetcher or _fetch)(BNR_URL)
     m_data = re.search(r'date="([0-9-]+)"', text)

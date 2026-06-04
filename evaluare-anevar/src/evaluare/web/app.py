@@ -2,31 +2,35 @@
 from __future__ import annotations
 
 import tempfile
+from collections.abc import Callable
 from decimal import Decimal
 from pathlib import Path
-from typing import Callable, Optional
 
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.responses import FileResponse, HTMLResponse
 from fastapi.templating import Jinja2Templates
 from pydantic import BaseModel
 
+from evaluare.ai.narrative import NarrativeClient
 from evaluare.assembler import EvaluationInput, construieste_context, valideaza
-from evaluare.models.comparable import Comparable, LandComparable, RentComparable
+from evaluare.db.storage import Storage
+from evaluare.discovery.orchestrator import descopera
+from evaluare.discovery.profiles import SubjectProfile
+from evaluare.discovery.scoring import metodologie
+from evaluare.engine.chirie import evalueaza_chirie
 from evaluare.engine.land import evaluate_land
 from evaluare.engine.market import evaluate_market
-from evaluare.engine.chirie import evalueaza_chirie
-from evaluare.ai.narrative import NarrativeClient
-from evaluare.db.storage import Storage
 from evaluare.importers.url_parser import fetch_html, import_from_url
+from evaluare.localitati import judete as _judete
+from evaluare.localitati import localitati as _localitati
+from evaluare.logging_setup import get_logger
+from evaluare.models.comparable import Comparable, LandComparable, RentComparable
 from evaluare.report.generator import genereaza_raport
-from evaluare.discovery.profiles import SubjectProfile
-from evaluare.discovery.orchestrator import descopera
-from evaluare.discovery.scoring import metodologie
-from evaluare.localitati import judete as _judete, localitati as _localitati
 from evaluare.zona import extrage_zona
 
 DOCX_MIME = "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+
+log = get_logger(__name__)
 
 
 def _fmt_numar(v: Decimal) -> str:
@@ -53,7 +57,7 @@ class DescoperaTerenRequest(BaseModel):
     portal: str = "imobiliare"
     judet: str
     localitate: str = ""
-    suprafata_subiect: Optional[Decimal] = None
+    suprafata_subiect: Decimal | None = None
     max_candidati: int = 8
 
 
@@ -84,25 +88,25 @@ class DescoperaRequest(BaseModel):
 class AmlEvaluareRequest(BaseModel):
     tip_entitate: str = "PFA"            # PFA | PJ (entitatea evaluator)
     azi: str                             # data evaluarii (yyyy-mm-dd)
-    client_pf: Optional[dict] = None
-    client_pj: Optional[dict] = None
-    semnale_risc: Optional[dict] = None
-    semnale_indicatori: Optional[dict] = None
+    client_pf: dict | None = None
+    client_pj: dict | None = None
+    semnale_risc: dict | None = None
+    semnale_indicatori: dict | None = None
 
 
 class AmlDocRequest(BaseModel):
     tip_entitate: str = "PFA"
-    azi: Optional[str] = None
-    client_pf: Optional[dict] = None
-    client_pj: Optional[dict] = None
-    semnale_risc: Optional[dict] = None
-    semnale_indicatori: Optional[dict] = None
-    persoana_desemnata: Optional[dict] = None
-    rtn: Optional[dict] = None           # {suma_eur, data_tranzactie, descriere}
-    rts: Optional[dict] = None           # {motiv, data_inregistrare, indicatori}
+    azi: str | None = None
+    client_pf: dict | None = None
+    client_pj: dict | None = None
+    semnale_risc: dict | None = None
+    semnale_indicatori: dict | None = None
+    persoana_desemnata: dict | None = None
+    rtn: dict | None = None           # {suma_eur, data_tranzactie, descriere}
+    rts: dict | None = None           # {motiv, data_inregistrare, indicatori}
 
 
-def create_app(storage: Storage, client: Optional[NarrativeClient],
+def create_app(storage: Storage, client: NarrativeClient | None,
                fetcher: Callable[[str], str] = fetch_html) -> FastAPI:
     """Construieste aplicatia cu storage si client AI injectate."""
     app = FastAPI(title="Evaluare ANEVAR")
@@ -127,7 +131,7 @@ def create_app(storage: Storage, client: Optional[NarrativeClient],
         try:
             ctx = storage.load(eid)
         except KeyError:
-            raise HTTPException(status_code=404, detail="Dosar inexistent.")
+            raise HTTPException(status_code=404, detail="Dosar inexistent.") from None
         return {
             "id": eid,
             "client_nume": ctx.meta.client_nume,
@@ -140,7 +144,7 @@ def create_app(storage: Storage, client: Optional[NarrativeClient],
         try:
             ctx = storage.load(eid)
         except KeyError:
-            raise HTTPException(status_code=404, detail="Dosar inexistent.")
+            raise HTTPException(status_code=404, detail="Dosar inexistent.") from None
         # ?demo=1 -> raport cu note de provenienta (calculat/extras/AI/exemplu/placeholder)
         sufix = "_demo" if demo else ""
         out = Path(tempfile.gettempdir()) / f"raport_{eid}{sufix}.docx"
@@ -150,14 +154,15 @@ def create_app(storage: Storage, client: Optional[NarrativeClient],
     @app.get("/api/evaluare/{eid}/audit.txt")
     def audit_dosar(eid: int):
         from fastapi.responses import PlainTextResponse
+
         from evaluare.audit.jurnal import JurnalAudit
+        from evaluare.audit.raport_audit import text_audit
         from evaluare.audit.snapshot import snapshot
         from evaluare.audit.validare_x import valideaza_incrucisat
-        from evaluare.audit.raport_audit import text_audit
         try:
             ctx = storage.load(eid)
         except KeyError:
-            raise HTTPException(status_code=404, detail="Dosar inexistent.")
+            raise HTTPException(status_code=404, detail="Dosar inexistent.") from None
         j = JurnalAudit()
         j.inregistreaza("identificare", {"adresa": ctx.meta.adresa,
                                          "cadastral": ctx.meta.numar_cadastral, "scop": ctx.meta.scop})
@@ -193,7 +198,7 @@ def create_app(storage: Storage, client: Optional[NarrativeClient],
         try:
             ctx = storage.load(eid)
         except KeyError:
-            raise HTTPException(status_code=404, detail="Dosar inexistent.")
+            raise HTTPException(status_code=404, detail="Dosar inexistent.") from None
         val = ctx.reconciled.valoare_finala
         moneda = (ctx.meta.moneda or "LEI").upper()
         curs = ctx.meta.curs_valutar
@@ -273,8 +278,9 @@ def create_app(storage: Storage, client: Optional[NarrativeClient],
     @app.post("/api/ingestie")
     def ingestie_endpoint(req: IngestieRequest) -> dict:
         import base64
-        from evaluare.ingestie.ocr import extrage_text
+
         from evaluare.ingestie import extractoare
+        from evaluare.ingestie.ocr import extrage_text
         extractor = {
             "cf": extractoare.extrage_cf, "releveu": extractoare.extrage_releveu,
             "plan": extractoare.extrage_plan, "cpe": extractoare.extrage_cpe,
@@ -285,7 +291,7 @@ def create_app(storage: Storage, client: Optional[NarrativeClient],
         try:
             raw = base64.b64decode(payload, validate=True)
         except Exception:
-            raise HTTPException(status_code=400, detail="Continut document invalid.")
+            raise HTTPException(status_code=400, detail="Continut document invalid.") from None
         text = extrage_text(raw)
         return extractor(text).model_dump(mode="json")
 
@@ -303,8 +309,9 @@ def create_app(storage: Storage, client: Optional[NarrativeClient],
         from evaluare.curs_bnr import curs_bnr
         try:
             r = curs_bnr(moneda)
-        except Exception:
-            raise HTTPException(status_code=502, detail="Cursul BNR nu a putut fi preluat.")
+        except Exception as e:
+            log.warning("Curs BNR indisponibil (%s): %s", moneda, e)
+            raise HTTPException(status_code=502, detail="Cursul BNR nu a putut fi preluat.") from e
         if r is None:
             raise HTTPException(status_code=404, detail=f"Valuta {moneda} nu e in lista BNR.")
         return {"moneda": r["moneda"], "curs": str(r["curs"]), "data": r["data"]}
@@ -314,8 +321,9 @@ def create_app(storage: Storage, client: Optional[NarrativeClient],
         from evaluare.indice_anevar import indice_anevar
         try:
             d = indice_anevar(fetcher=fetcher)
-        except Exception:
-            raise HTTPException(status_code=502, detail="Indicele ANEVAR nu a putut fi preluat.")
+        except Exception as e:
+            log.warning("Indice ANEVAR indisponibil: %s", e)
+            raise HTTPException(status_code=502, detail="Indicele ANEVAR nu a putut fi preluat.") from e
         d["perioade"] = d["perioade"][-max(1, ultimele):]
         return d
 
@@ -353,7 +361,7 @@ def create_app(storage: Storage, client: Optional[NarrativeClient],
         try:
             r = evalueaza_chirie(req.comparabile, req.suprafata_subiect)
         except ValueError as e:
-            raise HTTPException(status_code=422, detail=str(e))
+            raise HTTPException(status_code=422, detail=str(e)) from e
         return {
             "chirii_mp_corectate": [str(p) for p in r.chirii_mp_corectate],
             "ajustari_brute": [str(b) for b in r.ajustari_brute],
@@ -382,10 +390,10 @@ def create_app(storage: Storage, client: Optional[NarrativeClient],
 
     @app.post("/api/aml/evalueaza")
     def aml_evalueaza(req: AmlEvaluareRequest) -> dict:
-        from evaluare.aml.serviciu import evalueaza_relatie
-        from evaluare.aml.risc import Semnale
         from evaluare.aml.indicatori import SemnaleIndicatori
         from evaluare.aml.liste import incarca_liste
+        from evaluare.aml.risc import Semnale
+        from evaluare.aml.serviciu import evalueaza_relatie
         client = _client_din(req)
         return evalueaza_relatie(
             req.tip_entitate, client, azi=req.azi,
@@ -422,7 +430,7 @@ def create_app(storage: Storage, client: Optional[NarrativeClient],
             doc = genereaza_decizie_desemnare(
                 req.tip_entitate, PersoanaFizica(**(req.persoana_desemnata or {})))
         except ValueError as e:
-            raise HTTPException(status_code=400, detail=str(e))
+            raise HTTPException(status_code=400, detail=str(e)) from e
         return _doc_response(doc, "aml_decizie_desemnare.docx")
 
     @app.post("/api/aml/fisa-kyc.docx")

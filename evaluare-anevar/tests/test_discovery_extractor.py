@@ -1,7 +1,7 @@
-from decimal import Decimal
 
 from evaluare.discovery.extractor import (
-    parse_atribute_secundare, extrage_atribute,
+    extrage_atribute,
+    parse_atribute_secundare,
 )
 
 

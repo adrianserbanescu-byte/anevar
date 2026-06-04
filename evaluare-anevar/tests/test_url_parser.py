@@ -5,9 +5,9 @@ import pytest
 
 from evaluare.importers.url_parser import (
     ParsedListing,
+    import_from_url,
     parse_listing_html,
     to_comparable,
-    import_from_url,
 )
 
 FIXTURES = Path(__file__).parent / "fixtures"

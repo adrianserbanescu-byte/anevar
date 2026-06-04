@@ -1,13 +1,13 @@
 from decimal import Decimal
 
-from evaluare.models.property import BuildingData, CostElement, DepreciationPoint
 from evaluare.engine.cost import (
     compute_cib,
-    compute_vcp,
-    interpolate_depreciation,
     compute_cin,
+    compute_vcp,
     evaluate_cost,
+    interpolate_depreciation,
 )
+from evaluare.models.property import BuildingData, CostElement, DepreciationPoint
 
 
 def gbf_elements() -> list[CostElement]:

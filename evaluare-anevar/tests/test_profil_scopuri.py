@@ -1,4 +1,4 @@
-from evaluare.profil import RAPORTARE_FINANCIARA, ASIGURARE, IMPOZITARE, LITIGII
+from evaluare.profil import ASIGURARE, IMPOZITARE, LITIGII, RAPORTARE_FINANCIARA
 
 
 def test_raportare_financiara():

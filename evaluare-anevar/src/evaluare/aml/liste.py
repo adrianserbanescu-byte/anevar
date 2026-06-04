@@ -12,7 +12,6 @@ import json
 import unicodedata
 from difflib import SequenceMatcher
 from pathlib import Path
-from typing import Optional
 
 from pydantic import BaseModel
 
@@ -32,7 +31,7 @@ class Potrivire(BaseModel):
 class Liste(BaseModel):
     """Containerul de liste, cu data de actualizare. Reimprospatare manuala din surse oficiale."""
 
-    actualizat: Optional[str] = None
+    actualizat: str | None = None
     sanctiuni: list[str] = []
     pep_functii: list[str] = []
     tari_risc_inalt: list[str] = []
@@ -50,7 +49,7 @@ def _similar(a: str, b: str) -> float:
     return SequenceMatcher(None, _norm(a), _norm(b)).ratio()
 
 
-def incarca_liste(dir_date: Optional[Path] = None) -> Liste:
+def incarca_liste(dir_date: Path | None = None) -> Liste:
     """Incarca listele din `<dir>/liste.json`; daca lipseste, returneaza liste goale."""
     dir_date = dir_date or _DATA_DIR
     cale = Path(dir_date) / "liste.json"

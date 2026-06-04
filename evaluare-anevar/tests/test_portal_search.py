@@ -1,7 +1,9 @@
 from pathlib import Path
 
 from evaluare.discovery.portal_search import (
-    build_search_url, extract_listing_urls, cauta_anunturi,
+    build_search_url,
+    cauta_anunturi,
+    extract_listing_urls,
 )
 
 FIXTURES = Path(__file__).parent / "fixtures"

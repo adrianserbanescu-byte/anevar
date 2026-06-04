@@ -1,6 +1,9 @@
 """Indicatori de suspiciune (HCD 58 art. 6(10)) — checklist specific evaluarii."""
 from evaluare.aml.indicatori import (
-    INDICATORI, SemnaleIndicatori, evalueaza_indicatori, propune_rts,
+    INDICATORI,
+    SemnaleIndicatori,
+    evalueaza_indicatori,
+    propune_rts,
 )
 
 

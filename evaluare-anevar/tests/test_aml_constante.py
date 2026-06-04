@@ -6,11 +6,11 @@ from evaluare.aml.incadrare import necesita_audit_independent, necesita_persoana
 
 
 def test_praguri_valori_legale():
-    assert C.PRAG_BENEFICIAR_REAL == Decimal("0.25")        # art. 4(2)(a)(1)
-    assert C.PRAG_NUMERAR_EUR == Decimal("10000")           # art. 7(1)
-    assert C.PRAG_TRANZ_OCAZIONALA_EUR == Decimal("15000")  # art. 13(1)(b)(1)
-    assert C.PRAG_ANTIFRAGMENTARE_EUR == Decimal("15000")   # art. 7(4)
-    assert C.PRAG_TRANSFER_FONDURI_EUR == Decimal("1000")   # art. 13(1)(b)(2)
+    assert Decimal("0.25") == C.PRAG_BENEFICIAR_REAL        # art. 4(2)(a)(1)
+    assert Decimal("10000") == C.PRAG_NUMERAR_EUR           # art. 7(1)
+    assert Decimal("15000") == C.PRAG_TRANZ_OCAZIONALA_EUR  # art. 13(1)(b)(1)
+    assert Decimal("15000") == C.PRAG_ANTIFRAGMENTARE_EUR   # art. 7(4)
+    assert Decimal("1000") == C.PRAG_TRANSFER_FONDURI_EUR   # art. 13(1)(b)(2)
 
 
 def test_termene_legale():

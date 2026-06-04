@@ -2,7 +2,7 @@
 from __future__ import annotations
 
 from decimal import Decimal
-from typing import Literal, Optional
+from typing import Literal
 
 from pydantic import BaseModel, Field
 
@@ -37,7 +37,7 @@ class Comparable(BaseModel):
     pret: Decimal
     suprafata: Decimal                  # mp (numitorul pentru pretul unitar)
     tip_oferta: Literal["oferta", "tranzactie"] = "oferta"
-    data_oferta: Optional[str] = None
+    data_oferta: str | None = None
     adjustments: list[Adjustment] = Field(default_factory=list)
 
 
@@ -46,8 +46,8 @@ class LandComparable(BaseModel):
 
     pret_mp: Decimal
     suprafata: Decimal
-    localizare: Optional[str] = None
-    data: Optional[str] = None
+    localizare: str | None = None
+    data: str | None = None
     adjustments: list[Adjustment] = Field(default_factory=list)
 
 
@@ -61,6 +61,6 @@ class RentComparable(BaseModel):
 
     chirie_mp: Decimal = Field(gt=0)
     suprafata: Decimal
-    localizare: Optional[str] = None
-    data: Optional[str] = None
+    localizare: str | None = None
+    data: str | None = None
     adjustments: list[Adjustment] = Field(default_factory=list)

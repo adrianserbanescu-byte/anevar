@@ -1,14 +1,13 @@
 from decimal import Decimal
 
 from evaluare.audit.jurnal import JurnalAudit
+from evaluare.audit.raport_audit import scrie_audit, text_audit
 from evaluare.audit.snapshot import snapshot
 from evaluare.audit.validare_x import valideaza_incrucisat
-from evaluare.audit.raport_audit import text_audit, scrie_audit
-
 from evaluare.models.meta import EvaluationMeta
 from evaluare.models.property import BuildingData, LandData
-from evaluare.models.results import CostResult, MarketResult, ReconciledResult
 from evaluare.models.report_context import ReportContext
+from evaluare.models.results import CostResult, MarketResult, ReconciledResult
 
 
 def _clock():

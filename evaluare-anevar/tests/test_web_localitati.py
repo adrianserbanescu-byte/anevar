@@ -17,4 +17,4 @@ def test_get_localitati(tmp_path):
     data = resp.json()
     assert len(data["judete"]) == 42
     assert any(j["slug"] == "ilfov" for j in data["judete"])
-    assert any(l["slug"] == "otopeni" for l in data["localitati"]["ilfov"])
+    assert any(loc["slug"] == "otopeni" for loc in data["localitati"]["ilfov"])
