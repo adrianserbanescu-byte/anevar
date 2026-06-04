@@ -328,3 +328,9 @@ corectitudine** în rutarea venit/DCF + ponderare (DCF suprascria capitalizarea;
 cădea tăcut pe altă abordare; `pondere_piata` neconstrâns → extrapolare) + NOI≤0 tăcut. **Toate reparate**
 (metoda decide venit↔DCF; erori clare; `Field(ge=0,le=1)`; NOI≤0 ridică eroare; rotunjire ponderată) +5 teste
 de regresie. **358 teste verzi**, pyflakes curat, exe reîmpachetat.
+
+### 2026-06-04 — fix critic exe: dezactivare UPX
+La smoke-ul final, exe-ul **nu pornea**: PyInstaller cu `upx=True` corupea o bibliotecă nativă Pillow
+(`_imagingft.cp312-win_amd64.pyd` → „decompression resulted in return code -1"). Codul era corect tot
+timpul (358 teste verzi) — doar **împachetarea** era stricată. Fix: `upx=False` în `evaluare-anevar.spec`.
+Exe reconstruit și **verificat că pornește** (uvicorn 200, `/api/evaluare` 200, `/wizard` 200). Comit `dd4f98c`.
