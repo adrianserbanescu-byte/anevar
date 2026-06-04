@@ -95,3 +95,9 @@ def test_wizard_are_agricol(tmp_path):
     body = _client(tmp_path).get("/wizard").text
     assert 'value="agricol"' in body
     assert 'id="categorie_folosinta"' in body
+
+
+def test_wizard_are_selector_scop(tmp_path):
+    body = _client(tmp_path).get("/wizard").text
+    assert 'id="scop"' in body
+    assert 'value="raportare_financiara"' in body and 'value="litigii"' in body
