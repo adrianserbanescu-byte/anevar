@@ -140,6 +140,9 @@ buildTable("teren"); buildTable("casa");
 })();
 
 function num(v){ v=(v||"").trim(); if(v==="") return null; const n=Number(v.replace(",",".")); return isNaN(n)?null:n; }
+// Formatare numerica ro-RO (separator mii ".", virgula zecimala), 2 zecimale.
+function fmtRo(v){ const n=+v; if(!isFinite(n)) return v;
+  return n.toLocaleString('ro-RO',{minimumFractionDigits:2, maximumFractionDigits:2}); }
 
 function colecteaza(grid){
  const comps = [];
@@ -239,13 +242,13 @@ function afiseaza(grid, d, div){
  preturi.forEach((p,i) => {
    const sel = i===d.index_selectat;
    const bruta = (parseFloat(d.ajustari_brute[i])*100).toFixed(1)+"%";
-   t += `<tr class="${sel?'sel':''}"><td>Comp ${i+1}</td><td>${(+p).toFixed(2)}</td><td>${bruta}</td><td>${sel?'✓ ales':''}</td></tr>`;
+   t += `<tr class="${sel?'sel':''}"><td>Comp ${i+1}</td><td>${fmtRo(p)}</td><td>${bruta}</td><td>${sel?'✓ ales':''}</td></tr>`;
  });
  t += "</table>";
  if(grid==="teren")
-   t += `<p class="val">Valoare teren = ${(+d.pret_mp_ales).toFixed(2)} EUR/mp × suprafață = ${(+d.valoare_teren).toLocaleString('ro-RO')} EUR</p>`;
+   t += `<p class="val">Valoare teren = ${fmtRo(d.pret_mp_ales)} EUR/mp × suprafață = ${fmtRo(d.valoare_teren)} EUR</p>`;
  else
-   t += `<p class="val">Valoare prin comparație = ${(+d.valoare_piata).toLocaleString('ro-RO')} EUR</p>`;
+   t += `<p class="val">Valoare prin comparație = ${fmtRo(d.valoare_piata)} EUR</p>`;
  t += "</div>";
  div.innerHTML = t;
 }
