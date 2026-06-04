@@ -550,6 +550,8 @@ def genereaza_raport(
         if ctx.building.cota_teren_indiviza is not None:
             parti.append(f"cota teren indiviza {ctx.building.cota_teren_indiviza} mp")
         doc.add_paragraph("Apartament: " + ", ".join(parti) + ".")
+    if ctx.building.inaltime_libera is not None:
+        doc.add_paragraph(f"Spatiu industrial: inaltime libera {ctx.building.inaltime_libera} m.")
     descriere = _narativ(ctx, "Descrierea juridica si fizica a proprietatii")
     if descriere:
         doc.add_paragraph(descriere)

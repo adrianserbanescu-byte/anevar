@@ -54,6 +54,7 @@ class BuildingData(BaseModel):
     nr_niveluri_bloc: Optional[int] = None
     an_bloc: Optional[int] = None
     cota_teren_indiviza: Optional[Decimal] = None
+    inaltime_libera: Optional[Decimal] = None   # m, pentru hale/depozite
 
 
 class LandData(BaseModel):

@@ -40,3 +40,8 @@ COMERCIAL_INCHIRIAT = ProfilEvaluare(
     tip_activ="comercial", scop="garantare_credit", tip_valoare="piata",
     abordari_aplicabile=["venit", "comparatie"], ghid="GEV_630",
 )
+
+INDUSTRIAL = ProfilEvaluare(
+    tip_activ="industrial", scop="garantare_credit", tip_valoare="piata",
+    abordari_aplicabile=["cost", "venit", "comparatie"], ghid="GEV_630",
+)
