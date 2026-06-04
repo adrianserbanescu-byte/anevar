@@ -30,6 +30,56 @@ GDPR-first · offline · TDD + rebuild + smoke · ancorat în SEV 2025/IVS + GEV
 
 ---
 
+## Faza 0 — LIVRAT (interfețe reale; ancoră pentru fazele următoare)
+
+**Stare:** complet, 305 teste verzi, exe reîmpachetat, strict aditiv (hot-path neatins). Commit-uri
+`add75bf … dd3f54b`. Cadrul e **dormant** (referit doar de teste, NU de codul de producție încă).
+
+Interfețe reale livrate (de folosit ca atare în fazele următoare):
+- `evaluare.profil`: `ProfilEvaluare(tip_activ, scop, tip_valoare, abordari_aplicabile, ponderi, ghid)` +
+  constanta `CASA_TEREN_GARANTARE`. Enumuri: `TipActiv, Scop, TipValoare, Abordare, Ghid`.
+- `evaluare.engine.abordari`: `RezultatAbordare(abordare, valoare, detalii: dict)` +
+  `abordare_cost(building, valoare_teren)`, `abordare_comparatie(comparables, suprafata_subiect)`.
+- `evaluare.engine.venit`: `DateVenit(venit_brut_potential, grad_neocupare, cheltuieli_exploatare, rata_capitalizare)`,
+  `evalueaza_venit(d) -> RezultatVenit(noi, valoare)`, `abordare_venit(d) -> RezultatAbordare`.
+- `evaluare.engine.reconciliation`: `reconcile_profil(rezultate: list[RezultatAbordare], primara: str, ponderi=None) -> ReconciledResult`
+  (consistent cu `reconcile` pe ponderare degenerată). `ReconciledResult.metoda_selectata` include acum `"venit"`.
+- `evaluare.report.sectiuni`: `sectiuni_pentru_profil(profil) -> list[str]` (filtru pe ghid + abordari_aplicabile), `ID_SECTIUNI`.
+- `evaluare.models.report_context.ReportContext.profil` (default `CASA_TEREN_GARANTARE`).
+
+**Recomandări din review-ul final, de încorporat (vezi Faza 0.5 + notele pe faze):**
+1. Cadrul e dormant → trebuie **cablat** înainte ca fazele 1+ să construiască pe el (Faza 0.5).
+2. **Protocol `Abordare`** uniform (`evalueaza(ctx) -> RezultatAbordare`) — semnăturile actuale sunt heterogene.
+3. **`detalii` tipizat** per abordare (`DetaliiCost/Comparatie/Venit`) în loc de `dict` stringly.
+4. **`SectiuneSpec`** (model declarativ) în loc de tuple `(id, "*"|ghiduri)` + dict separat — pe măsură ce cresc ghidurile/scopurile.
+5. **`valideaza_profil(profil)`** — avertisment când abordări/ponderi nu se potrivesc `tip_activ`/`ghid` (gap §5.3).
+
+---
+
+## Faza 0.5 — Cablare (wiring) — NOU, imediat următoarea
+
+**Scop:** promovează cadrul din dormant în **live**, fără a schimba ieșirea pentru casă+teren/garantare.
+**Depinde de:** Faza 0. **Risc:** mediu (atinge hot-path-ul `assembler`/`generator`) → regresie strictă.
+**Fișiere (estimat):**
+- `src/evaluare/engine/abordari.py` — `Abordare` Protocol + `detalii` tipizat (recomandările 2,3).
+- `src/evaluare/profil.py` sau nou `profil_validare.py` — `valideaza_profil` (recomandarea 5).
+- `src/evaluare/assembler.py` / `EvaluationInput` — acceptă `profil` (default `CASA_TEREN_GARANTARE`); rulează
+  abordările prin registru → `reconcile_profil`; **rezultatul trebuie identic** cu fluxul actual pentru profilul implicit.
+- `src/evaluare/report/generator.py` + `report/sectiuni.py` — generatorul consumă `sectiuni_pentru_profil`;
+  `SectiuneSpec` (recomandarea 4). **Test de regresie pe conținut**: cele 12 teste `test_report_generator.py` rămân 1:1.
+
+**Sarcini (TDD, subagent-driven):**
+- [ ] `Abordare` Protocol + `detalii` tipizat + adaptare adaptoare (regresie pe `test_abordari`).
+- [ ] `valideaza_profil` + teste (profil casă+teren = fără avertismente).
+- [ ] `assembler` rutează prin profil → `reconcile_profil`; **echivalență numerică** pe dosarele GBF (toate testele web/engine verzi).
+- [ ] `generator` consumă registrul de secțiuni; `SectiuneSpec`; **conținut GEV 520 identic** (12 teste generator verzi).
+- [ ] Suită verde + rebuild + smoke.
+
+**Criteriu de acceptare:** profilul `CASA_TEREN_GARANTARE` produce **exact** aceeași valoare și același raport
+ca azi (regresie), dar acum prin noul cadru → fazele 1+ pot adăuga doar profiluri + secțiuni.
+
+---
+
 ## Faza 1 — Apartament (rezidențial, garantare credit)
 **Depinde de:** Faza 0. **Abordări:** comparație (primară) + cost.
 **Fișiere (estimat):**
