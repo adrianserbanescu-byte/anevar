@@ -34,3 +34,15 @@ def test_abordare_venit_adaptor():
     assert r.abordare == "venit"
     assert r.valoare == Decimal("800000.00")
     assert "noi" in r.detalii
+
+
+def test_grad_neocupare_peste_unu_invalid():
+    with pytest.raises(ValueError):
+        DateVenit(venit_brut_potential=Decimal("100000"), grad_neocupare=Decimal("1.5"),
+                  rata_capitalizare=Decimal("0.08"))
+
+
+def test_cheltuieli_negative_invalide():
+    with pytest.raises(ValueError):
+        DateVenit(venit_brut_potential=Decimal("100000"), cheltuieli_exploatare=Decimal("-1"),
+                  rata_capitalizare=Decimal("0.08"))

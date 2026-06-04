@@ -3,7 +3,7 @@ from __future__ import annotations
 
 from decimal import ROUND_HALF_UP, Decimal
 
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 from evaluare.engine.abordari import RezultatAbordare
 
@@ -13,9 +13,9 @@ _BANI = Decimal("0.01")
 class DateVenit(BaseModel):
     """Intrările pentru capitalizarea directă (sume anuale; procente ca fracție [0,1])."""
 
-    venit_brut_potential: Decimal
-    grad_neocupare: Decimal = Decimal("0")
-    cheltuieli_exploatare: Decimal = Decimal("0")
+    venit_brut_potential: Decimal = Field(ge=0)
+    grad_neocupare: Decimal = Field(default=Decimal("0"), ge=0, lt=1)
+    cheltuieli_exploatare: Decimal = Field(default=Decimal("0"), ge=0)
     rata_capitalizare: Decimal
 
 
