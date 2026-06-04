@@ -21,7 +21,7 @@ from evaluare.profil import ProfilEvaluare, CASA_TEREN_GARANTARE
 from evaluare.engine.validation import (
     Issue, valideaza_proprietate, valideaza_comparabile, valideaza_depreciere,
 )
-from evaluare.engine.venit import DateVenit, evalueaza_venit
+from evaluare.engine.venit import DateVenit, evalueaza_venit, DateDCF, evalueaza_dcf
 
 
 class EvaluationInput(BaseModel):
@@ -33,10 +33,11 @@ class EvaluationInput(BaseModel):
     comparables: list[Comparable] = Field(default_factory=list)
     land_comparables: list[LandComparable] = Field(default_factory=list)
     valoare_teren: Optional[Decimal] = None
-    metoda: Literal["piata", "cost", "ponderata", "venit"] = "cost"
+    metoda: Literal["piata", "cost", "ponderata", "venit", "dcf"] = "cost"
     pondere_piata: Decimal = Decimal("0.5")
     profil: ProfilEvaluare = CASA_TEREN_GARANTARE
     date_venit: Optional[DateVenit] = None
+    date_dcf: Optional[DateDCF] = None
     photos: list[str] = Field(default_factory=list)   # data-URL base64 pentru anexa foto
     documente: list[str] = Field(default_factory=list)  # data-URL base64 (scanuri CF/cadastral) -> Anexa 3
 
@@ -79,6 +80,11 @@ def construieste_context(
     if inp.date_venit is not None:
         venit_result = evalueaza_venit(inp.date_venit)
 
+    dcf_valoare = None
+    if inp.date_dcf is not None:
+        dcf_valoare = evalueaza_dcf(inp.date_dcf.fluxuri, inp.date_dcf.rata_actualizare,
+                                    inp.date_dcf.valoare_reziduala)
+
     rezultate = []
     if cost_result is not None:
         rezultate.append(RezultatAbordare(abordare="cost", valoare=cost_result.valoare_cost))
@@ -86,7 +92,9 @@ def construieste_context(
         rezultate.append(RezultatAbordare(abordare="comparatie", valoare=market_result.valoare_piata))
     if venit_result is not None:
         rezultate.append(RezultatAbordare(abordare="venit", valoare=venit_result.valoare))
-    if inp.metoda == "venit":
+    if dcf_valoare is not None:
+        rezultate.append(RezultatAbordare(abordare="venit", valoare=dcf_valoare))
+    if inp.metoda in ("venit", "dcf"):
         primara, ponderi = "venit", None
     elif inp.metoda == "cost":
         primara, ponderi = "cost", None
@@ -108,6 +116,7 @@ def construieste_context(
         land_result=land_result, alocare_constructii=alocare, photos=inp.photos,
         documente=inp.documente, profil=inp.profil,
         venit_result=venit_result, date_venit=inp.date_venit,
+        dcf_valoare=dcf_valoare,
     )
 
     anonymizer = build_anonymizer(inp.meta)

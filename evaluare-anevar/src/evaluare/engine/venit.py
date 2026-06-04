@@ -24,6 +24,14 @@ class RezultatVenit(BaseModel):
     valoare: Decimal
 
 
+class DateDCF(BaseModel):
+    """Intrari DCF: fluxuri anuale + rata de actualizare + valoare reziduala."""
+
+    fluxuri: list[Decimal]
+    rata_actualizare: Decimal
+    valoare_reziduala: Decimal = Decimal("0")
+
+
 def evalueaza_venit(d: DateVenit) -> RezultatVenit:
     """Valoare = (VBP − pierderi neocupare − cheltuieli) ÷ rată de capitalizare."""
     if d.rata_capitalizare <= 0:

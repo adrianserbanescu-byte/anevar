@@ -34,3 +34,4 @@ class ReportContext(BaseModel):
     profil: ProfilEvaluare = Field(default_factory=lambda: CASA_TEREN_GARANTARE)
     venit_result: Optional[RezultatVenit] = None
     date_venit: Optional[DateVenit] = None
+    dcf_valoare: Optional[Decimal] = None

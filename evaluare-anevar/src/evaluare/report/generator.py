@@ -584,6 +584,9 @@ def genereaza_raport(
             f"Venit net din exploatare (NOI): {vr.noi} lei. "
             f"Valoare = NOI / rată = {vr.valoare} lei."
         )
+    if ctx.dcf_valoare is not None:
+        doc.add_heading("Abordarea prin venit (DCF)", level=2)
+        doc.add_paragraph(f"Valoare prin actualizarea fluxurilor de numerar: {ctx.dcf_valoare} lei.")
     justificare = _narativ(ctx, "Justificarea ajustarilor aplicate")
     if justificare:
         doc.add_paragraph(justificare)
