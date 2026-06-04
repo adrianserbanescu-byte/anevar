@@ -248,3 +248,13 @@ de calcul promovat din dormant în LIVE, value-echivalent** (toate regresiile cu
 **311 teste verzi**, pyflakes curat, exe reîmpachetat + smoke (`/api/evaluare`=316.000,00; `/evaluare/{id}`=200).
 Amânate explicit: refactor generator pe registru, Protocol `Abordare`, `detalii` tipizat, `SectiuneSpec`
 (când le cere o fază). Următorul: **Faza 1 — Apartament** (autonom).
+
+### 2026-06-04 — Faza 1 (Apartament) IMPLEMENTATĂ (subagent-driven)
+Executată Faza 1, aditiv, 5 task-uri: profil `APARTAMENT_GARANTARE`; câmpuri apartament pe `BuildingData`
+(`etaj`, `nr_niveluri_bloc`, `an_bloc`, `cota_teren_indiviza`, opționale) + validare `etaj ≤ niveluri`;
+descriere de raport adaptată („Apartament: …", condițional → cele 12 teste de raport rămân verzi); wizard
+cu selector **tip proprietate** (casă/apartament) + câmpuri apartament + persistență localStorage.
+Motorul de comparație neschimbat. **319 teste verzi**, pyflakes curat, **exe reîmpachetat + smoke**
+(apartament prin piață → 250.000; `/wizard` are selectorul). Comituri `9c3cd86 … 461070c`.
+Următorul: **Faza 2 — Comercial/venit** (cablează `venit` în flux + UI DateVenit + secțiune raport venit;
+necesită refactorul amânat al generatorului + ideal un dosar real de validare — se construiește pe standard).
