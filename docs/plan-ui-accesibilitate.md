@@ -10,8 +10,7 @@ recomandată de execuție. Efort: **S** mic · **M** mediu. Sursă în paranteze
 ---
 
 ## Grup 1 — Corecturi de conformitate (rapide, impact mare)
-- [ ] **G1.1** Contrast `.hint` — închide `--ink-faint` de la `#6c7686` la ~`#5a6270`
-      (≈3.9:1 → ≈5.3:1 pe hârtie). Afectează toate descrierile + etichetele „următor" din stepper. `[critică #1]` **S**
+- [x] **G1.1** ✅ Contrast `.hint` — `--ink-faint` `#6c7686` → `#5a6270` (≈3.9:1 → ≈5.3:1, WCAG AA). `[critică #1]`
 - [ ] **G1.2** **Skip-link** „Sari la conținut" → `<main id="continut">`, pe toate paginile. `[A1.4]` **S**
 - [ ] **G1.3** `type="date"` pe câmpurile de dată (wizard + form: data_evaluarii/raportului/inspectiei). `[A1.2]` **S**
 - [ ] **G1.4** `autocomplete` pe câmpurile de identitate (evaluator, client, proprietar). `[A1.5]` **S**
@@ -27,11 +26,10 @@ recomandată de execuție. Efort: **S** mic · **M** mediu. Sursă în paranteze
       (din `label{display:block}` global + `<label for>`); fă-le compacte (label inline / grid). `[critică #3]` **S-M**
 
 ## Grup 3 — Pagina de rezultat `/result` (cea mai vizibilă lacună)
-- [ ] **G3.1** **`/result` ca „certificat"**: valoare **hero** (serif, mare) formatată `316.000 LEI`
-      (`toLocaleString('ro-RO')`, 2 zecimale) + **echivalent EUR**; **buton-CTA** „📄 Descarcă raportul",
-      „Evaluare nouă" ca acțiune secundară; structurat într-un card (reutilizează `.rez`/`.val`). `[critică #2 / A2.1]` **S-M**
-- [ ] **G3.2** **Formatare numerică unitară în UI** — un helper care formatează LEI/EUR cu separator ro-RO
-      + 2 zecimale, aplicat pe `/result` și pe rezultatele wizard/grilă (acum `/result` arată `316000.0000`). `[critică #4]` **S**
+- [x] **G3.1** ✅ **`/result` ca „certificat"**: valoare hero formatată + **echivalent EUR/LEI** la curs BNR +
+      butoane-CTA descărcare (.docx + raport cu note), card `.rez`. `[critică #2 / A2.1]`
+- [x] **G3.2** ✅ **Formatare numerică ro-RO** (helper `_fmt_numar` în `app.py`) aplicată pe `/result`.
+      *(De extins ulterior pe rezultatele wizard/grilă — deocamdată doar `/result`.)* `[critică #4]`
 
 ## Grup 4 — Lustruire minoră
 - [ ] **G4.1** Inel de focus pe titlul pasului — scopează-l ca să nu apară pe toată lățimea la mouse
