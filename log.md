@@ -308,3 +308,12 @@ rulează `evalueaza_dcf` și reconciliază (primara „venit") + `dcf_valoare` p
 *Notă: un subagent a căzut la mijloc (eroare socket) — am completat manual generator + test + commit.*
 **Amânat (Later):** grila de chirii comparabile (chirie de piață). Comituri `4cbe67d … 93d3f13`.
 Următorul: **Faza 7 — Special** (hotel/benzinărie).
+
+### 2026-06-04 — Faza 7 (Special) + PLATFORMA COMPLETĂ (Fazele 0–7)
+Profil `SPECIAL` (hotel/benzinărie, GEV 630, venit+comparație+cost) + opțiune „special" în wizard (se
+evaluează cu abordările existente; metodele specializate de profit rămân avansate/viitoare). Comit `72b9006`.
+**Toate fazele platformei (0, 0.5, 1–7) sunt IMPLEMENTATE.** **348 teste verzi**, exe reîmpachetat + smoke.
+**10 profiluri** predefinite. Aplicația evaluează: **casă, apartament, comercial, industrial, teren agricol,
+proprietate specială**, prin **4 abordări** (cost, comparație, venit-capitalizare, venit-DCF), în **5 scopuri**
+(garantare/IFRS/asigurare/impozitare/litigiu), cu raport adaptat. Strict aditiv — fluxul casă+teren validat
+GBF rămâne neschimbat. **Rămas:** Track B (accesibilitate Faza 2 rămasă) + **Track C** (calitate/raport/docs).
