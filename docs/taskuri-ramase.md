@@ -12,7 +12,14 @@
 
 ## A. Pot face AUTONOM (fără acces extern, fără decizii blocante)
 
-### A1. Accesibilitate — Faza 2 (din `plan-accesibilitate.md`)
+> **STARE reală 2026-06-04 (actualizat):** **A1 și A2 sunt FĂCUTE.** Accesibilitatea Faza 2 livrată
+> (Track B: skip-link, ținte tactile, `type=date`, `autocomplete`, `aria-busy`; A3.3: `aria-describedby`,
+> `<fieldset>/<legend>`). `/result` = „certificat" (A2.1) + sigiliu ANEVAR. Badge-uri/spațiere consistente
+> (A2.2 — fix design-system). **Excepție decisă: A1.1 Enter-to-submit = won't-do** (navigare liberă).
+> În plus: portare design Lovable + audit WCAG 2.1 AA + sistem de design documentat
+> (`docs/design-system.md`). **Rămas autonom:** A3.1 (verificare terminologie IVS↔SEV) și A3.2 (NVDA/reflow — proces manual + exe).
+
+### A1. Accesibilitate — Faza 2 (din `plan-accesibilitate.md`) — ✅ FĂCUT
 - [ ] **A1.1** `<form>` real + submit pe Enter în wizard/grilă/AML (acum butoanele sunt `type="button"`). **S**
 - [ ] **A1.2** `type="date"` pe câmpurile de dată (data_evaluarii, data_raportului, data_inspectiei). **S**
 - [ ] **A1.3** Erori legate de câmp prin `aria-describedby` (acum mesajele sunt într-o regiune separată). **S-M**
