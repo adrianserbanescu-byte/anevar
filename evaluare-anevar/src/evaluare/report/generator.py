@@ -589,6 +589,11 @@ def genereaza_raport(
 
     doc.add_heading("6. APLICAREA METODELOR DE CALCUL", level=1)
     _nota(doc, "cap6", adnotari)
+    doc.add_paragraph(
+        'Abordările și metodele aplicate respectă SEV 103 „Abordări în evaluare” și '
+        'SEV 105 „Modele de evaluare” (echivalente IVS 103/IVS 105). Selecția abordării '
+        'este justificată în reconcilierea de la capitolul 7.'
+    )
     _adauga_grila_comparatie(doc, ctx)
     _adauga_grila_teren(doc, ctx)
     _adauga_tabel_cost(doc, ctx)
