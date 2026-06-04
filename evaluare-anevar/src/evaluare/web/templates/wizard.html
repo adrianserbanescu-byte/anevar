@@ -286,12 +286,9 @@
 </div>
 </main>
 
+<script>{% include "_helpers.js" %}</script>
 <script>
 const PASI = 5; let pas = 1; let evaluareId = null;
-const $ = id => document.getElementById(id);
-// Formatare numerica ro-RO (separator mii ".", zecimale ","); pastreaza 2 zecimale.
-function fmtRo(v){ const n=+v; if(!isFinite(n)) return v;
-  return n.toLocaleString('ro-RO',{minimumFractionDigits:2, maximumFractionDigits:2}); }
 const CAMPURI = ["judet","localitate","localitate_alt","adresa_strada","client_nume",
  "numar_cadastral","carte_funciara","beneficiar","scop","proprietar","evaluator_nume",
  "evaluator_legitimatie","data_evaluarii","data_raportului","data_inspectiei",

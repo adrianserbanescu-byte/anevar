@@ -58,8 +58,8 @@ Pentru ajustarea <b>„Condițiile pieței (timp)"</b> poți folosi <b>Indicele 
 <div id="rez-chirii" role="status" aria-live="polite"></div>
 </main>
 
+<script>{% include "_helpers.js" %}</script>
 <script>
-const $ = id => document.getElementById(id);
 const NCOMP = 3;
 
 // Catalog elemente. tip: "procentuala" sau "valorica".
@@ -162,9 +162,6 @@ buildTable("teren"); buildTable("casa"); buildTable("chirii");
 })();
 
 function num(v){ v=(v||"").trim(); if(v==="") return null; const n=Number(v.replace(",",".")); return isNaN(n)?null:n; }
-// Formatare numerica ro-RO (separator mii ".", virgula zecimala), 2 zecimale.
-function fmtRo(v){ const n=+v; if(!isFinite(n)) return v;
-  return n.toLocaleString('ro-RO',{minimumFractionDigits:2, maximumFractionDigits:2}); }
 
 function colecteaza(grid){
  const comps = [];
