@@ -334,3 +334,19 @@ La smoke-ul final, exe-ul **nu pornea**: PyInstaller cu `upx=True` corupea o bib
 (`_imagingft.cp312-win_amd64.pyd` → „decompression resulted in return code -1"). Codul era corect tot
 timpul (358 teste verzi) — doar **împachetarea** era stricată. Fix: `upx=False` în `evaluare-anevar.spec`.
 Exe reconstruit și **verificat că pornește** (uvicorn 200, `/api/evaluare` 200, `/wizard` 200). Comit `dd4f98c`.
+
+### 2026-06-04 — A3: conformitate ghid-aware + ro-RO + a11y + grilă de chirii
+Continuat autonom lista „A" peste platforma completă (strict aditiv):
+**A3.1 — raport conștient de ghid (GEV):** raportul cita „GEV 520" indiferent de scop. Acum declarația de
+conformitate + scrisoarea de transmitere citează ghidul din profil (`_ghid_clauza`: GEV 520/630/500), iar
+termenii de referință GEV 520 (A3/A4/A5/A8) + secțiunea de risc al garanției se redau **doar** la profilul de
+garantare; pentru `CASA_TEREN_GARANTARE` ieșirea rămâne byte-identică (12 teste de conținut verzi). +`test_report_ghid.py`.
+**A3.2 — formatare ro-RO:** helper `fmtRo()` (separator mii „.", virgulă zecimală) pe rezultatele din wizard și grilă.
+**A3.3 — accesibilitate:** `aria-describedby` auto-legat câmp↔ajutor (`wireAjutor`), `<fieldset>/<legend>` pe grupurile
+condiționale de tip proprietate. (Enter-to-submit omis deliberat — ar rupe navigarea liberă între pași.)
+**A3.4 — grilă de chirii comparabile:** `engine/chirie.py` (metodologie în 2 etape ca grila de teren) → chirie de
+piață → **venit brut potențial anual** care alimentează capitalizarea directă; `RentComparable`/`RentResult`,
+endpoint `POST /api/grila-chirii`, a treia grilă în `/grila`. +`test_chirie.py` (7) + teste API.
+**Fix critic exe:** Pillow 12.2 a inclus binarul `_avif` care corupea arhiva PKG („decompression -1"); exclus din spec
+(nu folosim AVIF). Exe reconstruit + smoke live: `/wizard`, `/grila`, `/api/grila-chirii` → 200 (VBP 12000.00 corect).
+**370 teste verzi**, pyflakes curat.

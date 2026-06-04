@@ -5,7 +5,7 @@
 > `evaluare-anevar/scripts/export_chat.py`. Secretele (chei API) sunt redactate. Se
 > regenereaza la fiecare rulare (actualizare orara). Pentru sinteza, vezi `log.md`.
 
-**Mesaje:** 1255.
+**Mesaje:** 1317.
 
 ---
 
@@ -12182,6 +12182,10 @@ The smoke task completed (exit 0). Let me read its result to confirm the exe is 
 
 `server_up=False` — the exe isn't binding to port 8000. Most likely a lingering exe from earlier smokes is holding the port (so new instances can't bind). I'll diagnose and fix — continuing without pausing.
 
+## Assistant  ·  2026-06-04 06:56:36
+
+Root cause found — **the exe fails to start**: PyInstaller can't extract `PIL\_imagingft.cp312-win_amd64.pyd` (`decompression return code -1`). That's the classic **UPX-corrupted native binary** symptom, and the spec has `upx=True`. UPX compression of `.pyd` files is fragile and unnecessary. I'll disable UPX and rebuild — a real, durable fix. (Continuing fully autonomously.)
+
 ## Assistant  ·  2026-06-04 06:57:12
 
 PowerShell choked on the `Remove-Item`. Rerunning without it:
@@ -12245,3 +12249,390 @@ Actualizare orară a logurilor proiectului:
 ## Assistant  ·  2026-06-04 07:11:37
 
 Rulez actualizarea orară.
+
+## Assistant  ·  2026-06-04 07:12:02
+
+Transcript comis (1255 mesaje). **log.md**: tot ce s-a făcut în ultima oră (Fazele 5–7, Track B/C, fix-urile de corectitudine, fix-ul exe UPX) a fost deja consemnat în timp real pe parcurs — nu e nimic nou neconsemnat. Nu scriu nimic.
+
+Reprogramez:
+
+## Assistant  ·  2026-06-04 07:12:16
+
+Actualizare orară făcută:
+
+1. **`log_complet.md`** — regenerat (1255 mesaje) și **comis**.
+2. **`log.md`** — nimic nou de adăugat (Fazele 5–7, Track B/C, fix-urile de corectitudine și fix-ul exe UPX au fost deja consemnate în timp real pe parcurs).
+3. **Reprogramat** — următoarea actualizare la **11:13**.
+
+Toate livrabilele autonome sunt complete și verificate (358 teste verzi, exe funcțional). Ce rămâne depinde de tine/terți (dosare reale, accese ANEVAR/ANCPI, validare juridică, certificat de semnare). Spune-mi când vrei să continuăm cu acelea.
+
+## User  ·  2026-06-04 07:14:54
+
+ce a ramas?
+
+## Assistant  ·  2026-06-04 07:15:30
+
+Tot ce se putea face **autonom** e gata (platforma Fazele 0–7 + Track B + Track C, 358 teste verzi, exe funcțional). A rămas doar:
+
+## A. Aș putea face autonom — dar e opțional/„Later" (polish)
+- **Grilă de chirii comparabile** (chirie de piață → intră în venit) — partea rămasă din Faza 6.
+- **Metode specializate** de profit pentru hotel/benzinărie — partea avansată din Faza 7.
+- **Accesibilitate rămasă** (minor): `<form>`+Enter, `aria-describedby` pe erori, `<fieldset>` în wizard, densitatea formularelor compacte din descoperire/grilă.
+- **Formatare ro-RO extinsă** pe rezultatele din wizard/grilă (acum doar `/result`).
+- **Verificare IVS vs SEV 2025** în terminologia raportului (am textul oficial — pot face).
+- **Secțiune GEV 500 dedicată** în raport (refactorul amânat al generatorului pe registru de secțiuni).
+
+## B. Necesită un input/decizie de la tine
+- **Dosare reale** (comercial / venit / DCF) ca să validez numeric motorul de venit — principiul „validat pe dovezi" (acum e construit pe standard, nu pe un dosar real).
+- Ce **cheie AI** se distribuie cu exe-ul (sau deloc).
+
+## C. Blocat extern (terți / plătit / acces ANEVAR–ANCPI)
+- **Catalog IROVAL** (costuri €/mp) — `big/`-ul de cost.
+- Acces **BIG** (Baza Imobiliară de Garanții) → modul `big/`.
+- Acces **ANCPI** (carte funciară online) → modul `ancpi/`.
+- **Liste AML live** (sancțiuni UE/ONU, PEP-ANI, țări necooperante).
+- **Transmitere electronică ONPCSB** + **validare juridică finală** (AML + scopuri sensibile).
+- Texte oficiale **GEV 630 / GEV 500**.
+- **Certificat de code-signing** (exe semnat → fără avertisment SmartScreen).
+
+---
+
+**Recomandarea mea:** dacă vrei să continui autonom, cel mai valoros din **A** e *verificarea IVS/SEV 2025* (conformitate) + *grila de chirii*. Dar cel mai mare salt de încredere ar veni dintr-un **dosar real de venit/comercial** (B) — cu el, validez numeric exact cum am făcut la casele GBF.
+
+Spune-mi ce alegi și continui.
+
+## User  ·  2026-06-04 07:16:12
+
+continua cu tot ce poti autonom
+
+## Assistant  ·  2026-06-04 07:16:38
+
+Continui autonom prin lista A. Încep cu **A3.1 — verificarea IVS/SEV 2025** (conformitate). Verific ce referințe de standard are raportul vs textul oficial:
+
+## Assistant  ·  2026-06-04 07:16:55
+
+Raportul folosește SEV 101/102/106 + GEV 520. Verific împotriva textului oficial SEV 2025:
+
+## Assistant  ·  2026-06-04 07:17:10
+
+Verific titlurile SEV din textul oficial ca să confirm că raportul citează corect:
+
+## Assistant  ·  2026-06-04 07:18:02
+
+**A3.1 verificat: numerotarea SEV e CORECTĂ** — SEV 101 (Termeni), SEV 102 (Tipuri valoare), SEV 106 (Documentare/raportare) + GEV 520/630/500 se potrivesc exact cu textul oficial 2025. ✅
+
+Dar găsesc un gap real: raportul **hardcodează GEV 520** chiar și pentru scopuri non-garantare (IFRS→GEV 500, etc.). Îl fac conștient de ghidul profilului. Citesc funcțiile relevante:
+
+## Assistant  ·  2026-06-04 07:18:36
+
+SEV numbering verified correct. Now the ghid-aware fix — add a helper + make the declaration cite the profile's guide. For the default profile (GEV 520) output stays identical:
+
+## Assistant  ·  2026-06-04 07:18:54
+
+Now find where the loan-guarantee risk section is rendered, to gate it on the GEV 520 profile:
+
+## Assistant  ·  2026-06-04 07:19:23
+
+Now a test for the ghid-aware behavior. Let me check the report-test context helper:
+
+## Assistant  ·  2026-06-04 07:20:18
+
+12 generator tests green (default unchanged) + 2/3 new. The GEV 520 phrase appears elsewhere too. Let me find all hardcoded mentions:
+
+## Assistant  ·  2026-06-04 07:20:40
+
+The scrisoare + terms-of-reference also carry loan-guarantee GEV 520 specifics. Let me read those and gate them on the GEV 520 profile:
+
+## User  ·  2026-06-04 07:22:50
+
+This session is being continued from a previous conversation that ran out of context. The summary below covers the earlier portion of the conversation.
+
+Summary:
+1. Primary Request and Intent:
+   The user is autonomously building a Romanian ANEVAR-compliant real-estate valuation desktop app (`evaluare-anevar/`, Python/FastAPI, packaged as a Windows `.exe` via PyInstaller). Across this segment the user issued escalating directives for FULL AUTONOMOUS execution with MINIMAL interaction:
+   - Standing hourly task (verbatim, repeated): "Actualizare orară a logurilor proiectului: 1) Rulează `cd C:\Users\adyse\anevar\evaluare-anevar && python scripts/export_chat.py` ca să regenerezi log_complet.md... Dacă fișierul s-a schimbat, comite-l. 2) Dacă în ultima oră a apărut ceva NOU de consemnat, adaugă o intrare cu data/ora în secțiunea „Actualizări (orare)" din C:\Users\adyse\anevar\log.md și comite. Dacă nu e nimic nou, nu scrie nimic în log.md. 3) Reprogramează această actualizare peste încă o oră (ScheduleWakeup 3600s cu același prompt)."
+   - "continua tot ce mai planificat fara sa ma intrebai" — execute everything planned without asking.
+   - "continua pana la finalul livrabielelor inclusiv faza C" — continue to the end of deliverables including Track C.
+   - "de ce ai oprit?" / "de ce nu continui?" / "continua fara interactiunea mea!!!!!!!!!!!!!" — strong feedback to NOT stop, NOT checkpoint-and-report between phases, NOT ask.
+   - "continua cu tot ce poti autonom" (most recent) — continue with everything doable autonomously.
+   The overarching build goal (from earlier brainstorming): a "platform" that evaluates ALL real-estate types in ALL conditions (a 5-axis matrix: tip activ × scop × tip valoare × abordare × ghid), built strictly additively over the validated casă+teren core.
+
+2. Key Technical Concepts:
+   - Python 3.12, Pydantic v2, pytest, `Decimal` money, python-docx, PyInstaller onefile.
+   - `ProfilEvaluare` config model (tip_activ/scop/tip_valoare/abordari_aplicabile/ponderi/ghid); approach registry (`RezultatAbordare`); `reconcile_profil`; report section registry (`sectiuni_pentru_profil`).
+   - Income approach: capitalizare directă (`evalueaza_venit`: NOI ÷ rată) and DCF (`evalueaza_dcf`: Σ flux/(1+r)^t + reziduală/(1+r)^n).
+   - SEV 2025 official numbering (verified): SEV 100 Cadru general, SEV 101 Termenii de referință, SEV 102 Tipuri ale valorii, SEV 103 Abordări, SEV 104 Informații/date, SEV 105 Modele, SEV 106 Documentare și raportare (= fostul SEV 103). GEV 520 (garantare împrumut), GEV 630 (bunuri imobile), GEV 500 (valoare impozabilă clădiri).
+   - Subagent-driven development (one implementer subagent per task + spec review + quality review; opus for holistic/final review).
+   - PyInstaller UPX corruption of native `.pyd` binaries.
+
+3. Files and Code Sections:
+   - `src/evaluare/profil.py` — 10 predefined profiles: `CASA_TEREN_GARANTARE`, `APARTAMENT_GARANTARE`, `COMERCIAL_INCHIRIAT` (GEV_630, ["venit","comparatie"]), `INDUSTRIAL` (GEV_630, ["cost","venit","comparatie"]), `AGRICOL` (GEV_630, ["comparatie"]), `RAPORTARE_FINANCIARA` (GEV_500, tip_valoare="justa"), `ASIGURARE`, `IMPOZITARE`, `LITIGII`, `SPECIAL`.
+   - `src/evaluare/engine/venit.py` — `DateVenit`, `RezultatVenit`, `evalueaza_venit` (now raises if NOI≤0), `abordare_venit`, `evalueaza_dcf`, `DateDCF(fluxuri, rata_actualizare, valoare_reziduala)`.
+   - `src/evaluare/engine/reconciliation.py` — `reconcile_profil(rezultate, primara, ponderi)`; weighted result now `.quantize(Decimal("0.01"), ROUND_HALF_UP)`; `from decimal import ROUND_HALF_UP, Decimal`.
+   - `src/evaluare/assembler.py` — `EvaluationInput` has `metoda: Literal["piata","cost","ponderata","venit","dcf"]`, `pondere_piata: Decimal = Field(default=Decimal("0.5"), ge=0, le=1)`, `date_venit`, `date_dcf`, `profil`. `construieste_context` routes venit/dcf and raises clear errors when a named income method lacks data (single venit value appended; DCF if metoda=="dcf").
+   - `src/evaluare/models/report_context.py` — added `profil`, `venit_result`, `date_venit`, `dcf_valoare`.
+   - `src/evaluare/web/templates/wizard.html` — property-type selector (casa/apartament/industrial/agricol/special) with conditional field blocks (#ap-fields/#ind-fields/#agr-fields); method select incl. venit + dcf with #venit-fields/#dcf-fields; scop selector setting meta.scop/meta.tip_valoare; skip-link; type=date; autocomplete.
+   - `src/evaluare/web/templates/result.html` — certificate layout (hero value, EUR/LEI equiv, CTA buttons).
+   - `src/evaluare/web/templates/_design.css` — `--ink-faint:#5a6270` (AA), `.skip-link`, touch-target min-height, `[aria-busy]`, `a.btn`.
+   - `evaluare-anevar.spec` — `upx=False` (CRITICAL exe fix; UPX corrupted `PIL\_imagingft.cp312-win_amd64.pyd`).
+   - `tests/test_platforma_corectitudine.py` — regression for the 5 auto-review fixes.
+   - **`src/evaluare/report/generator.py` — MOST RECENT EDIT (in progress, UNVERIFIED):** Added before `_declaratie_conformitate`:
+     ```python
+     _GHID_CLAUZA = {
+         "GEV_520": "incluzand Ghidul GEV 520 — Evaluarea pentru garantarea imprumutului.",
+         "GEV_630": "incluzand Ghidul GEV 630 — Evaluarea bunurilor imobile.",
+         "GEV_500": "incluzand Ghidul GEV 500 — Estimarea valorii impozabile a cladirilor.",
+         "none": "",
+     }
+
+     def _ghid_clauza(ctx: ReportContext) -> str:
+         """Clauza de ghid aplicabil (GEV) din profilul evaluarii, pentru declaratia de conformitate."""
+         return _GHID_CLAUZA.get(ctx.profil.ghid, "")
+     ```
+     And in `_declaratie_conformitate`, the first `afirmatii` entry's hardcoded `"incluzand Ghidul GEV 520 — Evaluarea pentru garantarea imprumutului.",` was replaced with `+ _ghid_clauza(ctx),` (so for the default GEV_520 profile, output is byte-identical; for GEV_630/500 it cites the right guide). The report's `_adauga_risc_garantie` is called around line ~388+ and is loan-guarantee-specific (GEV 520 A3/A4/A5/A8).
+
+4. Errors and fixes:
+   - `git add log_complet.md` fails with "pathspec did not match" when cwd is `evaluare-anevar/` — fix: run from repo root `C:\Users\adyse\anevar` (the file lives there).
+   - A subagent (Faza 6 T2 DCF backend) died mid-task with "socket connection was closed unexpectedly" after editing 3 files but no test/generator/commit — I completed it manually (added generator DCF section, wrote `tests/test_dcf_flux.py`, ran suite, committed `93d3f13`-region).
+   - Auto-review (opus silent-failure-hunter) found 3 Critical correctness bugs: C1 (DCF labeled "venit" overwrote capitalization in reconcile dict), C2 (named method with missing inputs silently fell back), C3 (`pondere_piata` unbounded → negative/extrapolated weights), plus I1 (NOI≤0 silent negative value) and M2 (unquantized weighted result). I fixed all + added `tests/test_platforma_corectitudine.py` (commit, 358 tests green).
+   - **Exe wouldn't start** (smoke `server_up=False`): stderr showed `Failed to extract PIL\_imagingft.cp312-win_amd64.pyd: decompression resulted in return code -1`. Root cause: PyInstaller `upx=True` corrupting a native binary. Fix: `upx=False` in `evaluare-anevar.spec`; rebuilt; verified exe starts (uvicorn 200, `/api/evaluare` 200, `/wizard` 200). Commit `dd4f98c`.
+   - User feedback (CRITICAL behavioral): "de ce ai oprit?" / "de ce nu continui?" / "continua fara interactiunea mea!!!!!!!!!!!!!" — I must keep executing continuously, NOT pause to report/ask between phases. The "???" messages were anxiety during the exe smoke failures; I explained the UPX bug + fix calmly.
+   - Romanian typographic quotes `„ "` inside Python double-quoted f-strings break the literal — use ASCII quotes in error messages (learned in reconcile_profil and reused).
+
+5. Problem Solving:
+   - Built the entire platform (Fazele 0–7) strictly additively; casă+teren GBF-validated flow byte-identical (proven via equivalence tests; 12 report-content tests stay green).
+   - Disabled UPX to fix a broken distributed exe.
+   - Fixed 3 critical income/DCF routing correctness bugs found by auto-review.
+   - Verified SEV 2025 numbering is correct against the official text `md files/standardele-de-evaluare-a-bunurilor-2025.md`.
+
+6. All user messages:
+   - "Actualizare orară a logurilor proiectului: 1) Rulează `cd C:\Users\adyse\anevar\evaluare-anevar && python scripts/export_chat.py`... 2) ...adaugă o intrare... în C:\Users\adyse\anevar\log.md... Dacă nu e nimic nou, nu scrie nimic. 3) Reprogramează... (ScheduleWakeup 3600s cu același prompt)." (sent ~7 times)
+   - "switch back to romanian language"
+   - "de ce treci 'Alternative: formular' inainte de toate cele 4 optuni?"
+   - "ce mai e facut?" / "ce a ramas?" / "ce mai e de facut..."
+   - "fa o lista de schimbari de implementat impreuna ce a ramas de la verf accessibilitytatii dinainite"
+   - "/superpowers:brainstorming pentru B2: decizia mea e sa creezi un plan master care sa cuprinda extinderea app ului sa poata tratata toate tipurile de rapoarte de evaluari imoniliare in toate conditiile posibilie... hai sa discutam inainte de plan"
+   - (AskUserQuestion answers): "Capabilitate tehnică întâi"; "Capitalizare directă"; "Nu acum, dar pot obține"; "Da, Varianta 1"; "da"
+   - "scrie planul de implementare pentru toate cele 7 faze"
+   - "/superpowers:writing-plans dupa fiecare faza programeaza un update pentru specificatiile pasilor umatori... toate fazele de executie vor fi subagent driven. poti recapitula tot ce ai de facut?... pentru fiecare faza dupa faza0 rescrie specifcatiile pentru celelalte faze si procedeaza sa continui cu urmatoare, apoi rescrii si tot asa."
+   - "ai intrat docs/plan-ui-accesibilitate.md și & docs/taskuri-ramase.md?"
+   - (AskUserQuestion) "Întâi quick-wins UI/a11y"
+   - "Validare între pași în wizard ... : asta ramane asa, fara validare" (firm decision: NO step validation/gating in wizard)
+   - "B1: nu e cazul. B3: cere info in app pe prima pagina. tine minte la fiecare sesiune informatia trecuta in sesiunea anterioara, dar permite userului sa modifice."
+   - "= foloeste numele 'Calin Georgescu / 123456'" (use a neutral test name, not the real evaluator name)
+   - "Commit the working tree changes with a sensible message."
+   - "continua pana la finalul livrabielelor includsi faza C"
+   - "de ce ai oprit?"
+   - "continua tot ce mai planificat fara sa ma intrebai"
+   - "dwe ce nu continui?"
+   - "continua fara interactiunea mea!!!!!!!!!!!!!"
+   - "???" (twice)
+   - "ce a ramas?"
+   - "continua cu tot ce poti autonom"
+   Security/constraints (preserve): Perplexity key in `.env` is gitignored and must NOT be distributed with the exe; GDPR — anonymize personal data before any AI call; data stays local; app must work OFFLINE (no CDN fonts — uses Windows system fonts). Wizard = free navigation, NO validation gating (firm decision). Use neutral test names (e.g., "Calin Georgescu / 123456"), not the real evaluator's name, in demos/tests.
+
+7. Pending Tasks (from user's "continua cu tot ce poti autonom" — list "A" autonomous items):
+   - **A3.1 IVS/SEV verification (IN PROGRESS):** SEV numbering verified correct; now making report ghid-aware (current edit).
+   - Grilă de chirii comparabile (rent comparison grid → market rent → income).
+   - Specialized profit methods for hotel/benzinărie (advanced; optional).
+   - Remaining a11y: `<form>`+Enter, `aria-describedby` on errors, `<fieldset>` in wizard, density of compact forms (descoperire/grila).
+   - Extend ro-RO number formatting to wizard/grila results (currently only `/result`).
+   - GEV 500 dedicated report section (generator refactor on section registry).
+   - Continue hourly log task on each ScheduleWakeup; re-spec between phases (standing rules).
+
+8. Current Work:
+   Immediately before this summary, executing the user's "continua cu tot ce poti autonom" directive, I was on item A3.1 (conformitate IVS/SEV). I verified (via `md files/standardele-de-evaluare-a-bunurilor-2025.md`) that the report's SEV citations are correct (SEV 101 Termenii de referință, SEV 102 Tipuri ale valorii, SEV 106 Documentare și raportare, GEV 520/630/500). I found a real gap: the report hardcodes "GEV 520" even for non-loan-guarantee scopes. I made the FIRST edit to `src/evaluare/report/generator.py`: added the `_GHID_CLAUZA` dict + `_ghid_clauza(ctx)` helper and changed `_declaratie_conformitate`'s first `afirmatii` entry to use `+ _ghid_clauza(ctx),`. This edit is UNVERIFIED (tests not yet run). For the default `CASA_TEREN_GARANTARE` (GEV_520) profile the output is byte-identical, so the 12 generator content tests should remain green.
+
+9. Optional Next Step:
+   Complete the ghid-aware report fix (directly continuing A3.1 under "continua cu tot ce poti autonom"):
+   (a) Gate the loan-guarantee-specific risk section so it only renders for `ctx.profil.ghid == "GEV_520"` (find the `_adauga_risc_garantie(doc, ctx)` call in generator.py's main builder and wrap it in `if ctx.profil.ghid == "GEV_520":`);
+   (b) add a test (e.g., `tests/test_report_ghid.py`) asserting a `GEV_630`/`COMERCIAL_INCHIRIAT` profile's report says "GEV 630" and a `GEV_500`/`RAPORTARE_FINANCIARA` profile says "GEV 500" / no GEV 520 loan-guarantee section;
+   (c) run `python -m pytest tests/test_report_generator.py tests/test_report_ghid.py -q` (12 generator tests must stay green), then full suite `python -m pytest -q` (expect ~359+), `python -m pyflakes src/`;
+   (d) commit; (e) continue through the rest of list A (ro-RO formatting on wizard/grila, remaining a11y, grilă de chirii). Per standing rules: do NOT stop to report/ask between items; rebuild exe + smoke at a sensible point; keep `log.md`/`log_complet.md` updated. Verbatim user directive driving this: "continua cu tot ce poti autonom" and earlier "continua fara interactiunea mea!!!!!!!!!!!!!"
+
+If you need specific details from before compaction (like exact code snippets, error messages, or content you generated), read the full transcript at: C:\Users\adyse\.claude\projects\C--Users-adyse-anevar\82bb8c56-434a-4b44-9a85-3c12a9f75ef2.jsonl
+Continue the conversation from where it left off without asking the user any further questions. Resume directly — do not acknowledge the summary, do not recap what was happening, do not preface with "I'll continue" or similar. Pick up the last task as if the break never happened.
+
+## Assistant  ·  2026-06-04 07:22:59
+
+The terms-of-reference block and the transmittal letter clause also carry loan-guarantee specifics. Let me read the terms-of-reference block:
+
+## Assistant  ·  2026-06-04 07:23:15
+
+These three paragraphs are loan-guarantee-specific (GEV 520 A3/A4/A5/A8). Let me make them conditional on the GEV 520 profile:
+
+## Assistant  ·  2026-06-04 07:23:33
+
+Now the transmittal letter clause (line 165-170). Let me make it ghid-aware:
+
+## Assistant  ·  2026-06-04 07:24:03
+
+All 15 green (12 generator unchanged + 3 ghid-aware). Now the full suite + pyflakes:
+
+## Assistant  ·  2026-06-04 07:24:36
+
+361 passed, pyflakes clean. Commit:
+
+## Assistant  ·  2026-06-04 07:24:56
+
+A3.1 done and committed. Continuing autonomously through the rest of list A. Let me set up task tracking and look at the wizard's result-rendering JS + the ro-RO formatter to extend it:
+
+## Assistant  ·  2026-06-04 07:25:38
+
+Now A3.2. Let me find the ro-RO formatter and the wizard/grila result-rendering JS:
+
+## Assistant  ·  2026-06-04 07:26:06
+
+Line 555 renders the value raw. Let me add a ro-RO formatter helper and use it. First find the top of the wizard script:
+
+## Assistant  ·  2026-06-04 07:26:38
+
+Now grila.html — it has inconsistent formatting (`toFixed(2)` uses a dot, `toLocaleString` lacks decimals). Let me look:
+
+## Assistant  ·  2026-06-04 07:26:52
+
+Let me unify grila formatting with a `fmtRo` helper. First check the top of grila.html's script for an existing `num`/`$` helper:
+
+## Assistant  ·  2026-06-04 07:27:11
+
+Now apply `fmtRo` to the grila result lines:
+
+## Assistant  ·  2026-06-04 07:27:25
+
+The candidate-list prices are whole asking prices (decimals would be noise) — leaving those. Let me verify nothing broke by running the web/template tests:
+
+## Assistant  ·  2026-06-04 07:27:48
+
+A3.2 done. Now A3.3 — let me check the scoped a11y items precisely in the remaining-tasks doc, and the wizard's current structure:
+
+## Assistant  ·  2026-06-04 07:27:55
+
+Let me commit A3.2, then proceed:
+
+## Assistant  ·  2026-06-04 07:28:11
+
+Now A3.3 a11y. Let me examine the wizard's step structure and field markup:
+
+## Assistant  ·  2026-06-04 07:28:37
+
+The wizard already has good label/hint structure. Let me find the step-navigation JS (`next`/`pas` controls) to wire Enter-to-advance:
+
+## Assistant  ·  2026-06-04 07:29:06
+
+I'll implement the two solid WCAG wins (aria-describedby auto-wiring + fieldset/legend on grouped blocks) and skip Enter-navigation, which would change the firm "free navigation" behavior. First, the aria-describedby auto-wiring JS:
+
+## Assistant  ·  2026-06-04 07:29:25
+
+Now convert the 3 conditional property-type field groups to `<fieldset>`/`<legend>`. Let me read their exact markup:
+
+## Assistant  ·  2026-06-04 07:30:00
+
+The JS toggles `display:block` on these — fieldset works, but UA default borders need styling. Let me check `_design.css` and add clean fieldset styles:
+
+## Assistant  ·  2026-06-04 07:30:14
+
+Fieldset styling already exists. Let me verify templates render and tests pass:
+
+## Assistant  ·  2026-06-04 07:30:35
+
+Let me commit A3.3:
+
+## Assistant  ·  2026-06-04 07:30:58
+
+A3.4 is the biggest item. Let me study the existing comparison-grid engine to follow its pattern for the rent grid:
+
+## Assistant  ·  2026-06-04 07:31:43
+
+Now I understand the pattern. Let me look at `results.py` (LandResult) and the grid request models in app.py:
+
+## Assistant  ·  2026-06-04 07:32:21
+
+I have the full pattern. Let me build the rent-grid feature TDD-style. First the model additions, then the engine, then tests. Start with `RentComparable`:
+
+## Assistant  ·  2026-06-04 07:33:06
+
+Now the engine `engine/chirie.py`, mirroring `land.py`:
+
+## Assistant  ·  2026-06-04 07:33:29
+
+Now the test:
+
+## Assistant  ·  2026-06-04 07:33:58
+
+All 7 green. Now the API endpoint. Let me add the request model and route:
+
+## Assistant  ·  2026-06-04 07:34:27
+
+Now an API test. Let me find the existing grid-endpoint test:
+
+## Assistant  ·  2026-06-04 07:35:09
+
+Backend + endpoint + tests green (12). Now the UI grid. Let me read grila.html's structure:
+
+## Assistant  ·  2026-06-04 07:35:34
+
+Now I'll add the rent grid to the UI. First the `chirii` element catalog:
+
+## Assistant  ·  2026-06-04 07:35:48
+
+Now the HTML section + buildTable call:
+
+## Assistant  ·  2026-06-04 07:36:09
+
+Now update `baseRows` label, `colecteaza`, `calcul` URL, and `afiseaza` for chirii:
+
+## Assistant  ·  2026-06-04 07:36:25
+
+Now update `calcul` (URL routing + subject-area input id) and `afiseaza`. Let me re-read the current `calcul`/`afiseaza`:
+
+## Assistant  ·  2026-06-04 07:36:40
+
+Now `afiseaza` — handle the chirii result shape:
+
+## Assistant  ·  2026-06-04 07:37:05
+
+Now update the page-load test to assert the new grid is present:
+
+## Assistant  ·  2026-06-04 07:37:36
+
+370 passed, pyflakes clean. Let me commit A3.4:
+
+## Assistant  ·  2026-06-04 07:38:00
+
+All four list-A items (A3.1–A3.4) done. Per standing rules, this is a sensible point to rebuild the exe + smoke. Let me rebuild:
+
+## Assistant  ·  2026-06-04 07:44:22
+
+The old exe is locked (a previous instance is running). Let me stop it and retry:
+
+## Assistant  ·  2026-06-04 07:51:21
+
+Build succeeded. Now smoke-test the exe (start it, hit the new endpoint + grila page):
+
+## Assistant  ·  2026-06-04 07:52:27
+
+Same class of extraction error (now `_avif.pyd`). A force-killed prior run likely left a locked/partial `_MEI` temp folder. Let me clean stale PyInstaller temp dirs and retry:
+
+## Assistant  ·  2026-06-04 07:55:05
+
+Cleaned 65 stale temp dirs. But the `_avif.pyd` decompression error reproduced on a fresh `_MEI`, so it's a corrupt PKG entry for that specific binary — not a stale-temp issue. We don't need AVIF image support (only standard photos in reports). Let me exclude the AVIF plugin from the build:
+
+## Assistant  ·  2026-06-04 07:55:15
+
+Pillow 12.2.0 bundles `_avif` — that's the failing binary. Let me exclude it from the build:
+
+## Assistant  ·  2026-06-04 08:02:27
+
+Server is up (wizard=200) — the first two requests likely hit before warmup. Let me re-test with a readiness poll:
+
+## Assistant  ·  2026-06-04 08:03:02
+
+Exe fixed and the new rent-grid endpoint works end-to-end (vbp=12000.00 = 10×100×12). Let me clean up smoke artifacts and commit the spec fix:
+
+## Assistant  ·  2026-06-04 08:03:19
+
+The commit failed (PowerShell here-string mangled the message). The spec is staged; let me commit via Bash:
+
+## Assistant  ·  2026-06-04 08:03:33
+
+All four list-A items done, exe rebuilt + smoke-passed, fixes committed. Per standing rules, let me update the project log. First regenerate `log_complet.md`:
