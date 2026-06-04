@@ -1,0 +1,2583 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "Evaluare ANEVAR",
+    "version": "0.1.0"
+  },
+  "paths": {
+    "/api/evaluare": {
+      "post": {
+        "summary": "Creeaza Evaluare",
+        "operationId": "creeaza_evaluare_api_evaluare_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/EvaluationInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "type": "object",
+                  "title": "Response Creeaza Evaluare Api Evaluare Post"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/evaluare/{eid}": {
+      "get": {
+        "summary": "Citeste Evaluare",
+        "operationId": "citeste_evaluare_api_evaluare__eid__get",
+        "parameters": [
+          {
+            "name": "eid",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Eid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response Citeste Evaluare Api Evaluare  Eid  Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/evaluare/{eid}/raport.docx": {
+      "get": {
+        "summary": "Descarca Raport",
+        "operationId": "descarca_raport_api_evaluare__eid__raport_docx_get",
+        "parameters": [
+          {
+            "name": "eid",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Eid"
+            }
+          },
+          {
+            "name": "demo",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "default": 0,
+              "title": "Demo"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/evaluare/{eid}/audit.txt": {
+      "get": {
+        "summary": "Audit Dosar",
+        "operationId": "audit_dosar_api_evaluare__eid__audit_txt_get",
+        "parameters": [
+          {
+            "name": "eid",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Eid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/evaluare/{eid}": {
+      "get": {
+        "summary": "Pagina Rezultat",
+        "operationId": "pagina_rezultat_evaluare__eid__get",
+        "parameters": [
+          {
+            "name": "eid",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Eid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "text/html": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/grila-teren": {
+      "post": {
+        "summary": "Grila Teren",
+        "operationId": "grila_teren_api_grila_teren_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/GrilaTerenRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "type": "object",
+                  "title": "Response Grila Teren Api Grila Teren Post"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/grila-casa": {
+      "post": {
+        "summary": "Grila Casa",
+        "operationId": "grila_casa_api_grila_casa_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/GrilaCasaRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "type": "object",
+                  "title": "Response Grila Casa Api Grila Casa Post"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/grila-chirii": {
+      "post": {
+        "summary": "Grila Chirii",
+        "operationId": "grila_chirii_api_grila_chirii_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/GrilaChiriiRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "type": "object",
+                  "title": "Response Grila Chirii Api Grila Chirii Post"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/grila": {
+      "get": {
+        "summary": "Pagina Grila",
+        "operationId": "pagina_grila_grila_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "text/html": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/descopera": {
+      "post": {
+        "summary": "Descopera Endpoint",
+        "operationId": "descopera_endpoint_api_descopera_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DescoperaRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "type": "object",
+                  "title": "Response Descopera Endpoint Api Descopera Post"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/descopera-teren": {
+      "post": {
+        "summary": "Descopera Teren Endpoint",
+        "operationId": "descopera_teren_endpoint_api_descopera_teren_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DescoperaTerenRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "type": "object",
+                  "title": "Response Descopera Teren Endpoint Api Descopera Teren Post"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/descoperire": {
+      "get": {
+        "summary": "Pagina Descoperire",
+        "operationId": "pagina_descoperire_descoperire_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "text/html": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/import-url": {
+      "post": {
+        "summary": "Importa Url",
+        "operationId": "importa_url_api_import_url_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ImportUrlRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "type": "object",
+                  "title": "Response Importa Url Api Import Url Post"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/ingestie": {
+      "post": {
+        "summary": "Ingestie Endpoint",
+        "operationId": "ingestie_endpoint_api_ingestie_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/IngestieRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "type": "object",
+                  "title": "Response Ingestie Endpoint Api Ingestie Post"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/zona": {
+      "post": {
+        "summary": "Deriva Zona",
+        "operationId": "deriva_zona_api_zona_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ZonaRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "type": "object",
+                  "title": "Response Deriva Zona Api Zona Post"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/curs-bnr": {
+      "get": {
+        "summary": "Curs Bnr Endpoint",
+        "operationId": "curs_bnr_endpoint_api_curs_bnr_get",
+        "parameters": [
+          {
+            "name": "moneda",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "default": "EUR",
+              "title": "Moneda"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response Curs Bnr Endpoint Api Curs Bnr Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/indice-anevar": {
+      "get": {
+        "summary": "Indice Anevar Endpoint",
+        "operationId": "indice_anevar_endpoint_api_indice_anevar_get",
+        "parameters": [
+          {
+            "name": "ultimele",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "default": 6,
+              "title": "Ultimele"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response Indice Anevar Endpoint Api Indice Anevar Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/localitati": {
+      "get": {
+        "summary": "Lista Localitati",
+        "operationId": "lista_localitati_api_localitati_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "type": "object",
+                  "title": "Response Lista Localitati Api Localitati Get"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/aml/evalueaza": {
+      "post": {
+        "summary": "Aml Evalueaza",
+        "operationId": "aml_evalueaza_api_aml_evalueaza_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AmlEvaluareRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "type": "object",
+                  "title": "Response Aml Evalueaza Api Aml Evalueaza Post"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/aml/norme-interne.docx": {
+      "post": {
+        "summary": "Aml Norme Interne",
+        "operationId": "aml_norme_interne_api_aml_norme_interne_docx_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AmlDocRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/aml/evaluare-risc.docx": {
+      "post": {
+        "summary": "Aml Evaluare Risc Doc",
+        "operationId": "aml_evaluare_risc_doc_api_aml_evaluare_risc_docx_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AmlDocRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/aml/decizie.docx": {
+      "post": {
+        "summary": "Aml Decizie",
+        "operationId": "aml_decizie_api_aml_decizie_docx_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AmlDocRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/aml/fisa-kyc.docx": {
+      "post": {
+        "summary": "Aml Fisa Kyc",
+        "operationId": "aml_fisa_kyc_api_aml_fisa_kyc_docx_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AmlDocRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/aml/rtn.docx": {
+      "post": {
+        "summary": "Aml Rtn",
+        "operationId": "aml_rtn_api_aml_rtn_docx_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AmlDocRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/aml/rts.docx": {
+      "post": {
+        "summary": "Aml Rts",
+        "operationId": "aml_rts_api_aml_rts_docx_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AmlDocRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/aml": {
+      "get": {
+        "summary": "Pagina Aml",
+        "operationId": "pagina_aml_aml_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "text/html": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/": {
+      "get": {
+        "summary": "Pagina Index",
+        "operationId": "pagina_index__get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "text/html": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/formular": {
+      "get": {
+        "summary": "Pagina Formular",
+        "operationId": "pagina_formular_formular_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "text/html": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/wizard": {
+      "get": {
+        "summary": "Pagina Wizard",
+        "operationId": "pagina_wizard_wizard_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "text/html": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "Adjustment": {
+        "properties": {
+          "element": {
+            "type": "string",
+            "title": "Element"
+          },
+          "tip": {
+            "type": "string",
+            "enum": [
+              "procentuala",
+              "valorica"
+            ],
+            "title": "Tip"
+          },
+          "valoare": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "string",
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$"
+              }
+            ],
+            "title": "Valoare"
+          },
+          "etapa": {
+            "type": "string",
+            "enum": [
+              "tranzactie",
+              "proprietate"
+            ],
+            "title": "Etapa",
+            "default": "proprietate"
+          },
+          "justificare": {
+            "type": "string",
+            "title": "Justificare",
+            "default": ""
+          }
+        },
+        "type": "object",
+        "required": [
+          "element",
+          "tip",
+          "valoare"
+        ],
+        "title": "Adjustment",
+        "description": "O corectie aplicata unui comparabil pentru un element de comparatie.\n\nPentru `procentuala`, `valoare` e o fractie (0.05 = +5%, -0.03 = -3%).\nPentru `valorica`, `valoare` e o suma in lei (adunata la pretul curent).\n\n`etapa` separa cele doua etape ale grilei reale (GBF/ANEVAR):\n- `tranzactie`: ajustari de piata (oferta->tranzactie, drept, finantare, conditii\n  de vanzare, cheltuieli, conditiile pietei) — aplicate SECVENTIAL (compus);\n- `proprietate`: caracteristici fizice/juridice — aplicate ADITIV pe pretul de baza\n  rezultat dupa etapa de tranzactie. Doar acestea conteaza in ajustarea bruta."
+      },
+      "AmlDocRequest": {
+        "properties": {
+          "tip_entitate": {
+            "type": "string",
+            "title": "Tip Entitate",
+            "default": "PFA"
+          },
+          "azi": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Azi"
+          },
+          "client_pf": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Client Pf"
+          },
+          "client_pj": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Client Pj"
+          },
+          "semnale_risc": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Semnale Risc"
+          },
+          "semnale_indicatori": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Semnale Indicatori"
+          },
+          "persoana_desemnata": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Persoana Desemnata"
+          },
+          "rtn": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Rtn"
+          },
+          "rts": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Rts"
+          }
+        },
+        "type": "object",
+        "title": "AmlDocRequest"
+      },
+      "AmlEvaluareRequest": {
+        "properties": {
+          "tip_entitate": {
+            "type": "string",
+            "title": "Tip Entitate",
+            "default": "PFA"
+          },
+          "azi": {
+            "type": "string",
+            "title": "Azi"
+          },
+          "client_pf": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Client Pf"
+          },
+          "client_pj": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Client Pj"
+          },
+          "semnale_risc": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Semnale Risc"
+          },
+          "semnale_indicatori": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Semnale Indicatori"
+          }
+        },
+        "type": "object",
+        "required": [
+          "azi"
+        ],
+        "title": "AmlEvaluareRequest"
+      },
+      "BuildingData": {
+        "properties": {
+          "ac": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "string",
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Ac"
+          },
+          "au": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "string",
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$"
+              }
+            ],
+            "title": "Au"
+          },
+          "acd": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "string",
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$"
+              }
+            ],
+            "title": "Acd"
+          },
+          "an_referinta": {
+            "type": "integer",
+            "title": "An Referinta"
+          },
+          "elements": {
+            "items": {
+              "$ref": "#/components/schemas/CostElement"
+            },
+            "type": "array",
+            "title": "Elements"
+          },
+          "depreciation_points": {
+            "items": {
+              "$ref": "#/components/schemas/DepreciationPoint"
+            },
+            "type": "array",
+            "title": "Depreciation Points"
+          },
+          "functional_depreciation": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "string",
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$"
+              }
+            ],
+            "title": "Functional Depreciation",
+            "default": "0"
+          },
+          "external_depreciation": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "string",
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$"
+              }
+            ],
+            "title": "External Depreciation",
+            "default": "0"
+          },
+          "justificare_depreciere": {
+            "type": "string",
+            "title": "Justificare Depreciere",
+            "default": ""
+          },
+          "structura": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Structura"
+          },
+          "finisaje": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Finisaje"
+          },
+          "clasa_energetica": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Clasa Energetica"
+          },
+          "etaj": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Etaj"
+          },
+          "nr_niveluri_bloc": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Nr Niveluri Bloc"
+          },
+          "an_bloc": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "An Bloc"
+          },
+          "cota_teren_indiviza": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "string",
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Cota Teren Indiviza"
+          },
+          "inaltime_libera": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "string",
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Inaltime Libera"
+          }
+        },
+        "type": "object",
+        "required": [
+          "au",
+          "acd",
+          "an_referinta"
+        ],
+        "title": "BuildingData",
+        "description": "Datele fizice si de cost ale constructiei."
+      },
+      "Comparable": {
+        "properties": {
+          "sursa": {
+            "type": "string",
+            "title": "Sursa",
+            "default": "manual"
+          },
+          "pret": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "string",
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$"
+              }
+            ],
+            "title": "Pret"
+          },
+          "suprafata": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "string",
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$"
+              }
+            ],
+            "title": "Suprafata"
+          },
+          "tip_oferta": {
+            "type": "string",
+            "enum": [
+              "oferta",
+              "tranzactie"
+            ],
+            "title": "Tip Oferta",
+            "default": "oferta"
+          },
+          "data_oferta": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Data Oferta"
+          },
+          "adjustments": {
+            "items": {
+              "$ref": "#/components/schemas/Adjustment"
+            },
+            "type": "array",
+            "title": "Adjustments"
+          }
+        },
+        "type": "object",
+        "required": [
+          "pret",
+          "suprafata"
+        ],
+        "title": "Comparable",
+        "description": "Un comparabil de piata (proprietate intreaga)."
+      },
+      "CostElement": {
+        "properties": {
+          "element": {
+            "type": "string",
+            "title": "Element"
+          },
+          "cod": {
+            "type": "string",
+            "title": "Cod"
+          },
+          "um": {
+            "type": "string",
+            "title": "Um"
+          },
+          "cantitate": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "string",
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$"
+              }
+            ],
+            "title": "Cantitate"
+          },
+          "cost_unitar": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "string",
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$"
+              }
+            ],
+            "title": "Cost Unitar"
+          },
+          "an_pif": {
+            "type": "integer",
+            "title": "An Pif"
+          }
+        },
+        "type": "object",
+        "required": [
+          "element",
+          "cod",
+          "um",
+          "cantitate",
+          "cost_unitar",
+          "an_pif"
+        ],
+        "title": "CostElement",
+        "description": "Un element constructiv din metoda costurilor segregate (catalog IROVAL)."
+      },
+      "DateDCF": {
+        "properties": {
+          "fluxuri": {
+            "items": {
+              "anyOf": [
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "string",
+                  "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$"
+                }
+              ]
+            },
+            "type": "array",
+            "title": "Fluxuri"
+          },
+          "rata_actualizare": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "string",
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$"
+              }
+            ],
+            "title": "Rata Actualizare"
+          },
+          "valoare_reziduala": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "string",
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$"
+              }
+            ],
+            "title": "Valoare Reziduala",
+            "default": "0"
+          }
+        },
+        "type": "object",
+        "required": [
+          "fluxuri",
+          "rata_actualizare"
+        ],
+        "title": "DateDCF",
+        "description": "Intrari DCF: fluxuri anuale + rata de actualizare + valoare reziduala."
+      },
+      "DateVenit": {
+        "properties": {
+          "venit_brut_potential": {
+            "anyOf": [
+              {
+                "type": "number",
+                "minimum": 0.0
+              },
+              {
+                "type": "string",
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$"
+              }
+            ],
+            "title": "Venit Brut Potential"
+          },
+          "grad_neocupare": {
+            "anyOf": [
+              {
+                "type": "number",
+                "exclusiveMaximum": 1.0,
+                "minimum": 0.0
+              },
+              {
+                "type": "string",
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$"
+              }
+            ],
+            "title": "Grad Neocupare",
+            "default": "0"
+          },
+          "cheltuieli_exploatare": {
+            "anyOf": [
+              {
+                "type": "number",
+                "minimum": 0.0
+              },
+              {
+                "type": "string",
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$"
+              }
+            ],
+            "title": "Cheltuieli Exploatare",
+            "default": "0"
+          },
+          "rata_capitalizare": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "string",
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$"
+              }
+            ],
+            "title": "Rata Capitalizare"
+          }
+        },
+        "type": "object",
+        "required": [
+          "venit_brut_potential",
+          "rata_capitalizare"
+        ],
+        "title": "DateVenit",
+        "description": "Intrările pentru capitalizarea directă (sume anuale; procente ca fracție [0,1])."
+      },
+      "DepreciationPoint": {
+        "properties": {
+          "varsta": {
+            "type": "integer",
+            "title": "Varsta"
+          },
+          "depreciere": {
+            "anyOf": [
+              {
+                "type": "number",
+                "maximum": 1.0,
+                "minimum": 0.0
+              },
+              {
+                "type": "string",
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$"
+              }
+            ],
+            "title": "Depreciere"
+          }
+        },
+        "type": "object",
+        "required": [
+          "varsta",
+          "depreciere"
+        ],
+        "title": "DepreciationPoint",
+        "description": "Un punct din tabelul de depreciere fizica (varsta -> fractie depreciere)."
+      },
+      "DescoperaRequest": {
+        "properties": {
+          "portal": {
+            "type": "string",
+            "title": "Portal",
+            "default": "imobiliare"
+          },
+          "judet": {
+            "type": "string",
+            "title": "Judet"
+          },
+          "localitate": {
+            "type": "string",
+            "title": "Localitate"
+          },
+          "subiect": {
+            "$ref": "#/components/schemas/SubjectProfile"
+          },
+          "atribute_secundare": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Atribute Secundare",
+            "default": []
+          },
+          "max_candidati": {
+            "type": "integer",
+            "title": "Max Candidati",
+            "default": 8
+          }
+        },
+        "type": "object",
+        "required": [
+          "judet",
+          "localitate",
+          "subiect"
+        ],
+        "title": "DescoperaRequest"
+      },
+      "DescoperaTerenRequest": {
+        "properties": {
+          "portal": {
+            "type": "string",
+            "title": "Portal",
+            "default": "imobiliare"
+          },
+          "judet": {
+            "type": "string",
+            "title": "Judet"
+          },
+          "localitate": {
+            "type": "string",
+            "title": "Localitate",
+            "default": ""
+          },
+          "suprafata_subiect": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "string",
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Suprafata Subiect"
+          },
+          "max_candidati": {
+            "type": "integer",
+            "title": "Max Candidati",
+            "default": 8
+          }
+        },
+        "type": "object",
+        "required": [
+          "judet"
+        ],
+        "title": "DescoperaTerenRequest"
+      },
+      "EvaluationInput": {
+        "properties": {
+          "meta": {
+            "$ref": "#/components/schemas/EvaluationMeta"
+          },
+          "land": {
+            "$ref": "#/components/schemas/LandData"
+          },
+          "building": {
+            "$ref": "#/components/schemas/BuildingData"
+          },
+          "comparables": {
+            "items": {
+              "$ref": "#/components/schemas/Comparable"
+            },
+            "type": "array",
+            "title": "Comparables"
+          },
+          "land_comparables": {
+            "items": {
+              "$ref": "#/components/schemas/LandComparable"
+            },
+            "type": "array",
+            "title": "Land Comparables"
+          },
+          "valoare_teren": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "string",
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Valoare Teren"
+          },
+          "metoda": {
+            "type": "string",
+            "enum": [
+              "piata",
+              "cost",
+              "ponderata",
+              "venit",
+              "dcf"
+            ],
+            "title": "Metoda",
+            "default": "cost"
+          },
+          "pondere_piata": {
+            "anyOf": [
+              {
+                "type": "number",
+                "maximum": 1.0,
+                "minimum": 0.0
+              },
+              {
+                "type": "string",
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$"
+              }
+            ],
+            "title": "Pondere Piata",
+            "default": "0.5"
+          },
+          "profil": {
+            "$ref": "#/components/schemas/ProfilEvaluare",
+            "default": {
+              "tip_activ": "casa",
+              "scop": "garantare_credit",
+              "tip_valoare": "piata",
+              "abordari_aplicabile": [
+                "cost",
+                "comparatie"
+              ],
+              "ponderi": {},
+              "ghid": "GEV_520"
+            }
+          },
+          "date_venit": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/DateVenit"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "date_dcf": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/DateDCF"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "photos": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Photos"
+          },
+          "documente": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Documente"
+          }
+        },
+        "type": "object",
+        "required": [
+          "meta",
+          "land",
+          "building"
+        ],
+        "title": "EvaluationInput",
+        "description": "Datele de intrare ale unei evaluari (corpul cererii web)."
+      },
+      "EvaluationMeta": {
+        "properties": {
+          "client_nume": {
+            "type": "string",
+            "title": "Client Nume"
+          },
+          "client_tip": {
+            "type": "string",
+            "title": "Client Tip",
+            "default": "Persoana fizica"
+          },
+          "beneficiar": {
+            "type": "string",
+            "title": "Beneficiar",
+            "default": ""
+          },
+          "proprietar": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Proprietar"
+          },
+          "adresa": {
+            "type": "string",
+            "title": "Adresa"
+          },
+          "numar_cadastral": {
+            "type": "string",
+            "title": "Numar Cadastral"
+          },
+          "carte_funciara": {
+            "type": "string",
+            "title": "Carte Funciara"
+          },
+          "scop": {
+            "type": "string",
+            "title": "Scop",
+            "default": "Garantarea creditului ipotecar"
+          },
+          "tip_valoare": {
+            "type": "string",
+            "title": "Tip Valoare",
+            "default": "Valoarea de piață (SEV 102)"
+          },
+          "data_evaluarii": {
+            "type": "string",
+            "title": "Data Evaluarii"
+          },
+          "data_raportului": {
+            "type": "string",
+            "title": "Data Raportului"
+          },
+          "data_inspectiei": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Data Inspectiei"
+          },
+          "valabilitate": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Valabilitate"
+          },
+          "evaluator_nume": {
+            "type": "string",
+            "title": "Evaluator Nume"
+          },
+          "evaluator_legitimatie": {
+            "type": "string",
+            "title": "Evaluator Legitimatie"
+          },
+          "moneda": {
+            "type": "string",
+            "title": "Moneda",
+            "default": "LEI"
+          },
+          "curs_valutar": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "string",
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Curs Valutar"
+          }
+        },
+        "type": "object",
+        "required": [
+          "client_nume",
+          "adresa",
+          "numar_cadastral",
+          "carte_funciara",
+          "data_evaluarii",
+          "data_raportului",
+          "evaluator_nume",
+          "evaluator_legitimatie"
+        ],
+        "title": "EvaluationMeta",
+        "description": "Identificarea lucrarii: client, scop, date, evaluator."
+      },
+      "GrilaCasaRequest": {
+        "properties": {
+          "suprafata_subiect": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "string",
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$"
+              }
+            ],
+            "title": "Suprafata Subiect"
+          },
+          "comparabile": {
+            "items": {
+              "$ref": "#/components/schemas/Comparable"
+            },
+            "type": "array",
+            "title": "Comparabile"
+          }
+        },
+        "type": "object",
+        "required": [
+          "suprafata_subiect",
+          "comparabile"
+        ],
+        "title": "GrilaCasaRequest"
+      },
+      "GrilaChiriiRequest": {
+        "properties": {
+          "suprafata_subiect": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "string",
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$"
+              }
+            ],
+            "title": "Suprafata Subiect"
+          },
+          "comparabile": {
+            "items": {
+              "$ref": "#/components/schemas/RentComparable"
+            },
+            "type": "array",
+            "title": "Comparabile"
+          }
+        },
+        "type": "object",
+        "required": [
+          "suprafata_subiect",
+          "comparabile"
+        ],
+        "title": "GrilaChiriiRequest"
+      },
+      "GrilaTerenRequest": {
+        "properties": {
+          "suprafata_subiect": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "string",
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$"
+              }
+            ],
+            "title": "Suprafata Subiect"
+          },
+          "comparabile": {
+            "items": {
+              "$ref": "#/components/schemas/LandComparable"
+            },
+            "type": "array",
+            "title": "Comparabile"
+          }
+        },
+        "type": "object",
+        "required": [
+          "suprafata_subiect",
+          "comparabile"
+        ],
+        "title": "GrilaTerenRequest"
+      },
+      "HTTPValidationError": {
+        "properties": {
+          "detail": {
+            "items": {
+              "$ref": "#/components/schemas/ValidationError"
+            },
+            "type": "array",
+            "title": "Detail"
+          }
+        },
+        "type": "object",
+        "title": "HTTPValidationError"
+      },
+      "ImportUrlRequest": {
+        "properties": {
+          "url": {
+            "type": "string",
+            "title": "Url"
+          }
+        },
+        "type": "object",
+        "required": [
+          "url"
+        ],
+        "title": "ImportUrlRequest"
+      },
+      "IngestieRequest": {
+        "properties": {
+          "tip": {
+            "type": "string",
+            "title": "Tip"
+          },
+          "continut": {
+            "type": "string",
+            "title": "Continut"
+          }
+        },
+        "type": "object",
+        "required": [
+          "tip",
+          "continut"
+        ],
+        "title": "IngestieRequest"
+      },
+      "LandComparable": {
+        "properties": {
+          "pret_mp": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "string",
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$"
+              }
+            ],
+            "title": "Pret Mp"
+          },
+          "suprafata": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "string",
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$"
+              }
+            ],
+            "title": "Suprafata"
+          },
+          "localizare": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Localizare"
+          },
+          "data": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Data"
+          },
+          "adjustments": {
+            "items": {
+              "$ref": "#/components/schemas/Adjustment"
+            },
+            "type": "array",
+            "title": "Adjustments"
+          }
+        },
+        "type": "object",
+        "required": [
+          "pret_mp",
+          "suprafata"
+        ],
+        "title": "LandComparable",
+        "description": "Un comparabil de teren."
+      },
+      "LandData": {
+        "properties": {
+          "suprafata": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "string",
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$"
+              }
+            ],
+            "title": "Suprafata"
+          },
+          "categorie": {
+            "type": "string",
+            "title": "Categorie",
+            "default": "intravilan"
+          },
+          "deschidere": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "string",
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Deschidere"
+          },
+          "utilitati": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Utilitati"
+          },
+          "restrictii_urbanism": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Restrictii Urbanism"
+          },
+          "categorie_folosinta": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Categorie Folosinta"
+          },
+          "clasa_calitate": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Clasa Calitate"
+          }
+        },
+        "type": "object",
+        "required": [
+          "suprafata"
+        ],
+        "title": "LandData",
+        "description": "Datele terenului."
+      },
+      "ProfilEvaluare": {
+        "properties": {
+          "tip_activ": {
+            "type": "string",
+            "enum": [
+              "casa",
+              "teren",
+              "apartament",
+              "comercial",
+              "industrial",
+              "agricol",
+              "special"
+            ],
+            "title": "Tip Activ",
+            "default": "casa"
+          },
+          "scop": {
+            "type": "string",
+            "enum": [
+              "garantare_credit",
+              "raportare_financiara",
+              "asigurare",
+              "impozitare",
+              "vanzare",
+              "litigii",
+              "expropriere",
+              "aport"
+            ],
+            "title": "Scop",
+            "default": "garantare_credit"
+          },
+          "tip_valoare": {
+            "type": "string",
+            "enum": [
+              "piata",
+              "investitie",
+              "justa",
+              "lichidare",
+              "asigurare",
+              "chirie"
+            ],
+            "title": "Tip Valoare",
+            "default": "piata"
+          },
+          "abordari_aplicabile": {
+            "items": {
+              "type": "string",
+              "enum": [
+                "cost",
+                "comparatie",
+                "venit"
+              ]
+            },
+            "type": "array",
+            "title": "Abordari Aplicabile"
+          },
+          "ponderi": {
+            "additionalProperties": {
+              "anyOf": [
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "string",
+                  "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$"
+                }
+              ]
+            },
+            "type": "object",
+            "title": "Ponderi"
+          },
+          "ghid": {
+            "type": "string",
+            "enum": [
+              "GEV_520",
+              "GEV_630",
+              "GEV_500",
+              "none"
+            ],
+            "title": "Ghid",
+            "default": "GEV_520"
+          }
+        },
+        "type": "object",
+        "title": "ProfilEvaluare",
+        "description": "Configurarea unei evaluări: ce tip, în ce scop, ce valoare, ce abordări, ce ghid."
+      },
+      "RentComparable": {
+        "properties": {
+          "chirie_mp": {
+            "anyOf": [
+              {
+                "type": "number",
+                "exclusiveMinimum": 0.0
+              },
+              {
+                "type": "string",
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$"
+              }
+            ],
+            "title": "Chirie Mp"
+          },
+          "suprafata": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "string",
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$"
+              }
+            ],
+            "title": "Suprafata"
+          },
+          "localizare": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Localizare"
+          },
+          "data": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Data"
+          },
+          "adjustments": {
+            "items": {
+              "$ref": "#/components/schemas/Adjustment"
+            },
+            "type": "array",
+            "title": "Adjustments"
+          }
+        },
+        "type": "object",
+        "required": [
+          "chirie_mp",
+          "suprafata"
+        ],
+        "title": "RentComparable",
+        "description": "Un comparabil de inchiriere (chirie lunara pe mp), pentru grila de chirii.\n\n`chirie_mp` e chiria lunara pe metru patrat (ex. EUR/mp/luna). Ajustarile\nfolosesc aceeasi metodologie in doua etape (tranzactie compus + proprietate aditiv)\nca grila de teren; doar etapa de proprietate conteaza in ajustarea bruta."
+      },
+      "SubjectProfile": {
+        "properties": {
+          "suprafata_construita": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "string",
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Suprafata Construita"
+          },
+          "an": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "An"
+          },
+          "stare": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Stare"
+          },
+          "finisaj": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Finisaj"
+          },
+          "incalzire": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Incalzire"
+          },
+          "teren": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "string",
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Teren"
+          }
+        },
+        "type": "object",
+        "title": "SubjectProfile",
+        "description": "Atributele primare ale casei evaluate (normalizate pentru scoring)."
+      },
+      "ValidationError": {
+        "properties": {
+          "loc": {
+            "items": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "integer"
+                }
+              ]
+            },
+            "type": "array",
+            "title": "Location"
+          },
+          "msg": {
+            "type": "string",
+            "title": "Message"
+          },
+          "type": {
+            "type": "string",
+            "title": "Error Type"
+          },
+          "input": {
+            "title": "Input"
+          },
+          "ctx": {
+            "type": "object",
+            "title": "Context"
+          }
+        },
+        "type": "object",
+        "required": [
+          "loc",
+          "msg",
+          "type"
+        ],
+        "title": "ValidationError"
+      },
+      "ZonaRequest": {
+        "properties": {
+          "adresa": {
+            "type": "string",
+            "title": "Adresa"
+          }
+        },
+        "type": "object",
+        "required": [
+          "adresa"
+        ],
+        "title": "ZonaRequest"
+      }
+    }
+  }
+}
