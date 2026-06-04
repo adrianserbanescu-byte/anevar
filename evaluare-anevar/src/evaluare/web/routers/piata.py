@@ -47,12 +47,14 @@ def build_router(d: Deps) -> APIRouter:
             "plan": extractoare.extrage_plan, "cpe": extractoare.extrage_cpe,
         }.get(req.tip)
         if extractor is None:
-            raise HTTPException(status_code=400, detail="Tip document necunoscut (cf/releveu/plan/cpe).")
+            raise HTTPException(status_code=400,
+                detail="Tip de document necunoscut. Alege: cf, releveu, plan sau cpe.")
         payload = req.continut.split(",", 1)[1] if req.continut.startswith("data:") else req.continut
         try:
             raw = base64.b64decode(payload, validate=True)
         except Exception:
-            raise HTTPException(status_code=400, detail="Continut document invalid.") from None
+            raise HTTPException(status_code=400,
+                detail="Conținut document invalid. Încarcă un fișier PDF valid.") from None
         text = extrage_text(raw)
         return extractor(text).model_dump(mode="json")
 
@@ -68,7 +70,8 @@ def build_router(d: Deps) -> APIRouter:
             r = curs_bnr(moneda)
         except Exception as e:
             log.warning("Curs BNR indisponibil (%s): %s", moneda, e)
-            raise HTTPException(status_code=502, detail="Cursul BNR nu a putut fi preluat.") from e
+            raise HTTPException(status_code=502,
+                detail="Cursul BNR nu a putut fi preluat. Verifică conexiunea la internet.") from e
         if r is None:
             raise HTTPException(status_code=404, detail=f"Valuta {moneda} nu e in lista BNR.")
         return {"moneda": r["moneda"], "curs": str(r["curs"]), "data": r["data"]}
@@ -80,7 +83,8 @@ def build_router(d: Deps) -> APIRouter:
             dd = indice_anevar(fetcher=d.fetcher)
         except Exception as e:
             log.warning("Indice ANEVAR indisponibil: %s", e)
-            raise HTTPException(status_code=502, detail="Indicele ANEVAR nu a putut fi preluat.") from e
+            raise HTTPException(status_code=502,
+                detail="Indicele ANEVAR nu a putut fi preluat. Verifică conexiunea la internet.") from e
         dd["perioade"] = dd["perioade"][-max(1, ultimele):]
         return dd
 

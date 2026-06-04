@@ -367,7 +367,7 @@ function composeAdresa(){
           ($("judet").selectedOptions[0]||{}).text||""].filter(Boolean).join(", "); }
 
 $("btn-descopera").addEventListener("click", async ()=>{
-  $("desc_status").textContent="Caut...";
+  $("desc_status").textContent="Se caută comparabile…";
   const payload={portal:"imobiliare", judet:$("judet").value, localitate:localitateSlug(),
     subiect:{suprafata_construita:$("acd").value||null,
       an:parseInt($("attr_an").value)||null, stare:parseInt($("attr_stare").value)||null,
@@ -416,7 +416,7 @@ function aduna(){ const linii=[...document.querySelectorAll(".bif:checked")]
 $("btn-import-url").addEventListener("click", async ()=>{
   const url=$("url_import_w").value.trim();
   if(!url){ $("import_url_status").textContent="Introdu un URL."; return; }
-  $("import_url_status").textContent="Import...";
+  $("import_url_status").textContent="Se importă…";
   try{ const r=await fetch("/api/import-url",{method:"POST",
       headers:{"Content-Type":"application/json"}, body:JSON.stringify({url})});
     const res=await r.json();
@@ -550,7 +550,7 @@ function asambleaza(){
 }
 
 $("btn-calc").addEventListener("click", async ()=>{
-  $("rezultat-calc").textContent="Calculez...";
+  $("rezultat-calc").textContent="Se calculează…";
   try{ const r=await fetch("/api/evaluare",{method:"POST",
       headers:{"Content-Type":"application/json"}, body:JSON.stringify(asambleaza())});
     const res=await r.json(); evaluareId=res.id;

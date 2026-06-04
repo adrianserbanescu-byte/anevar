@@ -4,125 +4,125 @@
 <style>{% include "_design.css" %}</style>
 </head>
 <body>
-<header class="page-head"><h1>Evaluare imobiliara ANEVAR — casa + teren</h1>{% include "_compas.svg" %}<hr class="brass-rule"></header>
+<header class="page-head"><h1>Evaluare imobiliară ANEVAR — casă + teren</h1>{% include "_compas.svg" %}<hr class="brass-rule"></header>
 <form id="f">
 
-  <h2>Client si lucrare</h2>
+  <h2>Client și lucrare</h2>
 
   <label>Nume client</label>
   <input name="client_nume" autocomplete="name" required>
-  <small class="hint">Persoana/firma pentru care se face evaluarea. Apare in raport; este
-   anonimizat (inlocuit cu [CLIENT]) inainte de orice trimitere catre AI.</small>
+  <small class="hint">Persoana/firma pentru care se face evaluarea. Apare în raport; este
+   anonimizat (înlocuit cu [CLIENT]) înainte de orice trimitere către AI.</small>
 
-  <label>Adresa</label>
+  <label>Adresă</label>
   <input name="adresa" size="50" required>
-  <small class="hint">Adresa proprietatii evaluate. Identifica imobilul in raport; anonimizata
-   ([ADRESA]) inainte de apelul AI.</small>
+  <small class="hint">Adresa proprietății evaluate. Identifică imobilul în raport; anonimizată
+   ([ADRESA]) înainte de apelul AI.</small>
 
   <label>Nr. cadastral</label>
   <input name="numar_cadastral" required>
-  <small class="hint">Identificatorul cadastral unic al proprietatii. Documenteaza situatia
-   juridica; anonimizat ([CADASTRAL]) la AI.</small>
+  <small class="hint">Identificatorul cadastral unic al proprietății. Documentează situația
+   juridică; anonimizat ([CADASTRAL]) la AI.</small>
 
-  <label>Carte funciara</label>
+  <label>Carte funciară</label>
   <input name="carte_funciara" required>
-  <small class="hint">Numarul cartii funciare (CF). Atesta dreptul de proprietate si eventualele
+  <small class="hint">Numărul cărții funciare (CF). Atestă dreptul de proprietate și eventualele
    sarcini; anonimizat ([CF]) la AI.</small>
 
   <label>Evaluator</label>
   <input name="evaluator_nume" autocomplete="name" required>
-  <small class="hint">Numele evaluatorului autorizat ANEVAR. Apare in declaratia de independenta
+  <small class="hint">Numele evaluatorului autorizat ANEVAR. Apare în declarația de independență
    din raport.</small>
 
-  <label>Legitimatie</label>
+  <label>Legitimație</label>
   <input name="evaluator_legitimatie" required>
-  <small class="hint">Numarul legitimatiei ANEVAR a evaluatorului. Atesta dreptul de a semna
+  <small class="hint">Numărul legitimației ANEVAR a evaluatorului. Atestă dreptul de a semna
    raportul.</small>
 
-  <label>Data evaluarii</label>
+  <label>Data evaluării</label>
   <input type="date" name="data_evaluarii" value="2026-01-16">
-  <small class="hint">Data la care se estimeaza valoarea (data de referinta a calculelor). Aici se
-   raporteaza varsta constructiei si conditiile de piata.</small>
+  <small class="hint">Data la care se estimează valoarea (data de referință a calculelor). Aici se
+   raportează vârsta construcției și condițiile de piață.</small>
 
   <label>Data raportului</label>
   <input type="date" name="data_raportului" value="2026-01-16">
-  <small class="hint">Data emiterii raportului. Poate diferi de data evaluarii.</small>
+  <small class="hint">Data emiterii raportului. Poate diferi de data evaluării.</small>
 
-  <h2>Teren si constructie</h2>
+  <h2>Teren și construcție</h2>
 
-  <label>Suprafata teren (mp)</label>
+  <label>Suprafață teren (mp)</label>
   <input name="suprafata_teren" value="500">
-  <small class="hint">Suprafata terenului din actul cadastral. Baza pentru valoarea terenului in
+  <small class="hint">Suprafața terenului din actul cadastral. Baza pentru valoarea terenului în
    abordarea prin cost.</small>
 
-  <label>Au — arie utila (mp)</label>
+  <label>Au — arie utilă (mp)</label>
   <input name="au" value="100">
-  <small class="hint">Suprafata interioara efectiv folosibila a constructiei (fara pereti). Folosita
-   in descrierea fizica si la verificari (Au nu poate depasi Acd).</small>
+  <small class="hint">Suprafața interioară efectiv folosibilă a construcției (fără pereți). Folosită
+   în descrierea fizică și la verificări (Au nu poate depăși Acd).</small>
 
-  <label>Acd — arie construita desfasurata (mp)</label>
+  <label>Acd — arie construită desfășurată (mp)</label>
   <input name="acd" value="120">
-  <small class="hint">Suprafata totala construita pe toate nivelurile (cu pereti). Este numitorul
-   pentru costul pe mp (CIN) si suprafata subiectului folosita la comparatie.</small>
+  <small class="hint">Suprafața totală construită pe toate nivelurile (cu pereți). Este numitorul
+   pentru costul pe mp (CIN) și suprafața subiectului folosită la comparație.</small>
 
-  <label>An referinta</label>
+  <label>An referință</label>
   <input name="an_referinta" value="2025">
-  <small class="hint">Anul fata de care se calculeaza varsta constructiei. Varsta fiecarui element
-   = an referinta − an punere in functiune (an_pif). Determina deprecierea.</small>
+  <small class="hint">Anul față de care se calculează vârsta construcției. Vârsta fiecărui element
+   = an referință − an punere în funcțiune (an_pif). Determină deprecierea.</small>
 
   <label>Valoare teren (lei)</label>
   <input name="valoare_teren" value="100000">
-  <small class="hint">Valoarea estimata a terenului (din comparatie sau alta sursa). Se adauga la
-   costul net al constructiei (CIN) pentru valoarea prin cost.</small>
+  <small class="hint">Valoarea estimată a terenului (din comparație sau altă sursă). Se adaugă la
+   costul net al construcției (CIN) pentru valoarea prin cost.</small>
 
-  <h2>Metoda de evaluare</h2>
+  <h2>Metodă de evaluare</h2>
   <select name="metoda">
     <option value="cost">Cost (CIN + teren)</option>
-    <option value="piata">Piata (grila de comparatie)</option>
-    <option value="ponderata">Ponderata (cost + piata)</option>
+    <option value="piata">Piață (grilă de comparație)</option>
+    <option value="ponderata">Ponderată (cost + piață)</option>
   </select>
-  <small class="hint">Care abordare determina valoarea finala. „Cost" = constructie prin cost de
-   inlocuire net + teren. „Piata" = grila de comparatie. „Ponderata" = media celor doua.</small>
+  <small class="hint">Care abordare determină valoarea finală. „Cost" = construcție prin cost de
+   înlocuire net + teren. „Piață" = grilă de comparație. „Ponderată" = media celor două.</small>
 
-  <h2>Elemente de cost (un rand per element)</h2>
-  <small class="hint">Fiecare element constructiv din catalogul IROVAL: infrastructura, structura,
-   finisaje, instalatii, invelitoare. Format pe linie:
+  <h2>Elemente de cost (un rând per element)</h2>
+  <small class="hint">Fiecare element constructiv din catalogul IROVAL: infrastructură, structură,
+   finisaje, instalații, învelitoare. Format pe linie:
    <b>element;cod;um;cantitate;cost_unitar;an_pif</b>. Suma (cantitate × cost_unitar) = costul de
-   inlocuire brut (CIB). „an_pif" = anul punerii in functiune (pentru varsta/depreciere).</small>
+   înlocuire brut (CIB). „an_pif" = anul punerii în funcțiune (pentru vârstă/depreciere).</small>
   <textarea name="elemente" rows="4" cols="80"
-   placeholder="element;cod;um;cantitate;cost_unitar;an_pif (cate unul pe linie)">Structura;X;mp;120;2000;2015</textarea>
+   placeholder="element;cod;um;cantitate;cost_unitar;an_pif (câte unul pe linie)">Structura;X;mp;120;2000;2015</textarea>
 
-  <h2>Depreciere fizica (puncte varsta;fractie)</h2>
-  <small class="hint">Punctele din tabelul de depreciere intre care se interpoleaza deprecierea
-   fizica (Dfn), in functie de varsta cronologica ponderata (Vcp). Format pe linie:
-   <b>varsta;fractie</b> (ex. 30;0.31 = la 30 ani, 31% depreciere).</small>
+  <h2>Depreciere fizică (puncte vârstă;fracție)</h2>
+  <small class="hint">Punctele din tabelul de depreciere între care se interpolează deprecierea
+   fizică (Dfn), în funcție de vârsta cronologică ponderată (Vcp). Format pe linie:
+   <b>vârstă;fracție</b> (ex. 30;0.31 = la 30 ani, 31% depreciere).</small>
   <textarea name="depreciere" rows="2" cols="40"
    placeholder="varsta;fractie">5;0.05
 15;0.15</textarea>
 
-  <h2>Comparabile de piata (un rand: pret;suprafata)</h2>
-  <small class="hint">Proprietati similare vandute/oferite, folosite la metoda „piata". Din pret si
-   suprafata se calculeaza pretul unitar (pret/suprafata) si se selecteaza valoarea. Recomandat
-   minimum 3 comparabile. Format pe linie: <b>pret;suprafata</b>.</small>
+  <h2>Comparabile de piață (un rând: preț;suprafață)</h2>
+  <small class="hint">Proprietăți similare vândute/oferite, folosite la metoda „piață". Din preț și
+   suprafață se calculează prețul unitar (preț/suprafață) și se selectează valoarea. Recomandat
+   minimum 3 comparabile. Format pe linie: <b>preț;suprafață</b>.</small>
   <p>Import din URL (imobiliare.ro / storia.ro):
     <input id="url_import" size="50" placeholder="https://...">
     <button type="button" id="btn_import">Import din URL</button>
     <span id="import_status"></span>
   </p>
-  <small class="hint">Lipeste linkul unui anunt: aplicatia extrage automat pretul si suprafata si
-   le adauga ca un rand mai jos. Verifica datele importate inainte de generare.</small>
+  <small class="hint">Lipește linkul unui anunț: aplicația extrage automat prețul și suprafața și
+   le adaugă ca un rând mai jos. Verifică datele importate înainte de generare.</small>
   <textarea name="comparabile" rows="4" cols="40"
-   placeholder="pret;suprafata (cate unul pe linie)"></textarea><br><br>
+   placeholder="pret;suprafata (câte unul pe linie)"></textarea><br><br>
 
-  <button type="submit">Genereaza evaluarea</button>
+  <button type="submit">Generează evaluarea</button>
 </form>
 <pre id="rezultat"></pre>
 <script>
 document.getElementById('btn_import').addEventListener('click', async () => {
   const url = document.getElementById('url_import').value.trim();
   const status = document.getElementById('import_status');
-  if (!url) { status.textContent = 'Introduceti un URL.'; return; }
-  status.textContent = 'Se importa...';
+  if (!url) { status.textContent = 'Introdu un URL.'; return; }
+  status.textContent = 'Se importă…';
   try {
     const r = await fetch('/api/import-url', {method:'POST',
       headers:{'Content-Type':'application/json'}, body: JSON.stringify({url})});
@@ -133,7 +133,7 @@ document.getElementById('btn_import').addEventListener('click', async () => {
       status.textContent = 'Importat: ' + res.pret + ' ' + (res.moneda || '') +
                            ', ' + res.suprafata + ' mp.';
     } else {
-      status.textContent = 'Nu s-au gasit pret si suprafata; completati manual.';
+      status.textContent = 'Nu am găsit prețul și suprafața. Completează-le manual.';
     }
   } catch (err) {
     status.textContent = 'Eroare la import: ' + err;
