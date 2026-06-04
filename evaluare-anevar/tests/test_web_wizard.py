@@ -89,3 +89,9 @@ def test_wizard_are_industrial(tmp_path):
     body = _client(tmp_path).get("/wizard").text
     assert 'value="industrial"' in body
     assert 'id="inaltime_libera"' in body
+
+
+def test_wizard_are_agricol(tmp_path):
+    body = _client(tmp_path).get("/wizard").text
+    assert 'value="agricol"' in body
+    assert 'id="categorie_folosinta"' in body

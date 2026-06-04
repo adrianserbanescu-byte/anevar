@@ -87,10 +87,11 @@
    depreciere), plus <b>atributele de potrivire</b> care ajută aplicația să găsească cele mai similare
    anunțuri la descoperire.</p>
   <label for="tip_proprietate">Tip proprietate</label>
-  <select id="tip_proprietate" onchange="var v=this.value;document.getElementById('ap-fields').style.display=v==='apartament'?'block':'none';document.getElementById('ind-fields').style.display=v==='industrial'?'block':'none'">
+  <select id="tip_proprietate" onchange="var v=this.value;document.getElementById('ap-fields').style.display=v==='apartament'?'block':'none';document.getElementById('ind-fields').style.display=v==='industrial'?'block':'none';document.getElementById('agr-fields').style.display=v==='agricol'?'block':'none'">
     <option value="casa">Casă individuală + teren</option>
     <option value="apartament">Apartament</option>
     <option value="industrial">Spațiu industrial (hală/depozit)</option>
+    <option value="agricol">Teren agricol</option>
   </select>
   <div id="ap-fields" style="display:none">
     <label for="etaj">Etaj</label><input id="etaj" type="number">
@@ -102,6 +103,19 @@
   <div id="ind-fields" style="display:none">
     <label for="inaltime_libera">Înălțime liberă (m)</label><input id="inaltime_libera">
     <small class="hint">Câmp pentru spații industriale (hală/depozit).</small>
+  </div>
+  <div id="agr-fields" style="display:none">
+    <label for="categorie_folosinta">Categorie de folosință</label>
+    <select id="categorie_folosinta">
+      <option value="">—</option>
+      <option value="arabil">Arabil</option>
+      <option value="pasune">Pășune</option>
+      <option value="vie">Vie</option>
+      <option value="livada">Livadă</option>
+      <option value="padure">Pădure</option>
+    </select>
+    <label for="clasa_calitate">Clasă de calitate (1–5)</label><input id="clasa_calitate" type="number">
+    <small class="hint">Câmpuri pentru teren agricol.</small>
   </div>
   <label for="suprafata_teren">Suprafață teren (mp)</label><input id="suprafata_teren" value="500">
   <small class="hint">Suprafața terenului din actul cadastral. Bază pentru valoarea terenului și
@@ -256,7 +270,7 @@ const $ = id => document.getElementById(id);
 const CAMPURI = ["judet","localitate","localitate_alt","adresa_strada","client_nume",
  "numar_cadastral","carte_funciara","beneficiar","proprietar","evaluator_nume",
  "evaluator_legitimatie","data_evaluarii","data_raportului","data_inspectiei",
- "tip_proprietate","etaj","nr_niveluri_bloc","an_bloc","cota_teren_indiviza","inaltime_libera",
+ "tip_proprietate","etaj","nr_niveluri_bloc","an_bloc","cota_teren_indiviza","inaltime_libera","categorie_folosinta","clasa_calitate",
  "suprafata_teren","au","acd","an_referinta",
  "valoare_teren","elemente","depreciere","attr_an","attr_stare","attr_finisaj",
  "attr_incalzire","atribute_secundare","comparabile","metoda","moneda","curs_valutar",
@@ -484,8 +498,11 @@ function asambleaza(){
     date_venit={venit_brut_potential:$("vbp").value, grad_neocupare:$("neocupare").value||"0",
       cheltuieli_exploatare:$("cheltuieli").value||"0", rata_capitalizare:$("rata_cap").value};
   }
+  const land = {suprafata:$("suprafata_teren").value};
+  if($("categorie_folosinta").value) land.categorie_folosinta=$("categorie_folosinta").value;
+  if($("clasa_calitate").value) land.clasa_calitate=parseInt($("clasa_calitate").value);
   return{meta,
-    land:{suprafata:$("suprafata_teren").value},
+    land,
     building, comparables,
     valoare_teren:$("valoare_teren").value, metoda:$("metoda").value, date_venit, photos:FOTOS,
     documente:DOCUMENTE};
