@@ -274,3 +274,12 @@ Aditiv, compact: profil `INDUSTRIAL` (GEV 630, cost+venit+comparație); `Buildin
 verzi); wizard cu opțiunea „industrial" în selectorul tip proprietate + câmp înălțime liberă.
 **329 teste verzi**, pyflakes curat, exe reîmpachetat + smoke. Comituri `e208910`, `1b2f90d`.
 Următorul: **Faza 4 — Agricol/teren**.
+
+### 2026-06-04 — Faza 4 (Agricol) IMPLEMENTATĂ (subagent-driven)
+Aditiv, compact: profil `AGRICOL` (GEV 630, comparație); `LandData.categorie_folosinta` + `clasa_calitate`
+(Optional); descriptor de raport „Teren agricol: categorie de folosinta … clasa …" (condițional → 12 teste
+raport verzi); wizard cu opțiunea „agricol" în selector + câmpuri (categorie folosință dropdown + clasă).
+**334 teste verzi**, pyflakes curat, exe reîmpachetat + smoke (wizard: agricol/industrial/venit prezente).
+Comituri `22ba0af`, `4b9994d`. Următorul: **Faza 5 — Scopuri noi** (IFRS/asigurare/impozitare/litigii:
+profiluri + tip valoare + secțiuni de raport per ghid GEV 500 — mai substanțial). Apoi Faza 6 (DCF+chirii),
+Faza 7 (Special), Track B (a11y rămas), **Track C** (calitate/raport/docs).
