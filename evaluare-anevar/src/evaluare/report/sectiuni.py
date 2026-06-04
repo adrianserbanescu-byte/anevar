@@ -24,10 +24,22 @@ _REGISTRU = [
 ID_SECTIUNI = [s[0] for s in _REGISTRU]
 
 
+# Secțiunile de abordare apar doar dacă abordarea respectivă e în profil.abordari_aplicabile.
+_ABORDARE_SECTIUNE = {
+    "abordare_cost": "cost",
+    "abordare_comparatie": "comparatie",
+    "abordare_venit": "venit",
+}
+
+
 def sectiuni_pentru_profil(profil: ProfilEvaluare) -> list[str]:
-    """Returnează id-urile de secțiuni aplicabile profilului, în ordine."""
-    out = []
+    """Returnează id-urile de secțiuni aplicabile profilului (ghid + abordări), în ordine."""
+    out: list[str] = []
     for sid, ghiduri in _REGISTRU:
-        if ghiduri == "*" or profil.ghid in ghiduri:
-            out.append(sid)
+        if not (ghiduri == "*" or profil.ghid in ghiduri):
+            continue
+        abordare = _ABORDARE_SECTIUNE.get(sid)
+        if abordare is not None and abordare not in profil.abordari_aplicabile:
+            continue
+        out.append(sid)
     return out
