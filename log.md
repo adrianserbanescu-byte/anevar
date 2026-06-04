@@ -299,3 +299,12 @@ fluxurilor de numerar multi-anuale + valoare reziduală; validări (rată > 0, f
 (verificat manual: 3 ani × 100.000 la 10% = 248.685,20). **344 teste verzi**, pyflakes curat. Comit `4cbe67d`.
 **Rămas în Faza 6:** cablarea DCF în wizard (metoda „dcf" + fluxuri) + grila de chirii comparabile (chirie de
 piață) — motorul e gata, cablarea/UI urmează. Apoi Faza 7 (Special), Track B (a11y rămas), Track C.
+
+### 2026-06-04 — Faza 6 (DCF) cablat complet (subagent-driven)
+DCF live end-to-end: `DateDCF` + `EvaluationInput.date_dcf` + `metoda="dcf"` + `construieste_context`
+rulează `evalueaza_dcf` și reconciliază (primara „venit") + `dcf_valoare` pe `ReportContext` + secțiune raport
+„Abordarea prin venit (DCF)" (condițional) + wizard cu metoda „dcf" + câmpuri (fluxuri/rată/rezidual).
+**346 teste verzi**, pyflakes curat, exe reîmpachetat + smoke (DCF prin API → 248.685,20; wizard are opțiunea).
+*Notă: un subagent a căzut la mijloc (eroare socket) — am completat manual generator + test + commit.*
+**Amânat (Later):** grila de chirii comparabile (chirie de piață). Comituri `4cbe67d … 93d3f13`.
+Următorul: **Faza 7 — Special** (hotel/benzinărie).
