@@ -26,10 +26,18 @@
   --serif:"Constantia","Cambria","Sitka Text","Iowan Old Style","Palatino Linotype","Georgia",serif;
   --sans:"Segoe UI","Selawik",-apple-system,system-ui,"Liberation Sans",sans-serif;
   --mono:"Consolas","Cascadia Mono","SFMono-Regular","Liberation Mono",monospace;
+  --brass:#b08d57;           /* alamă (rigle, cartuș, sigiliu) */
+  --brass-hi:#d9c08a;        /* reflexie de alamă */
+  --tricolor-blue:#27408b;   /* bandă tricoloră (drapel) */
+  --tricolor-yellow:#d7a92b;
+  --tricolor-red:#a5301f;
   --radius:8px;
   --maxw:1060px;
+  --grid-fine:26px;          /* grilă cartografică fină */
+  --grid-coarse:130px;       /* grilă cartografică amplă */
   --shadow:0 1px 0 rgba(255,255,255,.7) inset, 0 1px 2px rgba(22,38,61,.05),
            0 18px 40px -26px rgba(22,38,61,.45);
+  --emboss:inset 0 1px 0 rgba(255,255,255,.6), inset 0 -1px 0 rgba(176,141,87,.32);
 }
 
 *{box-sizing:border-box}
@@ -45,12 +53,15 @@ body{
   margin:0 auto;
   padding:46px 32px 96px;
   background-color:var(--paper);
-  /* grilă cartografică foarte discretă + lumină caldă în colțul de sus */
+  /* ghioșuri (guilloché) fine + grilă cartografică dublă + lumină caldă */
   background-image:
+    url("data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='420' height='420' viewBox='0 0 420 420'%3E%3Cg fill='none' stroke='%2316263d' stroke-width='0.5' opacity='0.06'%3E%3Ccircle cx='210' cy='210' r='80'/%3E%3Ccircle cx='210' cy='210' r='110'/%3E%3Ccircle cx='210' cy='210' r='140'/%3E%3Ccircle cx='210' cy='210' r='170'/%3E%3Cpath d='M30 210 Q 210 60 390 210 T 30 210'/%3E%3Cpath d='M30 210 Q 210 360 390 210 T 30 210'/%3E%3Cpath d='M210 30 Q 60 210 210 390 T 210 30'/%3E%3Cpath d='M210 30 Q 360 210 210 390 T 210 30'/%3E%3C/g%3E%3C/svg%3E"),
     radial-gradient(120% 80% at 88% -10%, rgba(169,130,47,.10), transparent 60%),
     radial-gradient(90% 60% at 6% -8%, rgba(47,107,79,.06), transparent 55%),
-    repeating-linear-gradient(0deg, rgba(123,58,27,.035) 0 1px, transparent 1px 30px),
-    repeating-linear-gradient(90deg, rgba(123,58,27,.035) 0 1px, transparent 1px 30px);
+    repeating-linear-gradient(0deg, rgba(22,38,61,.045) 0 1px, transparent 1px var(--grid-fine)),
+    repeating-linear-gradient(90deg, rgba(22,38,61,.045) 0 1px, transparent 1px var(--grid-fine)),
+    repeating-linear-gradient(0deg, rgba(22,38,61,.06) 0 1px, transparent 1px var(--grid-coarse)),
+    repeating-linear-gradient(90deg, rgba(22,38,61,.06) 0 1px, transparent 1px var(--grid-coarse));
   background-attachment:fixed;
 }
 
@@ -58,8 +69,9 @@ body{
 body::before{
   content:"";
   position:fixed; inset:0 0 auto 0; height:4px; z-index:50;
-  background:linear-gradient(90deg,var(--sienna) 0 33%,var(--gold) 33% 66%,var(--green) 66% 100%);
-  opacity:.92;
+  background:linear-gradient(90deg,
+    var(--tricolor-blue) 0 33.33%, var(--tricolor-yellow) 33.33% 66.66%, var(--tricolor-red) 66.66% 100%);
+  opacity:.9;
 }
 
 /* ---------------------------------------------------------- Tipografie */
@@ -124,6 +136,7 @@ input,select,textarea{
   border:1px solid var(--line-2); border-radius:6px;
   padding:8px 10px; max-width:100%;
   font-variant-numeric:tabular-nums;
+  box-shadow:var(--emboss);
   transition:border-color .15s, box-shadow .15s, background .15s;
 }
 input:hover,select:hover,textarea:hover{border-color:#a59470;}
@@ -190,7 +203,8 @@ table{ border-collapse:collapse; width:100%; margin:12px 0; background:var(--pap
 th,td{ border:1px solid var(--line); padding:7px 10px; font-size:.88rem;
   font-variant-numeric:tabular-nums; vertical-align:top; }
 th{ background:var(--ink); color:#f3ecdc; font-family:var(--sans); font-weight:600;
-  letter-spacing:.06em; text-transform:uppercase; font-size:.74rem; text-align:left; }
+  letter-spacing:.06em; text-transform:uppercase; font-size:.74rem; text-align:left;
+  border-bottom:2px solid var(--brass); }
 tbody tr:nth-child(even) td{ background:rgba(233,226,208,.4); }
 td:first-child, th[scope=row], td.stub{
   background:var(--paper-sunk); font-weight:600; color:var(--ink); text-align:left;
@@ -279,7 +293,7 @@ main{ display:block; }
 .stepper li.done .num{ background:var(--green); border-color:var(--green); color:#fbf8f0; }
 .stepper li.done .step{ color:var(--ink-2); }
 .stepper li.activ .num{ background:var(--sienna); border-color:var(--sienna-deep); color:#fbf8f0;
-  box-shadow:0 0 0 4px rgba(157,74,37,.16); }
+  box-shadow:0 0 0 4px rgba(157,74,37,.16), var(--emboss); }
 .stepper li.activ .step{ color:var(--sienna-deep); }
 .step:hover .num{ border-color:var(--sienna); color:var(--sienna-deep); }
 .step:focus-visible{ outline:2px solid var(--sienna); outline-offset:3px; border-radius:8px; }
@@ -344,6 +358,43 @@ pre{ font-family:var(--mono); font-size:.82rem; background:var(--paper-sunk);
   body::before, .nav, button, input[type=file]{ display:none !important; }
   .pas{ display:block !important; box-shadow:none; border:1px solid #ccc; }
 }
+
+/* ===================================================================
+   Decor de document (port din conceptul Lovable): riglă de alamă,
+   cartuș de hartă, kicker de marcă, sigiliu ANEVAR. Clase reutilizabile.
+   =================================================================== */
+
+/* linie subțire de alamă cu reflexie metalică */
+.brass-rule{ height:2px; border:0; margin:14px 0;
+  background:linear-gradient(to bottom, transparent, var(--brass) 45%, var(--brass-hi) 50%, var(--brass) 55%, transparent); }
+
+/* bandă tricoloră ca element în pagină */
+.tricolor-band{ height:3px; border-radius:2px;
+  background:linear-gradient(90deg,
+    var(--tricolor-blue) 0 33.33%, var(--tricolor-yellow) 33.33% 66.66%, var(--tricolor-red) 66.66% 100%); }
+
+/* eticheta-marcă mică (deasupra titlurilor) */
+.kicker{ font-family:var(--sans); font-weight:700; font-size:.7rem;
+  letter-spacing:.2em; text-transform:uppercase; color:var(--sienna); }
+
+/* cartuș de hartă cadastrală — chenar dublu gravat (antet de pagină) */
+.cartouche{ position:relative; background:var(--paper-card);
+  border:1px solid var(--brass); border-radius:6px; padding:22px 26px;
+  box-shadow:inset 0 0 0 3px var(--paper-card), inset 0 0 0 4px rgba(176,141,87,.45), var(--shadow); }
+.cartouche .coord{ position:absolute; font-family:var(--mono); font-size:.62rem;
+  letter-spacing:.08em; color:var(--brass); }
+.cartouche .coord.tr{ top:7px; right:12px; }
+.cartouche .coord.bl{ bottom:7px; left:12px; }
+@media (max-width:560px){ .cartouche .coord{ display:none; } }
+
+/* sigiliu ANEVAR — animație discretă de „aplicare ștampilă” (pagina rezultat) */
+@keyframes seal-press{
+  0%{ transform:scale(.92) rotate(-9deg); opacity:0; }
+  60%{ transform:scale(1.04) rotate(-6deg); opacity:1; }
+  100%{ transform:scale(1) rotate(-6deg); opacity:1; }
+}
+.seal-stamp{ display:inline-block; animation:seal-press .7s ease-out both; }
+@media (prefers-reduced-motion: reduce){ .seal-stamp{ animation:none; } }
 
 /* skip-link: vizibil doar la focus (WCAG 2.4.1) */
 .skip-link{ position:absolute; left:-9999px; top:0; background:var(--ink); color:#fff;
