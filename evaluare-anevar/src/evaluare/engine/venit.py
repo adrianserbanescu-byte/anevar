@@ -38,3 +38,22 @@ def evalueaza_venit(d: DateVenit) -> RezultatVenit:
 def abordare_venit(d: DateVenit) -> RezultatAbordare:
     r = evalueaza_venit(d)
     return RezultatAbordare(abordare="venit", valoare=r.valoare, detalii={"noi": str(r.noi)})
+
+
+def evalueaza_dcf(fluxuri: list[Decimal], rata_actualizare: Decimal,
+                  valoare_reziduala: Decimal = Decimal("0")) -> Decimal:
+    """Valoare prin actualizarea fluxurilor de numerar (DCF).
+
+    value = Σ flux_t/(1+r)^t (t=1..n) + valoare_reziduala/(1+r)^n.
+    """
+    if rata_actualizare <= 0:
+        raise ValueError("Rata de actualizare trebuie să fie > 0.")
+    if not fluxuri:
+        raise ValueError("Sunt necesare fluxuri de numerar pentru DCF.")
+    factor = Decimal("1") + rata_actualizare
+    total = Decimal("0")
+    for t, flux in enumerate(fluxuri, start=1):
+        total += Decimal(flux) / (factor ** t)
+    n = len(fluxuri)
+    total += Decimal(valoare_reziduala) / (factor ** n)
+    return total.quantize(_BANI, rounding=ROUND_HALF_UP)
