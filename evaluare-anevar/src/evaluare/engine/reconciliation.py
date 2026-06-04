@@ -85,15 +85,24 @@ def reconcile_profil(
         raise ValueError("Nicio abordare nu produce o valoare utilizabilă.")
 
     if ponderi:
-        total_pondere = sum(ponderi[a] for a in ponderi if a in valori)
-        if total_pondere > 0:
-            valoare = sum(valori[a] * ponderi[a] for a in ponderi if a in valori) / total_pondere
+        disponibile = [a for a in ponderi if a in valori]
+        total_pondere = sum(ponderi[a] for a in disponibile)
+        if len(disponibile) >= 2 and total_pondere > 0:
+            valoare = sum(valori[a] * ponderi[a] for a in disponibile) / total_pondere
             return ReconciledResult(valoare_finala=valoare, metoda_selectata="ponderata")
+        # sub doua abordari disponibile -> ponderarea nu se aplica; selectie cu nota
+        nota = "Ponderarea nu s-a putut aplica (sub doua abordari disponibile)."
+        if primara in valori:
+            return ReconciledResult(valoare_finala=valori[primara],
+                                    metoda_selectata=_METODA.get(primara, primara), nota=nota)
+        abordare_disp = next(iter(valori))
+        return ReconciledResult(valoare_finala=valori[abordare_disp],
+                                metoda_selectata=_METODA.get(abordare_disp, abordare_disp), nota=nota)
 
     if primara in valori:
         return ReconciledResult(valoare_finala=valori[primara],
                                 metoda_selectata=_METODA.get(primara, primara))
-    # fallback
+    # fallback fara ponderi
     abordare_disp = next(iter(valori))
     return ReconciledResult(
         valoare_finala=valori[abordare_disp], metoda_selectata=_METODA.get(abordare_disp, abordare_disp),

@@ -42,3 +42,13 @@ def test_ponderata():
 def test_fara_valori_ridica_eroare():
     with pytest.raises(ValueError):
         reconcile_profil([_r("cost", None)], primara="cost")
+
+
+def test_ponderata_degenerata_o_singura_abordare():
+    # ponderi date dar doar o abordare are valoare -> NU "ponderata", cu nota
+    rez = [_r("comparatie", "320000"), _r("cost", None)]
+    out = reconcile_profil(rez, primara="comparatie",
+                           ponderi={"comparatie": Decimal("0.5"), "cost": Decimal("0.5")})
+    assert out.valoare_finala == Decimal("320000")
+    assert out.metoda_selectata == "piata"
+    assert out.nota != ""
