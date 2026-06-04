@@ -22,8 +22,17 @@
   --gold:#a9822f;            /* sigiliu de alamă */
   --danger:#9c2c1b;
   --danger-soft:#f4e0d9;
+  --danger-ink:#6f1d11;      /* text danger pe fundal soft (alerte) */
+  --danger-line:#e3b9af;     /* bordură pastilă danger */
   --warn-ink:#7a5c14;
   --warn-soft:#f4ecc9;
+  --warn-bg:#ece4d2;         /* fundal pastilă „mediu/standard” */
+  --warn-line:#d8caa6;       /* bordură pastilă „mediu” */
+  --green-line:#bcd2bc;      /* bordură pastilă verde */
+  --blue:#2b5a8c;            /* albastru tehnic (procente, info) */
+  --blue-deep:#2b466a;
+  --blue-soft:#e6ebf2;
+  --blue-line:#c3d0e0;
   --serif:"Constantia","Cambria","Sitka Text","Iowan Old Style","Palatino Linotype","Georgia",serif;
   --sans:"Segoe UI","Selawik",-apple-system,system-ui,"Liberation Sans",sans-serif;
   --mono:"Consolas","Cascadia Mono","SFMono-Regular","Liberation Mono",monospace;
@@ -33,9 +42,17 @@
   --tricolor-yellow:#d7a92b;
   --tricolor-red:#a5301f;
   --radius:8px;
+  --radius-sm:6px;           /* controale, butoane */
+  --radius-pill:99px;        /* pastile / badge-uri */
   --maxw:1060px;
   --grid-fine:26px;          /* grilă cartografică fină */
   --grid-coarse:130px;       /* grilă cartografică amplă */
+  /* Scală de spațiere (4px) — un singur loc pentru ritmul vertical/orizontal */
+  --space-1:4px; --space-2:8px; --space-3:12px; --space-4:16px;
+  --space-5:24px; --space-6:32px; --space-8:48px;
+  /* Scală de tipuri */
+  --text-xs:.74rem; --text-sm:.86rem; --text-base:.95rem; --text-lg:1.34rem;
+  --ease:var(--ease);   /* easing unic pentru mișcare */
   --shadow:0 1px 0 rgba(255,255,255,.7) inset, 0 1px 2px rgba(22,38,61,.05),
            0 18px 40px -26px rgba(22,38,61,.45);
   --emboss:inset 0 1px 0 rgba(255,255,255,.6), inset 0 -1px 0 rgba(176,141,87,.32);
@@ -81,7 +98,7 @@ h1,h2,h3,h4{font-family:var(--serif); color:var(--ink); font-weight:600; letter-
 h1{
   font-size:clamp(2rem,1.4rem + 2.4vw,2.85rem);
   line-height:1.08; margin:.1em 0 .55em;
-  animation:rise .55s cubic-bezier(.2,.7,.2,1) both;
+  animation:rise .55s var(--ease) both;
 }
 /* kicker-marcă deasupra titlului paginii */
 h1::before{
@@ -134,7 +151,7 @@ label{ display:block; font-family:var(--sans); font-weight:600; color:var(--ink)
 input,select,textarea{
   font-family:var(--sans); font-size:.95rem; color:var(--ink);
   background:var(--paper-card);
-  border:1px solid var(--field-border); border-radius:6px;
+  border:1px solid var(--field-border); border-radius:var(--radius-sm);
   padding:8px 10px; max-width:100%;
   font-variant-numeric:tabular-nums;
   box-shadow:var(--emboss);
@@ -167,7 +184,7 @@ fieldset{
 }
 legend{
   font-family:var(--serif); font-weight:600; font-size:1.06rem; color:var(--ink);
-  padding:2px 10px; background:var(--paper); border:1px solid var(--line); border-radius:6px;
+  padding:2px 10px; background:var(--paper); border:1px solid var(--line); border-radius:var(--radius-sm);
 }
 .row{ display:flex; flex-wrap:wrap; gap:16px; }
 .chk{ font-family:var(--sans); font-size:.9rem; margin:5px 0; font-weight:400; color:var(--ink-2); }
@@ -177,7 +194,7 @@ legend{
 button{
   font-family:var(--sans); font-weight:600; font-size:.9rem; letter-spacing:.015em;
   color:#fdf8ef; background:var(--sienna);
-  border:1px solid var(--sienna-deep); border-radius:6px;
+  border:1px solid var(--sienna-deep); border-radius:var(--radius-sm);
   padding:9px 18px; margin:12px 8px 4px 0; cursor:pointer;
   box-shadow:0 1px 0 rgba(255,255,255,.25) inset, 0 6px 14px -8px rgba(124,58,27,.6);
   transition:transform .12s, background .15s, box-shadow .15s;
@@ -190,7 +207,7 @@ button:disabled{ background:var(--paper-sunk); color:var(--ink-faint);
 
 /* link stilizat ca buton (CTA, ex. descărcare raport) */
 a.btn{ display:inline-block; text-decoration:none; color:#fdf8ef; background:var(--sienna);
-  border:1px solid var(--sienna-deep); border-radius:6px; padding:10px 20px; font-weight:600;
+  border:1px solid var(--sienna-deep); border-radius:var(--radius-sm); padding:10px 20px; font-weight:600;
   font-family:var(--sans); font-size:.9rem; letter-spacing:.015em;
   box-shadow:0 1px 0 rgba(255,255,255,.25) inset, 0 6px 14px -8px rgba(124,58,27,.6);
   transition:transform .12s, background .15s; }
@@ -221,7 +238,7 @@ input.cell{ width:78px; text-align:right; padding:4px 6px; }
 input.base{ width:104px; text-align:right; font-weight:600; padding:5px 7px; }
 .row-pret th:first-child,.row-supr th:first-child{ background:#e7e2cf; }
 .eur{ color:var(--sienna); font-weight:600; }
-.pct{ color:#2b5a8c; font-weight:600; }
+.pct{ color:var(--blue); font-weight:600; }
 
 /* ------------------------------------------------------- Indicii / note */
 .hint{ font-family:var(--sans); color:var(--ink-faint); font-size:.84rem; line-height:1.5;
@@ -254,13 +271,13 @@ main{ display:block; }
   box-shadow:var(--shadow);
 }
 .pas.activ{ display:block; border-left-color:var(--sienna);
-  animation:rise .45s cubic-bezier(.2,.7,.2,1) both; }
+  animation:rise .45s var(--ease) both; }
 
-.bara{ background:var(--paper-sunk); height:6px; border-radius:99px; margin:14px 0 6px;
+.bara{ background:var(--paper-sunk); height:6px; border-radius:var(--radius-pill); margin:14px 0 6px;
   border:1px solid var(--line); overflow:hidden; }
-.bara>div{ height:100%; border-radius:99px;
+.bara>div{ height:100%; border-radius:var(--radius-pill);
   background:linear-gradient(90deg,var(--sienna),var(--gold));
-  transition:width .35s cubic-bezier(.2,.7,.2,1); }
+  transition:width .35s var(--ease); }
 #eticheta-pas{ font-family:var(--sans); text-transform:uppercase; letter-spacing:.14em;
   font-size:.74rem; color:var(--ink-faint); font-weight:600; margin:2px 0 0; }
 
@@ -291,9 +308,9 @@ main{ display:block; }
   transition:background .2s, border-color .2s, color .2s, box-shadow .2s;
 }
 .step .et{ font-size:.73rem; letter-spacing:.05em; text-transform:uppercase; font-weight:600; }
-.stepper li.done .num{ background:var(--green); border-color:var(--green); color:#fbf8f0; }
+.stepper li.done .num{ background:var(--green); border-color:var(--green); color:var(--paper-card); }
 .stepper li.done .step{ color:var(--ink-2); }
-.stepper li.activ .num{ background:var(--sienna); border-color:var(--sienna-deep); color:#fbf8f0;
+.stepper li.activ .num{ background:var(--sienna); border-color:var(--sienna-deep); color:var(--paper-card);
   box-shadow:0 0 0 4px rgba(157,74,37,.16), var(--emboss); }
 .stepper li.activ .step{ color:var(--sienna-deep); }
 .step:hover .num{ border-color:var(--sienna); color:var(--sienna-deep); }
@@ -301,9 +318,9 @@ main{ display:block; }
 @media (max-width:560px){ .step .et{ display:none; } }
 
 /* alerte de validare */
-.a-block,.a-warn{ border-radius:6px; padding:8px 12px; margin:6px 0; font-size:.9rem;
+.a-block,.a-warn{ border-radius:var(--radius-sm); padding:8px 12px; margin:6px 0; font-size:.9rem;
   font-family:var(--sans); }
-.a-block{ background:var(--danger-soft); color:#6f1d11; border-left:4px solid var(--danger); font-weight:600; }
+.a-block{ background:var(--danger-soft); color:var(--danger-ink); border-left:4px solid var(--danger); font-weight:600; }
 .a-warn{ background:var(--warn-soft); color:var(--warn-ink); border-left:4px solid var(--gold); }
 
 /* --------------------------------------------- Descoperire / candidați */
@@ -317,13 +334,14 @@ main{ display:block; }
 .vezi{ display:inline-block; margin:3px 0 7px; font-weight:600; }
 
 /* etichete-pastilă */
-.badge{ display:inline-block; padding:2px 11px; border-radius:99px;
+.badge{ display:inline-block; padding:2px 11px; border-radius:var(--radius-pill);
   font-family:var(--sans); font-weight:600; font-size:.76rem; letter-spacing:.05em;
   text-transform:uppercase; border:1px solid transparent; }
-.b-high,.redus{ background:var(--green-soft); color:var(--green); border-color:#bcd2bc; }
-.b-mid,.standard{ background:#ece4d2; color:var(--warn-ink); border-color:#d8caa6; }
-.b-low,.sporit{ background:var(--danger-soft); color:var(--danger); border-color:#e3b9af; }
-.standard{ background:#e6ebf2; color:#2b466a; border-color:#c3d0e0; }
+/* Scală semantică unică: relevanță (b-high/-mid/-low) + risc AML (redus/standard/sporit).
+   „Mare relevanță” și „risc redus” = verde; „mediu/standard” = chihlimbar; „mică/sporit” = roșu. */
+.b-high,.redus{ background:var(--green-soft); color:var(--green); border-color:var(--green-line); }
+.b-mid,.standard{ background:var(--warn-bg); color:var(--warn-ink); border-color:var(--warn-line); }
+.b-low,.sporit{ background:var(--danger-soft); color:var(--danger); border-color:var(--danger-line); }
 
 /* ----------------------------------------------------- Rezultate / val */
 .rez{ background:var(--paper-card); border:1px solid var(--line);
@@ -387,7 +405,7 @@ pre{ font-family:var(--mono); font-size:.82rem; background:var(--paper-sunk);
 
 /* cartuș de hartă cadastrală — chenar dublu gravat (antet de pagină) */
 .cartouche{ position:relative; background:var(--paper-card);
-  border:1px solid var(--brass); border-radius:6px; padding:22px 26px;
+  border:1px solid var(--brass); border-radius:var(--radius-sm); padding:22px 26px;
   box-shadow:inset 0 0 0 3px var(--paper-card), inset 0 0 0 4px rgba(176,141,87,.45), var(--shadow); }
 .cartouche .coord{ position:absolute; font-family:var(--mono); font-size:.62rem;
   letter-spacing:.08em; color:var(--brass); }
