@@ -1,0 +1,20 @@
+{# Cartuș de hartă cadastrală — antet de pagină.
+   Setează inainte de include:  {% set titlu %}, {% set kicker %}, {% set subtitlu %} (optional). #}
+<header class="cartus">
+  {% set _cm %}<svg class="colt" viewBox="0 0 20 20" aria-hidden="true" focusable="false"><circle cx="10" cy="10" r="6" fill="var(--paper-card)" stroke="var(--brass)" stroke-width="1"/><path d="M10 3 V17 M3 10 H17" stroke="var(--brass)" stroke-width=".8"/><circle cx="10" cy="10" r="1.2" fill="var(--sienna)"/></svg>{% endset %}
+  <span class="colt-wrap tl">{{ _cm|safe }}</span>
+  <span class="colt-wrap tr">{{ _cm|safe }}</span>
+  <span class="colt-wrap bl">{{ _cm|safe }}</span>
+  <span class="colt-wrap br">{{ _cm|safe }}</span>
+  <span class="coord tr" aria-hidden="true">Sistem Stereo 70</span>
+  <span class="coord bl" aria-hidden="true">Scara 1:500</span>
+  <div class="cartus-body">
+    <div class="cartus-text">
+      <div class="kicker">{{ kicker|default('Registru de evaluare') }}</div>
+      <h1>{{ titlu }}</h1>
+      {% if subtitlu %}<p class="cartus-sub">{{ subtitlu }}</p>{% endif %}
+    </div>
+    {% include "_compas.svg" %}
+  </div>
+  <hr class="brass-rule">
+</header>

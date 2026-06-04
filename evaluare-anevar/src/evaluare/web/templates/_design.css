@@ -383,6 +383,34 @@ pre{ font-family:var(--mono); font-size:.82rem; background:var(--paper-sunk);
    cartuș de hartă, kicker de marcă, sigiliu ANEVAR. Clase reutilizabile.
    =================================================================== */
 
+/* ---- Cartuș de hartă cadastrală: antet de pagină încadrat ---- */
+.cartus{
+  position:relative; margin:6px 0 22px; padding:22px 30px;
+  background:linear-gradient(160deg, var(--paper-card), var(--paper));
+  border:1px solid var(--brass);
+  border-radius:var(--radius-sm);
+  box-shadow:inset 0 0 0 3px var(--paper-card), inset 0 0 0 4px rgba(176,141,87,.4), var(--shadow);
+}
+.cartus h1{ margin:.05em 0 0; }
+.cartus h1::before{ content:none; }            /* kicker e explicit, nu prin h1::before */
+.cartus .kicker{ display:block; margin-bottom:.5em; }
+.cartus-body{ display:flex; align-items:flex-start; justify-content:space-between; gap:24px; }
+.cartus-text{ min-width:0; }
+.cartus-sub{ margin:.6em 0 0; color:var(--ink-faint); font-size:.92rem; max-width:60ch; }
+.cartus .compas{ flex:none; margin-top:4px; }
+.cartus .brass-rule{ margin:16px 0 0; }
+/* colțuri ornamentate (mici cruci de topograf) */
+.colt-wrap{ position:absolute; width:20px; height:20px; line-height:0; }
+.colt-wrap.tl{ top:-9px; left:-9px; } .colt-wrap.tr{ top:-9px; right:-9px; }
+.colt-wrap.bl{ bottom:-9px; left:-9px; } .colt-wrap.br{ bottom:-9px; right:-9px; }
+.cartus .coord{ position:absolute; font-family:var(--mono); font-size:.62rem;
+  letter-spacing:.1em; color:var(--brass); text-transform:uppercase; }
+.cartus .coord.tr{ top:8px; right:14px; } .cartus .coord.bl{ bottom:8px; left:14px; }
+@media (max-width:640px){
+  .cartus{ padding:16px 18px; } .cartus .compas{ display:none; }
+  .cartus .coord{ display:none; } .colt-wrap{ width:16px; height:16px; }
+}
+
 /* antet de pagină cu busolă de topograf în dreapta */
 .page-head{ position:relative; }
 .page-head h1{ margin-right:64px; }
