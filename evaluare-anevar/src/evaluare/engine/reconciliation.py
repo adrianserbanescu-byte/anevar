@@ -5,6 +5,7 @@ from decimal import Decimal
 from typing import Literal, Optional
 
 from evaluare.models.results import CostResult, MarketResult, ReconciledResult
+from evaluare.engine.abordari import RezultatAbordare
 
 Metoda = Literal["piata", "cost", "ponderata"]
 
@@ -68,7 +69,11 @@ def aloca_constructii(
 _METODA = {"cost": "cost", "comparatie": "piata", "venit": "venit"}
 
 
-def reconcile_profil(rezultate, primara, ponderi=None):
+def reconcile_profil(
+    rezultate: list[RezultatAbordare],
+    primara: str,
+    ponderi: Optional[dict[str, Decimal]] = None,
+) -> ReconciledResult:
     """Reconciliază o listă de RezultatAbordare după profil.
 
     - `primara`: numele abordării preferate (cost/comparatie/venit).
@@ -87,10 +92,10 @@ def reconcile_profil(rezultate, primara, ponderi=None):
 
     if primara in valori:
         return ReconciledResult(valoare_finala=valori[primara],
-                                metoda_selectata=_METODA[primara])
+                                metoda_selectata=_METODA.get(primara, primara))
     # fallback
     abordare_disp = next(iter(valori))
     return ReconciledResult(
-        valoare_finala=valori[abordare_disp], metoda_selectata=_METODA[abordare_disp],
+        valoare_finala=valori[abordare_disp], metoda_selectata=_METODA.get(abordare_disp, abordare_disp),
         nota=f'Abordarea "{primara}" indisponibila; s-a folosit "{abordare_disp}".',
     )

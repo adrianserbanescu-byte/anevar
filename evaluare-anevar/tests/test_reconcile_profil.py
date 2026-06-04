@@ -1,3 +1,4 @@
+import pytest
 from decimal import Decimal
 
 from evaluare.engine.abordari import RezultatAbordare
@@ -36,3 +37,8 @@ def test_ponderata():
                            ponderi={"comparatie": Decimal("0.5"), "cost": Decimal("0.5")})
     assert out.valoare_finala == Decimal("310000")
     assert out.metoda_selectata == "ponderata"
+
+
+def test_fara_valori_ridica_eroare():
+    with pytest.raises(ValueError):
+        reconcile_profil([_r("cost", None)], primara="cost")
