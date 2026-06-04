@@ -540,6 +540,16 @@ def genereaza_raport(
         f"Constructie: Au {ctx.building.au} mp, Acd {ctx.building.acd} mp, "
         f"an referinta {ctx.building.an_referinta}."
     )
+    if ctx.building.etaj is not None or ctx.building.an_bloc is not None:
+        parti = []
+        if ctx.building.etaj is not None:
+            niv = f"/{ctx.building.nr_niveluri_bloc}" if ctx.building.nr_niveluri_bloc else ""
+            parti.append(f"etaj {ctx.building.etaj}{niv}")
+        if ctx.building.an_bloc is not None:
+            parti.append(f"an bloc {ctx.building.an_bloc}")
+        if ctx.building.cota_teren_indiviza is not None:
+            parti.append(f"cota teren indiviza {ctx.building.cota_teren_indiviza} mp")
+        doc.add_paragraph("Apartament: " + ", ".join(parti) + ".")
     descriere = _narativ(ctx, "Descrierea juridica si fizica a proprietatii")
     if descriere:
         doc.add_paragraph(descriere)
