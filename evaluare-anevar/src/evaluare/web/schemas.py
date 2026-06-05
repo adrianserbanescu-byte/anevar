@@ -19,6 +19,11 @@ class ImportAnuntRequest(BaseModel):
     url: str = ""
 
 
+class StergeAnuntRequest(BaseModel):
+    """Sterge un singur anunt din coada de import, dupa URL-ul sursa."""
+    url: str
+
+
 class ZonaRequest(BaseModel):
     adresa: str
 

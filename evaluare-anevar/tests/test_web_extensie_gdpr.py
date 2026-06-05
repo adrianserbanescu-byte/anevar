@@ -53,6 +53,25 @@ def test_coada_import_aduna_si_deduplica(client):
     assert lista[0]["pret"] == "150000" and lista[0]["suprafata"] == "120"
 
 
+def test_status_raporteaza_versiune_si_coada(client):
+    r = client.get("/api/status")
+    assert r.status_code == 200
+    d = r.json()
+    assert d["ok"] is True
+    assert d["versiune"] and isinstance(d["versiune"], str)
+    assert d["uptime_secunde"] >= 0
+    assert d["anunturi_in_coada"] == 0
+
+
+def test_sterge_un_singur_anunt_din_coada(client):
+    client.post("/api/import-anunt", json={"html": _HTML_ANUNT, "url": "https://x.ro/a"})
+    client.post("/api/import-anunt", json={"html": _HTML_ANUNT, "url": "https://x.ro/b"})
+    assert len(client.get("/api/anunturi-importate").json()["anunturi"]) == 2
+    r = client.post("/api/anunturi-importate/sterge-unul", json={"url": "https://x.ro/a"})
+    ramase = r.json()["anunturi"]
+    assert len(ramase) == 1 and ramase[0]["sursa_url"] == "https://x.ro/b"
+
+
 def test_coada_import_ignora_anunt_fara_pret_si_se_goleste(client):
     # pagina fara pret/suprafata -> nu intra in coada
     client.post("/api/import-anunt", json={"html": "<html><body>nimic</body></html>", "url": "https://x.ro/gol"})

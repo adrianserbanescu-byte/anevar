@@ -5,7 +5,7 @@ scraping în backend la **import controlat de om**. Țintește portaluri reale: 
 (date structurate `__NEXT_DATA__`, extragere robustă) și **imobiliare.ro**.
 
 ## Cum funcționează (flux end-to-end)
-1. Omul navighează **manual** pe storia.ro / imobiliare.ro — utilizare normală a site-ului.
+1. Omul navighează **manual** pe storia.ro / imobiliare.ro / olx.ro — utilizare normală a site-ului.
 2. Pe pagina unui anunț apare butonul **„➕ Trimite în Evaluare ANEVAR"** (jos-dreapta).
 3. La apăsare, **service worker-ul** (`background.js`) face POST cu HTML-ul paginii către
    aplicația locală (`http://127.0.0.1:8000/api/import-anunt`). Fetch-ul din service worker
@@ -15,7 +15,11 @@ scraping în backend la **import controlat de om**. Țintește portaluri reale: 
 5. Anunțul (dacă are preț + suprafață) intră într-o **coadă de import** in-memory
    (dedup după URL). Panoul din extensie arată câmpurile extrase.
 6. În aplicație → pagina **Descoperire** → secțiunea „📥 Anunțuri importate" → bifezi →
-   **„➜ Trimite bifatele la grila casă"** → ajung în grila de comparabile.
+   **„➜ Trimite bifatele la grila casă"** → ajung în grila de comparabile. Fiecare anunț
+   poate fi scos individual din coadă (butonul 🗑).
+
+Popup-ul extensiei verifică starea aplicației prin `GET /api/status` (versiune + nr. anunțuri
+în coadă).
 
 Zero scraping automat, zero polling, zero anti-bot, zero blocare IP.
 
@@ -33,7 +37,7 @@ Zero scraping automat, zero polling, zero anti-bot, zero blocare IP.
 1. Pornește aplicația Evaluare ANEVAR (`evaluare-anevar.exe` sau `python -m evaluare`).
 2. Chrome/Edge → `chrome://extensions` → activează **Developer mode** → **Load unpacked** →
    selectează folderul `extensie-browser`.
-3. Deschide un anunț pe storia.ro / imobiliare.ro și apasă butonul.
+3. Deschide un anunț pe storia.ro / imobiliare.ro / olx.ro și apasă butonul.
 
 ## Fișiere
 - `manifest.json` — declarația extensiei (portaluri + host permission pe localhost + popup).

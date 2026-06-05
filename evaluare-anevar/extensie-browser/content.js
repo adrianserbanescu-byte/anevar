@@ -14,6 +14,7 @@
     const p = location.pathname;
     // storia.ro: anunțurile sunt la /ro/oferta/... ; imobiliare.ro: detaliul are un ID -X<digits>
     if (location.hostname.includes("storia.ro")) return /\/oferta\//.test(p);
+    if (location.hostname.includes("olx.ro")) return /\/d\/oferta\//.test(p);
     if (location.hostname.includes("imobiliare.ro"))
       return /-[0-9a-f]{6,}$|\/(vanzare|inchiriere)-/i.test(p) && !/lista|cauta|rezultate/i.test(p);
     return true;

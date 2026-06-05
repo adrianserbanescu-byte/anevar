@@ -61,17 +61,26 @@ async function incarcaImportate(){
   cont.innerHTML = lista.map((a,i) => {
     const pm = (a.pret && a.suprafata)
       ? Math.round(parseFloat(a.pret)/parseFloat(a.suprafata)) + ' €/mp' : '';
+    const url = (a.sursa_url||'').replace(/"/g,'&quot;');
     return `<div class="candidat">
       <h3><label><input type="checkbox" class="bif-import" checked
           data-pret="${a.pret||''}" data-supr="${a.suprafata||''}">
         <span class="pret">${a.pret?a.pret+' '+(a.moneda||'EUR'):'preț ?'}</span>
         · ${a.suprafata||'?'} mp${a.suprafata_teren?' · teren '+a.suprafata_teren+' mp':''}
-        ${pm?' · <b>'+pm+'</b>':''}</label></h3>
+        ${pm?' · <b>'+pm+'</b>':''}</label>
+        <button type="button" class="ghost sterge-unul" data-url="${url}"
+          title="Scoate din coadă" aria-label="Scoate anunțul din coadă">🗑</button></h3>
       <a class="vezi" href="${a.sursa_url||'#'}" target="_blank">▶ ${a.titlu||'anunț'}</a>
       ${a.an||a.material||a.incalzire?'<p class="hint">'
         +[a.an?'an '+a.an:'',a.material||'',a.incalzire||''].filter(Boolean).join(' · ')+'</p>':''}
     </div>`;
   }).join('');
+  cont.querySelectorAll('.sterge-unul').forEach(b => b.addEventListener('click', async () => {
+    await fetch('/api/anunturi-importate/sterge-unul', {method:'POST',
+      headers:{'Content-Type':'application/json'}, body:JSON.stringify({url:b.dataset.url})});
+    incarcaImportate();
+    document.getElementById('import-status').textContent = 'Anunț scos din coadă.';
+  }));
 }
 document.addEventListener('DOMContentLoaded', () => {
   incarcaImportate();

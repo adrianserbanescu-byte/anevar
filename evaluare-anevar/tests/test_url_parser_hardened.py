@@ -30,6 +30,16 @@ def test_extracts_from_real_imobiliare_structure():
     assert parsed.suprafata == Decimal("400")    # floorSize scalar = suprafata casei
 
 
+def test_extracts_olx_jsonld_si_suprafata_din_descriere():
+    # olx.ro: JSON-LD Product/Offer (pret) + suprafata din textul paginii (regex "mp")
+    html = (FIXTURES / "olx_listing.html").read_text(encoding="utf-8")
+    parsed = parse_listing_html(html, sursa_url="https://www.olx.ro/d/oferta/casa-x")
+    assert parsed.pret == Decimal("165000")
+    assert parsed.moneda == "EUR"
+    assert parsed.suprafata == Decimal("120")          # "Suprafață utilă: 120 mp"
+    assert parsed.suprafata_teren == Decimal("350")    # "Suprafață teren: 350 mp"
+
+
 def test_extracts_storia_area_not_terrain():
     # storia.ro: __NEXT_DATA__ cu caracteristica "area" (casa) si "terrain_area" (teren)
     html = (FIXTURES / "storia_listing_nextdata.html").read_text(encoding="utf-8")

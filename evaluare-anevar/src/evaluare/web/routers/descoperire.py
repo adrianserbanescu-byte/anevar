@@ -8,7 +8,12 @@ from evaluare.discovery.orchestrator import descopera
 from evaluare.discovery.scoring import metodologie
 from evaluare.importers.url_parser import parse_listing_html
 from evaluare.web.deps import Deps
-from evaluare.web.schemas import DescoperaRequest, DescoperaTerenRequest, ImportAnuntRequest
+from evaluare.web.schemas import (
+    DescoperaRequest,
+    DescoperaTerenRequest,
+    ImportAnuntRequest,
+    StergeAnuntRequest,
+)
 
 
 def build_router(d: Deps) -> APIRouter:
@@ -81,6 +86,11 @@ def build_router(d: Deps) -> APIRouter:
     def sterge_importate() -> dict:
         d.storage.sterge_anunturi_importate()
         return {"anunturi": []}
+
+    @router.post("/api/anunturi-importate/sterge-unul")
+    def sterge_un_anunt(req: StergeAnuntRequest) -> dict:
+        d.storage.sterge_anunt_importat(req.url)
+        return {"anunturi": d.storage.listeaza_anunturi_importate()}
 
     @router.get("/descoperire", response_class=HTMLResponse)
     def pagina_descoperire(request: Request) -> HTMLResponse:

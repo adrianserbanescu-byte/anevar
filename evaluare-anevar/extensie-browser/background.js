@@ -22,8 +22,8 @@ chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
     return true; // răspuns asincron
   }
   if (msg && msg.type === "ping-app") {
-    fetch(APP + "/api/anunturi-importate")
-      .then((r) => sendResponse({ ok: r.ok }))
+    fetch(APP + "/api/status")
+      .then(async (r) => sendResponse({ ok: r.ok, data: r.ok ? await r.json() : null }))
       .catch(() => sendResponse({ ok: false }));
     return true;
   }

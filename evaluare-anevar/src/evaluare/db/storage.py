@@ -128,3 +128,9 @@ class Storage:
     def sterge_anunturi_importate(self) -> None:
         with self._connect() as conn:
             conn.execute("DELETE FROM import_anunturi")
+
+    def sterge_anunt_importat(self, sursa_url: str) -> int:
+        """Sterge un singur anunt din coada dupa URL. Returneaza nr. ramas in coada."""
+        with self._connect() as conn:
+            conn.execute("DELETE FROM import_anunturi WHERE sursa_url = ?", (sursa_url,))
+            return int(conn.execute("SELECT COUNT(*) FROM import_anunturi").fetchone()[0])
