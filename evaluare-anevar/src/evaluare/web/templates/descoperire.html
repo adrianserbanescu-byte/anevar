@@ -42,7 +42,10 @@
 <!-- Tabelul de metodologie: ÎNAINTE de rezultate -->
 <div id="metodologie"></div>
 <h2>Rezultate</h2>
-<div id="rezultate" role="region" aria-label="Rezultate descoperire"></div>
+<div id="rezultate" role="region" aria-label="Rezultate descoperire">
+  <p class="hint" id="rezultate-gol">Niciun rezultat încă. Completează formularul de mai sus și apasă
+   <b>„Caută comparabile"</b> pentru a porni căutarea.</p>
+</div>
 </main>
 
 <script>
@@ -158,11 +161,24 @@ document.getElementById('f').addEventListener('submit', async (e)=>{
     subiect:{an:parseInt(d.an)||null, stare:parseInt(d.stare)||null,
       finisaj:parseInt(d.finisaj)||null, incalzire:d.incalzire||null, teren:d.teren||null},
     atribute_secundare:(d.secundare||'').split('\n').filter(Boolean), max_candidati:8};
-  const r = await fetch('/api/descopera',{method:'POST',
-    headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
-  const res = await r.json();
+  let res;
+  try {
+    const r = await fetch('/api/descopera',{method:'POST',
+      headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
+    res = await r.json();
+  } catch(err) {
+    document.getElementById('desc-status').textContent =
+      'Căutarea a eșuat — verifică internetul și reîncearcă.';
+    return;
+  }
   document.getElementById('desc-status').textContent = res.candidati.length + ' candidați găsiți';
   document.getElementById('metodologie').innerHTML = randMetodologie(res.metodologie);
+  if(res.candidati.length === 0){
+    document.getElementById('rezultate').innerHTML =
+      '<p class="hint">Niciun comparabil găsit pentru criteriile alese. Încearcă o zonă mai largă '
+      + '(doar județul) sau verifică localitatea.</p>';
+    return;
+  }
   document.getElementById('rezultate').innerHTML =
     res.candidati.map(randCandidat).join('')
     + '<button id="copiaza">Copiază comparabilele bifate (pret;suprafata)</button> '

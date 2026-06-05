@@ -226,6 +226,22 @@ button.ghost:hover, a.btn.ghost:hover{
 }
 button.ghost:disabled{ color:var(--ink-faint); border-color:var(--line-2); background:transparent; }
 
+/* ------------------------------------------------------------- Tab-uri (grilă) */
+.tabs{ display:flex; gap:4px; margin:18px 0 0; border-bottom:2px solid var(--brass); flex-wrap:wrap; }
+.tabs [role=tab]{
+  margin:0; border:1px solid var(--line); border-bottom:none;
+  border-radius:var(--radius-sm) var(--radius-sm) 0 0;
+  background:var(--paper-sunk); color:var(--ink-2); font-weight:600;
+  padding:9px 20px; box-shadow:none; transform:none;
+}
+.tabs [role=tab]:hover{ background:var(--paper-card); color:var(--sienna); transform:none; }
+.tabs [role=tab][aria-selected="true"]{
+  background:var(--paper-card); color:var(--sienna);
+  border-color:var(--brass); border-bottom:2px solid var(--paper-card); margin-bottom:-2px;
+}
+[role=tabpanel]{ padding-top:8px; }
+[role=tabpanel]:focus-visible{ outline:2px solid var(--sienna); outline-offset:2px; }
+
 :focus-visible{ outline:2px solid var(--sienna); outline-offset:2px; }
 
 /* -------------------------------------------------------------- Tabele */

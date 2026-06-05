@@ -17,7 +17,14 @@ Pentru ajustarea <b>„Condițiile pieței (timp)"</b> poți folosi <b>Indicele 
 <span id="indice-status" class="hint" role="status"></span></p>
 <div id="indice-rez"></div>
 
+<div class="tabs" role="tablist" aria-label="Tip de grilă">
+  <button type="button" role="tab" id="tab-teren" aria-controls="panel-teren" aria-selected="true">Teren</button>
+  <button type="button" role="tab" id="tab-casa" aria-controls="panel-casa" aria-selected="false" tabindex="-1">Casă</button>
+  <button type="button" role="tab" id="tab-chirii" aria-controls="panel-chirii" aria-selected="false" tabindex="-1">Chirii</button>
+</div>
+
 <!-- ================= TEREN ================= -->
+<section role="tabpanel" id="panel-teren" aria-labelledby="tab-teren" tabindex="0">
 <h2>Grilă teren — valoare = preț/mp corectat × suprafață subiect</h2>
 <div id="tabel-teren"></div>
 <p><label for="supr-teren">Suprafață teren subiect (mp):</label> <input id="supr-teren" class="base" value="1000"></p>
@@ -37,7 +44,10 @@ Pentru ajustarea <b>„Condițiile pieței (timp)"</b> poți folosi <b>Indicele 
   <div id="t-rez" role="region" aria-label="Terenuri găsite"></div>
 </div>
 
+</section>
+
 <!-- ================= CASĂ ================= -->
+<section role="tabpanel" id="panel-casa" aria-labelledby="tab-casa" tabindex="0" hidden>
 <h2>Grilă casă — pe preț total; valoare = prețul total corectat al comparabilei alese</h2>
 <p class="hint">Diferența de suprafață se tratează ca ajustare valorică (arie utilă: EUR/mp × Δ), deci
  fiecare comparabilă e adusă la subiect. „Suprafața subiect" de mai jos nu mai intră în formulă
@@ -47,7 +57,10 @@ Pentru ajustarea <b>„Condițiile pieței (timp)"</b> poți folosi <b>Indicele 
 <button onclick="calcul('casa')">Calculează grila casă</button>
 <div id="rez-casa" role="status" aria-live="polite"></div>
 
+</section>
+
 <!-- ================= CHIRII ================= -->
+<section role="tabpanel" id="panel-chirii" aria-labelledby="tab-chirii" tabindex="0" hidden>
 <h2>Grilă chirii — chirie de piață → abordarea prin venit</h2>
 <p class="hint">Prețul de pornire este <b>chiria lunară pe mp</b> (ex. EUR/mp/lună) a fiecărui comparabil de
  închiriere. Se alege comparabilul cu ajustarea brută minimă; chiria/mp aleasă × suprafața subiectului ×
@@ -56,6 +69,7 @@ Pentru ajustarea <b>„Condițiile pieței (timp)"</b> poți folosi <b>Indicele 
 <p><label for="supr-chirii">Suprafață închiriabilă subiect (mp):</label> <input id="supr-chirii" class="base" value="100"></p>
 <button onclick="calcul('chirii')">Calculează grila chirii</button>
 <div id="rez-chirii" role="status" aria-live="polite"></div>
+</section>
 </main>
 
 <script>{% include "_helpers.js" %}</script>
@@ -301,6 +315,31 @@ function trimiteVbpWizard(vbp){
   const s=$("vbp-trimis");
   if(s) s.textContent = "✓ trimis ("+fmtRo(vbp)+" EUR). Deschide wizardul → Pas 3 → metoda venit.";
 }
+
+// --- Tab-uri grilă (pattern WAI-ARIA: săgeți + Home/End, un panou vizibil odată) ---
+(function(){
+  const tabs = [...document.querySelectorAll('.tabs [role="tab"]')];
+  if(!tabs.length) return;
+  function activeaza(tab){
+    tabs.forEach(t=>{
+      const sel = t===tab;
+      t.setAttribute("aria-selected", sel);
+      t.tabIndex = sel ? 0 : -1;
+      document.getElementById(t.getAttribute("aria-controls")).hidden = !sel;
+    });
+  }
+  tabs.forEach((tab,i)=>{
+    tab.addEventListener("click", ()=>activeaza(tab));
+    tab.addEventListener("keydown", e=>{
+      let j=null;
+      if(e.key==="ArrowRight") j=(i+1)%tabs.length;
+      else if(e.key==="ArrowLeft") j=(i-1+tabs.length)%tabs.length;
+      else if(e.key==="Home") j=0;
+      else if(e.key==="End") j=tabs.length-1;
+      if(j!==null){ e.preventDefault(); activeaza(tabs[j]); tabs[j].focus(); }
+    });
+  });
+})();
 </script>
 {% include "_footer.html" %}
 </body>

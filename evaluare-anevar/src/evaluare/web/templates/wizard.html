@@ -97,7 +97,7 @@
    depreciere), plus <b>atributele de potrivire</b> care ajută aplicația să găsească cele mai similare
    anunțuri la descoperire.</p>
   <label for="tip_proprietate">Tip proprietate</label>
-  <select id="tip_proprietate" onchange="var v=this.value;document.getElementById('ap-fields').style.display=v==='apartament'?'block':'none';document.getElementById('ind-fields').style.display=v==='industrial'?'block':'none';document.getElementById('agr-fields').style.display=v==='agricol'?'block':'none'">
+  <select id="tip_proprietate" aria-controls="ap-fields ind-fields agr-fields" aria-expanded="false" onchange="var v=this.value;document.getElementById('ap-fields').style.display=v==='apartament'?'block':'none';document.getElementById('ind-fields').style.display=v==='industrial'?'block':'none';document.getElementById('agr-fields').style.display=v==='agricol'?'block':'none';this.setAttribute('aria-expanded', ['apartament','industrial','agricol'].includes(v))">
     <option value="casa">Casă individuală + teren</option>
     <option value="apartament">Apartament</option>
     <option value="industrial">Spațiu industrial (hală/depozit)</option>
@@ -214,7 +214,7 @@
    sunt deja cu diacritice (din liste); completează/corectează diacriticele pentru stradă și restul
    adresei înainte de a genera raportul.</small><br>
   <label for="metoda">Metodă</label>
-  <select id="metoda" onchange="var v=this.value;document.getElementById('venit-fields').style.display=v==='venit'?'block':'none';document.getElementById('dcf-fields').style.display=v==='dcf'?'block':'none'">
+  <select id="metoda" aria-controls="venit-fields dcf-fields" aria-expanded="false" onchange="var v=this.value;document.getElementById('venit-fields').style.display=v==='venit'?'block':'none';document.getElementById('dcf-fields').style.display=v==='dcf'?'block':'none';this.setAttribute('aria-expanded', ['venit','dcf'].includes(v))">
     <option value="cost">Cost (CIN + teren)</option>
     <option value="piata">Piață (comparație)</option>
     <option value="ponderata">Ponderată</option>
@@ -284,6 +284,7 @@
   <button type="button" id="inainte">Înainte ▶</button>
   <button type="button" id="reset">Reset dosar</button>
   <a class="btn ghost" href="/api/backup.db" title="Salvează o copie a tuturor dosarelor (.db)">💾 Backup dosare</a>
+  <a class="btn ghost" href="/formular" title="Toate câmpurile pe o singură pagină">📄 Formular clasic</a>
 </div>
 </main>
 <aside class="recap" aria-label="Recapitulare dosar">
