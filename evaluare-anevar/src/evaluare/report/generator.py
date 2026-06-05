@@ -447,6 +447,45 @@ def _adauga_risc_garantie(doc: DocxDocument, ctx: ReportContext, adnotari: bool 
         "Inregistrare BIG: raportul, avand utilizarea desemnata de garantare a imprumutului, se "
         "inregistreaza in Baza Imobiliara de Garantii (BIG), conform reglementarilor ANEVAR."
     )
+    # B4 — Valoarea de lichidare / vanzare fortata (ceruta frecvent la garantare).
+    vp = ctx.reconciled.valoare_finala
+    factor = Decimal("0.85")
+    p = doc.add_paragraph()
+    p.add_run("Valoarea de lichidare (vanzare fortata): ").bold = True
+    p.add_run(
+        f"valoarea de piata ({_fmt(vp)} {ctx.meta.moneda}) ajustata cu un factor care reflecta "
+        f"vanzarea intr-un termen limitat. Estimare orientativa la factor {factor}: "
+        f"{_fmt(vp * factor)} {ctx.meta.moneda}. "
+    )
+    p.add_run(
+        "ATENTIE: factorul final se stabileste de evaluator in functie de lichiditatea pietei si "
+        "perioada de expunere (tipic 0,80–0,90); valoarea de mai sus este doar orientativa."
+    ).italic = True
+    # B5 — Anexa de certificare a conformitatii (GEV 520). De confirmat fata de Anexa 1 a ghidului.
+    doc.add_heading("CERTIFICAREA CONFORMITATII RAPORTULUI (GEV 520)", level=1)
+    doc.add_paragraph(
+        "Checklist de conformitate — de verificat si bifat de evaluator inainte de transmitere "
+        "(de aliniat la Anexa 1 a GEV 520 in vigoare):"
+    )
+    for punct in (
+        "Valoarea estimata este valoarea de piata (SEV 102 / IVS 104), exprimata fara TVA.",
+        "Data evaluarii si data raportului sunt precizate.",
+        "Scopul evaluarii (garantarea imprumutului) este declarat in termenii de referinta.",
+        "Proprietatea a fost identificata (cadastral / CF) si inspectata.",
+        "Au fost utilizate minim 3 comparabile relevante.",
+        "Ajustarile sunt justificate; ajustarile totale se incadreaza in limite rezonabile.",
+        "Costul de inlocuire (unde se aplica) exclude profitul dezvoltatorului.",
+        "Ipoteza de utilizare continua si ipotezele/conditiile limitative sunt precizate.",
+        "A fost analizata cea mai buna utilizare (CMBU).",
+        "A fost analizat riscul de garantie (lichiditate, vandabilitate, perioada de expunere).",
+        "Valoarea de lichidare / vanzare fortata a fost estimata.",
+        "Comparabilele provenite din oferte au fost ajustate la nivel de tranzactie.",
+        "Sursele de date sunt mentionate si verificabile.",
+        "Raportul se inregistreaza in BIG.",
+        "Evaluatorul este autorizat ANEVAR si detine asigurare de raspundere profesionala.",
+        "Declaratia de conformitate si de independenta este semnata.",
+    ):
+        doc.add_paragraph(f"☐ {punct}", style="List Bullet")
 
 
 def _decode_foto(data_url: str) -> BytesIO | None:
