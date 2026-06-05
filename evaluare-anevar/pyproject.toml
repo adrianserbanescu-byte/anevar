@@ -41,8 +41,8 @@ omit = [
 ]
 
 [tool.coverage.report]
-# Prag de regresie: suita acopera ~91%; pastram o marja sub valoare.
-fail_under = 85
+# Prag de regresie: suita acopera ~94%; pastram o marja sub valoare (vezi docs/strategie-testare.md).
+fail_under = 90
 show_missing = true
 
 [tool.ruff]
