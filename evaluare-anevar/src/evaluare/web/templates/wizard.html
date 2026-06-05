@@ -73,22 +73,35 @@
       <small class="hint">Numele proprietarului, dacă nu coincide cu clientul. Opțional.</small>
     </div>
   </div>
-  <label for="numar_cadastral">Nr. cadastral</label><input id="numar_cadastral">
-  <small class="hint">Identificatorul cadastral unic. Situația juridică; anonimizat ([CADASTRAL]) la AI.</small>
-  <label for="carte_funciara">Carte funciară</label><input id="carte_funciara">
-  <small class="hint">Numărul CF (drept de proprietate, sarcini). Anonimizat ([CF]) la AI.</small>
-  <label for="beneficiar">Beneficiar / finanțator (bancă)</label><input id="beneficiar" placeholder="ex: Banca Transilvania SA">
-  <small class="hint">Pentru garantare credit: banca/utilizatorul desemnat al raportului. Apare în
-   scrisoarea de transmitere și termenii de referință. Lasă gol dacă nu se aplică.</small>
-  <label for="scop">Scopul evaluării</label>
-  <select id="scop">
-    <option value="garantare">Garantarea creditului ipotecar</option>
-    <option value="raportare_financiara">Raportare financiară (IFRS)</option>
-    <option value="asigurare">Asigurare</option>
-    <option value="impozitare">Impozitare</option>
-    <option value="litigii">Litigiu / instanță</option>
-  </select>
-  <small class="hint">Determină scopul și tipul valorii din termenii de referință ai raportului.</small>
+  <div class="field-row">
+    <div class="field">
+      <label for="numar_cadastral">Nr. cadastral</label><input id="numar_cadastral">
+      <small class="hint">Identificatorul cadastral unic (situația juridică). Anonimizat ([CADASTRAL]) înainte de orice apel AI.</small>
+    </div>
+    <div class="field">
+      <label for="carte_funciara">Carte funciară</label><input id="carte_funciara">
+      <small class="hint">Numărul CF (drept de proprietate, sarcini). Anonimizat ([CF]) înainte de orice apel AI.</small>
+    </div>
+  </div>
+  <div class="field-row">
+    <div class="field">
+      <label for="beneficiar">Beneficiar / finanțator (bancă)</label><input id="beneficiar" placeholder="ex: Banca Transilvania SA">
+      <small class="hint">Pentru garantare credit: banca/utilizatorul desemnat al raportului. Apare în
+       scrisoarea de transmitere și termenii de referință. Lasă gol dacă nu se aplică.</small>
+    </div>
+    <div class="field">
+      <label for="scop">Scopul evaluării</label>
+      <select id="scop">
+        <option value="garantare">Garantarea creditului ipotecar</option>
+        <option value="raportare_financiara">Raportare financiară (IFRS)</option>
+        <option value="asigurare">Asigurare</option>
+        <option value="impozitare">Impozitare</option>
+        <option value="litigii">Litigiu / instanță</option>
+      </select>
+      <small class="hint">Determină tipul valorii și ghidul (GEV) din termenii de referință. La „garantare",
+       tipul proprietății (Pas 2) decide încadrarea.</small>
+    </div>
+  </div>
   <div class="field-row">
     <div class="field">
       <label for="evaluator_nume">Evaluator</label><input id="evaluator_nume" autocomplete="name">
@@ -132,11 +145,15 @@
   </select>
   <fieldset id="ap-fields" style="display:none">
     <legend>Date apartament</legend>
-    <label for="etaj">Etaj</label><input id="etaj" type="number">
-    <label for="nr_niveluri_bloc">Număr niveluri bloc</label><input id="nr_niveluri_bloc" type="number">
-    <label for="an_bloc">An construcție bloc</label><input id="an_bloc" type="number">
-    <label for="cota_teren_indiviza">Cotă teren indiviză (mp)</label><input id="cota_teren_indiviza">
-    <small class="hint">Câmpuri pentru apartament; la „Casă" se ignoră.</small>
+    <div class="field-row">
+      <div class="field"><label for="etaj">Etaj</label><input id="etaj" type="number"></div>
+      <div class="field"><label for="nr_niveluri_bloc">Număr niveluri bloc</label><input id="nr_niveluri_bloc" type="number"></div>
+      <div class="field"><label for="an_bloc">An construcție bloc</label><input id="an_bloc" type="number"></div>
+      <div class="field">
+        <label for="cota_teren_indiviza">Cotă teren indiviză (mp)</label><input id="cota_teren_indiviza">
+        <small class="hint">Cota-parte de teren aferentă apartamentului (din actul de proprietate).</small>
+      </div>
+    </div>
   </fieldset>
   <fieldset id="ind-fields" style="display:none">
     <legend>Date spațiu industrial</legend>
@@ -209,27 +226,39 @@
   <h3>Atribute pentru potrivire</h3>
   <small class="hint">Descriu casa subiect și sunt folosite ca să găsim comparabile cât mai apropiate.
    Suprafața casei (Acd) și terenul (din Pas 2) intră automat ca atribute de potrivire.</small>
-  <label for="attr_an">An construcție</label><input id="attr_an" value="2013" size="5">
-  <label for="attr_stare">Stare construcție</label>
-  <select id="attr_stare">
-    <option value="1">Degradată / necesită reparații majore</option>
-    <option value="2">Necesită renovare</option>
-    <option value="3" selected>Medie / bună</option>
-    <option value="4">Foarte bună / renovată recent</option>
-    <option value="5">Nouă</option>
-  </select>
-  <label for="attr_finisaj">Nivel finisaj</label>
-  <select id="attr_finisaj">
-    <option value="1">Modest</option>
-    <option value="2">Standard</option>
-    <option value="3">Superior</option>
-    <option value="4" selected>Lux</option>
-  </select>
-  <label for="attr_incalzire">Tip încălzire</label>
-  <input id="attr_incalzire" value="centrala_gaz" size="18">
-  <small class="hint">Categorie normalizată: litere mici, <b>cu „_" în loc de spațiu</b>.
-   Ex.: <code>centrala_gaz</code>, <code>pompa_caldura</code>, <code>sobe</code>. Familia (partea
-   dinainte de „_") contează la potrivire.</small>
+  <div class="field-row">
+    <div class="field">
+      <label for="attr_an">An construcție</label><input id="attr_an" value="2013">
+      <small class="hint">Anul punerii în funcțiune a construcției subiect. Folosit la potrivirea
+       comparabilelor după vârstă.</small>
+    </div>
+    <div class="field">
+      <label for="attr_stare">Stare construcție</label>
+      <select id="attr_stare">
+        <option value="1">Degradată / necesită reparații majore</option>
+        <option value="2">Necesită renovare</option>
+        <option value="3" selected>Medie / bună</option>
+        <option value="4">Foarte bună / renovată recent</option>
+        <option value="5">Nouă</option>
+      </select>
+    </div>
+    <div class="field">
+      <label for="attr_finisaj">Nivel finisaj</label>
+      <select id="attr_finisaj">
+        <option value="1">Modest</option>
+        <option value="2">Standard</option>
+        <option value="3">Superior</option>
+        <option value="4" selected>Lux</option>
+      </select>
+    </div>
+    <div class="field">
+      <label for="attr_incalzire">Tip încălzire</label>
+      <input id="attr_incalzire" value="centrala_gaz">
+      <small class="hint">Categorie normalizată: litere mici, cu „_" în loc de spațiu (ex.
+       <code>centrala_gaz</code>, <code>pompa_caldura</code>, <code>sobe</code>). Familia
+       (partea dinainte de „_") contează la potrivire.</small>
+    </div>
+  </div>
 
   <label for="atribute_secundare">Atribute secundare de verificat (opțional, unul pe linie)</label>
   <textarea id="atribute_secundare" rows="3" cols="40" placeholder="tamplarie: termopan&#10;garaj: da&#10;panouri solare"></textarea>
@@ -269,32 +298,46 @@
     <option value="dcf">Venit — DCF (flux actualizat)</option>
   </select>
   <div id="venit-fields" style="display:none">
-    <label for="vbp">Venit brut potențial (lei/an)</label><input id="vbp">
-    <label for="neocupare">Grad neocupare (0–1)</label><input id="neocupare" value="0">
-    <label for="cheltuieli">Cheltuieli exploatare (lei/an)</label><input id="cheltuieli" value="0">
-    <label for="rata_cap">Rată de capitalizare (0–1)</label><input id="rata_cap">
-    <small class="hint">Pentru metoda „venit": valoare = NOI ÷ rată de capitalizare.</small>
+    <div class="field-row">
+      <div class="field"><label for="vbp">Venit brut potențial (lei/an)</label><input id="vbp"></div>
+      <div class="field"><label for="neocupare">Grad neocupare (0–1)</label><input id="neocupare" value="0"></div>
+      <div class="field"><label for="cheltuieli">Cheltuieli exploatare (lei/an)</label><input id="cheltuieli" value="0"></div>
+      <div class="field">
+        <label for="rata_cap">Rată de capitalizare (0–1)</label><input id="rata_cap">
+        <small class="hint">Capitalizare directă: valoare = NOI ÷ rată, unde NOI = VBP×(1−neocupare) − cheltuieli.</small>
+      </div>
+    </div>
   </div>
   <div id="dcf-fields" style="display:none">
     <label for="dcf_fluxuri">Fluxuri anuale (lei, unul pe linie)</label>
     <textarea id="dcf_fluxuri" rows="4" placeholder="100000&#10;100000&#10;100000"></textarea>
-    <label for="dcf_rata">Rată de actualizare (0–1)</label><input id="dcf_rata">
-    <label for="dcf_rezidual">Valoare reziduală (lei)</label><input id="dcf_rezidual" value="0">
-    <small class="hint">DCF: valoare = Σ flux_t/(1+r)^t + valoare reziduală/(1+r)^n.</small>
+    <div class="field-row">
+      <div class="field">
+        <label for="dcf_rata">Rată de actualizare (0–1)</label><input id="dcf_rata">
+        <small class="hint">DCF: valoare = Σ flux_t/(1+r)^t + valoare reziduală/(1+r)^n.</small>
+      </div>
+      <div class="field"><label for="dcf_rezidual">Valoare reziduală (lei)</label><input id="dcf_rezidual" value="0"></div>
+    </div>
   </div>
-  <label for="moneda">Monedă raportare</label>
-  <select id="moneda">
-    <option value="EUR">EUR</option>
-    <option value="LEI" selected>LEI</option>
-  </select>
-  <small class="hint">Moneda în care se exprimă valoarea în raport. Rapoartele de garanție folosesc de
-   regulă EUR (cu echivalent în LEI la cursul BNR).</small>
-  <label for="curs_valutar">Curs valutar EUR/LEI (opțional)</label>
-  <input id="curs_valutar" placeholder="ex: 4.9750">
-  <button type="button" id="btn-curs-bnr">↻ Curs BNR (azi)</button>
-  <span id="curs_status" class="hint" role="status"></span>
-  <small class="hint">Cursul BNR la data evaluării. Apare în termenii de referință pentru conversia
-   EUR ↔ LEI. Butonul preia cursul oficial BNR de azi (necesită internet).</small>
+  <div class="field-row">
+    <div class="field">
+      <label for="moneda">Monedă raportare</label>
+      <select id="moneda">
+        <option value="EUR">EUR</option>
+        <option value="LEI" selected>LEI</option>
+      </select>
+      <small class="hint">Moneda în care se exprimă valoarea în raport. Rapoartele de garanție folosesc
+       de regulă EUR (cu echivalent în LEI la cursul BNR).</small>
+    </div>
+    <div class="field">
+      <label for="curs_valutar">Curs valutar EUR/LEI (opțional)</label>
+      <input id="curs_valutar" placeholder="ex: 4.9750">
+      <small class="hint">Cursul BNR la data evaluării, pentru conversia EUR ↔ LEI în termenii de
+       referință. Butonul „↻ Curs BNR" preia cursul oficial de azi (necesită internet).</small>
+      <div><button type="button" id="btn-curs-bnr">↻ Curs BNR (azi)</button>
+        <span id="curs_status" class="hint" role="status"></span></div>
+    </div>
+  </div>
   <label for="foto">Fotografii proprietate (pentru Anexa foto)</label>
   <input type="file" id="foto" accept="image/*" multiple>
   <small class="hint">Pozele alese intră în <b>Anexa 2 — Planșe fotografice</b> din raport. Poți adăuga
@@ -655,14 +698,45 @@ $("btn-audit").addEventListener("click", ()=>{
 // astfel incat cititoarele de ecran anunta instructiunea odata cu campul.
 function wireAjutor(){
   let seq=0;
+  function inchideToate(except){
+    document.querySelectorAll(".hint.hint-open").forEach(o=>{
+      if(o===except) return;
+      o.classList.remove("hint-open");
+      const b=o.parentElement && o.parentElement.querySelector(".hint-toggle");
+      if(b) b.setAttribute("aria-expanded","false");
+    });
+  }
   document.querySelectorAll(".pas .hint").forEach(h=>{
+    if(h.getAttribute("role")==="status") return;          // statusuri live -> rămân text
     let ctrl=h.previousElementSibling;
     while(ctrl && !/^(INPUT|SELECT|TEXTAREA)$/.test(ctrl.tagName)) ctrl=ctrl.previousElementSibling;
+    const field=h.closest(".field");
+    if(!ctrl && field) ctrl=field.querySelector("input,select,textarea");
     if(!ctrl) return;
     if(!h.id) h.id="hint-"+(seq++);
+    // aria-describedby: cititoarele de ecran primesc textul integral mereu (chiar și închis)
     const ex=(ctrl.getAttribute("aria-describedby")||"").split(/\s+/).filter(Boolean);
     if(!ex.includes(h.id)){ ex.push(h.id); ctrl.setAttribute("aria-describedby", ex.join(" ")); }
+    let label=document.querySelector('label[for="'+ctrl.id+'"]');
+    if(!label && field) label=field.querySelector("label");
+    if(!label) return;                                     // fără etichetă vizibilă -> lasă text
+    const wrap=document.createElement("span"); wrap.className="hint-wrap";
+    const btn=document.createElement("button");
+    btn.type="button"; btn.className="hint-toggle"; btn.textContent="?";
+    btn.setAttribute("aria-label","Detalii câmp"); btn.setAttribute("aria-expanded","false");
+    btn.setAttribute("aria-controls",h.id);
+    h.classList.add("hint-pop");
+    label.appendChild(wrap); wrap.appendChild(btn); wrap.appendChild(h);
+    btn.addEventListener("click",(e)=>{
+      e.preventDefault(); e.stopPropagation();
+      const deschis=h.classList.contains("hint-open");
+      inchideToate(h);
+      h.classList.toggle("hint-open", !deschis);
+      btn.setAttribute("aria-expanded", String(!deschis));
+    });
   });
+  document.addEventListener("click",()=>inchideToate(null));
+  document.addEventListener("keydown",(e)=>{ if(e.key==="Escape") inchideToate(null); });
 }
 // Preia venitul brut potential calculat in grila de chirii (o singura data).
 function preiaVbpGrila(){

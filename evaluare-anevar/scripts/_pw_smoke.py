@@ -57,6 +57,18 @@ with sync_playwright() as pw:
     check("Pas2 casă: ambele grupuri vizibile",
           vizibil("#grup-teren") and vizibil("#grup-constructie"))
 
+    # Pas 3: An/Stare/Finisaj pe același rând + iconiță „?" cu popover la click
+    p.click('#stepper .step[data-pas="3"]')
+    tops = p.eval_on_selector_all("#attr_an,#attr_stare,#attr_finisaj",
+                                  'els => els.map(e => e.closest(".field").offsetTop)')
+    check("Pas3: an/stare/finisaj pe același rând", len(set(tops)) == 1, str(tops))
+    check("hints: iconite ? injectate", p.eval_on_selector_all(".hint-toggle", "e=>e.length") > 10)
+    tog = p.query_selector('#pas-3 .hint-toggle')
+    tog.click()
+    check("icon ?: click deschide popover-ul", p.query_selector("#pas-3 .hint.hint-open") is not None)
+    tog.click()
+    check("icon ?: click din nou inchide", p.query_selector("#pas-3 .hint.hint-open") is None)
+
     # Pas 4: calcul (metoda cost, valori implicite) -> apare o valoare
     p.click('#stepper .step[data-pas="4"]')
     p.click("#btn-calc")
