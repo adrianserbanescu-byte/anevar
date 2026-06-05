@@ -137,7 +137,7 @@ document.getElementById('btn_import').addEventListener('click', async () => {
       status.textContent = 'Nu am găsit prețul și suprafața. Completează-le manual.';
     }
   } catch (err) {
-    status.textContent = 'Eroare la import: ' + err;
+    status.textContent = 'Importul a eșuat — verifică linkul și internetul.';
   }
 });
 

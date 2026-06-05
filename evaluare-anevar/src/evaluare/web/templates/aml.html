@@ -103,7 +103,7 @@ async function evalueaza(){
      semnale_risc:semnaleRisc(),semnale_indicatori:semnaleInd()},_client());
   const r=await fetch('/api/aml/evalueaza',{method:'POST',headers:{'Content-Type':'application/json'},
      body:JSON.stringify(body)});
-  if(!r.ok){document.getElementById('rez').innerHTML='<p class="warn">Eroare la evaluare.</p>';return;}
+  if(!r.ok){document.getElementById('rez').innerHTML='<p class="warn">Evaluarea a eșuat — verifică datele introduse și reîncearcă.</p>';return;}
   const d=await r.json();
   let h=`<div class="rez"><h2>Rezultat</h2>
     <p>Categorie de risc: <span class="badge ${d.categorie}">${d.categorie.toUpperCase()}</span>

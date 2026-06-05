@@ -200,7 +200,7 @@ async function incarcaIndice(){
     $("indice-rez").innerHTML=h+'</table><p class="hint">Variația % a valorii de piață/mp pe trimestre (ANEVAR). '
       +'Folosește variația cumulată între data evaluării și data comparabilei pentru ajustarea „condițiile pieței".</p>';
     $("indice-status").textContent="";
-  }catch(e){ $("indice-status").textContent=" eroare rețea."; }
+  }catch(e){ $("indice-status").textContent=" indisponibil — verifică internetul."; }
 }
 
 function inGrilaTeren(pretMp){
@@ -214,12 +214,12 @@ function inGrilaTeren(pretMp){
 async function descoperaTeren(){
   const judet=$("t-judet").value.trim(), loc=$("t-loc").value.trim();
   if(!judet){ $("t-status").textContent="Completează județul."; return; }
-  $("t-status").textContent="Caut…"; $("t-rez").innerHTML="";
+  $("t-status").textContent="Se caută…"; $("t-rez").innerHTML="";
   const supr=num($("supr-teren").value);
   const body={portal:$("t-portal").value, judet, localitate:loc, suprafata_subiect:supr?String(supr):null, max_candidati:8};
   try{
     const r=await fetch("/api/descopera-teren",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(body)});
-    if(!r.ok){ $("t-status").textContent="Eroare căutare ("+r.status+")."; return; }
+    if(!r.ok){ $("t-status").textContent="Căutarea a eșuat (cod "+r.status+") — verifică datele și reîncearcă."; return; }
     const d=await r.json();
     $("t-status").textContent=d.candidati.length+" terenuri";
     if(!d.candidati.length){ $("t-rez").innerHTML='<p class="hint">Niciun rezultat. Încearcă doar județul.</p>'; return; }
@@ -228,7 +228,7 @@ async function descoperaTeren(){
       const add = c.pret_mp ? `<button class="t-add" data-mp="${c.pret_mp}">➕ grilă</button>` : '';
       h+=`<tr><td>${c.relevanta}%</td><td>${c.pret?(+c.pret).toLocaleString('ro-RO')+' €':'?'}</td>`
         +`<td>${c.suprafata||'?'} mp</td><td><b>${c.pret_mp||'?'}</b></td>`
-        +`<td><a href="${c.url}" target="_blank">link</a>${c.nota?' <span class="err">'+c.nota+'</span>':''}</td>`
+        +`<td><a href="${c.url}" target="_blank">Vezi anunțul ↗</a>${c.nota?' <span class="err">'+c.nota+'</span>':''}</td>`
         +`<td>${add}</td></tr>`;
     });
     $("t-rez").innerHTML=h+'</table><p class="hint">„➕ grilă" pune €/mp în prima coloană liberă din grila de teren de mai sus; ajustările le pui tu.</p>';
@@ -236,7 +236,7 @@ async function descoperaTeren(){
       if(!inGrilaTeren(b.dataset.mp)) b.textContent="grilă plină";
       else b.textContent="✓ adăugat";
     }));
-  }catch(e){ $("t-status").textContent="Eroare rețea."; }
+  }catch(e){ $("t-status").textContent="Căutarea a eșuat — verifică internetul și reîncearcă."; }
 }
 
 async function calcul(grid){
@@ -254,7 +254,7 @@ async function calcul(grid){
    if(!resp.ok){ rezDiv.innerHTML = '<p class="err">Eroare: '+resp.status+' — verifică valorile introduse.</p>'; return; }
    const d = await resp.json();
    afiseaza(grid, d, rezDiv);
- }catch(e){ rezDiv.innerHTML = '<p class="err">Eroare rețea: '+e+'</p>'; }
+ }catch(e){ rezDiv.innerHTML = '<p class="err">Calculul a eșuat — verifică internetul și reîncearcă.</p>'; }
 }
 
 function afiseaza(grid, d, div){
