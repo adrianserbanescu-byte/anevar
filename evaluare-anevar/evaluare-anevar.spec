@@ -32,8 +32,10 @@ a = Analysis(
     # pornirea exe-ului; nu folosim AVIF (doar poze standard in raport).
     # PIL._avif (Pillow 12) corupea arhiva PKG. tkinter/test = GUI/teste nefolosite
     # de un server local -> excluse pentru a reduce dimensiunea .exe (D5).
+    # cryptography\_rust.pyd corupea arhiva PKG („decompression -1"); nefolosit de
+    # runtime-ul nostru (HTTPS merge prin ssl stdlib, nu prin pachetul cryptography).
     excludes=["PIL._avif", "PIL.AvifImagePlugin", "tkinter", "test",
-              "lib2to3", "PIL.ImageTk"],
+              "lib2to3", "PIL.ImageTk", "cryptography"],
     noarchive=False,
 )
 
