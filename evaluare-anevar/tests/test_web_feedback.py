@@ -9,10 +9,14 @@ from evaluare.web.app import create_app
 
 
 @pytest.fixture
-def client(tmp_path):
+def client(tmp_path, monkeypatch):
+    # OUTPUT_DIR=<tmp>/date -> fișierul de feedback ajunge în <tmp> („lângă exe"), nu în repo.
+    monkeypatch.setenv("OUTPUT_DIR", str(tmp_path / "date"))
     s = Storage(tmp_path / "f.db")
     s.init()
-    return TestClient(create_app(storage=s, client=None))
+    c = TestClient(create_app(storage=s, client=None))
+    c._baza = tmp_path  # pentru aserții pe fișier
+    return c
 
 
 def test_feedback_se_salveaza_si_se_listeaza(client):
@@ -26,6 +30,22 @@ def test_feedback_se_salveaza_si_se_listeaza(client):
     assert lista[0]["mesaj"] == "Grila nu se actualizează"
     assert lista[0]["tester"] == "ing. Popescu"
     assert lista[0]["creat_la"]  # are timestamp
+
+
+def test_feedback_scrie_fisier_langa_exe(client):
+    from datetime import datetime
+    r = client.post("/api/feedback", json={"mesaj": "în fișier", "pagina": "wizard",
+                                            "tester": "Popescu", "sentiment": "👍 merge"})
+    nume = r.json()["fisier"]
+    assert nume.startswith("feedback-") and nume.endswith(".csv")
+    f = client._baza / nume
+    assert f.exists(), f
+    continut = f.read_text(encoding="utf-8-sig")
+    assert "în fișier" in continut and "Popescu" in continut and "data,pagina" in continut
+    # a doua trimitere se adaugă în ACELAȘI fișier (per zi)
+    client.post("/api/feedback", json={"mesaj": "a doua", "pagina": "grila"})
+    assert datetime.now().strftime("%Y-%m-%d") in nume
+    assert "a doua" in f.read_text(encoding="utf-8-sig")
 
 
 def test_feedback_gol_respins(client):

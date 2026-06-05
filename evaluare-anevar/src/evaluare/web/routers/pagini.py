@@ -3,14 +3,48 @@ from __future__ import annotations
 
 import csv
 import io
+import os
 import time
+from datetime import datetime
+from pathlib import Path
 
 from fastapi import APIRouter, Request
 from fastapi.responses import HTMLResponse, PlainTextResponse
 
 from evaluare import __version__
+from evaluare.logging_setup import get_logger
 from evaluare.web.deps import Deps
 from evaluare.web.schemas import FeedbackRequest
+
+log = get_logger(__name__)
+
+
+def _fisier_feedback() -> Path:
+    """Fișierul CSV de feedback, LÂNGĂ executabil (parent-ul OUTPUT_DIR), per zi.
+
+    În .exe, __main__ setează OUTPUT_DIR = <folder-exe>/date -> fișierul ajunge în
+    folderul exe-ului (ușor de găsit/trimis). În dezvoltare, lângă directorul curent.
+    """
+    out = os.environ.get("OUTPUT_DIR")
+    baza = Path(out).resolve().parent if out else Path.cwd()
+    return baza / ("feedback-" + datetime.now().strftime("%Y-%m-%d") + ".csv")
+
+
+def _scrie_feedback_fisier(fb: FeedbackRequest) -> str:
+    """Adaugă o linie în fișierul CSV de feedback de lângă exe. Returnează numele fișierului."""
+    f = _fisier_feedback()
+    try:
+        f.parent.mkdir(parents=True, exist_ok=True)
+        nou = not f.exists()
+        with f.open("a", encoding="utf-8-sig", newline="") as fh:
+            w = csv.writer(fh)
+            if nou:
+                w.writerow(["data", "pagina", "reactie", "mesaj", "tester", "url"])
+            w.writerow([datetime.now().strftime("%Y-%m-%d %H:%M:%S"), fb.pagina,
+                        fb.sentiment, fb.mesaj, fb.tester, fb.url])
+    except OSError as e:                                    # disc plin/permisiuni -> nu blocăm
+        log.warning("Nu pot scrie fișierul de feedback (%s): %s", f, e)
+    return f.name
 
 
 def build_router(d: Deps) -> APIRouter:
@@ -48,7 +82,8 @@ def build_router(d: Deps) -> APIRouter:
             from fastapi import HTTPException
             raise HTTPException(status_code=422, detail="Scrie un mesaj sau alege o reacție.")
         total = d.storage.adauga_feedback(req.model_dump())
-        return {"ok": True, "total": total}
+        fisier = _scrie_feedback_fisier(req)               # și ca fișier lângă exe
+        return {"ok": True, "total": total, "fisier": fisier}
 
     @router.get("/api/feedback")
     def lista_feedback() -> dict:
