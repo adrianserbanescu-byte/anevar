@@ -34,8 +34,12 @@ a = Analysis(
     # de un server local -> excluse pentru a reduce dimensiunea .exe (D5).
     # cryptography\_rust.pyd corupea arhiva PKG („decompression -1"); nefolosit de
     # runtime-ul nostru (HTTPS merge prin ssl stdlib, nu prin pachetul cryptography).
+    # numpy/scipy/pandas/matplotlib/sklearn/sympy: NU sunt importate de aplicatie
+    # (verificat: la incarcarea completa se incarca doar lxml). PyInstaller le tragea
+    # doar pentru ca sunt instalate in mediu -> ~120 MB inutili. Excluse explicit.
     excludes=["PIL._avif", "PIL.AvifImagePlugin", "tkinter", "test",
-              "lib2to3", "PIL.ImageTk", "cryptography"],
+              "lib2to3", "PIL.ImageTk", "cryptography",
+              "numpy", "scipy", "pandas", "matplotlib", "sklearn", "sympy"],
     noarchive=False,
 )
 
