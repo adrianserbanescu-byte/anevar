@@ -13,6 +13,14 @@ Rulează **integral local** (un singur `.exe`, fără cloud obligatoriu). Narato
 - Python **3.11+** (build-ul de distribuție folosește 3.12)
 - Windows (executabilul țintă); codul e portabil, dezvoltarea merge pe orice OS
 
+### Cerințe pentru `.exe` (utilizator final)
+- **Windows 8.1, 10 sau 11 (64-bit).** ⚠️ **NU rulează pe Windows 7** — runtime-ul
+  Python 3.12 cere API-uri de sistem care lipsesc pe Win7 (eroarea
+  `api-ms-win-core-path-l1-1-0.dll missing`). Pentru Win7 ar fi nevoie de un build
+  separat cu Python 3.8.
+- E nesemnat → la prima rulare Windows poate afișa „Windows protected your PC":
+  **More info → Run anyway**.
+
 ## Instalare (dezvoltare)
 
 ```bash
