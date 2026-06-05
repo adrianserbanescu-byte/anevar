@@ -13,6 +13,12 @@ class ImportUrlRequest(BaseModel):
     url: str
 
 
+class ImportAnuntRequest(BaseModel):
+    """Trimis de extensia de browser: HTML-ul paginii deschise manual + URL-ul ei."""
+    html: str
+    url: str = ""
+
+
 class ZonaRequest(BaseModel):
     adresa: str
 

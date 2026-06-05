@@ -76,6 +76,13 @@ Modulul propune — <b>evaluatorul decide și transmite</b> (rapoarte.onpcsb.ro)
 
 <button onclick="evalueaza()">Evaluează relația</button>
 <div id="rez" role="status" aria-live="polite"></div>
+
+<fieldset>
+ <legend>Documente GDPR (model)</legend>
+ <p class="hint">Drafturi de validat de un jurist și de adaptat la cabinet (operatorul de date e evaluatorul).</p>
+ <button type="button" onclick="descarca('/api/gdpr/politica.docx')">📄 Politică de prelucrare</button>
+ <button type="button" onclick="descarca('/api/gdpr/consimtamant.docx')">📄 Acord consimțământ client</button>
+</fieldset>
 </main>
 
 <script>

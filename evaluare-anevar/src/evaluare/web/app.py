@@ -17,8 +17,17 @@ from evaluare.web.routers import aml, descoperire, evaluare, grile, pagini, piat
 def create_app(storage: Storage, client: NarrativeClient | None,
                fetcher: Callable[[str], str] = fetch_html) -> FastAPI:
     """Construieste aplicatia cu storage si client AI injectate."""
+    from fastapi.middleware.cors import CORSMiddleware
+
     from evaluare import __version__
     app = FastAPI(title="Evaluare ANEVAR")
+    # Permite extensiei de browser sa POST-eze pe /api/import-anunt (aplicatie locala).
+    app.add_middleware(
+        CORSMiddleware,
+        allow_origin_regex=r"chrome-extension://.*|moz-extension://.*",
+        allow_methods=["POST", "GET"],
+        allow_headers=["*"],
+    )
     templates = Jinja2Templates(directory=str(Path(__file__).parent / "templates"))
     templates.env.globals["versiune"] = __version__
     deps = Deps(storage=storage, client=client, fetcher=fetcher, templates=templates)

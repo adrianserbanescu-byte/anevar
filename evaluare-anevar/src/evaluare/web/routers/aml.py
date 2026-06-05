@@ -100,6 +100,16 @@ def build_router(d: Deps) -> APIRouter:
         StoreAML(aml_dir).salveaza("rts", raport.model_dump(mode="json"), raport.data_inregistrare)
         return _doc_response(genereaza_rts(raport), "aml_rts.docx")
 
+    @router.post("/api/gdpr/politica.docx")
+    def gdpr_politica(req: AmlDocRequest):
+        from evaluare.gdpr.documente import genereaza_politica_gdpr
+        return _doc_response(genereaza_politica_gdpr(), "gdpr_politica_prelucrare_MODEL.docx")
+
+    @router.post("/api/gdpr/consimtamant.docx")
+    def gdpr_consimtamant(req: AmlDocRequest):
+        from evaluare.gdpr.documente import genereaza_consimtamant_gdpr
+        return _doc_response(genereaza_consimtamant_gdpr(), "gdpr_acord_consimtamant_MODEL.docx")
+
     @router.get("/aml", response_class=HTMLResponse)
     def pagina_aml(request: Request) -> HTMLResponse:
         return d.templates.TemplateResponse(request, "aml.html", {})

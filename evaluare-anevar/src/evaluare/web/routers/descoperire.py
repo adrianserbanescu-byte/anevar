@@ -6,8 +6,9 @@ from fastapi.responses import HTMLResponse
 
 from evaluare.discovery.orchestrator import descopera
 from evaluare.discovery.scoring import metodologie
+from evaluare.importers.url_parser import parse_listing_html
 from evaluare.web.deps import Deps
-from evaluare.web.schemas import DescoperaRequest, DescoperaTerenRequest
+from evaluare.web.schemas import DescoperaRequest, DescoperaTerenRequest, ImportAnuntRequest
 
 
 def build_router(d: Deps) -> APIRouter:
@@ -47,6 +48,25 @@ def build_router(d: Deps) -> APIRouter:
             "pret_mp": str(r.pret_mp) if r.pret_mp is not None else None,
             "relevanta": r.relevanta, "nota": r.nota,
         } for r in rez]}
+
+    @router.post("/api/import-anunt")
+    def import_anunt(req: ImportAnuntRequest) -> dict:
+        """Primește HTML-ul unei pagini de anunț (de la extensia de browser) și extrage atributele.
+
+        Omul navighează manual; extensia trimite DOM-ul -> zero scraping automat. Vezi
+        docs/spec-extensie-browser.md.
+        """
+        p = parse_listing_html(req.html, sursa_url=req.url)
+        return {
+            "pret": str(p.pret) if p.pret is not None else None,
+            "moneda": p.moneda,
+            "suprafata": str(p.suprafata) if p.suprafata is not None else None,
+            "suprafata_teren": str(p.suprafata_teren) if p.suprafata_teren is not None else None,
+            "titlu": p.titlu, "sursa_url": p.sursa_url, "an": p.an,
+            "incalzire": p.incalzire, "material": p.material, "tip_cladire": p.tip_cladire,
+            "nr_camere": p.nr_camere,
+            "_nota": "Preț din OFERTĂ — aplică ajustare ofertă→tranzacție (GEV 520 §4.3.4).",
+        }
 
     @router.get("/descoperire", response_class=HTMLResponse)
     def pagina_descoperire(request: Request) -> HTMLResponse:
