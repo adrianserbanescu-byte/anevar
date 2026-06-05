@@ -1,22 +1,36 @@
-# #1 — Refacere logică UI „output-first"
+# #1 — Redesign UI „output-first" + cadrul cu două versiuni
 
-Status: **de brainstormat** (doar încadrat). Vizual → va folosi mockup-uri (visual companion).
+Status: **în definire** (2026-06-06). Vizual → folosește mockup-uri.
 
-## Idee
-Refacerea completă a logicii paginilor și tab-urilor **pornind de la output** (raportul final)
-și construind înapoi, pe o logică nouă — nu de la formular spre raport, ci de la „ce raport îmi
-trebuie" spre datele necesare.
+## Cadrul cu două versiuni (decis)
+- La deschiderea aplicației → **ecran de alegere** între:
+  - **„Versiune veche"** = toate paginile actuale (wizard + grile + descoperire + aml + dosare),
+    UI **înghețat** (doar titlu marcat), atins **doar** la upgrade de feature.
+  - **„Versiune curentă"** = set NOU de pagini, complet redesignat (output-first). Se definește acum.
+- Alegerea e reținută local (poate fi schimbată).
+- **Dublăm toate paginile** (izolare totală a experienței), DAR la nivel de **UI/template** —
+  **backend-ul/API-ul rămâne COMUN** (ambele versiuni lovesc același `/api/*`).
 
-## Ce avem azi
-- Wizard 5 pași (Adresă → Subiect → Comparabile → Calcul → Raport) + pagini separate Grile /
-  Descoperire / AML / Formular. Fluxul e „input-first".
+## ⚖️ REGULA PERMANENTĂ de mentenanță („de aici încolo")
+- **Upgrade de feature/funcționalitate → în AMBELE versiuni** (vechea rămâne funcțională la zi).
+  - De obicei = backend comun (automat) + sârmuire UI în ambele template-uri.
+- **Lucru pur de UI → DOAR în „versiunea curentă"** (cea nouă).
+- Când nu e clar care e cazul → **se întreabă utilizatorul**.
+- Versiunea veche se modifică doar la nevoie (feature) → **cu întrebare înainte**.
 
-## Întrebări deschise (de rezolvat la brainstorm)
-- Ce înseamnă „output-first" concret? (pornești din tipul de raport/scop → te ghidează la date?)
-- Cum se reorganizează tab-urile/paginile? Unificăm wizard + grile + descoperire într-un flux?
-- Ce rămâne, ce dispare, ce se comasează?
-- Relația cu #4: dacă AI-ul e metrat, fluxul trebuie să arate clar unde se „consumă" un raport.
+## Arhitectură de implementare (probabilă)
+- Template-uri: `templates/` (versiune veche) + `templates/curent/` (versiune nouă). Backend
+  (routere, engine, storage, `/api/*`) = neschimbat, comun.
+- Selector de versiune: cookie/localStorage `versiune_ui` → routerul de pagini alege folderul de
+  template. Ecran `/alege` la prima deschidere.
 
-## Dependențe
-- Beneficiază de feedback-ul de la evaluator (review) înainte de redesign.
-- Folosește visual companion (mockup-uri) la brainstorm.
+## ⏳ Următorul pas (de definit ACUM)
+**Cum e organizat wizardul nou la nivel de PAGINI și INFO** (output-first):
+- Pornim de la raport (output) spre date?
+- Câte pagini/pași, ce conține fiecare, ce se comasează?
+- Ce câmpuri sunt obligatorii (→ definește identitatea dosarului din #2 + metrarea #4).
+- Cum arată fluxul (mockup-uri).
+
+## Dependențe deblocate de #1
+- #2 (identitatea dosarului — care câmpuri se blochează).
+- #4 (metrarea pe identitate).
