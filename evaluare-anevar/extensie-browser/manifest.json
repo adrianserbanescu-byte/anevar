@@ -1,21 +1,29 @@
 {
   "manifest_version": 3,
   "name": "Import anunț → Evaluare ANEVAR",
-  "version": "0.1.0",
-  "description": "Trimite anunțul deschis manual către aplicația locală Evaluare ANEVAR (fără scraping automat).",
-  "permissions": ["activeTab", "scripting"],
+  "version": "1.0.0",
+  "description": "Trimite anunțul deschis manual (storia.ro / imobiliare.ro) către aplicația locală Evaluare ANEVAR. Fără scraping automat, fără anti-bot.",
+  "permissions": ["activeTab", "storage"],
   "host_permissions": [
     "https://www.imobiliare.ro/*",
-    "https://www.storia.ro/*"
+    "https://www.storia.ro/*",
+    "http://127.0.0.1:8000/*",
+    "http://localhost:8000/*"
   ],
   "action": {
-    "default_title": "Trimite anunțul în Evaluare ANEVAR"
+    "default_title": "Import → Evaluare ANEVAR",
+    "default_popup": "popup.html"
   },
+  "icons": { "128": "icon128.png" },
   "background": { "service_worker": "background.js" },
   "content_scripts": [
     {
-      "matches": ["https://www.imobiliare.ro/*", "https://www.storia.ro/*"],
-      "js": ["content.js"]
+      "matches": [
+        "https://www.imobiliare.ro/*",
+        "https://www.storia.ro/*"
+      ],
+      "js": ["content.js"],
+      "run_at": "document_idle"
     }
   ]
 }

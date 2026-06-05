@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+<meta charset="utf-8">
+<style>
+  body { width: 280px; margin: 0; padding: 14px;
+         font: 13px/1.5 Segoe UI, system-ui, sans-serif; color: #2a2118; background: #fbf7ef; }
+  h1 { font-size: 15px; margin: 0 0 8px; color: #9d4a25; }
+  .status { padding: 6px 10px; border-radius: 6px; margin: 8px 0; font-weight: 600; }
+  .ok { background: #e6f3e6; color: #1c5e1c; }
+  .ko { background: #f7e2e2; color: #8a1c1c; }
+  ol { margin: 8px 0; padding-left: 18px; }
+  li { margin: 3px 0; }
+  a.btn { display: block; text-align: center; margin-top: 10px; padding: 9px;
+          background: #9d4a25; color: #fff; text-decoration: none; border-radius: 6px;
+          font-weight: 600; }
+  .mic { font-size: 11px; opacity: .7; margin-top: 10px; }
+</style>
+</head>
+<body>
+  <h1>Import → Evaluare ANEVAR</h1>
+  <div id="status" class="status">Verific aplicația…</div>
+  <ol>
+    <li>Pornește aplicația <b>Evaluare ANEVAR</b>.</li>
+    <li>Deschide un anunț pe <b>storia.ro</b> sau <b>imobiliare.ro</b>.</li>
+    <li>Apasă butonul <b>➕ Trimite în Evaluare ANEVAR</b> (jos-dreapta).</li>
+    <li>În aplicație → <b>Descoperire</b> → trimite anunțurile în grilă.</li>
+  </ol>
+  <a class="btn" href="http://127.0.0.1:8000/descoperire" target="_blank">Deschide aplicația</a>
+  <p class="mic">Prețurile sunt din oferte (nu tranzacții). Navigare 100% manuală — fără scraping automat.</p>
+  <script src="popup.js"></script>
+</body>
+</html>

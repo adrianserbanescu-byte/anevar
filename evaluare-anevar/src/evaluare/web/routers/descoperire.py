@@ -57,7 +57,7 @@ def build_router(d: Deps) -> APIRouter:
         docs/spec-extensie-browser.md.
         """
         p = parse_listing_html(req.html, sursa_url=req.url)
-        return {
+        anunt = {
             "pret": str(p.pret) if p.pret is not None else None,
             "moneda": p.moneda,
             "suprafata": str(p.suprafata) if p.suprafata is not None else None,
@@ -67,6 +67,20 @@ def build_router(d: Deps) -> APIRouter:
             "nr_camere": p.nr_camere,
             "_nota": "Preț din OFERTĂ — aplică ajustare ofertă→tranzacție (GEV 520 §4.3.4).",
         }
+        # adaugă în coadă dacă are minim preț+suprafață și nu e deja (după URL)
+        deja = any(a.get("sursa_url") == anunt["sursa_url"] for a in d.import_coada)
+        if anunt["pret"] and anunt["suprafata"] and not deja:
+            d.import_coada.append(anunt)
+        return {**anunt, "in_coada": len(d.import_coada)}
+
+    @router.get("/api/anunturi-importate")
+    def anunturi_importate() -> dict:
+        return {"anunturi": d.import_coada}
+
+    @router.post("/api/anunturi-importate/sterge")
+    def sterge_importate() -> dict:
+        d.import_coada.clear()
+        return {"anunturi": []}
 
     @router.get("/descoperire", response_class=HTMLResponse)
     def pagina_descoperire(request: Request) -> HTMLResponse:
