@@ -8,7 +8,7 @@ Fiecare subiect are propriul `.md` în `docs/specs/`. Actualizat: 2026-06-06.
 | 1 | Refacere logică UI „output-first" | de brainstormat | mare · în app | [specs/1-ui-output-first.md](specs/1-ui-output-first.md) |
 | 2 | Rapoarte salvate (revenire/editare/regenerare/ștergere) | de brainstormat | **mediu · buildabil acum** | [specs/2-rapoarte-salvate.md](specs/2-rapoarte-salvate.md) |
 | 3 | Localități adăugate de user | de brainstormat | **mic · buildabil acum** | [specs/3-localitati-user.md](specs/3-localitati-user.md) |
-| 4 | Comercializare (tool local premium + AI gateway) | **brainstorm complet** | mare · proiect separat (cloud) | [specs/4-comercializare.md](specs/4-comercializare.md) |
+| 4 | Comercializare (tool local premium + AI gateway) | **spec + plan complet ✅** | mare · proiect separat (cloud) | [design](specs/4-comercializare.md) · [plan implementare](specs/4-comercializare-plan-implementare.md) |
 
 ## Pe scurt
 
@@ -21,7 +21,8 @@ Fiecare subiect are propriul `.md` în `docs/specs/`. Actualizat: 2026-06-06.
   `/api/localitati` + buton în wizard). Cel mai mic.
 - **#4 — Comercializare:** app local + AI gateway online (Supabase + Stripe), metrare **per raport
   AI**, abonament tot-în-unu, Google auth, 2 sesiuni concurente. COGS ~zero → marjă ~90%. Proiect
-  mare, infra externă, vine **după** review. Spec complet scris.
+  mare, infra externă, vine **după** review. **Spec + plan de implementare complete** (MVP pe
+  task-uri + faze 2/3 schițate). Gata de construit când decizi.
 
 ## Recomandare de ordine (de discutat)
 1. **Acum / înainte de review:** #2 (rapoarte salvate) și #3 (localități) — locale, rapide, cresc
