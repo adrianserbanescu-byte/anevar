@@ -87,6 +87,13 @@ def build_router(d: Deps) -> APIRouter:
             j.inregistreaza("validare_incrucisata", {"nivel": issue.nivel, "mesaj": issue.mesaj})
         return PlainTextResponse(text_audit(j))
 
+    @router.get("/api/backup.db")
+    def descarca_backup() -> FileResponse:
+        copie = d.storage.backup(Path(tempfile.gettempdir()) / "anevar_backup", keep=3)
+        if copie is None:
+            raise HTTPException(status_code=404, detail="Nu există încă dosare de salvat.")
+        return FileResponse(str(copie), media_type="application/octet-stream", filename=copie.name)
+
     @router.get("/evaluare/{eid}", response_class=HTMLResponse)
     def pagina_rezultat(request: Request, eid: int) -> HTMLResponse:
         try:

@@ -17,8 +17,10 @@ from evaluare.web.routers import aml, descoperire, evaluare, grile, pagini, piat
 def create_app(storage: Storage, client: NarrativeClient | None,
                fetcher: Callable[[str], str] = fetch_html) -> FastAPI:
     """Construieste aplicatia cu storage si client AI injectate."""
+    from evaluare import __version__
     app = FastAPI(title="Evaluare ANEVAR")
     templates = Jinja2Templates(directory=str(Path(__file__).parent / "templates"))
+    templates.env.globals["versiune"] = __version__
     deps = Deps(storage=storage, client=client, fetcher=fetcher, templates=templates)
 
     for modul in (evaluare, grile, descoperire, piata, aml, pagini):

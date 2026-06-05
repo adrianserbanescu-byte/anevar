@@ -1,10 +1,31 @@
-"""Persistenta locala a dosarelor de evaluare (SQLite)."""
+"""Persistenta locala a dosarelor de evaluare (SQLite).
+
+Include migrare de schema (PRAGMA user_version) si backup consistent (API SQLite),
+ca datele evaluatorului sa fie protejate intre versiuni si la coruperi accidentale.
+"""
 from __future__ import annotations
 
 import sqlite3
+from datetime import datetime
 from pathlib import Path
 
 from evaluare.models.report_context import ReportContext
+
+# Versiunea curenta a schemei. Fiecare intrare = lista de instructiuni SQL pentru a
+# ajunge la acea versiune de la cea anterioara. Adauga versiuni noi la coada.
+SCHEMA_VERSION = 1
+_MIGRATIONS: dict[int, list[str]] = {
+    1: [
+        """
+        CREATE TABLE IF NOT EXISTS evaluari (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            client_nume TEXT NOT NULL,
+            valoare_finala TEXT NOT NULL,
+            context_json TEXT NOT NULL
+        )
+        """
+    ],
+}
 
 
 class Storage:
@@ -18,17 +39,28 @@ class Storage:
         return sqlite3.connect(str(self.db_path))
 
     def init(self) -> None:
+        """Aplica migrarile lipsa pana la SCHEMA_VERSION (idempotent)."""
         with self._connect() as conn:
-            conn.execute(
-                """
-                CREATE TABLE IF NOT EXISTS evaluari (
-                    id INTEGER PRIMARY KEY AUTOINCREMENT,
-                    client_nume TEXT NOT NULL,
-                    valoare_finala TEXT NOT NULL,
-                    context_json TEXT NOT NULL
-                )
-                """
-            )
+            ver = conn.execute("PRAGMA user_version").fetchone()[0]
+            for v in range(ver + 1, SCHEMA_VERSION + 1):
+                for stmt in _MIGRATIONS[v]:
+                    conn.executescript(stmt)
+                conn.execute(f"PRAGMA user_version = {v}")  # int controlat, nu input
+
+    def backup(self, backups_dir: Path | str, keep: int = 10) -> Path | None:
+        """Copie consistenta a bazei intr-un fisier datat; pastreaza ultimele `keep`."""
+        if not self.db_path.exists():
+            return None
+        backups_dir = Path(backups_dir)
+        backups_dir.mkdir(parents=True, exist_ok=True)
+        stamp = datetime.now().strftime("%Y%m%d-%H%M%S")
+        dest = backups_dir / f"evaluari-{stamp}.db"
+        with self._connect() as src, sqlite3.connect(str(dest)) as dst:
+            src.backup(dst)                                  # API SQLite = copie consistenta
+        copii = sorted(backups_dir.glob("evaluari-*.db"))
+        for old in copii[:-keep] if keep > 0 else []:
+            old.unlink(missing_ok=True)
+        return dest
 
     def save(self, ctx: ReportContext) -> int:
         with self._connect() as conn:

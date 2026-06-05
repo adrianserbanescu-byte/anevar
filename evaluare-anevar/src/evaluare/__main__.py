@@ -83,6 +83,12 @@ def _ruleaza(baza: Path) -> None:
                     settings.db_path.parent)
     storage = Storage(settings.db_path)
     storage.init()
+    try:
+        copie = storage.backup(baza / "backups", keep=10)
+        if copie is not None:
+            log.info("Backup creat: %s", copie)
+    except Exception as e:
+        log.warning("Backup la pornire esuat: %s", e)
     app = create_app(storage=storage, client=settings.narrative_client())
 
     log.info("Pornire server pe http://%s:%s (date in %s)", HOST, PORT, baza)

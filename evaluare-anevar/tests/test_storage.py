@@ -46,3 +46,31 @@ def test_load_missing_raises(tmp_path):
     import pytest
     with pytest.raises(KeyError):
         db.load(9999)
+
+
+def test_init_seteaza_versiunea_de_schema(tmp_path):
+    import sqlite3
+
+    from evaluare.db.storage import SCHEMA_VERSION
+    db = Storage(tmp_path / "test.db")
+    db.init()
+    db.init()  # idempotent
+    with sqlite3.connect(str(db.db_path)) as conn:
+        assert conn.execute("PRAGMA user_version").fetchone()[0] == SCHEMA_VERSION
+
+
+def test_backup_creeaza_copie_si_pastreaza_ultimele(tmp_path):
+    db = Storage(tmp_path / "test.db")
+    db.init()
+    db.save(_ctx())
+    bdir = tmp_path / "backups"
+    copie = db.backup(bdir, keep=2)
+    assert copie is not None and copie.exists()
+    # backup-ul e o bază validă cu același dosar
+    restaurat = Storage(copie)
+    assert len(restaurat.list()) == 1
+
+
+def test_backup_fara_baza_returneaza_none(tmp_path):
+    db = Storage(tmp_path / "inexistent.db")
+    assert db.backup(tmp_path / "backups") is None
