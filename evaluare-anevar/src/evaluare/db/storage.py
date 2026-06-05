@@ -14,7 +14,7 @@ from evaluare.models.report_context import ReportContext
 
 # Versiunea curenta a schemei. Fiecare intrare = lista de instructiuni SQL pentru a
 # ajunge la acea versiune de la cea anterioara. Adauga versiuni noi la coada.
-SCHEMA_VERSION = 2
+SCHEMA_VERSION = 3
 _MIGRATIONS: dict[int, list[str]] = {
     1: [
         """
@@ -34,6 +34,20 @@ _MIGRATIONS: dict[int, list[str]] = {
             sursa_url TEXT NOT NULL UNIQUE,
             anunt_json TEXT NOT NULL,
             creat_la TEXT NOT NULL
+        )
+        """
+    ],
+    3: [
+        # Feedback de la testeri/evaluator (local, offline). Citit din baza returnata.
+        """
+        CREATE TABLE IF NOT EXISTS feedback (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            creat_la TEXT NOT NULL,
+            pagina TEXT,
+            url TEXT,
+            sentiment TEXT,
+            mesaj TEXT,
+            tester TEXT
         )
         """
     ],
@@ -134,3 +148,24 @@ class Storage:
         with self._connect() as conn:
             conn.execute("DELETE FROM import_anunturi WHERE sursa_url = ?", (sursa_url,))
             return int(conn.execute("SELECT COUNT(*) FROM import_anunturi").fetchone()[0])
+
+    # ── Feedback de la testeri (local, offline) ──────────────────────────────────
+    def adauga_feedback(self, fb: dict) -> int:
+        """Salveaza un feedback. Returneaza nr. total de feedback-uri."""
+        with self._connect() as conn:
+            conn.execute(
+                "INSERT INTO feedback (creat_la, pagina, url, sentiment, mesaj, tester) "
+                "VALUES (?, ?, ?, ?, ?, ?)",
+                (datetime.now().strftime("%Y-%m-%d %H:%M:%S"), fb.get("pagina"), fb.get("url"),
+                 fb.get("sentiment"), fb.get("mesaj"), fb.get("tester")),
+            )
+            return int(conn.execute("SELECT COUNT(*) FROM feedback").fetchone()[0])
+
+    def listeaza_feedback(self) -> list[dict]:
+        with self._connect() as conn:
+            rows = conn.execute(
+                "SELECT id, creat_la, pagina, url, sentiment, mesaj, tester "
+                "FROM feedback ORDER BY id DESC"
+            ).fetchall()
+        chei = ("id", "creat_la", "pagina", "url", "sentiment", "mesaj", "tester")
+        return [dict(zip(chei, r, strict=True)) for r in rows]

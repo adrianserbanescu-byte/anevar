@@ -24,6 +24,15 @@ class StergeAnuntRequest(BaseModel):
     url: str
 
 
+class FeedbackRequest(BaseModel):
+    """Feedback de la tester/evaluator (salvat local, offline)."""
+    mesaj: str = ""
+    sentiment: str = ""
+    pagina: str = ""
+    url: str = ""
+    tester: str = ""
+
+
 class ZonaRequest(BaseModel):
     adresa: str
 

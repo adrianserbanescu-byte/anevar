@@ -160,6 +160,24 @@ with sync_playwright() as pw:
     check("aml: banner legal prezent", "NU verifică automat" in p.inner_text("body"))
     p.close()
 
+    # ---------- FEEDBACK: widget -> salvare locală -> pagina /feedback ----------
+    p = ctx.new_page()
+    p.goto(BASE + "/wizard")
+    p.wait_for_load_state("networkidle")
+    p.click("#fb-open")
+    check("feedback: panoul se deschide", not p.eval_on_selector("#fb-panel", "e=>e.hidden"))
+    p.fill("#fb-msg", "Test automat e2e - merge")
+    p.click("#fb-send")
+    p.wait_for_selector("#fb-status:has-text('Mulțumim')", timeout=8000)
+    salvat = ctx.request.get(BASE + "/api/feedback").json()["feedback"]
+    check("feedback: salvat local prin widget",
+          any("Test automat e2e" in (f.get("mesaj") or "") for f in salvat), str(len(salvat)))
+    p.goto(BASE + "/feedback")
+    check("feedback: apare în pagina /feedback", "Test automat e2e" in p.inner_text("body"))
+    csv = ctx.request.get(BASE + "/api/feedback.csv")
+    check("feedback: export CSV", csv.ok and "Test automat e2e" in csv.text())
+    p.close()
+
     b.close()
 
 # ---------- SUMAR ----------

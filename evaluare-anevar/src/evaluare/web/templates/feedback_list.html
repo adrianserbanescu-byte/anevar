@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head><meta charset="utf-8"><title>Feedback testeri</title>
+<style>{% include "_design.css" %}</style></head>
+<body>
+<a class="skip-link" href="#continut">Sari la conținut</a>
+{% set pagina = "feedback" %}{% include "_topbar.html" %}
+{% set kicker = "Registru de evaluare" %}{% set titlu = "Feedback de la testeri" %}
+{% set subtitlu = "Mesajele trimise din aplicație (salvate local). Export: /api/feedback.csv" %}
+{% include "_cartus.html" %}
+<main id="continut">
+  <p class="hint">{{ feedback|length }} mesaj(e). <a href="/api/feedback.csv">⬇ Descarcă CSV</a></p>
+  {% if not feedback %}
+    <p class="hint">Niciun feedback încă. Apasă butonul „✎ Feedback" (jos-dreapta) pe orice pagină.</p>
+  {% else %}
+  <table>
+    <tr><th>Data</th><th>Pagină</th><th>Reacție</th><th>Mesaj</th><th>Tester</th></tr>
+    {% for f in feedback %}
+    <tr>
+      <td>{{ f.creat_la }}</td>
+      <td>{{ f.pagina or '—' }}</td>
+      <td>{{ f.sentiment or '—' }}</td>
+      <td>{{ f.mesaj or '—' }}</td>
+      <td>{{ f.tester or '—' }}</td>
+    </tr>
+    {% endfor %}
+  </table>
+  {% endif %}
+</main>
+{% include "_footer.html" %}
+</body></html>

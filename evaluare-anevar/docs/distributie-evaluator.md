@@ -39,6 +39,23 @@ Calculele, grilele, rapoartele `.docx` și AML merg identic.
 4. **Date locale**: la prima rulare, lângă `.exe` se creează automat `date\` (baza + rapoarte)
    și `backups\`. Nu trebuie create manual.
 
+## Cum primești feedback-ul de la evaluator
+
+Aplicația are un buton **„✎ Feedback"** (jos-dreapta, pe orice pagină). Evaluatorul scrie
+o observație + 👍/👎 și apasă Trimite. Feedback-ul se **salvează local, offline** (în baza de
+date a aplicației lui — nu are nevoie de internet sau cont Google).
+
+Ca să-l citești, cere-i evaluatorului să-ți trimită înapoi unul din:
+- folderul `date\` de lângă exe (conține `evaluari.db`), SAU
+- exportul direct: deschide `http://127.0.0.1:8000/api/feedback.csv` în aplicația lui → un CSV.
+
+Apoi tu vezi tot la `http://127.0.0.1:8000/feedback` (pornind aplicația pe baza primită) sau
+deschizi CSV-ul în Excel.
+
+> Opțional, widgetul poate trimite **și** în Google Forms (canal la distanță, în timp real) —
+> completează `FB_CONFIG` din `_feedback.html` cu ID-urile formularului. Fără asta, feedback-ul
+> tot se salvează local.
+
 ## Pași pentru tine (împachetare)
 
 1. Copiază `dist\evaluare-anevar.exe` într-un folder nou (ex. `Evaluare-ANEVAR\`).
