@@ -43,22 +43,36 @@
      Valorile sunt <b>propuse — verifică-le</b>. Funcționează fără internet/AI.</small>
   </div>
 
-  <label for="judet">Județ</label>
-  <select id="judet"></select>
-  <label for="localitate">Localitate</label>
-  <select id="localitate"></select>
-  <input id="localitate_alt" placeholder="ex: baia-de-aries (fara diacritice)" style="display:none" aria-label="Altă localitate (cod fără diacritice)">
-  <small class="hint">Alegi din liste — <b>numele cu diacritice</b> (ex. „Bistriţa-Năsăud") apar în raport,
-   iar codul fără diacritice folosit la căutarea pe portaluri se generează <b>automat</b>. Nu trebuie să faci
-   nimic special. <b>Doar</b> dacă folosești „altă localitate (scriu)", scrie codul fără diacritice: litere mici,
-   ă→a î→i ș→s ț→t â→a, spațiile și semnele devin cratimă (ex. „Baia de Arieş" → <code>baia-de-aries</code>).</small>
+  <div class="field-row">
+    <div class="field">
+      <label for="judet">Județ</label>
+      <select id="judet"></select>
+    </div>
+    <div class="field">
+      <label for="localitate">Localitate</label>
+      <select id="localitate"></select>
+      <input id="localitate_alt" placeholder="ex: baia-de-aries (fara diacritice)" style="display:none" aria-label="Altă localitate (cod fără diacritice)">
+      <small class="hint">Alegi din liste — <b>numele cu diacritice</b> (ex. „Bistriţa-Năsăud") apar în raport,
+       iar codul fără diacritice folosit la căutarea pe portaluri se generează <b>automat</b>. Nu trebuie să faci
+       nimic special. <b>Doar</b> dacă folosești „altă localitate (scriu)", scrie codul fără diacritice: litere mici,
+       ă→a î→i ș→s ț→t â→a, spațiile și semnele devin cratimă (ex. „Baia de Arieş" → <code>baia-de-aries</code>).</small>
+    </div>
+  </div>
   <label for="adresa_strada">Stradă, număr (rest adresă)</label>
   <input id="adresa_strada" size="50" placeholder="Str. Exemplu nr. 10">
   <small class="hint">Partea de stradă/număr a adresei (text liber). Apare în raport; o poți edita
    cu diacritice la Pas 4.</small>
-  <label for="client_nume">Nume client</label><input id="client_nume" autocomplete="name">
-  <small class="hint">Persoana/firma pentru care se face evaluarea. Apare în raport; anonimizat
-   ([CLIENT]) înainte de orice apel AI.</small>
+  <div class="field-row">
+    <div class="field">
+      <label for="client_nume">Nume client</label><input id="client_nume" autocomplete="name">
+      <small class="hint">Persoana/firma pentru care se face evaluarea. Apare în raport; anonimizat
+       ([CLIENT]) înainte de orice apel AI.</small>
+    </div>
+    <div class="field">
+      <label for="proprietar">Proprietar (dacă diferă de client)</label><input id="proprietar" autocomplete="name">
+      <small class="hint">Numele proprietarului, dacă nu coincide cu clientul. Opțional.</small>
+    </div>
+  </div>
   <label for="numar_cadastral">Nr. cadastral</label><input id="numar_cadastral">
   <small class="hint">Identificatorul cadastral unic. Situația juridică; anonimizat ([CADASTRAL]) la AI.</small>
   <label for="carte_funciara">Carte funciară</label><input id="carte_funciara">
@@ -75,19 +89,31 @@
     <option value="litigii">Litigiu / instanță</option>
   </select>
   <small class="hint">Determină scopul și tipul valorii din termenii de referință ai raportului.</small>
-  <label for="proprietar">Proprietar (dacă diferă de client)</label><input id="proprietar" autocomplete="name">
-  <small class="hint">Numele proprietarului, dacă nu coincide cu clientul. Opțional.</small>
-  <label for="evaluator_nume">Evaluator</label><input id="evaluator_nume" autocomplete="name">
-  <small class="hint">Numele evaluatorului autorizat ANEVAR; apare în declarația de independență.
-   <b>Se reține între sesiuni</b> (numele + legitimația) — îl poți modifica oricând; rămâne și după „Reset dosar".</small>
-  <label for="evaluator_legitimatie">Legitimație</label><input id="evaluator_legitimatie">
-  <small class="hint">Numărul legitimației ANEVAR a evaluatorului.</small>
-  <label for="data_evaluarii">Data evaluării</label><input type="date" id="data_evaluarii" value="2026-01-16">
-  <small class="hint">Data la care se estimează valoarea (data de referință a calculelor).</small>
-  <label for="data_raportului">Data raportului</label><input type="date" id="data_raportului" value="2026-01-16">
-  <small class="hint">Data emiterii raportului (poate diferi de data evaluării).</small>
-  <label for="data_inspectiei">Data inspecției (opțional)</label><input type="date" id="data_inspectiei" placeholder="2026-01-15">
-  <small class="hint">Data inspecției proprietății, dacă diferă de data evaluării. Apare în termenii de referință.</small>
+  <div class="field-row">
+    <div class="field">
+      <label for="evaluator_nume">Evaluator</label><input id="evaluator_nume" autocomplete="name">
+      <small class="hint">Numele evaluatorului autorizat ANEVAR; apare în declarația de independență.
+       <b>Se reține între sesiuni</b> (numele + legitimația) — îl poți modifica oricând; rămâne și după „Reset dosar".</small>
+    </div>
+    <div class="field">
+      <label for="evaluator_legitimatie">Legitimație</label><input id="evaluator_legitimatie">
+      <small class="hint">Numărul legitimației ANEVAR a evaluatorului.</small>
+    </div>
+  </div>
+  <div class="field-row">
+    <div class="field">
+      <label for="data_evaluarii">Data evaluării</label><input type="date" id="data_evaluarii" value="2026-01-16">
+      <small class="hint">Data la care se estimează valoarea (data de referință a calculelor).</small>
+    </div>
+    <div class="field">
+      <label for="data_raportului">Data raportului</label><input type="date" id="data_raportului" value="2026-01-16">
+      <small class="hint">Data emiterii raportului (poate diferi de data evaluării).</small>
+    </div>
+    <div class="field">
+      <label for="data_inspectiei">Data inspecției (opțional)</label><input type="date" id="data_inspectiei" placeholder="2026-01-15">
+      <small class="hint">Data inspecției proprietății, dacă diferă de data evaluării. Apare în termenii de referință.</small>
+    </div>
+  </div>
 </section>
 
 <!-- PAS 2 -->
