@@ -209,9 +209,12 @@ flow.forEach((f, i) => {
   s.addText(f[1], { x: 3.5, y: y + 0.12, w: 4.6, h: 0.78, valign: "middle", fontFace: BF, fontSize: 13, color: P.text, margin: 0 });
 });
 card(s, 8.55, 1.85, 3.9, 4.47, P.ink);
-s.addText("De ce contează", { x: 8.8, y: 2.1, w: 3.4, h: 0.4, fontFace: HF, fontSize: 17, bold: true, color: P.brassHi, margin: 0 });
-s.addText("Evaluatorul înțelege DE CE un anunț e mai relevant decât altul — fără să acceseze documentația tehnică. Comparabilele alese pot popula direct grila; ajustările le pune evaluatorul.",
-  { x: 8.8, y: 2.6, w: 3.45, h: 3.4, fontFace: BF, fontSize: 14, color: P.parchLt, valign: "top", margin: 0 });
+s.addText("Import prin extensie de browser", { x: 8.8, y: 2.1, w: 3.4, h: 0.7, fontFace: HF, fontSize: 16, bold: true, color: P.brassHi, margin: 0 });
+s.addText([
+  { text: "Evaluatorul deschide MANUAL un anunț pe storia.ro / imobiliare.ro și apasă un buton — extensia trimite pagina în aplicație. Fără scraping automat, fără anti-bot.", options: { breakLine: true, paraSpaceAfter: 8 } },
+  { text: "Anunțurile intră într-o coadă persistentă; din ele populează direct grila. Prețurile sunt din OFERTE — ajustarea ofertă→tranzacție o pune evaluatorul.", options: {} },
+],
+  { x: 8.8, y: 2.85, w: 3.45, h: 3.3, fontFace: BF, fontSize: 13, color: P.parchLt, valign: "top", margin: 0 });
 footer(s, 8);
 
 /* ---------- S9 RAPORT ---------- */

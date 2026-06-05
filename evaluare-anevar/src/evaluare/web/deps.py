@@ -7,7 +7,7 @@ care fiecare `build_*_router(d)` il primeste.
 from __future__ import annotations
 
 from collections.abc import Callable
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 
 from fastapi.templating import Jinja2Templates
 
@@ -25,5 +25,3 @@ class Deps:
     client: NarrativeClient | None
     fetcher: Callable[[str], str]
     templates: Jinja2Templates
-    # Coadă de import din extensia de browser (in-memory, per sesiune de aplicație).
-    import_coada: list[dict] = field(default_factory=list)

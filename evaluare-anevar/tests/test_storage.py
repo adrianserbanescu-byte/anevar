@@ -74,3 +74,39 @@ def test_backup_creeaza_copie_si_pastreaza_ultimele(tmp_path):
 def test_backup_fara_baza_returneaza_none(tmp_path):
     db = Storage(tmp_path / "inexistent.db")
     assert db.backup(tmp_path / "backups") is None
+
+
+def test_coada_import_persista_si_deduplica(tmp_path):
+    db = Storage(tmp_path / "test.db")
+    db.init()
+    assert db.listeaza_anunturi_importate() == []
+    n = db.adauga_anunt_importat({"sursa_url": "https://x.ro/1", "pret": "150000"})
+    assert n == 1
+    # acelasi URL -> ignorat (dedup)
+    n2 = db.adauga_anunt_importat({"sursa_url": "https://x.ro/1", "pret": "999"})
+    assert n2 == 1
+    db.adauga_anunt_importat({"sursa_url": "https://x.ro/2", "pret": "200000"})
+    # persista: o noua instanta Storage pe acelasi fisier vede ambele anunturi
+    db2 = Storage(tmp_path / "test.db")
+    lista = db2.listeaza_anunturi_importate()
+    assert len(lista) == 2
+    assert lista[0]["pret"] == "150000"  # primul ramane cel original, nu suprascris
+    db2.sterge_anunturi_importate()
+    assert db.listeaza_anunturi_importate() == []
+
+
+def test_migrare_v1_la_v2_adauga_tabela_import(tmp_path):
+    import sqlite3
+
+    # simuleaza o baza veche la versiunea 1 (doar tabela evaluari)
+    p = tmp_path / "vechi.db"
+    with sqlite3.connect(str(p)) as conn:
+        conn.executescript(
+            "CREATE TABLE evaluari (id INTEGER PRIMARY KEY, client_nume TEXT, "
+            "valoare_finala TEXT, context_json TEXT)"
+        )
+        conn.execute("PRAGMA user_version = 1")
+    # init aplica migrarea lipsa -> coada de import devine utilizabila
+    db = Storage(p)
+    db.init()
+    assert db.adauga_anunt_importat({"sursa_url": "https://x.ro/3", "pret": "1"}) == 1

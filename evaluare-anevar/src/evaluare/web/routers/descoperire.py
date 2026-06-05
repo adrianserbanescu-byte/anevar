@@ -67,19 +67,19 @@ def build_router(d: Deps) -> APIRouter:
             "nr_camere": p.nr_camere,
             "_nota": "Preț din OFERTĂ — aplică ajustare ofertă→tranzacție (GEV 520 §4.3.4).",
         }
-        # adaugă în coadă dacă are minim preț+suprafață și nu e deja (după URL)
-        deja = any(a.get("sursa_url") == anunt["sursa_url"] for a in d.import_coada)
-        if anunt["pret"] and anunt["suprafata"] and not deja:
-            d.import_coada.append(anunt)
-        return {**anunt, "in_coada": len(d.import_coada)}
+        # adaugă în coadă (persistent în SQLite) dacă are minim preț + suprafață
+        in_coada = len(d.storage.listeaza_anunturi_importate())
+        if anunt["pret"] and anunt["suprafata"]:
+            in_coada = d.storage.adauga_anunt_importat(anunt)
+        return {**anunt, "in_coada": in_coada}
 
     @router.get("/api/anunturi-importate")
     def anunturi_importate() -> dict:
-        return {"anunturi": d.import_coada}
+        return {"anunturi": d.storage.listeaza_anunturi_importate()}
 
     @router.post("/api/anunturi-importate/sterge")
     def sterge_importate() -> dict:
-        d.import_coada.clear()
+        d.storage.sterge_anunturi_importate()
         return {"anunturi": []}
 
     @router.get("/descoperire", response_class=HTMLResponse)

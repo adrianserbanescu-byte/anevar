@@ -5,6 +5,7 @@ ca datele evaluatorului sa fie protejate intre versiuni si la coruperi accidenta
 """
 from __future__ import annotations
 
+import json
 import sqlite3
 from datetime import datetime
 from pathlib import Path
@@ -13,7 +14,7 @@ from evaluare.models.report_context import ReportContext
 
 # Versiunea curenta a schemei. Fiecare intrare = lista de instructiuni SQL pentru a
 # ajunge la acea versiune de la cea anterioara. Adauga versiuni noi la coada.
-SCHEMA_VERSION = 1
+SCHEMA_VERSION = 2
 _MIGRATIONS: dict[int, list[str]] = {
     1: [
         """
@@ -22,6 +23,17 @@ _MIGRATIONS: dict[int, list[str]] = {
             client_nume TEXT NOT NULL,
             valoare_finala TEXT NOT NULL,
             context_json TEXT NOT NULL
+        )
+        """
+    ],
+    2: [
+        # Coada de anunturi importate din extensia de browser (persistenta, dedup pe URL).
+        """
+        CREATE TABLE IF NOT EXISTS import_anunturi (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            sursa_url TEXT NOT NULL UNIQUE,
+            anunt_json TEXT NOT NULL,
+            creat_la TEXT NOT NULL
         )
         """
     ],
@@ -92,3 +104,27 @@ class Storage:
         return [
             {"id": r[0], "client_nume": r[1], "valoare_finala": r[2]} for r in rows
         ]
+
+    # ── Coada de anunturi importate din extensia de browser ──────────────────────
+    def adauga_anunt_importat(self, anunt: dict) -> int:
+        """Adauga un anunt in coada (dedup pe sursa_url). Returneaza nr. total din coada."""
+        url = anunt.get("sursa_url") or ""
+        with self._connect() as conn:
+            conn.execute(
+                "INSERT OR IGNORE INTO import_anunturi (sursa_url, anunt_json, creat_la) "
+                "VALUES (?, ?, ?)",
+                (url, json.dumps(anunt, ensure_ascii=False),
+                 datetime.now().strftime("%Y-%m-%d %H:%M:%S")),
+            )
+            return int(conn.execute("SELECT COUNT(*) FROM import_anunturi").fetchone()[0])
+
+    def listeaza_anunturi_importate(self) -> list[dict]:
+        with self._connect() as conn:
+            rows = conn.execute(
+                "SELECT anunt_json FROM import_anunturi ORDER BY id"
+            ).fetchall()
+        return [json.loads(r[0]) for r in rows]
+
+    def sterge_anunturi_importate(self) -> None:
+        with self._connect() as conn:
+            conn.execute("DELETE FROM import_anunturi")
