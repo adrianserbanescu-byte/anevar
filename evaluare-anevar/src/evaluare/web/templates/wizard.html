@@ -620,7 +620,7 @@ function asambleaza(){
   if($("clasa_calitate").value) land.clasa_calitate=parseInt($("clasa_calitate").value);
   return{meta,
     land,
-    building, comparables, tip_proprietate:tip,
+    building, comparables, tip_proprietate:tip, scop:$("scop").value,
     valoare_teren:$("valoare_teren").value, metoda:$("metoda").value, date_venit, date_dcf, photos:FOTOS,
     documente:DOCUMENTE};
 }

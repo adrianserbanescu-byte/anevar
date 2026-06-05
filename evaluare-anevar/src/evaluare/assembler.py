@@ -26,8 +26,12 @@ from evaluare.models.report_context import ReportContext
 from evaluare.profil import (
     AGRICOL,
     APARTAMENT_GARANTARE,
+    ASIGURARE,
     CASA_TEREN_GARANTARE,
+    IMPOZITARE,
     INDUSTRIAL,
+    LITIGII,
+    RAPORTARE_FINANCIARA,
     SPECIAL,
     ProfilEvaluare,
 )
@@ -44,6 +48,31 @@ PROFIL_DUPA_TIP: dict[str, ProfilEvaluare] = {
     "special": SPECIAL,
 }
 
+# Scopuri speciale (≠ garantare): determină tipul valorii + ghidul GEV (raportare → valoare
+# justă/GEV 500, asigurare → valoare de asigurare, etc.). La „garantare" decide TIPUL.
+PROFIL_DUPA_SCOP: dict[str, ProfilEvaluare] = {
+    "raportare_financiara": RAPORTARE_FINANCIARA,
+    "asigurare": ASIGURARE,
+    "impozitare": IMPOZITARE,
+    "litigii": LITIGII,
+}
+
+
+def rezolva_profil(tip: str | None, scop: str | None,
+                   implicit: ProfilEvaluare) -> ProfilEvaluare:
+    """Profilul efectiv din tip (Pas 2) + scop (Pas 1).
+
+    Scop special -> profilul scopului (tip valoare + ghid), păstrând tipul de activ ales.
+    Scop garantare/absent -> profilul tipului ales. Necunoscut -> implicit.
+    """
+    pe_scop = PROFIL_DUPA_SCOP.get(scop or "")
+    if pe_scop is not None:
+        pe_tip = PROFIL_DUPA_TIP.get(tip or "")
+        if pe_tip is not None:
+            return pe_scop.model_copy(update={"tip_activ": pe_tip.tip_activ})
+        return pe_scop
+    return PROFIL_DUPA_TIP.get(tip or "", implicit)
+
 
 class EvaluationInput(BaseModel):
     """Datele de intrare ale unei evaluari (corpul cererii web)."""
@@ -59,6 +88,9 @@ class EvaluationInput(BaseModel):
     # Tipul ales în wizard (Pas 2): casa/apartament/industrial/agricol/special. Dacă e dat,
     # determină profilul (suprascrie `profil`). Lipsă -> se folosește `profil` (implicit casă).
     tip_proprietate: str | None = None
+    # Scopul ales (Pas 1): garantare/raportare_financiara/asigurare/impozitare/litigii.
+    # Scopurile speciale determină profilul (tip valoare + ghid GEV). Vezi rezolva_profil.
+    scop: str | None = None
     profil: ProfilEvaluare = CASA_TEREN_GARANTARE
     date_venit: DateVenit | None = None
     date_dcf: DateDCF | None = None
@@ -84,8 +116,8 @@ def construieste_context(
     inp: EvaluationInput, client: NarrativeClient | None
 ) -> ReportContext:
     """Ruleaza motoarele si asambleaza ReportContext (inclusiv narativul)."""
-    # Profil efectiv: tipul ales in wizard suprascrie profilul implicit (framing raport).
-    profil = PROFIL_DUPA_TIP.get(inp.tip_proprietate or "", inp.profil)
+    # Profil efectiv din tip (Pas 2) + scop (Pas 1) — framing raport, nu formula numerică.
+    profil = rezolva_profil(inp.tip_proprietate, inp.scop, inp.profil)
     # Teren: daca exista comparabile de teren, valoarea se calculeaza prin grila;
     # altfel se foloseste valoarea introdusa manual.
     land_result = None

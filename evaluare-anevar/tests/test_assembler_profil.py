@@ -46,6 +46,38 @@ def test_tip_necunoscut_pastreaza_profil_implicit():
     assert ctx.profil.tip_activ == "casa"
 
 
+def test_scop_special_conduce_tipul_valorii_si_ghidul():
+    # Scopurile speciale schimbă tipul valorii + ghidul GEV (raportare → justă/GEV 500 etc.).
+    asteptari = {"raportare_financiara": ("justa", "GEV_500"), "asigurare": ("asigurare", "GEV_630"),
+                 "impozitare": ("piata", "GEV_630"), "litigii": ("piata", "GEV_630")}
+    for scop, (tip_valoare, ghid) in asteptari.items():
+        inp = _input("cost")
+        inp.scop = scop
+        ctx = construieste_context(inp, client=None)
+        assert ctx.profil.tip_valoare == tip_valoare, scop
+        assert ctx.profil.ghid == ghid, scop
+
+
+def test_scop_special_pastreaza_tipul_de_activ_ales():
+    # Apartament pentru raportare financiară: profil = raportare (justă) DAR tip activ = apartament.
+    inp = _input("cost")
+    inp.tip_proprietate = "apartament"
+    inp.scop = "raportare_financiara"
+    ctx = construieste_context(inp, client=None)
+    assert ctx.profil.tip_valoare == "justa"      # din scop
+    assert ctx.profil.ghid == "GEV_500"            # din scop
+    assert ctx.profil.tip_activ == "apartament"    # din tip
+
+
+def test_scop_garantare_lasa_tipul_sa_decida():
+    inp = _input("cost")
+    inp.tip_proprietate = "industrial"
+    inp.scop = "garantare"
+    ctx = construieste_context(inp, client=None)
+    assert ctx.profil.tip_activ == "industrial"
+    assert ctx.profil.ghid == "GEV_630"
+
+
 def test_reconciliere_identica_pe_cele_trei_metode():
     for metoda in ("cost", "piata", "ponderata"):
         ctx = construieste_context(_input(metoda), client=None)
