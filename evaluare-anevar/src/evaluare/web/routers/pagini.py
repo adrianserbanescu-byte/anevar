@@ -75,6 +75,11 @@ def build_router(d: Deps) -> APIRouter:
     def pagina_wizard(request: Request) -> HTMLResponse:
         return d.templates.TemplateResponse(request, "wizard.html", {})
 
+    @router.get("/dosare", response_class=HTMLResponse)
+    def pagina_dosare(request: Request) -> HTMLResponse:
+        return d.templates.TemplateResponse(request, "dosare.html",
+            {"dosare": d.storage.list()})
+
     # ── Feedback de la testeri (local, offline; opțional și Google Forms din widget) ──
     @router.post("/api/feedback")
     def trimite_feedback(req: FeedbackRequest) -> dict:

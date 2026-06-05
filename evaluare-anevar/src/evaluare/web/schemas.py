@@ -24,6 +24,11 @@ class StergeAnuntRequest(BaseModel):
     url: str
 
 
+class RedenumesteRequest(BaseModel):
+    """Redenumirea unui dosar salvat."""
+    nume: str
+
+
 class FeedbackRequest(BaseModel):
     """Feedback de la tester/evaluator (salvat local, offline)."""
     mesaj: str = ""

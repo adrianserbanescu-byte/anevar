@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head><meta charset="utf-8"><title>Dosare salvate</title>
+<style>{% include "_design.css" %}</style></head>
+<body>
+<a class="skip-link" href="#continut">Sari la conținut</a>
+{% set pagina = "dosare" %}{% include "_topbar.html" %}
+{% set kicker = "Registru de evaluare" %}{% set titlu = "Dosare salvate" %}
+{% set subtitlu = "Evaluările generate — redeschide, redenumește, descarcă, șterge." %}
+{% include "_cartus.html" %}
+<main id="continut">
+  {% if not dosare %}
+    <p class="hint">Niciun dosar salvat încă. Generează o evaluare în <a href="/wizard">wizard</a> —
+     se salvează automat aici.</p>
+  {% else %}
+  <p class="hint">{{ dosare|length }} dosar(e). Fiecare se salvează automat la calcul.</p>
+  <table>
+    <tr><th>Nume</th><th>Client</th><th>Valoare</th><th>Creat</th><th>Acțiuni</th></tr>
+    {% for d in dosare %}
+    <tr data-id="{{ d.id }}">
+      <td class="nume">{{ d.nume or ('#' ~ d.id) }}</td>
+      <td>{{ d.client_nume or '—' }}</td>
+      <td class="num">{{ d.valoare_finala }}</td>
+      <td>{{ d.creat_la or '—' }}</td>
+      <td>
+        <button type="button" class="open" data-id="{{ d.id }}">↗ Deschide</button>
+        <button type="button" class="ghost ren" data-id="{{ d.id }}">✎ Redenumește</button>
+        <a class="btn ghost" href="/api/evaluare/{{ d.id }}/raport.docx">⬇ .docx</a>
+        <button type="button" class="ghost del" data-id="{{ d.id }}">🗑 Șterge</button>
+      </td>
+    </tr>
+    {% endfor %}
+  </table>
+  {% endif %}
+  <span id="dosare-status" class="hint" role="status" aria-live="polite"></span>
+</main>
+<script>
+document.querySelectorAll(".open").forEach(b => b.addEventListener("click", async () => {
+  const id = b.dataset.id;
+  try {
+    const r = await fetch("/api/evaluare/" + id + "/dosar");
+    const d = await r.json();
+    if (!d.wizard) { document.getElementById("dosare-status").textContent =
+      "Dosar mai vechi — nu are snapshot de re-deschidere. Doar descărcarea .docx e disponibilă."; return; }
+    localStorage.setItem("wizard", JSON.stringify(d.wizard));
+    window.location.href = "/wizard";
+  } catch(e) { document.getElementById("dosare-status").textContent = "Nu am putut deschide dosarul."; }
+}));
+document.querySelectorAll(".ren").forEach(b => b.addEventListener("click", async () => {
+  const id = b.dataset.id;
+  const cur = document.querySelector('tr[data-id="'+id+'"] .nume').textContent.trim();
+  const nume = prompt("Nume nou pentru dosar:", cur);
+  if (nume === null) return;
+  await fetch("/api/evaluare/" + id + "/redenumeste", { method:"POST",
+    headers:{"Content-Type":"application/json"}, body: JSON.stringify({nume}) });
+  document.querySelector('tr[data-id="'+id+'"] .nume').textContent = nume || ("#"+id);
+}));
+document.querySelectorAll(".del").forEach(b => b.addEventListener("click", async () => {
+  const id = b.dataset.id;
+  if (!confirm("Ștergi definitiv acest dosar și versiunile lui .docx?")) return;
+  await fetch("/api/evaluare/" + id + "/sterge", { method:"POST" });
+  const tr = document.querySelector('tr[data-id="'+id+'"]'); if (tr) tr.remove();
+  document.getElementById("dosare-status").textContent = "Dosar șters.";
+}));
+</script>
+{% include "_footer.html" %}
+</body></html>

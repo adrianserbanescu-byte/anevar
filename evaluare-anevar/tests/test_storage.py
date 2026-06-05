@@ -76,6 +76,42 @@ def test_backup_fara_baza_returneaza_none(tmp_path):
     assert db.backup(tmp_path / "backups") is None
 
 
+def test_dosar_nume_implicit_si_redenumire(tmp_path):
+    db = Storage(tmp_path / "test.db")
+    db.init()
+    eid = db.save(_ctx())                                   # nume implicit „Client — cadastral"
+    row = db.list()[0]
+    assert row["id"] == eid
+    assert row["nume"] == "Ion Popescu — 123"
+    assert row["creat_la"]                                  # are timestamp
+    db.redenumeste(eid, "Casa Breaza – garantare BT")
+    assert db.list()[0]["nume"] == "Casa Breaza – garantare BT"
+
+
+def test_dosar_nume_explicit_si_stergere(tmp_path):
+    db = Storage(tmp_path / "test.db")
+    db.init()
+    eid = db.save(_ctx(), nume="Dosar special")
+    assert db.list()[0]["nume"] == "Dosar special"
+    db.sterge(eid)
+    assert db.list() == []
+
+
+def test_migrare_v3_la_v4_adauga_coloane(tmp_path):
+    import sqlite3
+
+    # baza veche la v3 (fara nume/creat_la in evaluari)
+    p = tmp_path / "v3.db"
+    with sqlite3.connect(str(p)) as conn:
+        conn.execute("CREATE TABLE evaluari (id INTEGER PRIMARY KEY AUTOINCREMENT, "
+                     "client_nume TEXT, valoare_finala TEXT, context_json TEXT)")
+        conn.execute("PRAGMA user_version = 3")
+    db = Storage(p)
+    db.init()                                              # aplica migrarea 4
+    db.save(_ctx(), nume="dupa migrare")
+    assert db.list()[0]["nume"] == "dupa migrare"
+
+
 def test_coada_import_persista_si_deduplica(tmp_path):
     db = Storage(tmp_path / "test.db")
     db.init()

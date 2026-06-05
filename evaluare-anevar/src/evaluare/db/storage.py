@@ -14,7 +14,7 @@ from evaluare.models.report_context import ReportContext
 
 # Versiunea curenta a schemei. Fiecare intrare = lista de instructiuni SQL pentru a
 # ajunge la acea versiune de la cea anterioara. Adauga versiuni noi la coada.
-SCHEMA_VERSION = 3
+SCHEMA_VERSION = 4
 _MIGRATIONS: dict[int, list[str]] = {
     1: [
         """
@@ -50,6 +50,12 @@ _MIGRATIONS: dict[int, list[str]] = {
             tester TEXT
         )
         """
+    ],
+    4: [
+        # Dosare salvate: nume editabil + data crearii + snapshot câmpuri wizard (re-deschidere).
+        "ALTER TABLE evaluari ADD COLUMN nume TEXT",
+        "ALTER TABLE evaluari ADD COLUMN creat_la TEXT",
+        "ALTER TABLE evaluari ADD COLUMN wizard_json TEXT",
     ],
 }
 
@@ -88,18 +94,47 @@ class Storage:
             old.unlink(missing_ok=True)
         return dest
 
-    def save(self, ctx: ReportContext) -> int:
+    def save(self, ctx: ReportContext, nume: str | None = None) -> int:
+        # Nume implicit: „Client — cadastral" (editabil ulterior).
+        nume = nume or " — ".join(
+            x for x in (ctx.meta.client_nume, ctx.meta.numar_cadastral) if x) or "Dosar"
         with self._connect() as conn:
             cur = conn.execute(
-                "INSERT INTO evaluari (client_nume, valoare_finala, context_json) "
-                "VALUES (?, ?, ?)",
+                "INSERT INTO evaluari (client_nume, valoare_finala, context_json, nume, creat_la) "
+                "VALUES (?, ?, ?, ?, ?)",
                 (
                     ctx.meta.client_nume,
                     str(ctx.reconciled.valoare_finala),
                     ctx.model_dump_json(),
+                    nume,
+                    datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
                 ),
             )
             return int(cur.lastrowid)
+
+    def redenumeste(self, eid: int, nume: str) -> None:
+        with self._connect() as conn:
+            conn.execute("UPDATE evaluari SET nume = ? WHERE id = ?", (nume, eid))
+
+    def sterge(self, eid: int) -> None:
+        with self._connect() as conn:
+            conn.execute("DELETE FROM evaluari WHERE id = ?", (eid,))
+
+    def set_wizard_snapshot(self, eid: int, snapshot: dict) -> None:
+        """Reține câmpurile brute ale wizardului pentru re-deschiderea dosarului."""
+        with self._connect() as conn:
+            conn.execute("UPDATE evaluari SET wizard_json = ? WHERE id = ?",
+                         (json.dumps(snapshot, ensure_ascii=False), eid))
+
+    def get_dosar(self, eid: int) -> dict:
+        """Datele pentru re-deschidere: nume + snapshot wizard (sau None)."""
+        with self._connect() as conn:
+            row = conn.execute(
+                "SELECT nume, wizard_json FROM evaluari WHERE id = ?", (eid,)).fetchone()
+        if row is None:
+            raise KeyError(f"Dosar inexistent: {eid}")
+        return {"id": eid, "nume": row[0],
+                "wizard": json.loads(row[1]) if row[1] else None}
 
     def load(self, eid: int) -> ReportContext:
         with self._connect() as conn:
@@ -113,10 +148,12 @@ class Storage:
     def list(self) -> list[dict]:
         with self._connect() as conn:
             rows = conn.execute(
-                "SELECT id, client_nume, valoare_finala FROM evaluari ORDER BY id DESC"
+                "SELECT id, client_nume, valoare_finala, nume, creat_la "
+                "FROM evaluari ORDER BY id DESC"
             ).fetchall()
         return [
-            {"id": r[0], "client_nume": r[1], "valoare_finala": r[2]} for r in rows
+            {"id": r[0], "client_nume": r[1], "valoare_finala": r[2],
+             "nume": r[3], "creat_la": r[4]} for r in rows
         ]
 
     # ── Coada de anunturi importate din extensia de browser ──────────────────────

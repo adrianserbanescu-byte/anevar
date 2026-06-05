@@ -673,6 +673,10 @@ $("btn-calc").addEventListener("click", async ()=>{
   try{ const r=await fetch("/api/evaluare",{method:"POST",
       headers:{"Content-Type":"application/json"}, body:JSON.stringify(asambleaza())});
     const res=await r.json(); evaluareId=res.id;
+    // Salvează snapshot-ul câmpurilor pentru re-deschiderea dosarului din pagina /dosare.
+    try{ const s={}; CAMPURI.forEach(c=>{ if($(c)) s[c]=$(c).value; });
+      fetch("/api/evaluare/"+evaluareId+"/snapshot",{method:"POST",
+        headers:{"Content-Type":"application/json"}, body:JSON.stringify(s)}); }catch(e){}
     let al='';
     if(res.alerte && res.alerte.length){
       al=res.alerte.map(a=>`<div class="${a.nivel==='blocheaza'?'a-block':'a-warn'}">`

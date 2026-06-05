@@ -35,7 +35,15 @@ regenera, șterge, redenumi. În plus — concept nou din brainstorm — fiecare
 - Lipsește: folder-per-dosar + versiuni `.docx`, pagina de management, re-hidratare wizard,
   redenumire, identitate/lock.
 
-## Buildabil ACUM (nu depinde de #1)
+## ✅ IMPLEMENTAT (2026-06-06) — partea de stocare
+- Migrare schema **v4** (`nume`, `creat_la`, `wizard_json`).
+- `storage`: `save(nume)`, `redenumeste`, `sterge`, `set_wizard_snapshot`, `get_dosar`, `list` cu meta.
+- Versionare: fiecare `.docx` generat se salvează datat în `date/dosare/<id>/`.
+- Endpoint-uri: redenumire / snapshot / dosar / ștergere (+ folder).
+- Pagină **/dosare** (listă, Deschide=re-hidratare wizard, Redenumește, Descarcă .docx, Șterge) + nav.
+- +10 teste; 421 suită verde.
+
+## Mai rămas buildabil (nu depinde de #1)
 - Migrare schema **v4**: `evaluari.nume`, `evaluari.creat_la`, `evaluari.identitate_hash`(nullable).
 - Folder-per-dosar + salvarea fiecărui `.docx` generat (datat) în el.
 - Pagină `/dosare`: listă (nume, client, valoare, dată) + Deschide / Redenumește / Descarcă

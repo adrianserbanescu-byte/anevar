@@ -1,7 +1,10 @@
 """Dosare de evaluare: creare, citire, raport .docx, audit + pagina de rezultat."""
 from __future__ import annotations
 
+import os
+import shutil
 import tempfile
+from datetime import datetime
 from pathlib import Path
 
 from fastapi import APIRouter, HTTPException, Request
@@ -11,6 +14,13 @@ from evaluare.assembler import EvaluationInput, construieste_context, valideaza
 from evaluare.report.generator import genereaza_raport
 from evaluare.web.deps import DOCX_MIME, Deps
 from evaluare.web.format import fmt_numar
+from evaluare.web.schemas import RedenumesteRequest
+
+
+def _folder_dosar(eid: int) -> Path:
+    """Folderul dedicat unui dosar (versiuni .docx), lângă datele aplicației."""
+    out = os.environ.get("OUTPUT_DIR") or "date"
+    return Path(out) / "dosare" / str(eid)
 
 
 def build_router(d: Deps) -> APIRouter:
@@ -53,7 +63,38 @@ def build_router(d: Deps) -> APIRouter:
         sufix = "_demo" if demo else ""
         out = Path(tempfile.gettempdir()) / f"raport_{eid}{sufix}.docx"
         genereaza_raport(ctx, out, adnotari=bool(demo))
+        # Versionare: salvează o copie datată în folderul dosarului (doar raportul real).
+        if not demo:
+            folder = _folder_dosar(eid)
+            try:
+                folder.mkdir(parents=True, exist_ok=True)
+                shutil.copy(out, folder / f"raport-{datetime.now():%Y%m%d-%H%M%S}.docx")
+            except OSError:
+                pass                                       # versionarea nu blochează descărcarea
         return FileResponse(str(out), media_type=DOCX_MIME, filename=f"raport_{eid}{sufix}.docx")
+
+    @router.post("/api/evaluare/{eid}/redenumeste")
+    def redenumeste_dosar(eid: int, req: RedenumesteRequest) -> dict:
+        d.storage.redenumeste(eid, req.nume.strip() or "Dosar")
+        return {"ok": True}
+
+    @router.post("/api/evaluare/{eid}/snapshot")
+    def salveaza_snapshot(eid: int, snapshot: dict) -> dict:
+        d.storage.set_wizard_snapshot(eid, snapshot)
+        return {"ok": True}
+
+    @router.get("/api/evaluare/{eid}/dosar")
+    def citeste_dosar(eid: int) -> dict:
+        try:
+            return d.storage.get_dosar(eid)
+        except KeyError:
+            raise HTTPException(status_code=404, detail="Dosarul nu există.") from None
+
+    @router.post("/api/evaluare/{eid}/sterge")
+    def sterge_dosar(eid: int) -> dict:
+        d.storage.sterge(eid)
+        shutil.rmtree(_folder_dosar(eid), ignore_errors=True)
+        return {"ok": True}
 
     @router.get("/api/evaluare/{eid}/audit.txt")
     def audit_dosar(eid: int):
