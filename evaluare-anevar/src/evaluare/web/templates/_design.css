@@ -215,6 +215,17 @@ a.btn{ display:inline-block; text-decoration:none; color:#fdf8ef; background:var
   transition:transform .12s, background .15s; }
 a.btn:hover{ background:var(--sienna-deep); color:#fdf8ef; text-decoration:none; transform:translateY(-1px); }
 
+/* Buton secundar „ghost" — acțiuni de rang doi (golire coadă, backup, raport-demo).
+   Conturat, fără umplere; contrast text sienna/hârtie ≈ 8:1, bordură ≥3:1 (WCAG AA). */
+button.ghost, a.btn.ghost{
+  background:transparent; color:var(--sienna); border:1px solid var(--sienna);
+  box-shadow:none;
+}
+button.ghost:hover, a.btn.ghost:hover{
+  background:var(--sienna); color:#fdf8ef; transform:translateY(-1px);
+}
+button.ghost:disabled{ color:var(--ink-faint); border-color:var(--line-2); background:transparent; }
+
 :focus-visible{ outline:2px solid var(--sienna); outline-offset:2px; }
 
 /* -------------------------------------------------------------- Tabele */
