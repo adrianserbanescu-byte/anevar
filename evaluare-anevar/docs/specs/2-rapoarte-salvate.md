@@ -43,12 +43,9 @@ regenera, șterge, redenumi. În plus — concept nou din brainstorm — fiecare
 - Pagină **/dosare** (listă, Deschide=re-hidratare wizard, Redenumește, Descarcă .docx, Șterge) + nav.
 - +10 teste; 421 suită verde.
 
-## Mai rămas buildabil (nu depinde de #1)
-- Migrare schema **v4**: `evaluari.nume`, `evaluari.creat_la`, `evaluari.identitate_hash`(nullable).
-- Folder-per-dosar + salvarea fiecărui `.docx` generat (datat) în el.
-- Pagină `/dosare`: listă (nume, client, valoare, dată) + Deschide / Redenumește / Descarcă
-  versiune `.docx` / Șterge.
-- Re-hidratare wizard din `context_json`.
+## Mai rămas (mic, nu depinde de #1)
+- Listă de versiuni `.docx` per dosar în pagină (acum se descarcă ultima/se regenerează).
+- `identitate_hash` în schema (pregătit, dar logica de identitate vine cu #1).
 
 ## Blocat pe #1 (de făcut după fluxul UI)
 - Definirea câmpurilor de identitate + blocarea lor în UI.
