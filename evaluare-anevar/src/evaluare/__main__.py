@@ -75,6 +75,12 @@ def _ruleaza(baza: Path) -> None:
     os.environ.setdefault("OUTPUT_DIR", str(baza / "date"))
     configure_logging(log_dir=baza)
     settings = Settings.from_env()
+    # Avertisment: baza SQLite intr-un folder de sync cloud poate da „database locked”.
+    cale = str(settings.db_path).lower()
+    if any(m in cale for m in ("onedrive", "dropbox", "google drive", "googledrive")):
+        log.warning("Baza de date e intr-un folder de sincronizare cloud (%s) — risc de "
+                    "blocare a fisierului. Recomandat: muta aplicatia intr-un folder local.",
+                    settings.db_path.parent)
     storage = Storage(settings.db_path)
     storage.init()
     app = create_app(storage=storage, client=settings.narrative_client())

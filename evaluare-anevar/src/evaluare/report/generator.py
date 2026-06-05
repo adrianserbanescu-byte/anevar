@@ -404,6 +404,19 @@ def _adauga_alocare(doc: DocxDocument, ctx: ReportContext, adnotari: bool = Fals
         "Valoarea constructiilor a fost obtinuta prin alocare: valoarea proprietatii minus "
         "valoarea terenului estimata prin comparatie directa."
     )
+    # Verificare de consistenta cost <-> piata (GEV 520): depreciere implicita neexplicata.
+    cr = ctx.cost_result
+    if cr is not None and cr.cin and cr.cin > 0 and ctx.alocare_constructii is not None:
+        deprec = (cr.cin - ctx.alocare_constructii) / cr.cin
+        if abs(deprec) > Decimal("0.20"):
+            p = doc.add_paragraph()
+            p.add_run(
+                f"VERIFICARE DE CONSISTENTA (GEV 520): valoarea constructiilor alocata "
+                f"({_fmt(ctx.alocare_constructii)} {ctx.meta.moneda}) difera cu {_pct(deprec)} fata de "
+                f"costul de inlocuire net ({_fmt(cr.cin)} {ctx.meta.moneda}). O diferenta de aceasta "
+                "amplitudine trebuie justificata explicit (depreciere fizica/functionala/externa, "
+                "supraoferta sau localizare inferioara) - altfel poate fi semnalata la verificarea bancara."
+            ).bold = True
 
 
 def _adauga_risc_garantie(doc: DocxDocument, ctx: ReportContext, adnotari: bool = False) -> None:

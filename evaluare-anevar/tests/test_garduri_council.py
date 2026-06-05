@@ -1,0 +1,34 @@
+"""Garduri de protecție post-review LLM council (gălata A)."""
+from __future__ import annotations
+
+from evaluare.ai.narrative import filtreaza_pii_rezidual
+from evaluare.aml.documente import genereaza_norme_interne
+
+
+def test_filtru_pii_mascheaza_cnp_telefon_email():
+    txt = "Contact 0722123456, CNP 1900101415011, mail ion.popescu@example.com."
+    out = filtreaza_pii_rezidual(txt)
+    assert "1900101415011" not in out and "[REDACTAT-CNP]" in out
+    assert "0722123456" not in out and "[REDACTAT-TEL]" in out
+    assert "ion.popescu@example.com" not in out and "[REDACTAT-EMAIL]" in out
+
+
+def test_filtru_pii_nu_afecteaza_cifre_normale():
+    # sume/suprafețe obișnuite nu trebuie atinse
+    txt = "Valoare 135.267 EUR, suprafață 120 mp, an 2015."
+    assert filtreaza_pii_rezidual(txt) == txt
+
+
+def test_documente_aml_contin_disclaimer_juridic():
+    import os
+    import tempfile
+
+    from evaluare.aml.documente import salveaza
+    doc = genereaza_norme_interne()
+    out = os.path.join(tempfile.gettempdir(), "_norme_test.docx")
+    salveaza(doc, out)
+    from docx import Document
+    text = "\n".join(p.text for p in Document(out).paragraphs)
+    assert "DRAFT GENERAT AUTOMAT" in text
+    assert "art. 33" in text.lower()
+    assert "NU efectuează verificări automate" in text

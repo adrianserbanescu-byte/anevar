@@ -31,6 +31,13 @@ def _antet(doc: DocxDocument, antet: dict | None) -> None:
     entitate = antet.get("entitate", "______________________ (entitatea raportoare)")
     data = antet.get("data", "____________")
     versiune = antet.get("versiune", "1.0")
+    avert = doc.add_paragraph()
+    avert.add_run(
+        "DRAFT GENERAT AUTOMAT — NEVERIFICAT JURIDIC. A se adapta entității și a se valida de un "
+        "consultant/jurist AML înainte de utilizare. Legea nr. 129/2019, art. 33, prevede sancțiuni "
+        "(inclusiv penale) pentru raportarea cu rea-credință sau neglijență gravă. Aplicația NU "
+        "efectuează verificări automate pe listele de sancțiuni/PEP."
+    ).bold = True
     p = doc.add_paragraph()
     p.add_run(f"Entitate raportoare: {entitate}").bold = True
     doc.add_paragraph(f"Data: {data}    Versiune: {versiune}")

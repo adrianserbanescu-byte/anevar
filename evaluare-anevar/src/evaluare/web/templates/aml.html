@@ -10,6 +10,14 @@
 beneficiar real, evaluarea de risc, indicatorii de suspiciune și pragul de numerar (10.000 €).
 Datele rămân <b>local</b>; rapoartele suspecte se păstrează separat (interdicție de divulgare, art. 38).
 Modulul propune — <b>evaluatorul decide și transmite</b> (rapoarte.onpcsb.ro).</p>
+<div class="avert-legal" role="alert">
+  ⚠️ Aplicația <b>NU verifică automat</b> listele de sancțiuni/PEP. Verifică manual pe sursele oficiale:
+  <a href="https://www.opensanctions.org/" target="_blank" rel="noopener">OpenSanctions</a> ·
+  <a href="https://www.sanctionsmap.eu/" target="_blank" rel="noopener">EU Sanctions Map</a> ·
+  <a href="https://sanctionssearch.ofac.treas.gov/" target="_blank" rel="noopener">OFAC</a>.
+  Documentele generate sunt <b>drafturi neverificate juridic</b> — validează-le cu un jurist AML
+  înainte de transmitere (Legea 129/2019, art. 33).
+</div>
 
 <main id="continut">
 <fieldset>
@@ -96,7 +104,7 @@ async function evalueaza(){
   if(d.motive_sporit.length) h+=`<p class="warn">Motive risc sporit:</p><ul>`+d.motive_sporit.map(m=>`<li>${m}</li>`).join('')+`</ul>`;
   if(d.indicatori.length) h+=`<p>Indicatori activi → ${d.propune_rts?'<b class="warn">se propune RTS</b>':''}</p><ul>`+
      d.indicatori.map(i=>`<li>${i.text}</li>`).join('')+`</ul>`;
-  if(d.screening.length) h+=`<p class="warn">Posibile potriviri screening (verifică manual):</p><ul>`+
+  if(d.screening.length) h+=`<p class="warn">Posibile potriviri pe liste <b>demonstrative</b> (NU sunt liste oficiale live — verifică manual pe sursele oficiale):</p><ul>`+
      d.screening.map(s=>`<li>${s.lista}: ${s.intrare} (${s.scor})</li>`).join('')+`</ul>`;
   h+=`<p>Documente de generat:</p><ul>`+d.documente_necesare.map(doc=>{
      const map={norme_interne:'/api/aml/norme-interne.docx',evaluare_risc:'/api/aml/evaluare-risc.docx',
@@ -106,6 +114,13 @@ async function evalueaza(){
   window._amlBody=body;
 }
 async function descarca(url){
+  // Confirmare suplimentară pentru rapoartele de tranzacție (RTS/RTN) — risc legal Art. 33.
+  if(url.indexOf('rts')>=0 || url.indexOf('rtn')>=0){
+    if(!confirm("ATENȚIE — raport de tranzacție (RTS/RTN).\n\nDocumentul e un DRAFT neverificat juridic. "
+      +"Legea 129/2019, art. 33, prevede sancțiuni (inclusiv penale) pentru raportarea cu rea-credință "
+      +"sau neglijență gravă. Verifică fiecare afirmație și NU divulga clientului (art. 38).\n\nContinui?"))
+      return;
+  }
   const body=Object.assign({},window._amlBody);
   if(url.indexOf('decizie')>=0) body.persoana_desemnata={nume:val('nume')||'____',prenume:val('prenume')||''};
   if(url.indexOf('rts')>=0) body.rts={motiv:'indicatori de suspiciune bifați',

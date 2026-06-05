@@ -64,9 +64,28 @@ SYSTEM_PROMPT = (
     "Esti un evaluator imobiliar autorizat ANEVAR. Scrii sectiuni de raport de "
     "evaluare in limba romana, profesional si conform standardelor SEV (editia in "
     "vigoare). Folosesti EXCLUSIV datele numerice furnizate; nu inventezi si nu "
-    "modifici cifre. Pastrezi marcajele de forma [CLIENT], [ADRESA], [CADASTRAL], "
-    "[CF], [EVALUATOR] exact cum apar. Scrii doar textul capitolului cerut, fara titlu."
+    "modifici cifre. NU inventa surse, studii, citate sau referinte legislative "
+    "specifice (ex. 'conform studiului X', 'datele arata Y') care nu apar in datele "
+    "furnizate. Pentru aprecieri de piata foloseste formulari prudente ('analiza "
+    "sugereaza', 'poate indica'), nu afirmatii factuale nesustinute. Pastrezi marcajele "
+    "de forma [CLIENT], [ADRESA], [CADASTRAL], [CF], [EVALUATOR] exact cum apar. Scrii "
+    "doar textul capitolului cerut, fara titlu."
 )
+
+# Plasă de siguranță GDPR: tipare RO de date personale care ar fi putut scăpa de
+# anonimizare (CNP, telefon, e-mail) -> înlocuite înainte de trimiterea la AI.
+_PII_REZIDUAL = [
+    (re.compile(r"\b[1-8]\d{12}\b"), "[REDACTAT-CNP]"),       # CNP: 13 cifre
+    (re.compile(r"\b(?:\+?40|0)7\d{8}\b"), "[REDACTAT-TEL]"),  # mobil RO
+    (re.compile(r"\b[\w.+-]+@[\w-]+\.[\w.-]+\b"), "[REDACTAT-EMAIL]"),
+]
+
+
+def filtreaza_pii_rezidual(text: str) -> str:
+    """Maschează tipare evidente de date personale rămase după anonimizare (safety-net)."""
+    for tipar, inlocuitor in _PII_REZIDUAL:
+        text = tipar.sub(inlocuitor, text)
+    return text
 
 
 class NarrativeClient(Protocol):
@@ -175,6 +194,7 @@ def generate_narrative(
     facts = _facts(ctx)
     if anonymizer is not None:
         facts = anonymizer.mask(facts)
+    facts = filtreaza_pii_rezidual(facts)  # plasă de siguranță GDPR (CNP/tel/email scăpate)
 
     sections: list[NarrativeSection] = []
     for capitol in CAPITOLE_NARATIVE:
@@ -214,6 +234,7 @@ class PerplexityNarrativeClient:
             json={
                 "model": self._model,
                 "max_tokens": self._max_tokens,
+                "temperature": 0.2,   # jos: reduce halucinatiile in text de raport
                 "messages": [
                     {"role": "system", "content": system},
                     {"role": "user", "content": user},
@@ -240,6 +261,7 @@ class AnthropicNarrativeClient:
         message = self._client.messages.create(
             model=self._model,
             max_tokens=self._max_tokens,
+            temperature=0.2,   # jos: reduce halucinatiile in text de raport
             system=[{
                 "type": "text",
                 "text": system,

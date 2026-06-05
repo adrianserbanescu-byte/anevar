@@ -262,13 +262,26 @@ function afiseaza(grid, d, div){
    : grid==="chirii" ? d.chirii_mp_corectate : d.preturi_unitare_corectate;
  const unitLbl = grid==="teren" ? "Preț/mp corectat"
    : grid==="chirii" ? "Chirie/mp corectată" : "Preț total corectat";
+ // Praguri prudențiale (orientative, uzanțe bancare GEV 520): brut ≤25%, net ≤15%.
+ const PRAG_BRUT=0.25, PRAG_NET=0.15;
  let t = '<div class="rez"><table><tr><th>Comparabil</th><th>'+unitLbl+'</th><th>Ajustare brută</th><th>Selecție</th></tr>';
  preturi.forEach((p,i) => {
    const sel = i===d.index_selectat;
-   const bruta = (parseFloat(d.ajustari_brute[i])*100).toFixed(1)+"%";
+   const bv = parseFloat(d.ajustari_brute[i]);
+   const bruta = (bv*100).toFixed(1)+"%" + (bv>PRAG_BRUT?' 🚩':'');
    t += `<tr class="${sel?'sel':''}"><td>Comp ${i+1}</td><td>${fmtRo(p)}</td><td>${bruta}</td><td>${sel?'✓ ales':''}</td></tr>`;
  });
  t += "</table>";
+ // Alertă prudențială pe comparabilul ales.
+ const iSel=d.index_selectat;
+ const brutSel=parseFloat(d.ajustari_brute[iSel]);
+ const netSel=d.ajustari_nete?Math.abs(parseFloat(d.ajustari_nete[iSel])):0;
+ if(brutSel>PRAG_BRUT || netSel>PRAG_NET){
+   t += `<div class="avert-warn" role="alert">⚠️ Comparabilul ales are ajustare brută `
+      + `${(brutSel*100).toFixed(1)}% (prag ~25%)${netSel>PRAG_NET?` și netă ${(netSel*100).toFixed(1)}% (prag 15%)`:''}. `
+      + `Ajustările totale mari sunt frecvent respinse de bănci — verifică alegerea și justific-o în raport. `
+      + `Selecția se face pe ajustarea brută minimă; confirmă și ajustarea brută <b>totală</b> a comparabilelor.</div>`;
+ }
  if(grid==="teren")
    t += `<p class="val">Valoare teren = ${fmtRo(d.pret_mp_ales)} EUR/mp × suprafață = ${fmtRo(d.valoare_teren)} EUR</p>`;
  else if(grid==="chirii")
