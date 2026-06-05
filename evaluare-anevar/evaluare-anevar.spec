@@ -30,7 +30,10 @@ a = Analysis(
     runtime_hooks=[],
     # PIL._avif (Pillow 12 AVIF) corupea arhiva PKG -> „decompression -1" la
     # pornirea exe-ului; nu folosim AVIF (doar poze standard in raport).
-    excludes=["PIL._avif", "PIL.AvifImagePlugin"],
+    # PIL._avif (Pillow 12) corupea arhiva PKG. tkinter/test = GUI/teste nefolosite
+    # de un server local -> excluse pentru a reduce dimensiunea .exe (D5).
+    excludes=["PIL._avif", "PIL.AvifImagePlugin", "tkinter", "test",
+              "lib2to3", "PIL.ImageTk"],
     noarchive=False,
 )
 
