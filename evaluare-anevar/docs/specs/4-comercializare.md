@@ -26,7 +26,12 @@ APP DESKTOP (offline)            ──HTTPS, doar date anonimizate──▶   A
 - **Unitate facturată = 1 narativ AI per dosar** (nu fișierul `.docx`).
 - `.docx` re-descărcat, editări, recalcule, AML, GDPR, audit, raport-șablon = **gratis, nelimitat**.
 - **Cache:** narativul se reține în dosar → regenerare `.docx` după modificări minore = gratis.
-- **Fereastră de grație:** re-rulări AI ale aceluiași dosar (ex. 48h / primele 2-3) = gratis.
+- **Metrare pe IDENTITATE (înlocuiește fereastra de timp — vezi #2):** creditul se leagă de
+  **identitatea proprietății** (câmpuri obligatorii blocate la prima generare). Editezi date
+  secundare + regenerezi pe **același dosar** = **gratis nelimitat**. Modifici un câmp de
+  identitate → **dosar nou + 1 credit** (cu prompt + preluarea datelor care se potrivesc).
+  Asta blochează abuzul real („plătesc 1, schimb adresa, scot 50"). Setul exact de câmpuri =
+  **decis la #1** (fluxul UI al dosarului).
 - **Descoperirea** (verificare atribute secundare per anunț) + derivarea zonei = AI mic, **inclus
   gratis** (cost neglijabil; monitorizat, plafonat doar dacă apare abuz).
 

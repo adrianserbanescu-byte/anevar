@@ -1,31 +1,48 @@
-# #2 — Rapoarte salvate (revenire / editare / regenerare / ștergere)
+# #2 — Rapoarte salvate + dosar cu identitate
 
-Status: **de brainstormat** (încadrat). **Cel mai buildabil acum** — feature local, izolat.
+Status: **brainstorm parțial** (2026-06-06). Partea de stocare/management = buildabilă acum;
+partea de **identitate/credit depinde de #1** (fluxul UI definește câmpurile obligatorii).
 
 ## Idee
-La fiecare generare de document, raportul/dosarul se salvează local. Userul poate:
-- reveni la rapoarte salvate, le poate **modifica și regenera**,
-- **importa** dosarul înapoi în web (re-deschide în wizard) sau accesa documentul ca `.docx`,
-- **șterge** din documentele salvate,
-- (posibil) **redenumi** dosarele.
+La fiecare generare, dosarul + documentul se salvează local. Userul poate reveni, edita,
+regenera, șterge, redenumi. În plus — concept nou din brainstorm — fiecare dosar are o
+**identitate blocată** care leagă consumul de credit de **proprietatea evaluată**, nu de timp.
 
-## Ce avem deja în cod (avantaj — jumătate e gata)
-- `storage.save(ctx)` salvează deja fiecare evaluare în tabela `evaluari` (JSON complet) +
-  `storage.list()` / `storage.load(eid)`. Deci dosarele SE salvează deja.
-- Lipsește: o **pagină de management** (listă, re-deschide, redenumește, șterge) + re-hidratarea
-  wizardului dintr-un dosar salvat + (opțional) salvarea fișierului `.docx` pe disc lângă exe.
+## Decizii luate
+1. **Stocare = dosar (JSON) + folder dedicat per dosar.** Ex. `date/dosare/<id>-<cadastral>/` cu:
+   - dosarul (JSON — **sursa de adevăr**),
+   - **toate generările `.docx` datate** (istoric de versiuni),
+   - pozele/atașamentele.
+   Dosarul rămâne sursa; `.docx`-urile sunt snapshot-uri → ai și fișierul, și curățenia.
+2. **Identitate blocată (legată de #4 — metrare):**
+   - Un set de **câmpuri obligatorii** se **blochează la prima generare** (când se consumă creditul).
+   - **Editezi date secundare** (comparabile, ajustări, poze, narativ) → regenerezi **gratis**;
+     fiecare generare = o **versiune nouă** în folder.
+   - **Modifici un câmp de identitate** → prompt: *„Se va crea un dosar NOU (+1 credit). Vrei să
+     preiei informațiile care se potrivesc din dosarul actual?"* → da: dosar nou, credit nou,
+     folder nou, pre-completat cu ce se potrivește.
+   - Înlocuiește „fereastra de grație în timp" din #4 — mai bun (blochează abuzul „altă
+     proprietate", lasă iterația liberă).
 
-## Întrebări deschise (de rezolvat la brainstorm)
-- Salvăm și fișierul `.docx` generat pe disc (lângă exe, ca la feedback) sau doar dosarul (JSON)
-  din care regenerăm `.docx` la cerere? (recomandare inițială: dosarul e sursa de adevăr;
-  `.docx` se regenerează — evită fișiere învechite)
-- Redenumire: câmp `nume_dosar` nou în `evaluari` (migrare schema v4).
-- Ștergere: doar dosarul din DB, sau și `.docx`-urile asociate de pe disc?
-- Re-deschidere: cum re-hidratăm exact toate câmpurile wizardului din `context_json`?
-- Relația cu #4: dosarele salvate țin și narativul AI cache-uit (regenerare `.docx` = gratis).
+## ⛔ Depinde de #1 (de rezolvat acolo)
+- **Care câmpuri = identitatea blocată?** Se decide când definim **pașii UI ai unui dosar** (#1).
+  - Ipoteza utilizatorului: cel puțin **tip evaluare (scop) + tip proprietate** declanșează dosar nou.
+  - Candidați suplimentari (de confirmat la #1): nr. cadastral, CF, adresă.
+- Logica „preia informațiile care se potrivesc" la crearea dosarului nou.
 
-## Schiță tehnică (probabilă)
-- Migrare schema **v4**: `evaluari.nume`, `evaluari.creat_la`.
-- Pagină `/dosare`: listă (nume, client, valoare, dată) + acțiuni Deschide / Redenumește /
-  Descarcă `.docx` / Șterge.
-- Endpoint re-hidratare: `GET /api/evaluare/{id}/dosar` → JSON pentru pre-completarea wizardului.
+## Ce avem deja în cod
+- `storage.save(ctx)` / `list()` / `load(eid)` — dosarele se salvează deja în `evaluari`.
+- Lipsește: folder-per-dosar + versiuni `.docx`, pagina de management, re-hidratare wizard,
+  redenumire, identitate/lock.
+
+## Buildabil ACUM (nu depinde de #1)
+- Migrare schema **v4**: `evaluari.nume`, `evaluari.creat_la`, `evaluari.identitate_hash`(nullable).
+- Folder-per-dosar + salvarea fiecărui `.docx` generat (datat) în el.
+- Pagină `/dosare`: listă (nume, client, valoare, dată) + Deschide / Redenumește / Descarcă
+  versiune `.docx` / Șterge.
+- Re-hidratare wizard din `context_json`.
+
+## Blocat pe #1 (de făcut după fluxul UI)
+- Definirea câmpurilor de identitate + blocarea lor în UI.
+- Promptul „dosar nou + credit + preia ce se potrivește".
+- Legarea cu metrarea #4 (consum credit la identitate nouă).
