@@ -23,8 +23,26 @@ from evaluare.models.comparable import Comparable, LandComparable
 from evaluare.models.meta import EvaluationMeta
 from evaluare.models.property import BuildingData, LandData
 from evaluare.models.report_context import ReportContext
-from evaluare.profil import CASA_TEREN_GARANTARE, ProfilEvaluare
+from evaluare.profil import (
+    AGRICOL,
+    APARTAMENT_GARANTARE,
+    CASA_TEREN_GARANTARE,
+    INDUSTRIAL,
+    SPECIAL,
+    ProfilEvaluare,
+)
 from evaluare.report.anonymizer import build_anonymizer
+
+# Maparea tipului ales în wizard (Pas 2) la profilul de evaluare. Profilul determină
+# framing-ul raportului (tip activ, abordări declarate, ghid GEV), NU formula numerică
+# (aceea e condusă de „Metodă" la Pas 4). Tipurile fără intrare rămân pe profilul implicit.
+PROFIL_DUPA_TIP: dict[str, ProfilEvaluare] = {
+    "casa": CASA_TEREN_GARANTARE,
+    "apartament": APARTAMENT_GARANTARE,
+    "industrial": INDUSTRIAL,
+    "agricol": AGRICOL,
+    "special": SPECIAL,
+}
 
 
 class EvaluationInput(BaseModel):
@@ -38,6 +56,9 @@ class EvaluationInput(BaseModel):
     valoare_teren: Decimal | None = None
     metoda: Literal["piata", "cost", "ponderata", "venit", "dcf"] = "cost"
     pondere_piata: Decimal = Field(default=Decimal("0.5"), ge=0, le=1)
+    # Tipul ales în wizard (Pas 2): casa/apartament/industrial/agricol/special. Dacă e dat,
+    # determină profilul (suprascrie `profil`). Lipsă -> se folosește `profil` (implicit casă).
+    tip_proprietate: str | None = None
     profil: ProfilEvaluare = CASA_TEREN_GARANTARE
     date_venit: DateVenit | None = None
     date_dcf: DateDCF | None = None
@@ -63,6 +84,8 @@ def construieste_context(
     inp: EvaluationInput, client: NarrativeClient | None
 ) -> ReportContext:
     """Ruleaza motoarele si asambleaza ReportContext (inclusiv narativul)."""
+    # Profil efectiv: tipul ales in wizard suprascrie profilul implicit (framing raport).
+    profil = PROFIL_DUPA_TIP.get(inp.tip_proprietate or "", inp.profil)
     # Teren: daca exista comparabile de teren, valoarea se calculeaza prin grila;
     # altfel se foloseste valoarea introdusa manual.
     land_result = None
@@ -128,7 +151,7 @@ def construieste_context(
         comparables=inp.comparables, land_comparables=inp.land_comparables,
         cost_result=cost_result, market_result=market_result, reconciled=reconciled,
         land_result=land_result, alocare_constructii=alocare, photos=inp.photos,
-        documente=inp.documente, profil=inp.profil,
+        documente=inp.documente, profil=profil,
         venit_result=venit_result, date_venit=inp.date_venit,
         dcf_valoare=dcf_valoare,
     )

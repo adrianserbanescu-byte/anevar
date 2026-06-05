@@ -23,6 +23,27 @@ def _input(metoda):
 def test_context_are_profil_default():
     ctx = construieste_context(_input("cost"), client=None)
     assert ctx.profil is not None
+    assert ctx.profil.tip_activ == "casa"  # implicit, fără tip_proprietate
+
+
+def test_tip_proprietate_conduce_profilul():
+    # Tipul ales în wizard (Pas 2) determină profilul raportului (tip activ + ghid GEV).
+    asteptari = {"apartament": ("apartament", "GEV_520"), "industrial": ("industrial", "GEV_630"),
+                 "agricol": ("agricol", "GEV_630"), "special": ("special", "GEV_630"),
+                 "casa": ("casa", "GEV_520")}
+    for tip, (tip_activ, ghid) in asteptari.items():
+        inp = _input("cost")
+        inp.tip_proprietate = tip
+        ctx = construieste_context(inp, client=None)
+        assert ctx.profil.tip_activ == tip_activ, tip
+        assert ctx.profil.ghid == ghid, tip
+
+
+def test_tip_necunoscut_pastreaza_profil_implicit():
+    inp = _input("cost")
+    inp.tip_proprietate = "ceva_inexistent"
+    ctx = construieste_context(inp, client=None)
+    assert ctx.profil.tip_activ == "casa"
 
 
 def test_reconciliere_identica_pe_cele_trei_metode():
