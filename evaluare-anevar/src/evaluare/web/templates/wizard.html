@@ -270,8 +270,8 @@
    <br><b>Fotografiile</b> se atașează la Pas 4 înainte de „Calculează" — dacă le adaugi după, apasă
    din nou „Calculează" ca să intre în raport.</p>
   <button type="button" id="btn-raport">📄 Generează și descarcă raportul .docx</button>
-  <button type="button" id="btn-raport-demo">📝 Raport cu note (demo)</button>
-  <button type="button" id="btn-audit">🧾 Urmă de audit (.txt)</button>
+  <button type="button" class="ghost" id="btn-raport-demo">📝 Raport cu note (demo)</button>
+  <button type="button" class="ghost" id="btn-audit">🧾 Urmă de audit (.txt)</button>
   <small class="hint">„Raport cu note (demo)" adaugă sub fiecare secțiune o adnotare care explică
    proveniența informației (calculat / extras / AI / exemplu / placeholder) — util pentru review.
    Notele NU apar în raportul normal.<br>
@@ -280,9 +280,9 @@
 </section>
 
 <div>
-  <button type="button" id="inapoi">◀ Înapoi</button>
+  <button type="button" class="ghost" id="inapoi">◀ Înapoi</button>
   <button type="button" id="inainte">Înainte ▶</button>
-  <button type="button" id="reset">Reset dosar</button>
+  <button type="button" class="ghost" id="reset">Reset dosar</button>
   <a class="btn ghost" href="/api/backup.db" title="Salvează o copie a tuturor dosarelor (.db)">💾 Backup dosare</a>
   <a class="btn ghost" href="/formular" title="Toate câmpurile pe o singură pagină">📄 Formular clasic</a>
 </div>
