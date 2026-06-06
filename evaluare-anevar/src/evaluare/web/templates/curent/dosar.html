@@ -1,52 +1,41 @@
 <!DOCTYPE html>
 <html lang="ro">
 <head><meta charset="utf-8"><title>Dosar — {{ dosar.nume }}</title>
-<style>{% include "_design.css" %}
-.tabbar{display:flex;gap:4px;flex-wrap:wrap;border-bottom:2px solid var(--brass);margin:14px 0 0}
-.tabbar button{margin:0;border:1px solid var(--line);border-bottom:none;border-radius:var(--radius-sm) var(--radius-sm) 0 0;background:var(--paper-sunk);color:var(--ink-2);box-shadow:none;transform:none;padding:9px 16px}
-.tabbar button[aria-selected="true"]{background:var(--paper-card);color:var(--sienna);border-color:var(--brass);border-bottom:2px solid var(--paper-card);margin-bottom:-2px}
-.subbar{display:flex;gap:6px;flex-wrap:wrap;margin:10px 0}
-.subbar button{padding:6px 12px;font-size:.85rem}
-.map-toggle{display:inline-grid;place-items:center;width:17px;height:17px;padding:0;margin-left:4px;border-radius:50%;border:1px solid var(--gold);background:var(--warn-bg,#ece4d2);color:var(--gold);font:700 .7rem var(--sans);cursor:pointer;vertical-align:middle;line-height:1;box-shadow:none}
-.map-toggle:hover{background:var(--gold);color:#fff;transform:none}
-.map-pop{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
-.map-pop.deschis{position:absolute;top:calc(100% + 6px);left:0;z-index:60;width:max-content;max-width:320px;height:auto;overflow:visible;clip:auto;background:var(--warn-soft,#f4ecc9);border:1px solid var(--gold);border-radius:var(--radius-sm);padding:9px 12px;box-shadow:var(--shadow);font-size:.8rem;line-height:1.45;color:var(--ink-2)}
-</style></head>
+<style>{% include "_design.css" %}</style></head>
 <body>
 <a class="skip-link" href="#continut">Sari la conținut</a>
-<div class="topbar"><a class="brand" href="/incepe"><span class="brand-seal">EA</span>
+<nav class="topbar" aria-label="Navigare dosar"><a class="brand" href="/incepe"><span class="brand-seal">EA</span>
   <span class="brand-text"><span class="kicker">Versiune curentă</span>
-  <span class="brand-title">← Dosarele mele</span></span></a></div>
+  <span class="brand-title">← Dosarele mele</span></span></a></nav>
 
-<header class="cartus"><div class="cartus-body"><div class="cartus-text">
-  <div class="kicker">Dosar</div><h1 id="nume-dosar">{{ dosar.nume }}</h1>
-  <p class="cartus-sub">🔒 identitate (blocată după prima generare) · 📝 datele rămân editabile ·
-   ● salvat automat în folder</p>
-</div></div><hr class="brass-rule"></header>
+{% set kicker = "Dosar" %}{% set titlu = dosar.nume %}
+{% set subtitlu = "Identitate blocată după prima generare · datele rămân editabile" %}
+{% include "_cartus.html" %}
+<p class="hint" id="save-ind" role="status" aria-live="polite">● salvat automat în folder</p>
 
 <main id="continut">
-  <div class="tabbar" role="tablist">
-    <button role="tab" data-tab="raport" aria-selected="true">📄 Raport evaluare</button>
-    <button role="tab" data-tab="aml" aria-selected="false">🛡 AML</button>
-    <button role="tab" data-tab="gdpr" aria-selected="false">🔒 GDPR</button>
-    <button role="tab" data-tab="audit" aria-selected="false">🧾 Audit</button>
-    <button role="tab" data-tab="anexe" aria-selected="false">📎 Anexe</button>
+  <div class="tabs" role="tablist" aria-label="Secțiuni dosar">
+    <button type="button" role="tab" id="t-raport" aria-controls="p-raport" aria-selected="true"><span aria-hidden="true">📄</span> Raport evaluare</button>
+    <button type="button" role="tab" id="t-aml" aria-controls="p-aml" aria-selected="false" tabindex="-1"><span aria-hidden="true">🛡</span> AML</button>
+    <button type="button" role="tab" id="t-gdpr" aria-controls="p-gdpr" aria-selected="false" tabindex="-1"><span aria-hidden="true">🔒</span> GDPR</button>
+    <button type="button" role="tab" id="t-audit" aria-controls="p-audit" aria-selected="false" tabindex="-1"><span aria-hidden="true">🧾</span> Audit</button>
+    <button type="button" role="tab" id="t-anexe" aria-controls="p-anexe" aria-selected="false" tabindex="-1"><span aria-hidden="true">📎</span> Anexe</button>
   </div>
 
   <!-- ============ RAPORT ============ -->
-  <section data-panel="raport">
-    <div class="subbar" role="tablist">
-      <button role="tab" data-sub="proprietate" aria-selected="true">Proprietate</button>
-      <button role="tab" data-sub="comparabile" aria-selected="false">Comparabile</button>
-      <button role="tab" data-sub="calcul" aria-selected="false">Calcul</button>
-      <button role="tab" data-sub="genereaza" aria-selected="false">Generează</button>
+  <section role="tabpanel" id="p-raport" aria-labelledby="t-raport" tabindex="0">
+    <div class="subtabs" role="tablist" aria-label="Secțiuni raport">
+      <button type="button" role="tab" id="s-proprietate" aria-controls="sp-proprietate" aria-selected="true">Proprietate</button>
+      <button type="button" role="tab" id="s-comparabile" aria-controls="sp-comparabile" aria-selected="false" tabindex="-1">Comparabile</button>
+      <button type="button" role="tab" id="s-calcul" aria-controls="sp-calcul" aria-selected="false" tabindex="-1">Calcul</button>
+      <button type="button" role="tab" id="s-genereaza" aria-controls="sp-genereaza" aria-selected="false" tabindex="-1">Generează</button>
     </div>
 
-    <div data-subpanel="proprietate">
-      <h3>Identificare (obligatorii la creare; se blochează după prima generare)</h3>
+    <section role="tabpanel" id="sp-proprietate" aria-labelledby="s-proprietate" tabindex="0">
+      <h3>Identificare <span class="hint">(obligatorii la creare; se blochează după prima generare)</span></h3>
       <div class="field-row">
-        <div class="field"><label for="id_client">ID client</label><input id="id_client"></div>
-        <div class="field"><label for="nume_client">Nume client</label><input id="nume_client"></div>
+        <div class="field"><label for="id_client">ID client</label><input id="id_client" autocomplete="off"></div>
+        <div class="field"><label for="nume_client">Nume client</label><input id="nume_client" autocomplete="name"></div>
       </div>
       <div class="field-row">
         <div class="field"><label for="scop">Scop</label>
@@ -76,29 +65,30 @@
       </div>
       <h3>Date fizice</h3>
       <div class="field-row">
-        <div class="field"><label for="suprafata_teren">Suprafață teren (mp)</label><input id="suprafata_teren" value="500"></div>
-        <div class="field"><label for="valoare_teren">Valoare teren (lei)</label><input id="valoare_teren" value="100000"></div>
+        <div class="field"><label for="suprafata_teren">Suprafață teren (mp)</label><input id="suprafata_teren" placeholder="ex. 500"></div>
+        <div class="field"><label for="valoare_teren">Valoare teren (lei)</label><input id="valoare_teren" placeholder="ex. 100000"></div>
       </div>
       <div class="field-row">
-        <div class="field"><label for="au">Au (mp)</label><input id="au" value="100"></div>
-        <div class="field"><label for="acd">Acd (mp)</label><input id="acd" value="120"></div>
-        <div class="field"><label for="an_referinta">An referință</label><input id="an_referinta" value="2025"></div>
+        <div class="field"><label for="au">Au (mp)</label><input id="au" placeholder="ex. 100"></div>
+        <div class="field"><label for="acd">Acd (mp)</label><input id="acd" placeholder="ex. 120"></div>
+        <div class="field"><label for="an_referinta">An referință</label><input id="an_referinta" placeholder="ex. 2025"></div>
       </div>
-      <label for="elemente">Elemente cost (element;cod;um;cantitate;cost_unitar;an_pif)</label>
-      <textarea id="elemente" rows="2">Structura;X;mp;120;2000;2015</textarea>
-      <label for="depreciere">Depreciere (varsta;fractie)</label>
-      <textarea id="depreciere" rows="2">5;0.05</textarea>
-    </div>
+      <label for="elemente">Elemente cost <span class="hint">(element;cod;um;cantitate;cost_unitar;an_pif — una pe linie)</span></label>
+      <textarea id="elemente" rows="2" aria-describedby="h-elemente" placeholder="Structura;X;mp;120;2000;2015"></textarea>
+      <small id="h-elemente" class="hint">Lasă gol pentru proprietăți fără construcție (teren).</small>
+      <label for="depreciere">Depreciere <span class="hint">(varsta;fractie)</span></label>
+      <textarea id="depreciere" rows="2" placeholder="5;0.05"></textarea>
+    </section>
 
-    <div data-subpanel="comparabile" hidden>
+    <section role="tabpanel" id="sp-comparabile" aria-labelledby="s-comparabile" tabindex="0" hidden>
       <p class="hint">Descoperirea comparabilelor se face în pagina dedicată
-       (<a href="/descoperire" target="_blank">Descoperire ↗</a>); rezultatele bifate ajung în grilă.</p>
-      <label for="comparabile">Comparabile (preț;suprafață, unul pe linie)</label>
+       (<a href="/descoperire" target="_blank" rel="noopener">Descoperire ↗</a>); rezultatele bifate ajung în grilă.</p>
+      <label for="comparabile">Comparabile <span class="hint">(preț;suprafață, una pe linie)</span></label>
       <textarea id="comparabile" rows="4" placeholder="250000;120"></textarea>
-      <p class="hint">Grile detaliate: <a href="/grila" target="_blank">Grile ↗</a>.</p>
-    </div>
+      <p class="hint">Grile detaliate: <a href="/grila" target="_blank" rel="noopener">Grile ↗</a>.</p>
+    </section>
 
-    <div data-subpanel="calcul" hidden>
+    <section role="tabpanel" id="sp-calcul" aria-labelledby="s-calcul" tabindex="0" hidden>
       <div class="field-row">
         <div class="field"><label for="metoda">Metodă</label>
           <select id="metoda"><option value="cost">Cost</option><option value="piata">Piață</option>
@@ -108,21 +98,21 @@
       </div>
       <button type="button" id="calc">Calculează</button>
       <div id="rezultat" role="status" aria-live="polite"></div>
-    </div>
+    </section>
 
-    <div data-subpanel="genereaza" hidden>
-      <p class="hint">Generează raportul `.docx`; fiecare generare se salvează ca versiune în folderul dosarului.</p>
-      <button type="button" id="genereaza">📄 Generează și descarcă raportul</button>
-      <span id="gen-status" class="hint" role="status"></span>
-    </div>
+    <section role="tabpanel" id="sp-genereaza" aria-labelledby="s-genereaza" tabindex="0" hidden>
+      <p class="hint">Generează raportul .docx; fiecare generare se salvează ca versiune în folderul dosarului.</p>
+      <button type="button" id="genereaza"><span aria-hidden="true">📄</span> Generează și descarcă raportul</button>
+      <span id="gen-status" class="hint" role="status" aria-live="polite"></span>
+    </section>
   </section>
 
-  <section data-panel="aml" hidden><p class="hint">Modulul AML (risc + documente):
-    <a href="/aml" target="_blank">deschide AML ↗</a></p></section>
-  <section data-panel="gdpr" hidden><p class="hint">Documente GDPR:
-    <a href="/aml" target="_blank">politică & consimțământ ↗</a></p></section>
-  <section data-panel="audit" hidden><p class="hint">Urma de audit se descarcă după calcul (în versiunea comercială, per dosar).</p></section>
-  <section data-panel="anexe" hidden><p class="hint">Foto + scanuri documente (Anexa 2/3). Atașarea fișierelor vine cu versiunea comercială;
+  <section role="tabpanel" id="p-aml" aria-labelledby="t-aml" tabindex="0" hidden><p class="hint">Modulul AML (risc + documente):
+    <a href="/aml" target="_blank" rel="noopener">deschide AML ↗</a></p></section>
+  <section role="tabpanel" id="p-gdpr" aria-labelledby="t-gdpr" tabindex="0" hidden><p class="hint">Documente GDPR:
+    <a href="/aml" target="_blank" rel="noopener">politică & consimțământ ↗</a></p></section>
+  <section role="tabpanel" id="p-audit" aria-labelledby="t-audit" tabindex="0" hidden><p class="hint">Urma de audit se descarcă după calcul (în versiunea comercială, per dosar).</p></section>
+  <section role="tabpanel" id="p-anexe" aria-labelledby="t-anexe" tabindex="0" hidden><p class="hint">Foto + scanuri documente (Anexa 2/3). Atașarea fișierelor vine cu versiunea comercială;
     importul PDF pre-completează datele și se atașează aici.</p></section>
 </main>
 
@@ -130,7 +120,7 @@
 <script>
 var UID = "{{ dosar.uuid }}";
 var WIZARD = {{ dosar.wizard|tojson }};
-// Maparea „!": câmp -> {vechi, detaliu} (din tabelul wizard vechi → noul UI). Temporar (dev).
+// Maparea „!": câmp -> {v: corespondent wizard vechi, d: detaliu}. TEMPORAR (dev); se va șterge.
 var MAPARE = {
   id_client:{v:"(nou) ID unic dosar",d:"Auto-completat dacă lipsește; needitabil după creare."},
   nume_client:{v:"Pas 1 · Nume client",d:"Identitate dosar; anonimizat [CLIENT] la AI."},
@@ -157,44 +147,58 @@ var MAPARE = {
   moneda:{v:"Pas 4 · Monedă raportare",d:"Garanție = de regulă EUR cu echivalent LEI."},
 };
 function $(id){ return document.getElementById(id); }
-var CAMPURI = Object.keys(MAPARE).concat(["nume_client"]);  // toate id-urile
 // încarcă valorile salvate
 Object.keys(WIZARD||{}).forEach(function(k){ if($(k)) $(k).value = WIZARD[k]; });
 
-// „!" popover lângă fiecare label (mapare vechi→nou). Temporar; se va șterge.
+// „!" popover lângă fiecare label (mapare vechi→nou), accesibil. Temporar; se va șterge.
+var mapSeq = 0;
 document.querySelectorAll("main label[for]").forEach(function(lbl){
   var id = lbl.getAttribute("for"); var m = MAPARE[id]; if(!m) return;
-  var wrap=document.createElement("span"); wrap.style.position="relative"; wrap.style.display="inline-block";
-  var b=document.createElement("button"); b.type="button"; b.className="map-toggle"; b.textContent="!";
-  b.title="Corespondent în UI-ul vechi";
-  var pop=document.createElement("small"); pop.className="map-pop";
+  var wrap=document.createElement("span"); wrap.className="hint-wrap";
+  var b=document.createElement("button"); b.type="button"; b.className="hint-toggle is-map"; b.textContent="!";
+  b.setAttribute("aria-label","Corespondent în UI-ul vechi pentru acest câmp");
+  b.setAttribute("aria-expanded","false");
+  var pop=document.createElement("small"); pop.className="hint hint-pop";
+  pop.id="map-"+(++mapSeq); b.setAttribute("aria-controls",pop.id);
   pop.innerHTML="<b>Vechi:</b> "+m.v+"<br>"+m.d;
   lbl.appendChild(wrap); wrap.appendChild(b); wrap.appendChild(pop);
   b.addEventListener("click",function(e){ e.stopPropagation();
-    document.querySelectorAll(".map-pop.deschis").forEach(function(o){if(o!==pop)o.classList.remove("deschis");});
-    pop.classList.toggle("deschis"); });
+    var deschis = pop.classList.contains("hint-open");
+    document.querySelectorAll(".hint-pop.hint-open").forEach(function(o){ o.classList.remove("hint-open");
+      var t=o.parentNode.querySelector(".hint-toggle"); if(t) t.setAttribute("aria-expanded","false"); });
+    if(!deschis){ pop.classList.add("hint-open"); b.setAttribute("aria-expanded","true"); }
+  });
 });
-document.addEventListener("click",function(){ document.querySelectorAll(".map-pop.deschis").forEach(function(o){o.classList.remove("deschis");}); });
+function inchideMap(){ document.querySelectorAll(".hint-pop.hint-open").forEach(function(o){ o.classList.remove("hint-open");
+  var t=o.parentNode.querySelector(".hint-toggle"); if(t) t.setAttribute("aria-expanded","false"); }); }
+document.addEventListener("click", inchideMap);
+document.addEventListener("keydown", function(e){ if(e.key==="Escape") inchideMap(); });
 
-// salvare automată (debounce) în folder
+// salvare automată (debounce) în folder, cu indicator de stare real
 var tSave;
 function snapshot(){ var s={}; document.querySelectorAll("main input, main select, main textarea").forEach(function(e){ if(e.id) s[e.id]=e.value; }); return s; }
-function salveaza(){ clearTimeout(tSave); tSave=setTimeout(function(){
-  fetch("/api/dosar/"+UID+"/salveaza",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(snapshot())});
+function salveaza(){ clearTimeout(tSave); $("save-ind").textContent="… se salvează"; tSave=setTimeout(function(){
+  fetch("/api/dosar/"+UID+"/salveaza",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(snapshot())})
+    .then(function(r){ $("save-ind").textContent = r.ok ? "● salvat în folder" : "⚠ salvarea a eșuat"; })
+    .catch(function(){ $("save-ind").textContent="⚠ salvarea a eșuat (offline?)"; });
 },700); }
 document.addEventListener("input", salveaza); document.addEventListener("change", salveaza);
 
-// tab-uri output
-document.querySelectorAll(".tabbar button").forEach(function(b){ b.addEventListener("click",function(){
-  document.querySelectorAll(".tabbar button").forEach(function(x){x.setAttribute("aria-selected","false");});
-  b.setAttribute("aria-selected","true");
-  document.querySelectorAll("[data-panel]").forEach(function(p){ p.hidden = p.getAttribute("data-panel")!==b.dataset.tab; });
-}); });
-document.querySelectorAll(".subbar button").forEach(function(b){ b.addEventListener("click",function(){
-  document.querySelectorAll(".subbar button").forEach(function(x){x.setAttribute("aria-selected","false");});
-  b.setAttribute("aria-selected","true");
-  document.querySelectorAll("[data-subpanel]").forEach(function(p){ p.hidden = p.getAttribute("data-subpanel")!==b.dataset.sub; });
-}); });
+// tab-uri + sub-tab-uri (pattern WAI-ARIA: săgeți + Home/End, un panou vizibil odată)
+function wireTabs(sel){
+  var tabs = [].slice.call(document.querySelectorAll(sel+' [role="tab"]'));
+  if(!tabs.length) return;
+  function activeaza(tab){ tabs.forEach(function(t){ var s=t===tab;
+    t.setAttribute("aria-selected", s); t.tabIndex = s ? 0 : -1;
+    document.getElementById(t.getAttribute("aria-controls")).hidden = !s; }); }
+  tabs.forEach(function(tab,i){ tab.addEventListener("click", function(){ activeaza(tab); });
+    tab.addEventListener("keydown", function(e){ var j=null;
+      if(e.key==="ArrowRight") j=(i+1)%tabs.length; else if(e.key==="ArrowLeft") j=(i-1+tabs.length)%tabs.length;
+      else if(e.key==="Home") j=0; else if(e.key==="End") j=tabs.length-1;
+      if(j!==null){ e.preventDefault(); activeaza(tabs[j]); tabs[j].focus(); } }); });
+}
+wireTabs(".tabs"); wireTabs(".subtabs");
+function subtab(id){ var b=document.getElementById(id); if(b) b.click(); }
 
 // construiește payload-ul de evaluare din câmpuri
 function asambleaza(){
@@ -203,28 +207,32 @@ function asambleaza(){
   var comparables=$("comparabile").value.trim().split("\n").filter(Boolean).map(function(l){var p=l.split(";");return{pret:p[0],suprafata:p[1]};});
   var SCOP={garantare:["Garantarea creditului ipotecar","Valoarea de piață (SEV 102)"],raportare_financiara:["Raportare financiară (IFRS)","Valoarea justă (IFRS 13)"],asigurare:["Asigurare","Valoarea de asigurare"],impozitare:["Impozitare","Valoarea impozabilă"],litigii:["Litigiu","Valoarea de piață (SEV 102)"]};
   var sc=SCOP[$("scop").value]||SCOP.garantare;
-  var meta={client_nume:$("nume_client").value,adresa:[$("adresa_strada").value,$("localitate").value,$("judet").value].filter(Boolean).join(", "),numar_cadastral:$("numar_cadastral").value,carte_funciara:$("carte_funciara").value,evaluator_nume:"{{ cont.nume if cont else '' }}",evaluator_legitimatie:"{{ cont.legitimatie if cont else '' }}",data_evaluarii:$("data_evaluarii").value||"2026-01-16",data_raportului:$("data_raportului").value||"2026-01-16",moneda:$("moneda").value,scop:sc[0],tip_valoare:sc[1]};
+  var meta={client_nume:$("nume_client").value||"Client",adresa:[$("adresa_strada").value,$("localitate").value,$("judet").value].filter(Boolean).join(", ")||"-",numar_cadastral:$("numar_cadastral").value,carte_funciara:$("carte_funciara").value,evaluator_nume:"{{ cont.nume if cont else '' }}",evaluator_legitimatie:"{{ cont.legitimatie if cont else '' }}",data_evaluarii:$("data_evaluarii").value||"2026-01-16",data_raportului:$("data_raportului").value||"2026-01-16",moneda:$("moneda").value,scop:sc[0],tip_valoare:sc[1]};
   if($("beneficiar").value) meta.beneficiar=$("beneficiar").value;
-  var building={au:$("au").value,acd:$("acd").value,an_referinta:parseInt($("an_referinta").value),elements:($("tip_proprietate").value==="agricol")?[]:elements,depreciation_points:($("tip_proprietate").value==="agricol")?[]:dp};
-  var land={suprafata:$("suprafata_teren").value};
-  return {meta:meta,land:land,building:building,comparables:comparables,valoare_teren:$("valoare_teren").value,metoda:$("metoda").value,tip_proprietate:$("tip_proprietate").value,scop:$("scop").value};
+  var faraConstr=($("tip_proprietate").value==="agricol");
+  var building={au:$("au").value||"0",acd:$("acd").value||"0",an_referinta:parseInt($("an_referinta").value)||2025,elements:faraConstr?[]:elements,depreciation_points:faraConstr?[]:dp};
+  var land={suprafata:$("suprafata_teren").value||"0"};
+  return {meta:meta,land:land,building:building,comparables:comparables,valoare_teren:$("valoare_teren").value||"0",metoda:$("metoda").value,tip_proprietate:$("tip_proprietate").value,scop:$("scop").value};
 }
 $("calc").addEventListener("click", async function(){
   $("rezultat").textContent="Se calculează…";
   try{ var r=await fetch("/api/evaluare",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(asambleaza())});
+    if(!r.ok) throw new Error();
     var d=await r.json();
-    $("rezultat").innerHTML="<p><b>Valoare: "+fmtRo(d.valoare_finala)+" "+$("moneda").value+"</b> ("+d.metoda+")</p><p class='hint'>Mergi la „Generează".</p>";
-  }catch(e){ $("rezultat").textContent="Calculul a eșuat — verifică valorile."; }
+    $("rezultat").innerHTML="<p><b>Valoare: "+fmtRo(d.valoare_finala)+" "+$("moneda").value+"</b> ("+d.metoda+")</p>"+
+      "<button type='button' id='la-gen'>Continuă la Generează →</button>";
+    var lg=$("la-gen"); if(lg) lg.addEventListener("click",function(){ subtab("s-genereaza"); });
+  }catch(e){ $("rezultat").textContent="Calculul a eșuat — verifică valorile (suprafețe, elemente, comparabile)."; }
 });
 $("genereaza").addEventListener("click", function(){
-  $("gen-status").textContent="Se generează…";
-  var f=document.createElement("form"); f.method="POST"; f.action="/api/dosar/"+UID+"/raport.docx";
-  // POST JSON via fetch + download
+  var btn=this; btn.disabled=true; btn.setAttribute("aria-busy","true"); $("gen-status").textContent="Se generează…";
   fetch("/api/dosar/"+UID+"/raport.docx",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(asambleaza())})
     .then(function(r){ return r.ok ? r.blob() : Promise.reject(); })
     .then(function(b){ var u=URL.createObjectURL(b); var a=document.createElement("a"); a.href=u; a.download="raport.docx"; a.click(); URL.revokeObjectURL(u);
       $("gen-status").textContent="✓ Generat + salvat ca versiune în folder."; })
-    .catch(function(){ $("gen-status").textContent="Generarea a eșuat."; });
+    .catch(function(){ $("gen-status").textContent="Generarea a eșuat."; })
+    .finally(function(){ btn.disabled=false; btn.removeAttribute("aria-busy"); });
 });
 </script>
+{% include "_footer.html" %}
 </body></html>

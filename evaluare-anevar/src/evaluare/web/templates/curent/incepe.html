@@ -4,6 +4,9 @@
 <style>{% include "_design.css" %}</style></head>
 <body>
 <a class="skip-link" href="#continut">Sari la conținut</a>
+<nav class="topbar" aria-label="Navigare principală"><a class="brand" href="/incepe"><span class="brand-seal">EA</span>
+  <span class="brand-text"><span class="kicker">Versiune curentă</span>
+  <span class="brand-title">Evaluare ANEVAR</span></span></a></nav>
 {% set kicker = "Versiune curentă" %}{% set titlu = "ÎNCEPE" %}
 {% set subtitlu = "Creează, încarcă sau importă un dosar." %}{% include "_cartus.html" %}
 <main id="continut">
@@ -13,19 +16,20 @@
   <p class="hint">Conectat: <b>{{ cont.nume }}</b> (legitimație {{ cont.legitimatie }}) ·
    format dosar: <code>{{ cont.format_dosar|join('_') }}</code> · <a href="/cont">editează cont</a></p>
 
-  <div class="row" style="gap:12px;flex-wrap:wrap">
-    <button type="button" id="nou">➕ Dosar nou</button>
-    <a class="btn ghost" href="#salvate">📂 Încarcă dosar salvat</a>
-    <button type="button" class="ghost" id="importa">📥 Importă dosarul tău</button>
-    <input type="file" id="fisier-import" accept=".docx" hidden>
-    <button type="button" class="ghost" title="Disponibil în versiunea comercială" disabled>🔁 Import asemănător</button>
-    <button type="button" class="ghost" title="Disponibil în versiunea comercială" disabled>🧪 Demo</button>
+  <div class="row">
+    <button type="button" id="nou"><span aria-hidden="true">➕</span> Dosar nou</button>
+    <a class="btn ghost" href="#salvate"><span aria-hidden="true">📂</span> Încarcă dosar salvat</a>
+    <button type="button" class="ghost" id="importa"><span aria-hidden="true">📥</span> Importă dosarul tău</button>
+    <input type="file" id="fisier-import" accept=".docx" aria-label="Alege fișierul .docx de importat" hidden>
+    <button type="button" class="ghost" aria-disabled="true" disabled><span aria-hidden="true">🔁</span> Import asemănător <span class="badge b-mid">comercial</span></button>
+    <button type="button" class="ghost" aria-disabled="true" disabled><span aria-hidden="true">🧪</span> Demo <span class="badge b-mid">comercial</span></button>
   </div>
+  <p id="import-status" class="hint" role="status" aria-live="polite"></p>
 
   <h2 id="salvate">Dosare salvate</h2>
   {% if diff.existente or diff.noi %}
     <table>
-      <tr><th>Nume</th><th>Modificat</th><th></th></tr>
+      <tr><th scope="col">Nume</th><th scope="col">Modificat</th><th scope="col">Acțiuni</th></tr>
       {% for x in diff.noi %}
       <tr><td>{{ x.nume }} <span class="badge b-mid">nou</span></td><td>{{ x.modificat_la }}</td>
         <td><a class="btn" href="/dosar/{{ x.uuid }}">Deschide</a></td></tr>
@@ -36,7 +40,8 @@
       {% endfor %}
     </table>
   {% else %}
-    <p class="hint">Niciun dosar salvat încă. Apasă „➕ Dosar nou".</p>
+    <div class="callout">Niciun dosar salvat încă. Apasă „➕ Dosar nou" ca să începi primul dosar —
+     identitatea (client, scop, tip) o completezi în pagina dosarului.</div>
   {% endif %}
 
   {% if diff.disparute %}
@@ -57,15 +62,19 @@ if(nouBtn) nouBtn.addEventListener('click', async ()=>{
 var impBtn=document.getElementById('importa');
 var fisierImp=document.getElementById('fisier-import');
 if(impBtn) impBtn.addEventListener('click', ()=> fisierImp.click());
+var impStatus=document.getElementById('import-status');
 if(fisierImp) fisierImp.addEventListener('change', async ()=>{
   const f=fisierImp.files[0]; if(!f) return;
-  impBtn.disabled=true; impBtn.textContent='📥 Se importă…';
-  const continut=await new Promise(res=>{ const r=new FileReader(); r.onload=()=>res(r.result); r.readAsDataURL(f); });
-  const resp=await fetch('/api/dosar/import-docx',{method:'POST',headers:{'Content-Type':'application/json'},
-    body:JSON.stringify({nume_fisier:f.name, continut})});
-  const d=await resp.json();
-  if(d.uuid) window.location.href='/dosar/'+d.uuid;
-  else { impBtn.disabled=false; impBtn.textContent='📥 Importă dosarul tău'; alert('Import eșuat.'); }
+  impBtn.disabled=true; impBtn.textContent='📥 Se importă…'; impStatus.textContent='';
+  try{
+    const continut=await new Promise(res=>{ const r=new FileReader(); r.onload=()=>res(r.result); r.readAsDataURL(f); });
+    const resp=await fetch('/api/dosar/import-docx',{method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({nume_fisier:f.name, continut})});
+    const d=await resp.json();
+    if(resp.ok && d.uuid){ window.location.href='/dosar/'+d.uuid; return; }
+    impStatus.textContent='Import eșuat: '+((d && d.detail) || 'fișier .docx invalid sau lipsă cont.');
+  }catch(e){ impStatus.textContent='Import eșuat (eroare de rețea).'; }
+  impBtn.disabled=false; impBtn.innerHTML='<span aria-hidden="true">📥</span> Importă dosarul tău';
 });
 </script>
 {% include "_footer.html" %}

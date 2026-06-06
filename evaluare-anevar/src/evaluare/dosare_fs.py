@@ -46,6 +46,7 @@ def creeaza(creator_legitimatie: str, creator_nume: str, wizard: dict,
     dosar = {
         "uuid": uid,
         "nume": nume_dosar(format_dosar, wizard),
+        "format_dosar": list(format_dosar) if format_dosar else None,
         "creator_legitimatie": str(creator_legitimatie),
         "creator_nume": creator_nume,
         "creat_la": _acum(),
@@ -70,9 +71,16 @@ def incarca(uid: str) -> dict:
 
 
 def salveaza_wizard(uid: str, wizard: dict) -> dict:
-    """Actualizează datele wizard ale unui dosar (modificat_la). Returnează dosarul."""
+    """Actualizează datele wizard ale unui dosar (modificat_la). Returnează dosarul.
+
+    Recalculează numele din formatul memorat (un dosar creat gol nu mai rămâne „?_?_?"
+    după ce userul completează identitatea) și reîmprospătează identitatea blocabilă.
+    """
     dosar = incarca(uid)
     dosar["wizard"] = wizard
+    dosar["identitate"] = _identitate(wizard)
+    if dosar.get("format_dosar"):
+        dosar["nume"] = nume_dosar(dosar["format_dosar"], wizard)
     dosar["modificat_la"] = _acum()
     _scrie(uid, dosar)
     return dosar

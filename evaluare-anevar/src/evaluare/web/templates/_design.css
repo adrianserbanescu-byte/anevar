@@ -221,6 +221,10 @@ legend{
   border-radius:var(--radius-sm); box-shadow:var(--shadow); font-size:.82rem; font-weight:400; line-height:1.5;
 }
 .hint.hint-pop.hint-open code{ white-space:nowrap; }
+/* Varianta „!" = corespondent UI vechi (info, NU avertizare). Albastru tehnic, contrast AA.
+   Temporar (dev): se va elimina când renunțăm la maparea wizard vechi → nou. */
+.hint-toggle.is-map{ border-color:var(--blue); color:var(--blue-deep); background:var(--blue-soft); }
+.hint-toggle.is-map:hover{ background:var(--blue); color:#fff; }
 
 /* ------------------------------------------------------------- Butoane */
 button{
@@ -271,6 +275,18 @@ button.ghost:disabled{ color:var(--ink-faint); border-color:var(--line-2); backg
 }
 [role=tabpanel]{ padding-top:8px; }
 [role=tabpanel]:focus-visible{ outline:2px solid var(--sienna); outline-offset:2px; }
+
+/* Sub-tab-uri (rang doi, sub un tab) — pastile discrete ca să nu concureze cu tab-urile. */
+.subtabs{ display:flex; gap:6px; flex-wrap:wrap; margin:14px 0 4px; }
+.subtabs [role=tab]{
+  margin:0; padding:6px 14px; font-size:.85rem; font-weight:600;
+  background:var(--paper-sunk); color:var(--ink-2); border:1px solid var(--line);
+  border-radius:999px; box-shadow:none; transform:none;
+}
+.subtabs [role=tab]:hover{ background:var(--paper-card); color:var(--sienna); transform:none; }
+.subtabs [role=tab][aria-selected="true"]{
+  background:var(--sienna); color:#fdf8ef; border-color:var(--sienna-deep);
+}
 
 :focus-visible{ outline:2px solid var(--sienna); outline-offset:2px; }
 

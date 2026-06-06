@@ -68,3 +68,44 @@ def test_wizard_date_inputs_au_type_date(client):
     assert re.search(r'<input[^>]*id="data_evaluarii"[^>]*type="date"', html) or \
            re.search(r'<input[^>]*type="date"[^>]*id="data_evaluarii"', html)
     assert 'autocomplete="name"' in html
+
+
+# ── UI nou (curent): cont / incepe / dosar ───────────────────────────────────
+@pytest.fixture
+def curent_client(tmp_path, monkeypatch):
+    monkeypatch.setenv("OUTPUT_DIR", str(tmp_path / "date"))
+    storage = Storage(tmp_path / "t.db")
+    storage.init()
+    c = TestClient(create_app(storage=storage, client=None))
+    c.post("/api/cont", json={"nume": "Adi S", "legitimatie": "8717",
+                              "format_dosar": ["id_client", "nume_client", "tip_proprietate"]})
+    return c
+
+
+@pytest.mark.parametrize("ruta", ["/cont", "/incepe"])
+def test_curent_pagina_landmark_skip_nav(curent_client, ruta):
+    html = curent_client.get(ruta).text
+    assert "<main" in html and 'class="skip-link"' in html and 'id="continut"' in html
+    assert "<nav" in html                                  # landmark de navigare
+
+
+def test_cont_labels_asociate(curent_client):
+    html = curent_client.get("/cont").text
+    assert 'for="nume"' in html and 'for="legitimatie"' in html
+    assert 'autocomplete="name"' in html
+
+
+def test_incepe_tabel_scope_col(curent_client):
+    curent_client.post("/api/dosar", json={"wizard": {"nume_client": "Ana"}})
+    curent_client.get("/incepe")                           # populează indexul
+    html = curent_client.get("/incepe").text
+    assert 'scope="col"' in html and "Acțiuni" in html
+
+
+def test_dosar_tablist_si_aria(curent_client):
+    uid = curent_client.post("/api/dosar", json={"wizard": {}}).json()["uuid"]
+    html = curent_client.get(f"/dosar/{uid}").text
+    assert "<nav" in html and 'class="skip-link"' in html
+    assert 'role="tablist"' in html and 'role="tabpanel"' in html
+    assert 'aria-controls="p-raport"' in html and 'aria-selected="true"' in html
+    assert 'aria-labelledby="t-raport"' in html            # panou legat de tab

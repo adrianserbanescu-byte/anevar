@@ -4,13 +4,16 @@
 <style>{% include "_design.css" %}</style></head>
 <body>
 <a class="skip-link" href="#continut">Sari la conținut</a>
+<nav class="topbar" aria-label="Navigare principală"><a class="brand" href="/incepe"><span class="brand-seal">EA</span>
+  <span class="brand-text"><span class="kicker">Versiune curentă</span>
+  <span class="brand-title">Evaluare ANEVAR</span></span></a></nav>
 {% set kicker = "Versiune curentă" %}{% set titlu = "Cont evaluator" %}
 {% set subtitlu = "Identitatea ta + formatul numelui de dosar (se setează o dată)." %}
 {% include "_cartus.html" %}
 <main id="continut">
   <div class="field-row">
     <div class="field"><label for="nume">Nume evaluator</label>
-      <input id="nume" value="{{ cont.nume if cont else '' }}"></div>
+      <input id="nume" autocomplete="name" value="{{ cont.nume if cont else '' }}"></div>
     <div class="field"><label for="legitimatie">Legitimație ANEVAR</label>
       <input id="legitimatie" value="{{ cont.legitimatie if cont else '' }}"></div>
   </div>
