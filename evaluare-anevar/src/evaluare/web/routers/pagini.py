@@ -63,8 +63,30 @@ def build_router(d: Deps) -> APIRouter:
 
     @router.get("/", response_class=HTMLResponse)
     def pagina_index(request: Request) -> HTMLResponse:
-        # Pagina principala = wizard-ul ghidat pas-cu-pas.
-        return d.templates.TemplateResponse(request, "wizard.html", {})
+        # Pagina principala = alegerea interfetei (UI nou „output-first" vs wizard vechi).
+        return d.templates.TemplateResponse(request, "index.html", {})
+
+    @router.get("/documente", response_class=HTMLResponse)
+    def pagina_documente(request: Request) -> HTMLResponse:
+        from itertools import groupby
+
+        from evaluare import documente as docs
+        lista = docs.listeaza()
+        grupuri = {k: list(v) for k, v in groupby(lista, key=lambda d: d["categorie"])}
+        return d.templates.TemplateResponse(request, "documente.html",
+            {"documente": lista, "grupuri": grupuri})
+
+    @router.get("/documente/{slug}", response_class=HTMLResponse)
+    def pagina_document(request: Request, slug: str) -> HTMLResponse:
+        from fastapi import HTTPException
+
+        from evaluare import documente as docs
+        try:
+            meta, continut = docs.incarca(slug)
+        except KeyError:
+            raise HTTPException(status_code=404, detail="Document inexistent.") from None
+        return d.templates.TemplateResponse(request, "document.html",
+            {"meta": meta, "continut": continut})
 
     @router.get("/formular", response_class=HTMLResponse)
     def pagina_formular(request: Request) -> HTMLResponse:

@@ -276,6 +276,24 @@ button.ghost:disabled{ color:var(--ink-faint); border-color:var(--line-2); backg
 [role=tabpanel]{ padding-top:8px; }
 [role=tabpanel]:focus-visible{ outline:2px solid var(--sienna); outline-offset:2px; }
 
+/* Comutator UI nou/vechi + Documente (antet/subsol pe fiecare pagină). */
+.cross-ui{ display:flex; gap:14px; flex-wrap:wrap; align-items:center; justify-content:flex-end;
+  padding:6px 18px; background:var(--paper-sunk); border-bottom:1px solid var(--line);
+  font-size:.82rem; }
+.cross-ui a{ color:var(--ink-2); text-decoration:none; font-weight:600; }
+.cross-ui a:hover{ color:var(--sienna); text-decoration:underline; }
+.doc-foot .cross-ui{ background:none; border:none; justify-content:center; padding:6px 0; }
+
+/* Pagina de selecție a interfeței (index) + carduri document. */
+.alegere{ display:flex; gap:20px; flex-wrap:wrap; margin:24px 0; }
+.alegere .card{ flex:1 1 280px; }
+.doc-card{ display:block; padding:14px 16px; margin:10px 0; background:var(--paper-card);
+  border:1px solid var(--line); border-left:3px solid var(--brass); border-radius:var(--radius-sm);
+  text-decoration:none; color:inherit; }
+.doc-card:hover{ border-left-color:var(--sienna); background:var(--paper); }
+.doc-card .t{ font-weight:700; color:var(--sienna); }
+.doc-card .d{ font-size:.85rem; color:var(--ink-2); }
+
 /* Sub-tab-uri (rang doi, sub un tab) — pastile discrete ca să nu concureze cu tab-urile. */
 .subtabs{ display:flex; gap:6px; flex-wrap:wrap; margin:14px 0 4px; }
 .subtabs [role=tab]{

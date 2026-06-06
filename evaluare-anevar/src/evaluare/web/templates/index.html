@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head><meta charset="utf-8"><title>Evaluare ANEVAR — alege interfața</title>
+<style>{% include "_design.css" %}</style></head>
+<body>
+<a class="skip-link" href="#continut">Sari la conținut</a>
+{% include "_nav_cross.html" %}
+{% set kicker = "Evaluare ANEVAR" %}{% set titlu = "Alege interfața" %}
+{% set subtitlu = "Două moduri de lucru pentru același motor de evaluare." %}{% include "_cartus.html" %}
+<main id="continut">
+  <div class="alegere">
+    <div class="card">
+      <h2>🆕 Homepage nou <span class="badge b-mid">recomandat</span></h2>
+      <p>Flux „output-first": cont local → dosare salvate → spațiu de lucru cu tab-uri
+         (Raport, AML, GDPR, Audit, Anexe). Stocare pe foldere, import din `.docx`, generare raport.</p>
+      <p><a class="btn" href="/incepe">Deschide Homepage nou →</a></p>
+      <p class="hint">Prima dată? Se creează contul la <a href="/cont">/cont</a>.</p>
+    </div>
+    <div class="card">
+      <h2>🧭 Wizard (UI vechi)</h2>
+      <p>Flux ghidat pas-cu-pas (adresă → subiect → comparabile → calcul → raport). Toate funcțiile
+         clasice: grile, descoperire comparabile, AML, formular monolit.</p>
+      <p><a class="btn ghost" href="/wizard">Deschide Wizard →</a></p>
+      <p class="hint">Pagini: <a href="/wizard">Evaluare</a> · <a href="/grila">Grile</a> ·
+        <a href="/descoperire">Descoperire</a> · <a href="/aml">AML</a> · <a href="/dosare">Dosare</a>.</p>
+    </div>
+  </div>
+  <div class="callout">📄 Toate documentele proiectului (sinteză lansare, juridice, strategie) sunt în
+    <a href="/documente">pagina Documente</a> — link disponibil în antetul și subsolul fiecărei pagini.</div>
+</main>
+{% include "_footer.html" %}
+</body></html>

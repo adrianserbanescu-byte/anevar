@@ -1,0 +1,15 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head><meta charset="utf-8"><title>{{ meta.titlu }} — Documente</title>
+<style>{% include "_design.css" %}</style></head>
+<body>
+<a class="skip-link" href="#continut">Sari la conținut</a>
+{% include "_nav_cross.html" %}
+{% set kicker = meta.categorie %}{% set titlu = meta.titlu %}{% set subtitlu = meta.descriere %}
+{% include "_cartus.html" %}
+<main id="continut">
+  <p class="hint"><a href="/documente">← Toate documentele</a></p>
+  <article class="document">{{ continut|safe }}</article>
+</main>
+{% include "_footer.html" %}
+</body></html>

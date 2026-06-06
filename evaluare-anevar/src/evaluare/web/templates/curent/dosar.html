@@ -4,6 +4,7 @@
 <style>{% include "_design.css" %}</style></head>
 <body>
 <a class="skip-link" href="#continut">Sari la conținut</a>
+{% include "_nav_cross.html" %}
 <nav class="topbar" aria-label="Navigare dosar"><a class="brand" href="/incepe"><span class="brand-seal">EA</span>
   <span class="brand-text"><span class="kicker">Versiune curentă</span>
   <span class="brand-title">← Dosarele mele</span></span></a></nav>
@@ -117,8 +118,11 @@
   <section role="tabpanel" id="p-aml" aria-labelledby="t-aml" tabindex="0" hidden><p class="hint">Modulul AML (risc + documente):
     <a href="/aml" target="_blank" rel="noopener">deschide AML ↗</a></p></section>
   <section role="tabpanel" id="p-gdpr" aria-labelledby="t-gdpr" tabindex="0" hidden><p class="hint">Documente GDPR:
-    <a href="/aml" target="_blank" rel="noopener">politică & consimțământ ↗</a></p></section>
-  <section role="tabpanel" id="p-audit" aria-labelledby="t-audit" tabindex="0" hidden><p class="hint">Urma de audit se descarcă după calcul (în versiunea comercială, per dosar).</p></section>
+    <a href="/aml" target="_blank" rel="noopener">politică & consimțământ (modul AML) ↗</a> ·
+    <a href="/documente/politica-confidentialitate" target="_blank" rel="noopener">Politica de confidențialitate ↗</a> ·
+    <a href="/documente/disclaimer-profesional" target="_blank" rel="noopener">Disclaimer profesional ↗</a></p></section>
+  <section role="tabpanel" id="p-audit" aria-labelledby="t-audit" tabindex="0" hidden><p class="hint">Urma de audit se descarcă după calcul (în versiunea comercială, per dosar).
+    Evaluarea juridică a produsului: <a href="/documente/evaluare-juridica" target="_blank" rel="noopener">vezi documentul ↗</a>.</p></section>
   <section role="tabpanel" id="p-anexe" aria-labelledby="t-anexe" tabindex="0" hidden><p class="hint">Foto + scanuri documente (Anexa 2/3). Atașarea fișierelor vine cu versiunea comercială;
     importul PDF pre-completează datele și se atașează aici.</p></section>
 </main>

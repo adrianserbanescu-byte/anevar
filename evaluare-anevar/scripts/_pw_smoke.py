@@ -160,6 +160,20 @@ with sync_playwright() as pw:
     check("aml: banner legal prezent", "NU verifică automat" in p.inner_text("body"))
     p.close()
 
+    # ---------- INDEX (alegere UI) + DOCUMENTE ----------
+    p, errs = pagina(ctx, BASE + "/")
+    check("index: alegere UI fără erori", not errs, "; ".join(errs[:3]))
+    check("index: linkuri UI nou + vechi", "/incepe" in p.content() and "/wizard" in p.content())
+    check("index: cross-nav prezent", p.eval_on_selector(".cross-ui", "e=>!!e") is True)
+    p.close()
+    p, errs = pagina(ctx, BASE + "/documente")
+    check("documente: index încarcă", "Documente" in p.inner_text("body"))
+    check("documente: card disclaimer", p.eval_on_selector('a[href="/documente/disclaimer-profesional"]', "e=>!!e") is True)
+    p.goto(BASE + "/documente/disclaimer-profesional")
+    p.wait_for_load_state("networkidle")
+    check("documente: document randat", p.eval_on_selector("article.document", "e=>e.innerText.length>200") is True)
+    p.close()
+
     # ---------- UI NOU „curent": cont -> ÎNCEPE -> dosar ----------
     # serverul e2e are OUTPUT_DIR izolat în temp -> nu atinge contul/dosarele reale
     ctx.request.post(BASE + "/api/cont", data={"nume": "Tester E2E", "legitimatie": "9999",

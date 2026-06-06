@@ -10,14 +10,37 @@ def _client(tmp_path):
     return TestClient(create_app(storage=storage, client=None))
 
 
-def test_index_is_wizard(tmp_path):
+def test_index_is_alegere_ui(tmp_path):
     client = _client(tmp_path)
     resp = client.get("/")
     assert resp.status_code == 200
     assert "text/html" in resp.headers["content-type"]
-    # pagina principala este acum wizard-ul
-    assert 'id="pas-1"' in resp.text
-    assert "pas cu pas" in resp.text
+    # pagina principala este acum alegerea interfetei (UI nou vs wizard vechi)
+    assert "Alege interfața" in resp.text
+    assert 'href="/incepe"' in resp.text and 'href="/wizard"' in resp.text
+
+
+def test_wizard_inca_la_ruta_proprie(tmp_path):
+    resp = _client(tmp_path).get("/wizard")
+    assert resp.status_code == 200 and 'id="pas-1"' in resp.text
+
+
+def test_cross_nav_pe_pagini(tmp_path):
+    # link-urile UI nou / UI vechi / Documente apar în antet/subsol pe paginile vechi și noi
+    client = _client(tmp_path)
+    for ruta in ("/wizard", "/grila", "/aml"):
+        html = client.get(ruta).text
+        assert 'class="cross-ui"' in html and 'href="/documente"' in html and 'href="/incepe"' in html
+
+
+def test_documente_index_si_render(tmp_path):
+    client = _client(tmp_path)
+    idx = client.get("/documente")
+    assert idx.status_code == 200 and "Documente" in idx.text
+    assert "/documente/disclaimer-profesional" in idx.text       # card prezent
+    doc = client.get("/documente/disclaimer-profesional")
+    assert doc.status_code == 200 and "<article" in doc.text      # conținut randat
+    assert client.get("/documente/nu-exista").status_code == 404
 
 
 def test_formular_monolit_la_ruta_noua(tmp_path):

@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head><meta charset="utf-8"><title>Documente — Evaluare ANEVAR</title>
+<style>{% include "_design.css" %}</style></head>
+<body>
+<a class="skip-link" href="#continut">Sari la conținut</a>
+{% include "_nav_cross.html" %}
+{% set kicker = "Proiect" %}{% set titlu = "Documente" %}
+{% set subtitlu = "Sinteze, strategie și documentele juridice (DRAFT). Conținut disponibil offline." %}
+{% include "_cartus.html" %}
+<main id="continut">
+  {% if not documente %}
+    <div class="avert-warn">Niciun document împachetat. Rulează <code>scripts/sync_documente.py</code> înainte de build.</div>
+  {% endif %}
+  {% for categorie, grup in grupuri.items() %}
+    <h2>{{ categorie }}</h2>
+    {% for d in grup %}
+      <a class="doc-card" href="/documente/{{ d.slug }}">
+        <span class="t">{{ d.titlu }}</span><br>
+        <span class="d">{{ d.descriere }}</span>
+      </a>
+    {% endfor %}
+  {% endfor %}
+</main>
+{% include "_footer.html" %}
+</body></html>
