@@ -158,6 +158,15 @@
         <div class="field"><label for="d-url-btn-l">&nbsp;</label><button type="button" id="d-url-btn">📥 Importă din URL</button></div>
       </div>
       <span id="d-url-status" class="hint" role="status" aria-live="polite"></span>
+      <details class="grila-det" id="coada-ext">
+        <summary>🧩 Anunțuri din extensia de browser (<span id="ext-nr">0</span>)</summary>
+        <p class="hint">Navighezi tu pe portal, extensia trimite anunțul aici. Bifează + importă în grilă.</p>
+        <div class="btn-bar">
+          <button type="button" id="ext-reload">↻ Reîmprospătează</button>
+          <button type="button" class="ghost" id="ext-goleste">Golește coada</button>
+        </div>
+        <div id="ext-lista"></div>
+      </details>
       <hr class="brass-rule">
       <label for="comparabile">Comparabile construcție/proprietate <span class="hint">(preț;suprafață, una pe linie)</span></label>
       <textarea id="comparabile" rows="4" placeholder="250000;120"></textarea>
@@ -633,6 +642,27 @@ if($("ing-fisier")) $("ing-fisier").addEventListener("change", function(){
       .catch(function(e){ $("d-url-status").textContent="Import eșuat — "+(typeof e==="string"?e:"verifică linkul/internetul"); })
       .finally(function(){ b.disabled=false; });
   });
+  // Coadă „anunțuri din extensia de browser" (reutilizează /api/anunturi-importate).
+  function randCoada(lst){
+    if($("ext-nr")) $("ext-nr").textContent=lst.length;
+    if(!$("ext-lista")) return;
+    $("ext-lista").innerHTML = lst.length ? (lst.map(function(a){ return "<div class='callout' style='margin:6px 0'>"+
+      "<label class='chk'><input type='checkbox' class='ext-bif' data-pret='"+(a.pret||"")+"' data-supr='"+(a.suprafata||"")+"'> "+
+      "<b>"+(a.pret?fmtRo(a.pret)+" "+(a.moneda||"EUR"):"preț ?")+"</b> · "+(a.suprafata||"?")+" mp"+(a.suprafata_teren?" · teren "+a.suprafata_teren+" mp":"")+"</label> "+
+      (a.url?"<a href='"+a.url+"' target='_blank' rel='noopener'>vezi ↗</a>":"")+"</div>"; }).join("")+
+      "<button type='button' id='ext-importa'>Importă bifate în grilă</button>") : "<p class='hint'>Coada e goală. Instalează extensia și navighează pe un anunț.</p>";
+    var imp=$("ext-importa"); if(imp) imp.addEventListener("click", function(){
+      var linii=[]; document.querySelectorAll(".ext-bif:checked").forEach(function(b){ if(b.dataset.pret&&b.dataset.supr) linii.push(b.dataset.pret+";"+b.dataset.supr); });
+      if(!linii.length) return;
+      var ta=$("comparabile"); ta.value=(ta.value.trim()?ta.value.trim()+"\n":"")+linii.join("\n"); salveaza();
+      $("d-status").textContent="✓ "+linii.length+" importate din extensie."; });
+  }
+  function incarcaCoada(){ fetch("/api/anunturi-importate").then(function(r){return r.ok?r.json():{anunturi:[]};})
+    .then(function(d){ randCoada(d.anunturi||[]); }).catch(function(){ randCoada([]); }); }
+  if($("ext-reload")) $("ext-reload").addEventListener("click", incarcaCoada);
+  if($("ext-goleste")) $("ext-goleste").addEventListener("click", function(){
+    fetch("/api/anunturi-importate/sterge",{method:"POST"}).then(function(){ randCoada([]); }); });
+  incarcaCoada();
 })();
 
 // GDPR in-place: generează documentele model direct din sub-tab (nu redirect la pagina veche).
