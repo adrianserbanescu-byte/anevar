@@ -6,17 +6,14 @@
 
 ## 🚨 P0 — RECUPERARE UI NOU (prioritate maximă; precede agenda specială de mai jos)
 > Owner șocat de regresiile UI nou (audit complet în `docs/audit-ui-nou/`). Backend-ul EXISTĂ — totul = frontend.
-> **Făcut (commit aab8d20):** #1 „?" re-adăugat · #3 sub-tab-uri cu afordanță · #4 curs EUR · #6 comentariu fals reparat.
-> **De făcut (port din wizard/descoperire/grila — zero backend nou, e2e acoperă):**
-1. [ ] **#7 CÂMPURI DINAMICE per tip proprietate** (cel mai critic) — port `aplicaTip` + grupurile condiționate
-       (ap-fields/agr-fields/grup-teren/grup-constructie + etaj/cotă/înălțime/categorie folosință/clasă) din wizard.html.
-2. [ ] **#8 MODUL DESCOPERIRE inline în Comparabile** — formular căutare (județ/localitate/atribute) → tabel rezultate
-       → bifare → import în grilă + import URL/extensie (reutilizează /api/descopera, /api/import-*). „AI TĂIAT căutarea".
-3. [ ] **#14 ANEXE = sub-tab al Raportului ÎNTRE Calcul și Generează** + upload foto/scanuri → `photos`/`documente`
-       în asambleaza() (backend `_adauga_anexe` gata; textul „comercial" e fals).
-4. [ ] **#9 AML / GDPR / Audit in-place** în sub-tab-uri (port formulare din aml.html; +endpoint `/api/dosar/{uid}/audit.txt`).
-5. [ ] **#10 Opțiuni Generează** (adnotări/demo) + #5 flux identitate/denumire folder corect (validare la creare).
-6. [ ] Grilele reale (teren/casă/chirii) cu ajustări pe etape + alerte prudențiale 25%/15% (control GEV 520 pierdut).
+> **FĂCUT (commit-uri aab8d20→bmvrpgich):** #1 „?" ✅ · #3 afordanță sub-tab ✅ · #4 curs EUR ✅ · #6 comentariu fals ✅ ·
+> **#7 câmpuri dinamice per tip ✅** · **#8 descoperire inline ✅** · **#14 Anexe sub-tab + upload ✅** · #9 GDPR in-place ✅.
+> **65 e2e + 493 teste. Exe reconstruit.** RĂMAS din recuperare:
+1. [ ] **#9 AML in-place** — port formularul complet din aml.html (KYC, beneficiar real, PEP, 4 semnale risc,
+       10 indicatori, „Evaluează relația" + 6 generatoare .docx) în sub-tabul AML. Backend 100% gata.
+2. [ ] **#9 Audit in-place** — endpoint nou `/api/dosar/{uid}/audit.txt` (refolosește jurnalul) + afișare urmă.
+3. [ ] **Grile reale** (teren/casă/chirii) cu ajustări pe etape + alerte prudențiale 25%/15% — acum doar textarea.
+4. [ ] **#10 Opțiuni Generează** (adnotări/demo) + **#5 flux identitate/denumire folder** (validare la creare + freeze).
 > La fiecare: teste + e2e + commit. Rebuild exe după un batch.
 
 ## 🌟 PRIMUL LOOP (SPECIAL, ~50 min de la 10:43) — DUPĂ recuperarea UI de mai sus; apoi loops normale la 1h
