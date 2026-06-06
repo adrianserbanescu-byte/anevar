@@ -9,11 +9,16 @@
 > **FĂCUT (commit-uri aab8d20→6237772):** #1 „?" ✅ · #3 afordanță sub-tab ✅ · #4 curs EUR ✅ · #5 flux identitate ✅ ·
 > #6 comentariu fals ✅ · **#7 câmpuri dinamice per tip ✅** · **#8 descoperire inline ✅** · **#9 AML in-place ✅** ·
 > #9 GDPR in-place ✅ · #9 Audit in-place ✅ · **#10 opțiune adnotări ✅** · **#14 Anexe sub-tab + upload ✅**.
-> **69 e2e + 495 teste. 11 din 12 plângeri recuperate.** RĂMAS (un singur item mare):
-1. [ ] **Grile reale** (teren/casă/chirii) cu ajustări pe ETAPE (tranzacție compus + proprietate aditiv) +
-       selecție pe ajustare brută minimă + **alerte prudențiale 25%/15%** (control GEV 520) — port din `grila.html`
-       (~340 linii) în sub-tabul Comparabile. Acum: textarea `preț;suprafață` (funcțional, dar fără grila de ajustări).
-       *Notă: pragurile prudențiale = bucket B (confirmă evaluatorul); UI-ul de grilă = bucket A.*
+> **73 e2e + 495 teste.** Plus (verificat VIZUAL cu Playwright): butoane finalul tab Raport ✅ · 3 butoane Generează ✅ ·
+> alerte validare la calcul ✅ · import URL ✅ · atribute secundare ✅. **Inventar complet: `audit-ui-nou/5-inventar-controale-diff.md`.**
+> RĂMAS din inventar (~118 controale: 26 lipsă, 30 parțiale) — ordonate după impact:
+1. [ ] **Grile reale** (teren/casă/chirii) cu ajustări pe ETAPE + selecție pe ajustare brută minimă +
+       **alerte prudențiale 25%/15%** (GEV 520) — port din `grila.html`. Acum: textarea (funcțional, fără grilă). *(grilă=A; praguri=B)*
+2. [ ] **Ingestie PDF** (doc-tip + `/api/ingestie`): pre-completare din extras CF/releveu/plan/CPE. Backend există. (mare)
+3. [ ] **Descoperă TERENURI în zonă** (`/api/descopera-teren`) — acum descoperirea e doar pt clădiri.
+4. [ ] **Județ/localitate = select din `/api/localitati`** (acum text liber → pierd diacritice/slug). + câmp `proprietar` + `adresa_raport`.
+5. [ ] **Coadă „anunțuri importate din extensia browser"** (secțiune întreagă) + **Backup dosare** (utilitar).
+6. [ ] Punte VBP grila chirii → metoda venit (auto-preia venitul brut din grila de chirii).
 
 ## ✅ PRIMUL LOOP (SPECIAL) — RULAT (2026-06-06 ~11:36, commit b347284)
 1. [x] **SCOP CORECTAT — matrice conformitate tip×scop** → `conformitate/E-matrice-tip-scop.md` (25 combinații). ✅
