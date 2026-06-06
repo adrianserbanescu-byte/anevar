@@ -90,7 +90,10 @@ meta = EvaluationMeta(
     valabilitate="6 luni", evaluator_nume="[Nume evaluator autorizat ANEVAR]",
     evaluator_legitimatie="[nr. legitimatie]", moneda="EUR", curs_valutar=Decimal("4.9750"),
 )
-land = LandData(suprafata=SUBIECT_TEREN, categorie="intravilan")
+land = LandData(suprafata=SUBIECT_TEREN, categorie="intravilan",
+                utilitati=["apă curentă", "energie electrică", "gaze naturale", "canalizare"],
+                restrictii_urbanism="teren intravilan; POT max. 35%, CUT max. 0,9 (de confirmat prin Certificat de Urbanism)",
+                acces="drum public asfaltat")
 building = BuildingData(
     au=SUBIECT_AU, acd=SUBIECT_ACD, an_referinta=2026,
     elements=[
