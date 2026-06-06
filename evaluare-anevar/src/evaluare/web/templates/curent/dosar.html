@@ -65,20 +65,44 @@
         <div class="field"><label for="data_inspectiei">Data vizită</label><input type="date" id="data_inspectiei"></div>
       </div>
       <h3>Date fizice</h3>
-      <div class="field-row">
-        <div class="field"><label for="suprafata_teren">Suprafață teren (mp)</label><input id="suprafata_teren" placeholder="ex. 500"></div>
-        <div class="field"><label for="valoare_teren">Valoare teren (lei)</label><input id="valoare_teren" placeholder="ex. 100000"></div>
+      <fieldset id="ap-fields" hidden><legend>Apartament</legend>
+        <div class="field-row">
+          <div class="field"><label for="etaj">Etaj</label><input id="etaj" type="number"></div>
+          <div class="field"><label for="nr_niveluri_bloc">Niveluri bloc</label><input id="nr_niveluri_bloc" type="number"></div>
+          <div class="field"><label for="an_bloc">An bloc</label><input id="an_bloc" type="number"></div>
+          <div class="field"><label for="cota_teren_indiviza">Cotă teren indiviză (mp)</label><input id="cota_teren_indiviza"></div>
+        </div>
+      </fieldset>
+      <fieldset id="ind-fields" hidden><legend>Industrial / hală</legend>
+        <div class="field-row"><div class="field"><label for="inaltime_libera">Înălțime liberă (m)</label><input id="inaltime_libera"></div></div>
+      </fieldset>
+      <fieldset id="agr-fields" hidden><legend>Teren agricol</legend>
+        <div class="field-row">
+          <div class="field"><label for="categorie_folosinta">Categorie folosință</label>
+            <select id="categorie_folosinta"><option value="">—</option><option value="arabil">Arabil</option>
+              <option value="pasune">Pășune</option><option value="vie">Vie</option><option value="livada">Livadă</option>
+              <option value="padure">Pădure</option></select></div>
+          <div class="field"><label for="clasa_calitate">Clasă calitate (1–5)</label><input id="clasa_calitate" type="number"></div>
+        </div>
+      </fieldset>
+      <div id="grup-teren">
+        <div class="field-row">
+          <div class="field"><label for="suprafata_teren">Suprafață teren (mp)</label><input id="suprafata_teren" placeholder="ex. 500"></div>
+          <div class="field"><label for="valoare_teren">Valoare teren (lei)</label><input id="valoare_teren" placeholder="ex. 100000"></div>
+        </div>
       </div>
-      <div class="field-row">
-        <div class="field"><label for="au">Au (mp)</label><input id="au" placeholder="ex. 100"></div>
-        <div class="field"><label for="acd">Acd (mp)</label><input id="acd" placeholder="ex. 120"></div>
-        <div class="field"><label for="an_referinta">An referință</label><input id="an_referinta" placeholder="ex. 2025"></div>
+      <div id="grup-constructie">
+        <div class="field-row">
+          <div class="field"><label for="au">Au (mp)</label><input id="au" placeholder="ex. 100"></div>
+          <div class="field"><label for="acd">Acd (mp)</label><input id="acd" placeholder="ex. 120"></div>
+          <div class="field"><label for="an_referinta">An referință</label><input id="an_referinta" placeholder="ex. 2025"></div>
+        </div>
+        <label for="elemente">Elemente cost <span class="hint">(element;cod;um;cantitate;cost_unitar;an_pif — una pe linie)</span></label>
+        <textarea id="elemente" rows="2" aria-describedby="h-elemente" placeholder="Structura;X;mp;120;2000;2015"></textarea>
+        <small id="h-elemente" class="hint">Lasă gol pentru proprietăți fără construcție (teren).</small>
+        <label for="depreciere">Depreciere <span class="hint">(varsta;fractie)</span></label>
+        <textarea id="depreciere" rows="2" placeholder="5;0.05"></textarea>
       </div>
-      <label for="elemente">Elemente cost <span class="hint">(element;cod;um;cantitate;cost_unitar;an_pif — una pe linie)</span></label>
-      <textarea id="elemente" rows="2" aria-describedby="h-elemente" placeholder="Structura;X;mp;120;2000;2015"></textarea>
-      <small id="h-elemente" class="hint">Lasă gol pentru proprietăți fără construcție (teren).</small>
-      <label for="depreciere">Depreciere <span class="hint">(varsta;fractie)</span></label>
-      <textarea id="depreciere" rows="2" placeholder="5;0.05"></textarea>
     </section>
 
     <section role="tabpanel" id="sp-comparabile" aria-labelledby="s-comparabile" tabindex="0" hidden>
@@ -299,6 +323,18 @@ function tragCurs(){
 if($("moneda")){ $("moneda").addEventListener("change", function(){ if($("moneda").value==="EUR") tragCurs(); });
   if($("moneda").value==="EUR") tragCurs(); }
 
+// Câmpuri dinamice per tip proprietate (port din wizard): se schimbă setul de câmpuri cerut.
+function _show(id, on){ var e=$(id); if(e) e.hidden = !on; }
+function aplicaTip(v){
+  v = v || ($("tip_proprietate") ? $("tip_proprietate").value : "casa");
+  _show("ap-fields",  v==="apartament");
+  _show("ind-fields", v==="industrial");
+  _show("agr-fields", v==="agricol");
+  _show("grup-teren", v!=="apartament");      // apartamentul nu are teren standalone
+  _show("grup-constructie", v!=="agricol");   // terenul agricol nu are construcție
+}
+if($("tip_proprietate")){ $("tip_proprietate").addEventListener("change", function(){ aplicaTip(); }); aplicaTip(); }
+
 // construiește payload-ul de evaluare din câmpuri
 function asambleaza(){
   var elements=$("elemente").value.trim().split("\n").filter(Boolean).map(function(l){var p=l.split(";");return{element:p[0],cod:p[1],um:p[2],cantitate:p[3],cost_unitar:p[4],an_pif:parseInt(p[5])};});
@@ -313,7 +349,14 @@ function asambleaza(){
   if(curs) meta.curs_valutar=curs;
   var faraConstr=($("tip_proprietate").value==="agricol");
   var building={au:$("au").value||"0",acd:$("acd").value||"0",an_referinta:parseInt($("an_referinta").value)||2025,elements:faraConstr?[]:elements,depreciation_points:faraConstr?[]:dp};
+  if($("etaj")&&$("etaj").value) building.etaj=parseInt($("etaj").value);
+  if($("nr_niveluri_bloc")&&$("nr_niveluri_bloc").value) building.nr_niveluri_bloc=parseInt($("nr_niveluri_bloc").value);
+  if($("an_bloc")&&$("an_bloc").value) building.an_bloc=parseInt($("an_bloc").value);
+  if($("cota_teren_indiviza")&&$("cota_teren_indiviza").value) building.cota_teren_indiviza=$("cota_teren_indiviza").value;
+  if($("inaltime_libera")&&$("inaltime_libera").value) building.inaltime_libera=$("inaltime_libera").value;
   var land={suprafata:$("suprafata_teren").value||"0"};
+  if($("categorie_folosinta")&&$("categorie_folosinta").value) land.categorie_folosinta=$("categorie_folosinta").value;
+  if($("clasa_calitate")&&$("clasa_calitate").value) land.clasa_calitate=parseInt($("clasa_calitate").value);
   var m=$("metoda").value;
   var payload={meta:meta,land:land,building:building,comparables:comparables,land_comparables:land_comparables,valoare_teren:$("valoare_teren").value||"0",metoda:m,tip_proprietate:$("tip_proprietate").value,scop:$("scop").value};
   if(m==="venit") payload.date_venit={venit_brut_potential:$("vbp").value||"0",grad_neocupare:$("neocupare").value||"0",cheltuieli_exploatare:$("cheltuieli").value||"0",rata_capitalizare:$("rata_cap").value||"0.08"};

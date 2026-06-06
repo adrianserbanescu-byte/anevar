@@ -196,6 +196,16 @@ with sync_playwright() as pw:
     check("dosar: nume precompletat (Ana)", "Ana" in p.eval_on_selector("#nume_client", "e=>e.value"))
     check("dosar: popover mapare (!) prezent", p.eval_on_selector(".hint-toggle.is-map", "e=>!!e") is True)
     check("dosar: ajutor (?) re-adaugat", p.eval_on_selector(".hint-toggle:not(.is-map)", "e=>e.textContent==='?'") is True)
+    # câmpuri dinamice per tip proprietate (port din wizard)
+    p.select_option("#tip_proprietate", "apartament")
+    check("dosar: tip apartament -> ap-fields vizibil + teren ascuns",
+          (not p.eval_on_selector("#ap-fields", "e=>e.hidden")) and p.eval_on_selector("#grup-teren", "e=>e.hidden"))
+    p.select_option("#tip_proprietate", "agricol")
+    check("dosar: tip agricol -> agr-fields vizibil + construcție ascunsă",
+          (not p.eval_on_selector("#agr-fields", "e=>e.hidden")) and p.eval_on_selector("#grup-constructie", "e=>e.hidden"))
+    p.select_option("#tip_proprietate", "casa")
+    check("dosar: tip casă -> teren + construcție vizibile",
+          (not p.eval_on_selector("#grup-teren", "e=>e.hidden")) and (not p.eval_on_selector("#grup-constructie", "e=>e.hidden")))
     p.click("#t-aml")
     check("dosar: tab AML comută panoul",
           (not p.eval_on_selector("#p-aml", "e=>e.hidden")) and p.eval_on_selector("#p-raport", "e=>e.hidden"))
