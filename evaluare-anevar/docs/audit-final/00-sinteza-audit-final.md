@@ -36,8 +36,9 @@ Validat: CSRF/DNS-rebind = risc REAL (rezolvat ↑); #5 dată = cea mai gravă (
   (control ANEVAR/BNR). Motor de jurnal hash EXISTĂ (`audit/jurnal.py`); lipsește lock-ul la asumare → ADR-003 / BLOCAT #10.
 - **Criptare la repaus** — SQLite + dosare + rapoarte = PII în clar pe disc. Minim: ghidaj BitLocker SAU disclaimer
   „protecția discului = responsabilitatea evaluatorului (operator de date)". → BLOCAT (Adi/jurist).
-- **Igienă fișiere temp + loguri** — `%TEMP%` (OCR/.docx) + log la 500 pot scăpa PII. Verifică curățarea robustă la crash +
-  loguri fără payload în producție. → Bucket A (de verificat/întărit).
+- **Igienă fișiere temp + loguri** — temp `.docx` din `%TEMP%`: ✅ REZOLVAT (șters după trimitere, BackgroundTask).
+  Loguri: ✅ VERIFICAT CURAT — niciun nume client/CNP/adresă în loguri; descoperirea loghează doar URL-uri publice +
+  județ/localitate; nivel INFO în producție (debug-ul cu URL-uri nici nu se emite); RotatingFileHandler limitează mărimea.
 - Zip-bomb/macro la import: limita de mărime (↑) ajută; docx/PDF nu se execută (doar parsate) → risc macro mic.
 
 ## ⏸️ Bucket B/C — escaladate (BLOCAT-pe-Adi)
