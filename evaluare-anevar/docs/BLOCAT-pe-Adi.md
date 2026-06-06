@@ -27,9 +27,11 @@
 16. **Popover „!" temporar** — confirmi că-l ștergem după validarea mapării vechi→nou?
 
 ## C2. Decizii din council-ul pe feature-uri (2026-06-06) — vezi `9-topicuri-decizie.md` + `council-plan-UI-nou.md`
-24. 🔴 **Anexa foto/scanuri: council UNANIM (3/4) spune că e cerință SEV 2025, NU feature comercial.** Gating-ul
-    total face aplicația „nelansabilă pentru rapoarte reale" (banca respinge). Recomandare: implementare ACUM,
-    gated doar pe VOLUM (10-20 poze gratis). **Tu ai decis-o comercială — confirmă dacă o re-încadrăm ca P0 conformitate.**
+24. 🔴 **Anexa foto/scanuri = cerință de CONFORMITATE SEV 2025 (CONFIRMAT în standard, nu doar de council).**
+    Bază: **GEV 630** listează „Anexele raportului (Fișe clădiri, **fotografii** etc.)" + cere inspecție cu „fotografii
+    din exterior" (l.5645/4079); SEV 230 §120 + SEV 106 §30.6. (Google cita „SEV 102" = numerotare veche; substanța e corectă.)
+    Gating-ul TOTAL ca feature comercial face raportul incomplet/neconform pt bancă/ANAF/instanță. **Decizie: re-încadrăm
+    atașarea anexelor ca P0 de conformitate (gating doar pe VOLUM, ex. 10-20 poze gratis)?** Detalii: [`validare-SEV2025-anexe-si-council.md`](validare-SEV2025-anexe-si-council.md).
 25. 🟡 **Regenerare AI (feature B):** confirmă conceptul — implicit **TEMPLATE** (păstrează vocea, actualizează valori)
     + diff per capitol + override. Apoi îl construiesc.
 26. 🟡 **Import asemănător (feature D):** confirmă matricea implicită (Zonă/Piață=GHIDARE, Descriere=DIFERIT) +
