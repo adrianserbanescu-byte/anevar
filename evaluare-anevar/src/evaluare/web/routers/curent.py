@@ -170,14 +170,14 @@ def build_router(d: Deps) -> APIRouter:
         return PlainTextResponse(text_audit(j))
 
     @router.post("/api/dosar/{uid}/raport.docx")
-    def genereaza(uid: str, inp: EvaluationInput) -> FileResponse:
+    def genereaza(uid: str, inp: EvaluationInput, adnotari: int = 0) -> FileResponse:
         try:
             fs.incarca(uid)
         except KeyError:
             raise HTTPException(404, "Dosar inexistent.") from None
         ctx = construieste_context(inp, client=d.client)
         out = Path(tempfile.gettempdir()) / f"raport_{uid}.docx"
-        genereaza_raport(ctx, out, adnotari=False)
+        genereaza_raport(ctx, out, adnotari=bool(adnotari))   # adnotări = note de proveniență (review)
         fs.adauga_versiune_docx(uid, out)              # versiune în folderul dosarului
         return FileResponse(str(out), media_type=DOCX_MIME, filename=f"raport_{uid[:8]}.docx")
 

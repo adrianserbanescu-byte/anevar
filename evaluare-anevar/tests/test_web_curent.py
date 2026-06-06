@@ -135,6 +135,14 @@ def test_genereaza_raport_salveaza_versiune(client):
     assert len(list(folder.glob("raport-*.docx"))) == 1
 
 
+def test_genereaza_cu_adnotari(client):
+    # opțiune Generează: adnotări de proveniență (raport de review)
+    _cont(client)
+    uid = client.post("/api/dosar", json={"wizard": {}}).json()["uuid"]
+    r = client.post(f"/api/dosar/{uid}/raport.docx?adnotari=1", json=_payload())
+    assert r.status_code == 200 and len(r.content) > 1000
+
+
 def test_audit_txt_pe_flux_foldere(client):
     # Audit in-place: urma de audit pe fluxul nou (foldere), fără SQLite
     _cont(client)

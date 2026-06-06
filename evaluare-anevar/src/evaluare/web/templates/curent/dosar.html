@@ -188,6 +188,7 @@
           Confirm că am verificat datele și <b>îmi asum profesional</b> valoarea și conținutul raportului,
           ca evaluator autorizat ANEVAR (semnătura îmi aparține; aplicația doar asistă).</label>
       </div>
+      <label class="chk"><input type="checkbox" id="gen-adnotari"> Include adnotări de proveniență (raport de review — nu pentru bancă)</label>
       <button type="button" id="genereaza" aria-describedby="asumare-info" disabled><span aria-hidden="true">📄</span> Generează și descarcă raportul</button>
       <span id="gen-status" class="hint" role="status" aria-live="polite"></span>
     </section>
@@ -568,7 +569,8 @@ $("calc").addEventListener("click", async function(){
 });
 $("genereaza").addEventListener("click", function(){
   var btn=this; btn.disabled=true; btn.setAttribute("aria-busy","true"); $("gen-status").textContent="Se generează…";
-  fetch("/api/dosar/"+UID+"/raport.docx",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(asambleaza())})
+  var adn=($("gen-adnotari")&&$("gen-adnotari").checked)?"?adnotari=1":"";
+  fetch("/api/dosar/"+UID+"/raport.docx"+adn,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(asambleaza())})
     .then(function(r){ return r.ok ? r.blob() : Promise.reject(); })
     .then(function(b){ var u=URL.createObjectURL(b); var a=document.createElement("a"); a.href=u; a.download="raport.docx"; a.click(); URL.revokeObjectURL(u);
       $("gen-status").textContent="✓ Generat + salvat ca versiune în folder."; })
