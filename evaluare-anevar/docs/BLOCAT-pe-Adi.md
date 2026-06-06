@@ -49,7 +49,25 @@
 
 ## F. Decizii minore de design (impact mic)
 23. `.cross-ui` în antet+subsol (cerut de tine) — păstrăm complet sau simplificăm antetul la „⇄ Schimbă interfața"?
-24. Emoji vs. iconografie SVG topograf (termen mediu).
+24bis. Emoji vs. iconografie SVG topograf (termen mediu).
+
+## G. Conformitate tip×scop (din `conformitate/E-matrice-tip-scop.md`, loop special) — Bucket B (evaluator)
+27. **Inversiune GEV (cea mai gravă):** `IMPOZITARE→GEV_630` și `RAPORTARE_FINANCIARA→GEV_500` par **schimbate**
+    (GEV 500 = „valoare impozabilă"; raportarea = SEV 430/justă). **Asertat în teste** → intenționat sau bug? Tu confirmi.
+28. **Impozitare:** `tip_valoare="piata"` vs „valoare impozabilă" distinctă (standard l.4059); cost nemarcat obligatoriu.
+29. **Câmp `ghid` unic** nu poate cita simultan 2 ghiduri (garantare: GEV 520 scop + GEV 630 metodă). Refactor model = A, dar regula = B.
+
+## H. AML / juridic (din `conformitate/F-lege-norme-aml.md`, loop special) — Bucket C (jurist)
+30. **Eroare de citare în disclaimer AML:** textul citează „Legea 129/2019 art. 33" pentru SANCȚIUNI — greșit;
+    corect **art. 43/44 (contravenții) + art. 49 (penal)**. Apare în `aml.html` + portat în `curent/dosar.html` (confirm AML). **NU am corectat singur (text juridic = tu/jurist).**
+31. **Goluri AML noi (jurist):** informare GDPR client înainte de relație (art. 22(2)); ștergere date la expirarea retenției
+    (art. 21(4)); coborârea pragului beneficiar-real la risc sporit (Norme art. 16(4)(e)); monitorizare continuă (avem one-shot).
+32. ✅ **Închis:** pragul de „3.000 €" din auditul vechi e **INFIRMAT** — nu există în lege (toate celelalte praguri sunt corecte).
+
+## I. ADR-uri formale propuse (din `docs/adr/`, loop special) — confirmi declanșatorii
+- **ADR-002** (SQLite→foldere): confirmi declanșatorii Fazei 2/3 (migrare + retragere) → #17/#18.
+- **ADR-003** (lock identitate): confirmi declanșatorul exact de lock — „prima generare .docx" vs „checkpoint asumare" → #10.
+- **ADR-004** (AI gateway): risc transfer LLM extra-UE/SCC + DPA art. 28 + AI Act → #3/#4; conturi externe → #7.
 
 > **Regula de aur (respectată peste tot):** aplicația **avertizează**, nu decide. Metodologia și
 > pragurile legale **nu se ating** fără semnătura unui evaluator senior / jurist.

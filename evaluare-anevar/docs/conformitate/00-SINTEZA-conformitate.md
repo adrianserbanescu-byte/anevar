@@ -6,12 +6,14 @@
 > [`D-garantare-adiacente.md`](D-garantare-adiacente.md). Bucket: **A**=îl pot face eu (cod, non-metodologie) ·
 > **B**=evaluator senior (metodologie/praguri) · **C**=jurist. Actualizat: 2026-06-06.
 
-## ⚠️ Limitare de scop a ACESTUI audit (corecție Adi 2026-06-06)
-Acest audit a fost rulat (greșit) restrâns pe **casă+teren + garantare**. Realitatea: aplicația suportă
-**toate tipurile** (casă, apartament, industrial, agricol, special) × **toate scopurile** (garantare, raportare
-financiară, asigurare, impozitare, litigii) — vezi `profil.py` (9 profile). **De re-rulat conformitatea pe ÎNTREAGA
-matrice tip×scop** (ex. apartament-raportare, industrial-impozitare, agricol-litigii) — pus în coada primului loop
-(`AUTONOM-taskuri.md`). Concluziile de mai jos rămân valabile pentru garantare-imobil, dar **nu sunt exhaustive** pe celelalte combinații.
+## ✅ Scop extins (corecție Adi 2026-06-06, rulat în loop-ul special)
+Auditul A-D a fost rulat (greșit) restrâns pe casă+teren+garantare. Aplicația suportă **toate tipurile × scopuri** (9 profile).
+Re-rularea pe ÎNTREAGA matrice e acum livrată: **[`E-matrice-tip-scop.md`](E-matrice-tip-scop.md)** (5 tipuri × 5 scopuri).
+Plus re-analiza juridică AML: **[`F-lege-norme-aml.md`](F-lege-norme-aml.md)** (Legea 129 + Norme ONPCSB).
+- **E (matrice):** discrepanțele sunt de FRAMING (ghid GEV citat), toate **bucket B** — vârf: inversiunea
+  `IMPOZITARE↔RAPORTARE_FINANCIARA` pe GEV_630/GEV_500 (asertată în teste → confirmi). Escaladat în `BLOCAT §G`.
+- **F (AML):** toate pragurile corecte; „3.000 €" din auditul vechi **INFIRMAT**; eroare de citare disclaimer
+  (art. 33 → art. 43/44/49) + 3 goluri GDPR — toate **bucket C** (jurist). Escaladat în `BLOCAT §H`.
 
 ## Verdict general
 Aplicația e **solidă și în mare conformă**: raportul `.docx` urmează fidel scheletul SEV 106 + GEV 520, motorul
