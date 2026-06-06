@@ -61,6 +61,31 @@ def test_descopera_pipeline_complet():
     assert rez[0].teren == Decimal("400")   # terenul e propagat in rezultat (afisare)
 
 
+def test_descopera_declaseaza_anunt_fara_suprafata():
+    # OLX-style: preț prezent, suprafață lipsă → scor declasat + notă „completează manual"
+    search = '<html><body><a href="/oferta/casa-fara-metraj-1">x</a></body></html>'
+    listing = ('<html><head><title>Casă de vânzare Breaza</title>'
+               '<script type="application/ld+json">'
+               '{"@type":"Offer","price":"120000","priceCurrency":"EUR"}</script>'
+               '</head><body>casă frumoasă, fără metraj indicat</body></html>')
+
+    def fetcher(url):
+        return listing if "/oferta/" in url else search
+
+    class FakeClient:
+        def complete(self, system, user):
+            return ('{"an":{"valoare":2010,"text":"2010"},"stare":{"treapta":3,"text":"ok"},'
+                    '"finisaj":{"treapta":3,"text":"ok"},"incalzire":{"categorie":"centrala_gaz","text":"gaz"},'
+                    '"teren":{"valoare":null,"text":""},"secundare":[]}')
+
+    subiect = SubjectProfile(an=2010, stare=3, finisaj=3, incalzire="centrala_gaz")
+    rez = descopera("imobiliare", judet="prahova", localitate="breaza", subiect=subiect,
+                    atribute_secundare=[], fetcher=fetcher, client=FakeClient(), max_candidati=3)
+    assert len(rez) == 1
+    assert rez[0].suprafata is None
+    assert "Suprafață lipsă" in rez[0].breakdown.explicatie    # marcat pentru completare manuală
+
+
 def test_build_search_url_teren():
     from evaluare.discovery.portal_search import build_search_url
     u = build_search_url("imobiliare", "Prahova", "Breaza", categorie="teren")

@@ -10,10 +10,10 @@
 3. [x] **Council pe planul UI nou** — comparat cu al meu în `council-plan-UI-nou.md`; ce adopt notat acolo §3. ✅
 
 ## ☐ DE PREIAT din council (autonom, fără decizie de produs)
-- [ ] Hash SHA256 al folderului dosarului la asumare (audit inalterabil) + `asumat_la`.
-- [ ] Fișier `.lock` per dosar + read-only la deschidere concurentă.
-- [ ] OLX downgrade scor (suprafață lipsă) + flag + validare roșie la Generează.
-- [ ] Descoperire ca split-screen în Comparabile (caută→bifează→importă) + fallback manual.
+- [x] **OLX downgrade scor** (suprafață lipsă → relevanță −30 + avertisment în explicație). ✅ +test
+- [ ] Hash SHA256 al folderului dosarului la asumare — **gated de declanșatorul de lock (#10, decizia ta)**.
+- [ ] Fișier `.lock` per dosar + read-only la deschidere concurentă — cuplat cu fluxul de lock.
+- [ ] Descoperire ca split-screen în Comparabile (caută→bifează→importă) + fallback manual — feature mai mare.
 
 <!-- arhivat (cererea verbatim a council-ului adițional, păstrată pt referință):
 3. **Council ADIȚIONAL — „planul lor pentru noul UI"** (cerere Adi, verbatim mai jos):

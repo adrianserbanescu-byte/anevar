@@ -136,6 +136,12 @@ def descopera(
             extraction.profile.teren = parsed.suprafata_teren
             extraction.profile.texte.setdefault("teren", str(parsed.suprafata_teren))
         breakdown = scor_candidat(subiect, extraction.profile)
+        # OLX (și alte anunțuri cu text liber) dau adesea prețul fără suprafață structurată →
+        # declasăm scorul + marcăm „completează manual" (council 2026-06-06, Topic 8).
+        if not parsed.suprafata:
+            breakdown.relevanta = max(0, breakdown.relevanta - 30)
+            breakdown.explicatie = (f"{breakdown.explicatie} ⚠ Suprafață lipsă — "
+                                    "completează manual înainte de a folosi în grilă.").strip()
         pret_mp = _pret_mp_daca_teren_comparabil(parsed, subiect, extraction.profile.teren)
         rezultate.append(CandidateResult(
             url=url, titlu=parsed.titlu, pret=parsed.pret, suprafata=parsed.suprafata,
