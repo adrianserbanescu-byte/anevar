@@ -306,6 +306,11 @@ button.ghost:disabled{ color:var(--ink-faint); border-color:var(--line-2); backg
 .doc-card .t{ font-weight:700; color:var(--sienna); }
 .doc-card .d{ font-size:.85rem; color:var(--ink-2); }
 
+/* Anexe — grilă de miniaturi foto + listă scanuri. */
+.anexe-grid{ display:flex; gap:8px; flex-wrap:wrap; margin:8px 0; }
+.anexa-thumb{ width:96px; height:96px; object-fit:cover; border:1px solid var(--brass);
+  border-radius:var(--radius-sm); box-shadow:var(--shadow); }
+
 /* Sub-tab-uri (rang doi) — butoane reale, cu afordanță clară (cerere Adi: arătau plate). */
 .subtabs{ display:flex; gap:8px; flex-wrap:wrap; margin:16px 0 6px; }
 .subtabs [role=tab]{

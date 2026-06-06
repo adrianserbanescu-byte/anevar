@@ -29,6 +29,7 @@
       <button type="button" role="tab" id="s-proprietate" aria-controls="sp-proprietate" aria-selected="true">Proprietate</button>
       <button type="button" role="tab" id="s-comparabile" aria-controls="sp-comparabile" aria-selected="false" tabindex="-1">Comparabile</button>
       <button type="button" role="tab" id="s-calcul" aria-controls="sp-calcul" aria-selected="false" tabindex="-1">Calcul</button>
+      <button type="button" role="tab" id="s-anexe" aria-controls="sp-anexe" aria-selected="false" tabindex="-1">Anexe</button>
       <button type="button" role="tab" id="s-genereaza" aria-controls="sp-genereaza" aria-selected="false" tabindex="-1">Generează</button>
     </div>
 
@@ -151,6 +152,17 @@
       <div id="rezultat" role="status" aria-live="polite"></div>
     </section>
 
+    <section role="tabpanel" id="sp-anexe" aria-labelledby="s-anexe" tabindex="0" hidden>
+      <p class="hint">Anexele intră în raportul .docx: <b>Anexa 2</b> (fotografii) + <b>Anexa 3</b> (scanuri CF/cadastral/acte).
+       Adaugă-le aici, ÎNAINTE de generare. Cerință de conformitate SEV 2025 (GEV 630).</p>
+      <h3>Fotografii (Anexa 2)</h3>
+      <input type="file" id="up-foto" accept="image/*" multiple aria-label="Adaugă fotografii">
+      <div id="lista-foto" class="anexe-grid"></div>
+      <h3>Documente / scanuri (Anexa 3)</h3>
+      <input type="file" id="up-doc" accept="application/pdf,image/*" multiple aria-label="Adaugă scanuri/documente">
+      <ul id="lista-doc" class="hint"></ul>
+    </section>
+
     <section role="tabpanel" id="sp-genereaza" aria-labelledby="s-genereaza" tabindex="0" hidden>
       <p class="hint">Generează raportul .docx; fiecare generare se salvează ca versiune în folderul dosarului.
        Textul AI e doar <b>proză narativă</b> (draft); <b>toate valorile numerice sunt deterministe</b>
@@ -173,8 +185,9 @@
     <a href="/documente/disclaimer-profesional" target="_blank" rel="noopener">Disclaimer profesional ↗</a></p></section>
   <section role="tabpanel" id="p-audit" aria-labelledby="t-audit" tabindex="0" hidden><p class="hint">Urma de audit se descarcă după calcul (în versiunea comercială, per dosar).
     Evaluarea juridică a produsului: <a href="/documente/evaluare-juridica" target="_blank" rel="noopener">vezi documentul ↗</a>.</p></section>
-  <section role="tabpanel" id="p-anexe" aria-labelledby="t-anexe" tabindex="0" hidden><p class="hint">Foto + scanuri documente (Anexa 2/3). Atașarea fișierelor vine cu versiunea comercială;
-    importul PDF pre-completează datele și se atașează aici.</p></section>
+  <section role="tabpanel" id="p-anexe" aria-labelledby="t-anexe" tabindex="0" hidden><p class="hint">
+    Anexele (fotografii + scanuri CF/cadastral) se adaugă în <b>Raport → Anexe</b>, înainte de Generează —
+    fiindcă intră direct în raportul .docx (Anexa 2/3). <button type="button" id="la-anexe">Mergi la Anexe →</button></p></section>
 </main>
 
 <script>{% include "_helpers.js" %}</script>
@@ -335,6 +348,19 @@ function aplicaTip(v){
 }
 if($("tip_proprietate")){ $("tip_proprietate").addEventListener("change", function(){ aplicaTip(); }); aplicaTip(); }
 
+// Anexe: foto (Anexa 2) + documente/scanuri (Anexa 3) → data-URL base64, incluse în raport.
+var ANEXE_FOTO=[], ANEXE_DOC=[];
+function _fileURL(f){ return new Promise(function(res){ var r=new FileReader(); r.onload=function(){res(r.result);}; r.readAsDataURL(f); }); }
+function randFoto(){ var g=$("lista-foto"); if(!g) return; g.innerHTML="";
+  ANEXE_FOTO.forEach(function(d,i){ var im=document.createElement("img"); im.src=d; im.alt="fotografie "+(i+1); im.className="anexa-thumb"; g.appendChild(im); }); }
+function randDoc(){ var u=$("lista-doc"); if(!u) return; u.innerHTML="";
+  ANEXE_DOC.forEach(function(d,i){ var li=document.createElement("li"); li.textContent="📎 scan/document "+(i+1); u.appendChild(li); }); }
+if($("up-foto")) $("up-foto").addEventListener("change", function(){
+  Promise.all([].map.call(this.files, _fileURL)).then(function(a){ ANEXE_FOTO=ANEXE_FOTO.concat(a); randFoto(); }); });
+if($("up-doc")) $("up-doc").addEventListener("change", function(){
+  Promise.all([].map.call(this.files, _fileURL)).then(function(a){ ANEXE_DOC=ANEXE_DOC.concat(a); randDoc(); }); });
+if($("la-anexe")) $("la-anexe").addEventListener("click", function(){ var rt=$("t-raport"); if(rt) rt.click(); subtab("s-anexe"); });
+
 // construiește payload-ul de evaluare din câmpuri
 function asambleaza(){
   var elements=$("elemente").value.trim().split("\n").filter(Boolean).map(function(l){var p=l.split(";");return{element:p[0],cod:p[1],um:p[2],cantitate:p[3],cost_unitar:p[4],an_pif:parseInt(p[5])};});
@@ -361,6 +387,8 @@ function asambleaza(){
   var payload={meta:meta,land:land,building:building,comparables:comparables,land_comparables:land_comparables,valoare_teren:$("valoare_teren").value||"0",metoda:m,tip_proprietate:$("tip_proprietate").value,scop:$("scop").value};
   if(m==="venit") payload.date_venit={venit_brut_potential:$("vbp").value||"0",grad_neocupare:$("neocupare").value||"0",cheltuieli_exploatare:$("cheltuieli").value||"0",rata_capitalizare:$("rata_cap").value||"0.08"};
   if(m==="dcf") payload.date_dcf={fluxuri:$("fluxuri").value.trim().split("\n").filter(Boolean),rata_actualizare:$("rata_actualizare").value||"0.1",valoare_reziduala:$("valoare_reziduala").value||"0"};
+  if(ANEXE_FOTO.length) payload.photos=ANEXE_FOTO;
+  if(ANEXE_DOC.length) payload.documente=ANEXE_DOC;
   return payload;
 }
 $("calc").addEventListener("click", async function(){

@@ -135,6 +135,18 @@ def test_genereaza_raport_salveaza_versiune(client):
     assert len(list(folder.glob("raport-*.docx"))) == 1
 
 
+def test_genereaza_raport_cu_anexa_foto(client):
+    # Anexe: o fotografie (data-URL) ajunge în raport prin photos (Anexa 2)
+    _cont(client)
+    uid = client.post("/api/dosar", json={"wizard": {}}).json()["uuid"]
+    png = ("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAA"
+           "C0lEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==")
+    p = _payload()
+    p["photos"] = [png]
+    r = client.post(f"/api/dosar/{uid}/raport.docx", json=p)
+    assert r.status_code == 200 and len(r.content) > 1000
+
+
 def test_dosar_inexistent_404(client):
     assert client.get("/dosar/nope").status_code == 404
     assert client.get("/api/dosar/nope").status_code == 404

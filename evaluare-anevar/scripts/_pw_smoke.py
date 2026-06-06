@@ -206,6 +206,11 @@ with sync_playwright() as pw:
     p.select_option("#tip_proprietate", "casa")
     check("dosar: tip casă -> teren + construcție vizibile",
           (not p.eval_on_selector("#grup-teren", "e=>e.hidden")) and (not p.eval_on_selector("#grup-constructie", "e=>e.hidden")))
+    # Anexe ca sub-tab al Raportului (înainte de Generează) + upload foto
+    p.click("#s-anexe")
+    check("dosar: sub-tab Anexe + upload foto",
+          (not p.eval_on_selector("#sp-anexe", "e=>e.hidden")) and p.eval_on_selector("#up-foto", "e=>!!e") is True)
+    p.click("#s-proprietate")
     p.click("#t-aml")
     check("dosar: tab AML comută panoul",
           (not p.eval_on_selector("#p-aml", "e=>e.hidden")) and p.eval_on_selector("#p-raport", "e=>e.hidden"))
