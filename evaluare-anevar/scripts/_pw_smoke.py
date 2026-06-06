@@ -224,6 +224,15 @@ with sync_playwright() as pw:
           p.eval_on_selector("#d-cauta", "e=>!!e") is True and p.eval_on_selector("#d-judet", "e=>!!e") is True)
     check("dosar: import URL + atribute secundare (paritate descoperire)",
           p.eval_on_selector("#d-url-btn", "e=>!!e") is True and p.eval_on_selector("#d-secundare", "e=>!!e") is True)
+    # grilă de ajustări casă inline (port din grila.html) → /api/grila-casa
+    p.eval_on_selector("details.grila-det", "e=>{e.open=true;}")
+    p.fill("#g-supr", "120")
+    for gi in range(3):
+        p.fill(f".g-pret[data-i='{gi}']", str(250000 + gi * 6000))
+        p.fill(f".g-sup[data-i='{gi}']", str(120 + gi * 4))
+    p.click("#g-calc")
+    p.wait_for_selector("#g-rezultat:has-text('Valoare de piață')", timeout=8000)
+    check("dosar: grilă ajustări casă inline → valoare de piață", "Valoare de piață" in p.inner_text("#g-rezultat"))
     p.click("#s-proprietate")
     p.click("#t-aml")
     check("dosar: tab AML comută panoul",

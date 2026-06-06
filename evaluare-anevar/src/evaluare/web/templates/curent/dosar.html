@@ -138,9 +138,21 @@
       <hr class="brass-rule">
       <label for="comparabile">Comparabile construcție/proprietate <span class="hint">(preț;suprafață, una pe linie)</span></label>
       <textarea id="comparabile" rows="4" placeholder="250000;120"></textarea>
+      <details class="grila-det">
+        <summary>📐 Grilă de ajustări — casă (pe etape + alerte prudențiale)</summary>
+        <p class="hint">Completează prețul + suprafața fiecărui comparabil și ajustările. „Tranzacție" = compus (ofertă→tranzacție);
+          „proprietate" = aditiv (caracteristici). Procentual: fracție (0,05 = +5%). Valoric: lei.</p>
+        <div class="field" style="max-width:220px"><label for="g-supr">Suprafață subiect (mp)</label><input id="g-supr" placeholder="ex. 120"></div>
+        <div id="grila-casa-tabel" class="grila-scroll"></div>
+        <div class="btn-bar">
+          <button type="button" id="g-calc">Calculează grila</button>
+          <button type="button" class="ghost" id="g-import">↑ Trimite prețurile în Comparabile</button>
+        </div>
+        <div id="g-rezultat" role="status" aria-live="polite"></div>
+      </details>
       <label for="comparabile_teren">Comparabile teren <span class="hint">(preț/mp;suprafață — opțional; dacă există, valoarea terenului se calculează din grilă, nu manual)</span></label>
       <textarea id="comparabile_teren" rows="3" placeholder="50;700"></textarea>
-      <p class="hint">Grile detaliate (ajustări pe etape): <a href="/grila" target="_blank" rel="noopener">Grile ↗</a>.</p>
+      <p class="hint">Grilă completă (3 tipuri, toate elementele): <a href="/grila" target="_blank" rel="noopener">Grile ↗</a>.</p>
     </section>
 
     <section role="tabpanel" id="sp-calcul" aria-labelledby="s-calcul" tabindex="0" hidden>
@@ -589,6 +601,68 @@ function asambleaza(){
   if(ANEXE_DOC.length) payload.documente=ANEXE_DOC;
   return payload;
 }
+// Grilă de ajustări casă (port din grila.html): 2 etape + alertă prudențială 25% (GEV 520).
+(function(){
+  var wrap=$("grila-casa-tabel"); if(!wrap) return;
+  var NC=3;
+  var ELEM_CASA=[
+    {nume:"Negociere",tip:"procentuala",etapa:"tranzactie"},
+    {nume:"Componente non-imobiliare (mobilier)",tip:"valorica",etapa:"proprietate"},
+    {nume:"Drept de proprietate",tip:"procentuala",etapa:"tranzactie"},
+    {nume:"Finanțare",tip:"procentuala",etapa:"tranzactie"},
+    {nume:"Condiții de vânzare",tip:"procentuala",etapa:"tranzactie"},
+    {nume:"Condițiile pieței (timp)",tip:"procentuala",etapa:"tranzactie"},
+    {nume:"Localizare",tip:"procentuala",etapa:"proprietate"},
+    {nume:"Suprafață teren (lei)",tip:"valorica",etapa:"proprietate"},
+    {nume:"Arie utilă (lei)",tip:"valorica",etapa:"proprietate"},
+    {nume:"Destinație",tip:"procentuala",etapa:"proprietate"},
+    {nume:"PIF / vechime",tip:"procentuala",etapa:"proprietate"},
+    {nume:"Acces",tip:"procentuala",etapa:"proprietate"},
+    {nume:"Curte",tip:"procentuala",etapa:"proprietate"},
+    {nume:"Finisaje",tip:"procentuala",etapa:"proprietate"},
+    {nume:"Sistem încălzire",tip:"procentuala",etapa:"proprietate"},
+    {nume:"Alte elemente (garaj, anexe)",tip:"valorica",etapa:"proprietate"}
+  ];
+  var i, h="<table class='grid-aj'><tr><th>Element</th>";
+  for(i=0;i<NC;i++) h+="<th>Comp "+(i+1)+"</th>"; h+="</tr>";
+  h+="<tr><th>Preț ofertă (EUR)</th>"; for(i=0;i<NC;i++) h+="<td><input class='g-pret' data-i='"+i+"' aria-label='Preț comp "+(i+1)+"'></td>"; h+="</tr>";
+  h+="<tr><th>Suprafață (mp)</th>"; for(i=0;i<NC;i++) h+="<td><input class='g-sup' data-i='"+i+"' aria-label='Suprafață comp "+(i+1)+"'></td>"; h+="</tr>";
+  ELEM_CASA.forEach(function(e,ei){ h+="<tr><th>"+e.nume+" <small class='hint'>("+(e.tip==='valorica'?'lei':'%')+", "+e.etapa+")</small></th>";
+    for(i=0;i<NC;i++) h+="<td><input class='g-aj' data-e='"+ei+"' data-i='"+i+"' aria-label='"+e.nume+" comp "+(i+1)+"'></td>"; h+="</tr>"; });
+  wrap.innerHTML=h+"</table>";
+  function compForm(){
+    var comps=[];
+    for(var i=0;i<NC;i++){
+      var pret=wrap.querySelector(".g-pret[data-i='"+i+"']").value, sup=wrap.querySelector(".g-sup[data-i='"+i+"']").value;
+      if(!pret||!sup) continue;
+      var aj=[];
+      ELEM_CASA.forEach(function(e,ei){ var v=wrap.querySelector(".g-aj[data-e='"+ei+"'][data-i='"+i+"']").value;
+        if(v&&parseFloat(v)!==0) aj.push({element:e.nume,tip:e.tip,valoare:v,etapa:e.etapa}); });
+      comps.push({pret:pret,suprafata:sup,ajustari:aj});
+    }
+    return comps;
+  }
+  if($("g-calc")) $("g-calc").addEventListener("click", function(){
+    var comps=compForm(), ss=$("g-supr").value;
+    if(comps.length<3||!ss){ $("g-rezultat").textContent="Completează suprafața subiect + cel puțin 3 comparabile (preț+suprafață)."; return; }
+    $("g-rezultat").textContent="… se calculează grila";
+    fetch("/api/grila-casa",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({suprafata_subiect:ss,comparabile:comps})})
+      .then(function(r){ return r.ok?r.json():Promise.reject(); })
+      .then(function(d){
+        var al=[]; (d.ajustari_brute||[]).forEach(function(b,i){ if(parseFloat(b)>0.25) al.push("Comp "+(i+1)+": ajustare brută "+Math.round(parseFloat(b)*100)+"% > 25% (prag prudențial GEV 520)"); });
+        var html="<div class='callout'><p><b>Valoare de piață: "+fmtRo(d.valoare_piata)+"</b> · comparabil ales: #"+((d.index_selectat||0)+1)+"</p>"+
+          "<p class='hint'>Prețuri unitare corectate: "+(d.preturi_unitare_corectate||[]).map(function(p){return fmtRo(p);}).join(" · ")+"</p>";
+        html+=al.length?("<ul>"+al.map(function(a){return "<li class='alerta'>⚠ "+a+"</li>";}).join("")+"</ul>"):"<p class='hint'>✓ Toate ajustările brute sub pragul prudențial de 25%.</p>";
+        $("g-rezultat").innerHTML=html+"</div>";
+      })
+      .catch(function(){ $("g-rezultat").textContent="Grila a eșuat — verifică valorile (minim 3 comparabile completate)."; });
+  });
+  if($("g-import")) $("g-import").addEventListener("click", function(){
+    var comps=compForm(); if(!comps.length){ $("g-rezultat").textContent="Nimic de trimis."; return; }
+    var ta=$("comparabile"); ta.value=(ta.value.trim()?ta.value.trim()+"\n":"")+comps.map(function(c){return c.pret+";"+c.suprafata;}).join("\n"); salveaza();
+    $("g-rezultat").textContent="✓ "+comps.length+" prețuri trimise în Comparabile.";
+  });
+})();
 $("calc").addEventListener("click", async function(){
   $("rezultat").textContent="Se calculează…";
   try{ var r=await fetch("/api/dosar/"+UID+"/calcul",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(asambleaza())});

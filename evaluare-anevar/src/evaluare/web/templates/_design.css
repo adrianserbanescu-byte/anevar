@@ -310,6 +310,15 @@ button.ghost:disabled{ color:var(--ink-faint); border-color:var(--line-2); backg
 .btn-bar{ display:flex; gap:10px; flex-wrap:wrap; align-items:center; margin:10px 0; }
 .btn-bar-jos{ margin-top:18px; padding-top:14px; border-top:1px solid var(--line); }
 
+/* Grilă de ajustări (casă) — tabel pe etape, derulabil orizontal. */
+.grila-det{ margin:12px 0; border:1px solid var(--line); border-radius:var(--radius-sm); padding:10px 14px; background:var(--paper-card); }
+.grila-det > summary{ cursor:pointer; font-weight:600; color:var(--sienna); }
+.grila-scroll{ overflow-x:auto; }
+.grid-aj{ border-collapse:collapse; width:100%; font-size:.82rem; }
+.grid-aj th, .grid-aj td{ border:1px solid var(--line); padding:3px 5px; text-align:left; }
+.grid-aj th[scope], .grid-aj tr > th:first-child{ background:var(--paper-sunk); font-weight:600; white-space:nowrap; }
+.grid-aj input{ width:90px; padding:3px 5px; margin:0; }
+
 /* Anexe — grilă de miniaturi foto + listă scanuri. */
 .anexe-grid{ display:flex; gap:8px; flex-wrap:wrap; margin:8px 0; }
 .anexa-thumb{ width:96px; height:96px; object-fit:cover; border:1px solid var(--brass);
