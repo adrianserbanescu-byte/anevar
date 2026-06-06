@@ -4,14 +4,19 @@
 > (2) aleg și rezolv tot ce pot face singur (fără input de la Adi), (3) la următorul loop reiau.
 > Ce e blocat pe Adi → [`BLOCAT-pe-Adi.md`](BLOCAT-pe-Adi.md) (NU le ating). Actualizat: 2026-06-06.
 
-## 🔄 BLOCAT EXTERN — MCP llm-council offline (la fiecare loop: verific statusul; dacă e UP, rulez ÎN ORDINE)
-> Adi (2026-06-06): „retry at the loop the council status; if yes resume Q2 & Q3 then the additional one".
-> NU rula council acum în interacțiune — DOAR la loop, după ce verifici că `mcp__llm-council__ask_council` există.
+## ✅ COUNCIL — TOATE rulate (2026-06-06, după reconectarea MCP)
+1. [x] **Council Q2** (topics 3,4,6) — foldat în `9-topicuri-decizie.md`. ✅
+2. [x] **Council Q3** (topics 2,8,9) — foldat în `9-topicuri-decizie.md`. ✅
+3. [x] **Council pe planul UI nou** — comparat cu al meu în `council-plan-UI-nou.md`; ce adopt notat acolo §3. ✅
 
-1. [ ] **Council Q2** (topics 3,4,6 — funcții AI + conținut workspace). `include_member_responses=true`.
-2. [ ] **Council Q3** (topics 2,8,9 — paritate + descoperire + localități). `include_member_responses=true`.
-       → foldez Q2+Q3 (chairman + individual + analiza mea) în `9-topicuri-decizie.md`.
-3. [ ] **Council ADIȚIONAL — „planul lor pentru noul UI"** (cerere Adi, verbatim mai jos):
+## ☐ DE PREIAT din council (autonom, fără decizie de produs)
+- [ ] Hash SHA256 al folderului dosarului la asumare (audit inalterabil) + `asumat_la`.
+- [ ] Fișier `.lock` per dosar + read-only la deschidere concurentă.
+- [ ] OLX downgrade scor (suprafață lipsă) + flag + validare roșie la Generează.
+- [ ] Descoperire ca split-screen în Comparabile (caută→bifează→importă) + fallback manual.
+
+<!-- arhivat (cererea verbatim a council-ului adițional, păstrată pt referință):
+3. **Council ADIȚIONAL — „planul lor pentru noul UI"** (cerere Adi, verbatim mai jos):
        „rulează încă un llm-council audit în care ceri planul lor pentru noul UI și cum ar trebui să îl
        definim. Poți să le dai contextul de până acum discutat, dar cere-le să îți facă planul lor INDIVIDUAL.
        În afară de contextul exhaustiv asupra proiectului, dă-le toate informațiile despre: **fișiere exportate**,
@@ -19,6 +24,7 @@
        setate de noi**. Cere-le planul și detalierea lor, **riscuri și dependențe**. Compară output-ul fiecăruia
        cu al meu ȘI output-ul agregat al lor vs. opinia mea. Preia ce consider potrivit în planul meu de dezvoltare."
        → `include_member_responses=true`; rezultat în `docs/council-plan-UI-nou.md` + integrare în planul de dezvoltare.
+-->
 
 ## ✅ Făcut în acest loop
 - [x] **Analiza mea pe toate 9 topicuri** + council Q1 → `9-topicuri-decizie.md`.

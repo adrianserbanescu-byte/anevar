@@ -26,6 +26,15 @@
 15. **Home cu 5 opțiuni, 2 dezactivate** (comercial) — teasere vs. ascunse pe build offline.
 16. **Popover „!" temporar** — confirmi că-l ștergem după validarea mapării vechi→nou?
 
+## C2. Decizii din council-ul pe feature-uri (2026-06-06) — vezi `9-topicuri-decizie.md` + `council-plan-UI-nou.md`
+24. 🔴 **Anexa foto/scanuri: council UNANIM (3/4) spune că e cerință SEV 2025, NU feature comercial.** Gating-ul
+    total face aplicația „nelansabilă pentru rapoarte reale" (banca respinge). Recomandare: implementare ACUM,
+    gated doar pe VOLUM (10-20 poze gratis). **Tu ai decis-o comercială — confirmă dacă o re-încadrăm ca P0 conformitate.**
+25. 🟡 **Regenerare AI (feature B):** confirmă conceptul — implicit **TEMPLATE** (păstrează vocea, actualizează valori)
+    + diff per capitol + override. Apoi îl construiesc.
+26. 🟡 **Import asemănător (feature D):** confirmă matricea implicită (Zonă/Piață=GHIDARE, Descriere=DIFERIT) +
+    detecția PII la import. Apoi îl construiesc.
+
 ## D. Decizii arhitecturale (din auditul tehnic)
 17. **Migrare SQLite-vechi → foldere:** dosarele din `/dosare` (SQLite) și `/incepe` (foldere) sunt mulțimi disjuncte. Le punți, le lași separate, sau retragi stocarea veche?
 18. **Retragere UI vechi (wizard/formular)?** Noul UI = unic țintă pe termen lung — când oprim întreținerea celui vechi?
