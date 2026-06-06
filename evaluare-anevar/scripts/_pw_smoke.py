@@ -241,6 +241,15 @@ with sync_playwright() as pw:
     p.select_option("#metoda", "venit")
     check("dosar: grup venit vizibil la metoda venit", not p.eval_on_selector("#grup-venit", "e=>e.hidden"))
     p.select_option("#metoda", "cost")
+    # butoane la finalul tabului Raport (paritate wizard): bară de jos + 3 butoane la Generează
+    p.click("#s-genereaza")
+    check("dosar: 3 butoane la Generează (raport + demo + audit)",
+          p.eval_on_selector("#genereaza-demo", "e=>!!e") is True and p.eval_on_selector("#gen-audit", "e=>!!e") is True)
+    check("dosar: bară de jos (Înapoi/Înainte/Reset/Documente)",
+          p.eval_on_selector("#nav-inainte", "e=>!!e") is True and p.eval_on_selector("#reset-dosar", "e=>!!e") is True)
+    p.click("#s-proprietate")
+    p.click("#nav-inainte")   # Proprietate -> Comparabile
+    check("dosar: «Înainte ▶» navighează la sub-tabul următor", not p.eval_on_selector("#sp-comparabile", "e=>e.hidden"))
     # checkpoint de asumare: «Generează» blocat până confirmă evaluatorul
     p.click("#s-genereaza")
     check("dosar: Generează blocat fără asumare", p.eval_on_selector("#genereaza", "e=>e.disabled"))

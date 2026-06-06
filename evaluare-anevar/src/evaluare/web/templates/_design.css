@@ -306,6 +306,10 @@ button.ghost:disabled{ color:var(--ink-faint); border-color:var(--line-2); backg
 .doc-card .t{ font-weight:700; color:var(--sienna); }
 .doc-card .d{ font-size:.85rem; color:var(--ink-2); }
 
+/* Bare de butoane (acțiuni grupate + navigarea de jos a sub-tab-urilor). */
+.btn-bar{ display:flex; gap:10px; flex-wrap:wrap; align-items:center; margin:10px 0; }
+.btn-bar-jos{ margin-top:18px; padding-top:14px; border-top:1px solid var(--line); }
+
 /* Anexe — grilă de miniaturi foto + listă scanuri. */
 .anexe-grid{ display:flex; gap:8px; flex-wrap:wrap; margin:8px 0; }
 .anexa-thumb{ width:96px; height:96px; object-fit:cover; border:1px solid var(--brass);

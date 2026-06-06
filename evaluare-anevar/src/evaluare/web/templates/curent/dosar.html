@@ -189,10 +189,19 @@
           Confirm că am verificat datele și <b>îmi asum profesional</b> valoarea și conținutul raportului,
           ca evaluator autorizat ANEVAR (semnătura îmi aparține; aplicația doar asistă).</label>
       </div>
-      <label class="chk"><input type="checkbox" id="gen-adnotari"> Include adnotări de proveniență (raport de review — nu pentru bancă)</label>
-      <button type="button" id="genereaza" aria-describedby="asumare-info" disabled><span aria-hidden="true">📄</span> Generează și descarcă raportul</button>
+      <div class="btn-bar">
+        <button type="button" id="genereaza" aria-describedby="asumare-info" disabled><span aria-hidden="true">📄</span> Generează și descarcă raportul</button>
+        <button type="button" class="ghost" id="genereaza-demo"><span aria-hidden="true">📝</span> Raport cu note (demo)</button>
+        <button type="button" class="ghost" id="gen-audit"><span aria-hidden="true">🧾</span> Urmă de audit (.txt)</button>
+      </div>
       <span id="gen-status" class="hint" role="status" aria-live="polite"></span>
     </section>
+    <div class="btn-bar btn-bar-jos">
+      <button type="button" class="ghost" id="nav-inapoi"><span aria-hidden="true">◀</span> Înapoi</button>
+      <button type="button" id="nav-inainte">Înainte <span aria-hidden="true">▶</span></button>
+      <button type="button" class="ghost" id="reset-dosar">🔄 Reset dosar</button>
+      <a class="btn ghost" href="/documente" title="Toate documentele livrate">📄 Documente</a>
+    </div>
   </section>
 
   <section role="tabpanel" id="p-aml" aria-labelledby="t-aml" tabindex="0" hidden>
@@ -568,15 +577,35 @@ $("calc").addEventListener("click", async function(){
     var lg=$("la-gen"); if(lg) lg.addEventListener("click",function(){ subtab("s-genereaza"); });
   }catch(e){ $("rezultat").textContent="Calculul a eșuat — verifică valorile (suprafețe, elemente, comparabile)."; }
 });
-$("genereaza").addEventListener("click", function(){
-  var btn=this; btn.disabled=true; btn.setAttribute("aria-busy","true"); $("gen-status").textContent="Se generează…";
-  var adn=($("gen-adnotari")&&$("gen-adnotari").checked)?"?adnotari=1":"";
-  fetch("/api/dosar/"+UID+"/raport.docx"+adn,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(asambleaza())})
+function genereazaRaport(adnotari, btn, nume){
+  btn.disabled=true; btn.setAttribute("aria-busy","true"); $("gen-status").textContent="Se generează…";
+  fetch("/api/dosar/"+UID+"/raport.docx"+(adnotari?"?adnotari=1":""),{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(asambleaza())})
     .then(function(r){ return r.ok ? r.blob() : Promise.reject(); })
-    .then(function(b){ var u=URL.createObjectURL(b); var a=document.createElement("a"); a.href=u; a.download="raport.docx"; a.click(); URL.revokeObjectURL(u);
-      $("gen-status").textContent="✓ Generat + salvat ca versiune în folder."; })
+    .then(function(b){ var u=URL.createObjectURL(b); var a=document.createElement("a"); a.href=u; a.download=nume; a.click(); URL.revokeObjectURL(u);
+      $("gen-status").textContent="✓ "+nume+" — salvat ca versiune în folder."; })
     .catch(function(){ $("gen-status").textContent="Generarea a eșuat."; })
     .finally(function(){ btn.disabled=false; btn.removeAttribute("aria-busy"); });
+}
+$("genereaza").addEventListener("click", function(){ genereazaRaport(false, this, "raport.docx"); });
+if($("genereaza-demo")) $("genereaza-demo").addEventListener("click", function(){ genereazaRaport(true, this, "raport-demo.docx"); });
+if($("gen-audit")) $("gen-audit").addEventListener("click", function(){
+  var b=this; b.disabled=true; $("gen-status").textContent="… urmă de audit";
+  fetch("/api/dosar/"+UID+"/audit.txt",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(asambleaza())})
+    .then(function(r){ return r.ok?r.text():Promise.reject(); })
+    .then(function(t){ var bl=new Blob([t],{type:"text/plain"}); var a=document.createElement("a"); a.href=URL.createObjectURL(bl); a.download="audit.txt"; a.click();
+      $("gen-status").textContent="✓ urmă de audit descărcată."; })
+    .catch(function(){ $("gen-status").textContent="Urma de audit a eșuat."; })
+    .finally(function(){ b.disabled=false; });
+});
+// Bara de jos: navigare între sub-tab-uri (Înapoi/Înainte) + Reset dosar.
+var SUBTABS=["s-proprietate","s-comparabile","s-calcul","s-anexe","s-genereaza"];
+function _idxSubtab(){ var s=document.querySelector(".subtabs [aria-selected='true']"); return s?SUBTABS.indexOf(s.id):0; }
+if($("nav-inainte")) $("nav-inainte").addEventListener("click", function(){ var i=_idxSubtab(); if(i<SUBTABS.length-1) subtab(SUBTABS[i+1]); });
+if($("nav-inapoi")) $("nav-inapoi").addEventListener("click", function(){ var i=_idxSubtab(); if(i>0) subtab(SUBTABS[i-1]); });
+if($("reset-dosar")) $("reset-dosar").addEventListener("click", function(){
+  if(!confirm("Golești toate câmpurile din formular? (folderul rămâne pe disc; salvează după dacă vrei să persiste.)")) return;
+  document.querySelectorAll("main input, main textarea, main select").forEach(function(e){ if(e.type==="checkbox") e.checked=false; else if(e.type!=="file") e.value=""; });
+  if($("rezultat")) $("rezultat").textContent=""; if($("gen-status")) $("gen-status").textContent="Câmpuri golite.";
 });
 </script>
 {% include "_footer.html" %}
