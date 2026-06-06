@@ -181,8 +181,11 @@ def build_router(d: Deps) -> APIRouter:
         ctx = construieste_context(inp, client=d.client)
         out = Path(tempfile.gettempdir()) / f"raport_{uid}.docx"
         genereaza_raport(ctx, out, adnotari=bool(adnotari))   # adnotări = note de proveniență (review)
-        fs.adauga_versiune_docx(uid, out)              # versiune în folderul dosarului
-        return FileResponse(str(out), media_type=DOCX_MIME, filename=f"raport_{uid[:8]}.docx")
+        fs.adauga_versiune_docx(uid, out)              # versiune persistentă în folderul dosarului
+        # Igienă PII: șterge copia temporară din %TEMP% după trimitere (versiunea persistă în folder).
+        from starlette.background import BackgroundTask
+        return FileResponse(str(out), media_type=DOCX_MIME, filename=f"raport_{uid[:8]}.docx",
+                            background=BackgroundTask(lambda: out.unlink(missing_ok=True)))
 
     @router.get("/api/backup-dosare.zip")
     def backup_dosare():

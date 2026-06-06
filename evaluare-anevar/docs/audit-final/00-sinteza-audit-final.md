@@ -4,7 +4,11 @@
 > Detalii: [`security.md`](security.md) · [`bugs-silent.md`](bugs-silent.md) · [`tech-debt.md`](tech-debt.md) · [`test-coverage.md`](test-coverage.md).
 > Bucket: A=îl fac eu (cod sigur) · B=evaluator · C=jurist. Actualizat: 2026-06-06.
 
-## 🔴 Bucket A — de reparat (confirmate de ≥1 audit, sigure, fără metodologie/legal)
+## ✅ Bucket A — TOATE REZOLVATE (commit hardening, validate de council, +6 teste, 507 teste + 90 e2e)
+> #5 dată (azi+confirm) · #2 gardă Host anti-rebind · #1 anti-SSRF · #3 grilă→422 · #4 pierdere date localități ·
+> #7 creare r.ok · #8 CNP prefix 9 · #6 limită DoS 25MB. Tabelul de mai jos = starea inițială (istoric).
+
+## 🔴 Bucket A — de reparat (confirmate de ≥1 audit, sigure, fără metodologie/legal) [REZOLVAT ↑]
 | # | Problemă | Sursă | Fix | Sev |
 |---|----------|-------|-----|-----|
 | 1 | **SSRF** — `/api/import-url` + `/api/descopera` fac `requests.get` pe URL controlat de user, fără validare schemă/host, urmărind redirecturi (port-scan intern, 169.254.169.254) | sec #1 | validează schemă http/https + blochează IP privat/loopback/link-local + limitează redirecturi | Înalt |
@@ -26,7 +30,19 @@
 ## 🔵 Confirmări pozitive (nu sunt probleme)
 SQL parametrizat (zero injection) · bind loopback · fără eval/exec/subprocess/pickle · `md_to_html` escapează · `.env` NU în backup-zip · path-traversal mitigat (uuid+`.name`) · `TipValoare="lichidare"` NU e cod mort (folosit în raport) · coverage 94% (>90 gate).
 
-## ⏸️ Bucket B/C — escaladate (BLOCAT-pe-Adi)
-Metodologie (alerte ajustări, declarație conformitate) = evaluator · AML/GDPR text = jurist · lock/anexe/preț/migrare = Adi.
+## 🧭 Council (4 modele, chairman Gemini 3.1) — ce au RATAT auditurile (critic pre-lansare)
+Validat: CSRF/DNS-rebind = risc REAL (rezolvat ↑); #5 dată = cea mai gravă (rezolvat ↑). NOI, de adăugat:
+- **Jurnal de audit imuabil + LOCK la finalizare** — modificarea CNP/preț DUPĂ generare fără urmă = risc de fraudă
+  (control ANEVAR/BNR). Motor de jurnal hash EXISTĂ (`audit/jurnal.py`); lipsește lock-ul la asumare → ADR-003 / BLOCAT #10.
+- **Criptare la repaus** — SQLite + dosare + rapoarte = PII în clar pe disc. Minim: ghidaj BitLocker SAU disclaimer
+  „protecția discului = responsabilitatea evaluatorului (operator de date)". → BLOCAT (Adi/jurist).
+- **Igienă fișiere temp + loguri** — `%TEMP%` (OCR/.docx) + log la 500 pot scăpa PII. Verifică curățarea robustă la crash +
+  loguri fără payload în producție. → Bucket A (de verificat/întărit).
+- Zip-bomb/macro la import: limita de mărime (↑) ajută; docx/PDF nu se execută (doar parsate) → risc macro mic.
 
-## Plan: repar #1–#9 (Bucket A) acum, cu teste; refactorul rămâne opțional. Apoi council pe această sinteză.
+## ⏸️ Bucket B/C — escaladate (BLOCAT-pe-Adi)
+Metodologie (alerte ajustări, declarație conformitate) = evaluator · AML/GDPR text + **criptare-la-repaus/disclaimer** = jurist ·
+**lock identitate la finalizare** + anexe/preț/migrare = Adi. Minim lansare sigură (council): disclaimere juridice în raport →
+alerte metodologice trasabile → lock identitate → gardă re-încadrare anexe.
+
+## Stare: Bucket A = REZOLVAT (cod + teste + build). Bucket B/C + council-noi = BLOCAT-pe-Adi.md.

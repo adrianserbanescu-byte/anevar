@@ -73,6 +73,18 @@
 - **ADR-003** (lock identitate): confirmi declanșatorul exact de lock — „prima generare .docx" vs „checkpoint asumare" → #10.
 - **ADR-004** (AI gateway): risc transfer LLM extra-UE/SCC + DPA art. 28 + AI Act → #3/#4; conturi externe → #7.
 
+## J. Audit final + LLM council (2026-06-06) — Bucket-A REZOLVAT; rămân pe tine:
+33. **Criptare la repaus (PII pe disc)** — SQLite + dosare + rapoarte sunt în CLAR. Decizie: (a) doar disclaimer
+    „protecția discului = responsabilitatea evaluatorului/operator de date", (b) ghidaj BitLocker la instalare, sau
+    (c) criptare cu parolă în app. Council: minim (a)+(b). **Bucket C (jurist) + decizie produs.**
+34. **Lock identitate la finalizare** (= #10, reconfirmat de council ca BLOCANT de lansare): modificarea PII/preț DUPĂ
+    generarea .docx fără urmă = risc de fraudă la control ANEVAR/BNR. Motorul de jurnal hash există; lipsește lock-ul.
+    Confirmă declanșatorul → îl implementez (ADR-003).
+35. **Minim lansare sigură (ordinea councilului):** (1) disclaimere juridice în raport [jurist] · (2) alerte
+    metodologice trasabile [evaluator] · (3) lock identitate [#34] · (4) gardă re-încadrare anexe [evaluator].
+> ✅ Făcute de mine din audit+council (Bucket A): anti-SSRF, gardă Host (anti DNS-rebind), grilă→422, fix dată
+> tăcută, pierdere date localități, CNP prefix 9, limită DoS, igienă temp .docx (PII). Vezi `docs/audit-final/`.
+
 > **Regula de aur (respectată peste tot):** aplicația **avertizează**, nu decide. Metodologia și
 > pragurile legale **nu se ating** fără semnătura unui evaluator senior / jurist.
 > Tot ce NU e aici îl fac eu autonom (cod, teste, build, documente, audituri).
