@@ -202,8 +202,11 @@
     <span id="gdpr-status" class="hint" role="status" aria-live="polite"></span>
     <p class="hint">Referință: <a href="/documente/politica-confidentialitate" target="_blank" rel="noopener">Politica de confidențialitate ↗</a> ·
       <a href="/documente/disclaimer-profesional" target="_blank" rel="noopener">Disclaimer profesional ↗</a></p></section>
-  <section role="tabpanel" id="p-audit" aria-labelledby="t-audit" tabindex="0" hidden><p class="hint">Urma de audit se descarcă după calcul (în versiunea comercială, per dosar).
-    Evaluarea juridică a produsului: <a href="/documente/evaluare-juridica" target="_blank" rel="noopener">vezi documentul ↗</a>.</p></section>
+  <section role="tabpanel" id="p-audit" aria-labelledby="t-audit" tabindex="0" hidden>
+    <p class="hint">Urma de audit (jurnal hash-înlănțuit + validare încrucișată) pentru valorile curente:</p>
+    <button type="button" id="audit-gen">🧾 Generează urma de audit</button>
+    <span id="audit-status" class="hint" role="status" aria-live="polite"></span>
+    <pre id="audit-out" class="document" style="display:none"></pre></section>
   <section role="tabpanel" id="p-anexe" aria-labelledby="t-anexe" tabindex="0" hidden><p class="hint">
     Anexele (fotografii + scanuri CF/cadastral) se adaugă în <b>Raport → Anexe</b>, înainte de Generează —
     fiindcă intră direct în raportul .docx (Anexa 2/3). <button type="button" id="la-anexe">Mergi la Anexe →</button></p></section>
@@ -426,6 +429,16 @@ function descarcaDoc(url, nume, btn){
 }
 if($("gdpr-politica")) $("gdpr-politica").addEventListener("click", function(){ descarcaDoc("/api/gdpr/politica.docx","gdpr_politica.docx", this); });
 if($("gdpr-consimtamant")) $("gdpr-consimtamant").addEventListener("click", function(){ descarcaDoc("/api/gdpr/consimtamant.docx","gdpr_consimtamant.docx", this); });
+
+// Audit in-place: urma de calcul (jurnal + validare încrucișată), nu redirect.
+if($("audit-gen")) $("audit-gen").addEventListener("click", function(){
+  var b=this; b.disabled=true; $("audit-status").textContent="… se generează";
+  fetch("/api/dosar/"+UID+"/audit.txt",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(asambleaza())})
+    .then(function(r){ return r.ok?r.text():Promise.reject(); })
+    .then(function(t){ $("audit-out").textContent=t; $("audit-out").style.display="block"; $("audit-status").textContent="✓"; })
+    .catch(function(){ $("audit-status").textContent="generarea a eșuat — verifică valorile."; })
+    .finally(function(){ b.disabled=false; });
+});
 
 // construiește payload-ul de evaluare din câmpuri
 function asambleaza(){

@@ -136,6 +136,39 @@ def build_router(d: Deps) -> APIRouter:
             "alerte": [a.model_dump() for a in valideaza(inp)],
         }
 
+    @router.post("/api/dosar/{uid}/audit.txt")
+    def audit_dosar(uid: str, inp: EvaluationInput):
+        """Urma de audit (jurnal hash + validare încrucișată) pt fluxul pe foldere (fără SQLite)."""
+        from fastapi.responses import PlainTextResponse
+
+        from evaluare.audit.jurnal import JurnalAudit
+        from evaluare.audit.raport_audit import text_audit
+        from evaluare.audit.snapshot import snapshot
+        from evaluare.audit.validare_x import valideaza_incrucisat
+        try:
+            fs.incarca(uid)
+        except KeyError:
+            raise HTTPException(404, "Dosar inexistent.") from None
+        ctx = construieste_context(inp, client=d.client)
+        j = JurnalAudit()
+        j.inregistreaza("identificare", {"adresa": ctx.meta.adresa,
+                                         "cadastral": ctx.meta.numar_cadastral, "scop": ctx.meta.scop})
+        j.inregistreaza("input_proprietate", {"hash": snapshot({
+            "land": ctx.land.model_dump(mode="json"),
+            "building": ctx.building.model_dump(mode="json")})["hash"]})
+        j.inregistreaza("comparabile", {"casa": len(ctx.comparables), "teren": len(ctx.land_comparables)})
+        if ctx.market_result is not None:
+            j.inregistreaza("rezultat_piata", {"valoare": str(ctx.market_result.valoare_piata)})
+        if ctx.cost_result is not None:
+            j.inregistreaza("rezultat_cost", {"valoare": str(ctx.cost_result.valoare_cost)})
+        if ctx.land_result is not None:
+            j.inregistreaza("rezultat_teren", {"valoare": str(ctx.land_result.valoare_teren)})
+        j.inregistreaza("valoare_finala", {"valoare": str(ctx.reconciled.valoare_finala),
+                                           "metoda": ctx.reconciled.metoda_selectata})
+        for issue in valideaza_incrucisat(ctx):
+            j.inregistreaza("validare_incrucisata", {"nivel": issue.nivel, "mesaj": issue.mesaj})
+        return PlainTextResponse(text_audit(j))
+
     @router.post("/api/dosar/{uid}/raport.docx")
     def genereaza(uid: str, inp: EvaluationInput) -> FileResponse:
         try:

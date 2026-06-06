@@ -135,6 +135,15 @@ def test_genereaza_raport_salveaza_versiune(client):
     assert len(list(folder.glob("raport-*.docx"))) == 1
 
 
+def test_audit_txt_pe_flux_foldere(client):
+    # Audit in-place: urma de audit pe fluxul nou (foldere), fără SQLite
+    _cont(client)
+    uid = client.post("/api/dosar", json={"wizard": {}}).json()["uuid"]
+    r = client.post(f"/api/dosar/{uid}/audit.txt", json=_payload())
+    assert r.status_code == 200 and "valoare_finala" in r.text
+    assert client.post("/api/dosar/nope/audit.txt", json=_payload()).status_code == 404
+
+
 def test_genereaza_raport_cu_anexa_foto(client):
     # Anexe: o fotografie (data-URL) ajunge în raport prin photos (Anexa 2)
     _cont(client)
