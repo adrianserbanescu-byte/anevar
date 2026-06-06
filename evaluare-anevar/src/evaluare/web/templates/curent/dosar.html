@@ -104,6 +104,8 @@
       <div id="grup-teren">
         <div class="field-row">
           <div class="field"><label for="suprafata_teren">Suprafață teren (mp)</label><input id="suprafata_teren" placeholder="ex. 500"></div>
+          <div class="field"><label for="categorie_teren">Regim</label>
+            <select id="categorie_teren"><option value="intravilan">Intravilan</option><option value="extravilan">Extravilan</option></select></div>
           <div class="field"><label for="valoare_teren">Valoare teren (lei)</label><input id="valoare_teren" placeholder="ex. 100000"></div>
         </div>
       </div>
@@ -756,6 +758,7 @@ function asambleaza(){
   if($("cota_teren_indiviza")&&$("cota_teren_indiviza").value) building.cota_teren_indiviza=$("cota_teren_indiviza").value;
   if($("inaltime_libera")&&$("inaltime_libera").value) building.inaltime_libera=$("inaltime_libera").value;
   var land={suprafata:$("suprafata_teren").value||"0"};
+  if($("categorie_teren")&&$("categorie_teren").value) land.categorie=$("categorie_teren").value;
   if($("categorie_folosinta")&&$("categorie_folosinta").value) land.categorie_folosinta=$("categorie_folosinta").value;
   if($("clasa_calitate")&&$("clasa_calitate").value) land.clasa_calitate=parseInt($("clasa_calitate").value);
   var m=$("metoda").value;
