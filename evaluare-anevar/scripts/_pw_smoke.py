@@ -187,6 +187,13 @@ with sync_playwright() as pw:
     check("incepe: fără erori consolă", not errs, "; ".join(errs[:3]))
     check("incepe: buton Dosar nou prezent", "Dosar nou" in p.inner_text("body"))
     check("incepe: nav landmark", p.eval_on_selector("nav", "e=>!!e") is True)
+    # Dosar nou cere identitatea ÎNAINTE (nu mai creează „?_?_?")
+    p.click("#nou")
+    check("incepe: «Dosar nou» dezvăluie formularul de identitate", not p.eval_on_selector("#form-nou", "e=>e.hidden"))
+    p.fill("#n-id_client", "777"); p.fill("#n-nume_client", "Test Client")
+    p.click("#creeaza-nou")
+    p.wait_for_url("**/dosar/**", timeout=8000)
+    check("incepe: creare cu identitate -> workspace", "/dosar/" in p.url)
     p.close()
 
     uid = ctx.request.post(BASE + "/api/dosar",

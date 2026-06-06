@@ -25,6 +25,29 @@
     <button type="button" class="ghost" aria-disabled="true" disabled><span aria-hidden="true">🔁</span> Import asemănător <span class="badge b-mid">comercial</span></button>
     <button type="button" class="ghost" aria-disabled="true" disabled><span aria-hidden="true">🧪</span> Demo <span class="badge b-mid">comercial</span></button>
   </div>
+  <form id="form-nou" hidden style="margin:14px 0">
+    <h3>Date de identitate <span class="hint">(definesc numele dosarului; obligatorii)</span></h3>
+    <div class="field-row">
+    {% for c in cont.format_dosar %}
+      {% if c == 'tip_proprietate' %}
+        <div class="field"><label for="n-tip_proprietate">Tip proprietate</label>
+          <select id="n-tip_proprietate" data-camp="tip_proprietate"><option value="casa">Casă + teren</option>
+            <option value="apartament">Apartament</option><option value="industrial">Industrial</option>
+            <option value="agricol">Teren agricol</option><option value="special">Specială</option></select></div>
+      {% elif c == 'scop' %}
+        <div class="field"><label for="n-scop">Scop</label>
+          <select id="n-scop" data-camp="scop"><option value="garantare">Garantare credit</option>
+            <option value="raportare_financiara">Raportare financiară</option><option value="asigurare">Asigurare</option>
+            <option value="impozitare">Impozitare</option><option value="litigii">Litigiu</option></select></div>
+      {% else %}
+        <div class="field"><label for="n-{{ c }}">{{ c|replace('_',' ')|capitalize }}</label>
+          <input id="n-{{ c }}" data-camp="{{ c }}"></div>
+      {% endif %}
+    {% endfor %}
+    </div>
+    <button type="button" id="creeaza-nou">Creează dosarul</button>
+    <span id="nou-status" class="hint" role="status" aria-live="polite"></span>
+  </form>
   <p id="import-status" class="hint" role="status" aria-live="polite"></p>
 
   <h2 id="salvate">Dosare salvate</h2>
@@ -57,12 +80,21 @@
 </main>
 <script>
 var nouBtn=document.getElementById('nou');
-if(nouBtn) nouBtn.addEventListener('click', async ()=>{
-  // dosar nou minimal — câmpurile obligatorii se completează în workspace
+if(nouBtn) nouBtn.addEventListener('click', ()=>{
+  var f=document.getElementById('form-nou'); if(f){ f.hidden=false; var p=f.querySelector('[data-camp]'); if(p) p.focus(); }
+});
+var creeazaBtn=document.getElementById('creeaza-nou');
+if(creeazaBtn) creeazaBtn.addEventListener('click', async ()=>{
+  var wizard={}, lipsa=[];
+  document.querySelectorAll('#form-nou [data-camp]').forEach(c=>{
+    var v=(c.value||'').trim(); wizard[c.dataset.camp]=v; if(!v) lipsa.push(c.dataset.camp); });
+  var st=document.getElementById('nou-status');
+  if(lipsa.length){ st.textContent='Completează toate câmpurile de identitate.'; return; }
+  st.textContent='Se creează…';
   const r=await fetch('/api/dosar',{method:'POST',headers:{'Content-Type':'application/json'},
-    body:JSON.stringify({wizard:{}})});
+    body:JSON.stringify({wizard:wizard})});
   const d=await r.json();
-  if(d.uuid) window.location.href='/dosar/'+d.uuid;
+  if(d.uuid) window.location.href='/dosar/'+d.uuid; else st.textContent='Eroare la creare.';
 });
 var impBtn=document.getElementById('importa');
 var fisierImp=document.getElementById('fisier-import');
