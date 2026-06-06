@@ -160,6 +160,40 @@ with sync_playwright() as pw:
     check("aml: banner legal prezent", "NU verifică automat" in p.inner_text("body"))
     p.close()
 
+    # ---------- UI NOU „curent": cont -> ÎNCEPE -> dosar ----------
+    # serverul e2e are OUTPUT_DIR izolat în temp -> nu atinge contul/dosarele reale
+    ctx.request.post(BASE + "/api/cont", data={"nume": "Tester E2E", "legitimatie": "9999",
+                     "format_dosar": ["id_client", "nume_client", "tip_proprietate"]})
+    p, errs = pagina(ctx, BASE + "/cont")
+    check("cont: fără erori consolă", not errs, "; ".join(errs[:3]))
+    check("cont: nume precompletat din cont", "Tester E2E" in p.eval_on_selector("#nume", "e=>e.value"))
+    p.close()
+
+    p, errs = pagina(ctx, BASE + "/incepe")
+    check("incepe: fără erori consolă", not errs, "; ".join(errs[:3]))
+    check("incepe: buton Dosar nou prezent", "Dosar nou" in p.inner_text("body"))
+    check("incepe: nav landmark", p.eval_on_selector("nav", "e=>!!e") is True)
+    p.close()
+
+    uid = ctx.request.post(BASE + "/api/dosar",
+                           data={"wizard": {"nume_client": "Ana E2E", "tip_proprietate": "casa"}}).json()["uuid"]
+    p, errs = pagina(ctx, BASE + "/dosar/" + uid)
+    check("dosar: fără erori consolă", not errs, "; ".join(errs[:3]))
+    check("dosar: nume precompletat (Ana)", "Ana" in p.eval_on_selector("#nume_client", "e=>e.value"))
+    check("dosar: popover mapare (!) prezent", p.eval_on_selector(".hint-toggle.is-map", "e=>!!e") is True)
+    p.click("#t-aml")
+    check("dosar: tab AML comută panoul",
+          (not p.eval_on_selector("#p-aml", "e=>e.hidden")) and p.eval_on_selector("#p-raport", "e=>e.hidden"))
+    p.click("#t-raport")
+    p.click("#s-calcul")
+    check("dosar: sub-tab Calcul vizibil", not p.eval_on_selector("#sp-calcul", "e=>e.hidden"))
+    p.click("#s-proprietate")
+    p.fill("#au", "111")
+    p.dispatch_event("#au", "input")
+    p.wait_for_selector("#save-ind:has-text('salvat')", timeout=5000)
+    check("dosar: autosave -> indicator „salvat”", "salvat" in p.inner_text("#save-ind"), p.inner_text("#save-ind"))
+    p.close()
+
     # ---------- FEEDBACK: widget -> salvare locală -> pagina /feedback ----------
     p = ctx.new_page()
     p.goto(BASE + "/wizard")

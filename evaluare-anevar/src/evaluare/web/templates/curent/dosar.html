@@ -146,7 +146,7 @@ var MAPARE = {
   metoda:{v:"Pas 4 · Metodă",d:"cost/piață/ponderată (venit/DCF în versiunea completă)."},
   moneda:{v:"Pas 4 · Monedă raportare",d:"Garanție = de regulă EUR cu echivalent LEI."},
 };
-function $(id){ return document.getElementById(id); }
+// `$` (getElementById) vine din _helpers.js — NU îl redeclara (ar arunca „already declared").
 // încarcă valorile salvate
 Object.keys(WIZARD||{}).forEach(function(k){ if($(k)) $(k).value = WIZARD[k]; });
 

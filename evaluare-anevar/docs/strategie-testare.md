@@ -1,7 +1,7 @@
 # Strategie de testare — Evaluare ANEVAR
 
 Document viu. Se actualizează la fiecare dezvoltare nouă (vezi §8 „Mentenanță").
-Ultima actualizare: 2026-06-05.
+Ultima actualizare: 2026-06-06 (UI nou „curent" + import `.docx` + gardă pagină-listă portaluri).
 
 ## 0. Principii
 
@@ -26,6 +26,7 @@ Ultima actualizare: 2026-06-05.
 | **AML** | `aml/risc`, `indicatori`, `raportare`, `documente`, `store` | unitar | `test_aml_*`, `test_web_aml` |
 | **Persistență** | `db/storage` (migrare, backup, coadă import) | unitar | `test_storage` |
 | **API (HTTP)** | `web/routers/*` | integrare (TestClient) | `test_web_*` |
+| **UI nou „curent"** | `cont`, `dosare_fs`, `master_config`, `routers/curent`, import `.docx` | unitar + integrare | `test_dosare_fs`, `test_master_config`, `test_web_curent`, `test_importers_docx_dosar` |
 | **UI / fluxuri** | șabloane Jinja + JS | end-to-end (Playwright) | `scripts/_pw_smoke.py` |
 | **Conectivitate** | frontend↔backend (fetch↔rute), localStorage, import→câmpuri | static (grep) + e2e | review §6 + Playwright |
 
@@ -58,9 +59,19 @@ Cazuri:
 - JSON-LD (schema.org) recursiv; `__NEXT_DATA__` (storia: area vs terrain_area); og:meta + regex fallback.
 - Degradare grațioasă: pagină fără date → câmpuri None, fără excepție.
 - Caracteristici: an, încălzire, material, tip clădire, nr. camere, etaje.
+- **Gardă pagină-listă** (audit 2026-06-06): un URL trunchiat/expirat → pagină de listă/căutare;
+  parserul **NU** trebuie să extragă tăcut prețul unui anunț promovat. `pagina_lista=True` →
+  `to_comparable` și `/api/import-url` refuză; discovery sare peste. (`test_url_parser`:
+  `test_pagina_de_lista_*`, `test_anunt_real_nu_e_marcat_ca_lista`.)
+- **Teren ≠ casă**: „N mp teren" în titlu se atribuie terenului, nu suprafeței casei
+  (`test_mp_teren_in_titlu_nu_e_confundat_*`).
 - Ingestie PDF: cf→cadastral/CF/teren/proprietar; releveu→Au/Acd; plan→teren; OCR fallback.
+- **Import dosar din `.docx`** (`docx_dosar`): nume fișier = identitate (id/nume/tip/localitate→județ);
+  text = beneficiar/scop/dată; robust la docx ilizibil (rămâne pe filename).
 
 **Regulă**: orice portal/format nou adăugat ⇒ **fixtură + test** în aceeași dezvoltare.
+**Audit live periodic**: înainte de release, rulează parserul pe 3 anunțuri reale/portal
+(imobiliare/storia/olx) și compară cu titlul paginii (ground truth). Portalurile schimbă HTML-ul.
 
 ## 4. Asamblare + profil — cablarea metodologiei
 
@@ -83,6 +94,9 @@ Fiecare endpoint: happy-path + cel puțin o eroare. Rețeaua se injectează (`fe
 - `/api/ingestie`: 400 tip necunoscut / base64 invalid; 200 extragere.
 - `/api/zona`, `/api/localitati`, `/api/status`: structură răspuns.
 - AML: `/api/aml/evalueaza` + documentele .docx; GDPR .docx.
+- **UI nou „curent"**: `/api/cont` (422 fără nume/legitimație), `/api/dosar` (403 fără cont),
+  `/dosar/{uid}` (404 inexistent), `/api/dosar/{uid}/salveaza`, `/raport.docx` (versiune în folder),
+  `/api/dosar/import-docx` (200 pre-completat / 400 conținut invalid / 403 fără cont). (`test_web_curent`.)
 
 ## 6. Conectivitate frontend↔backend (review + e2e)
 
