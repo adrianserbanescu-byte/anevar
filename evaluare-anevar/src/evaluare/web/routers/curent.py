@@ -57,6 +57,8 @@ def build_router(d: Deps) -> APIRouter:
     def import_docx(req: ImportDocxRequest) -> dict:
         """Importă un raport .docx ca dosar nou: pre-completează câmpurile + atașează fișierul."""
         import base64
+        import shutil
+        import uuid as _uuid
 
         from evaluare.importers.docx_dosar import extrage_din_docx
         cont = cont_mod.incarca_cont()
@@ -67,12 +69,19 @@ def build_router(d: Deps) -> APIRouter:
             raw = base64.b64decode(payload, validate=True)
         except Exception:
             raise HTTPException(400, "Conținut fișier invalid.") from None
-        tmp = Path(tempfile.gettempdir()) / (Path(req.nume_fisier).name or "import.docx")
-        tmp.write_bytes(raw)
-        wizard = extrage_din_docx(tmp)
-        uid = fs.creeaza(cont["legitimatie"], cont["nume"], wizard,
-                         format_dosar=cont.get("format_dosar"))
-        fs.adauga_versiune_docx(uid, tmp)              # atașează raportul sursă
+        # director temporar UNIC per import: evită coliziuni + `.name` taie orice path traversal,
+        # iar numele original e păstrat (extrage_din_docx parsează identitatea DIN numele fișierului).
+        tmpdir = Path(tempfile.gettempdir()) / f"anevar-import-{_uuid.uuid4().hex}"
+        tmpdir.mkdir(parents=True, exist_ok=True)
+        try:
+            tmp = tmpdir / (Path(req.nume_fisier).name or "import.docx")
+            tmp.write_bytes(raw)
+            wizard = extrage_din_docx(tmp)
+            uid = fs.creeaza(cont["legitimatie"], cont["nume"], wizard,
+                             format_dosar=cont.get("format_dosar"))
+            fs.adauga_versiune_docx(uid, tmp)          # atașează raportul sursă
+        finally:
+            shutil.rmtree(tmpdir, ignore_errors=True)
         return {"uuid": uid, "wizard": wizard}
 
     @router.get("/dosar/{uid}", response_class=HTMLResponse)
