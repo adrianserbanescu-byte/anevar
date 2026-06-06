@@ -14,6 +14,17 @@ finalul celor 4 brainstorming-uri). Actualizat: 2026-06-06.
   free-text la creare, **needitabil ulterior** (la import cere ID nou).
 - **„Home UI dosar"** = workspace per dosar, în care intri după oricare din cele 5 opțiuni.
 
+## Decizii deschise din noul UI (audit 2026-06-06) — de tranșat la brainstorm #1
+Detaliile + recomandările sunt în [`../plan-maine-2026-06-06.md`](../plan-maine-2026-06-06.md) §B:
+1. Ordine creare dosar: gol-apoi-completezi (acum) vs. modal de identitate înainte de folder.
+2. **Lock identitate după prima generare** (read-only + cale „dosar nou + credit") — nu e forțat încă.
+3. „Importă dosarul tău" = raport `.docx` (acum) vs. folder (`importa_folder`, adoptă/clonează).
+4. Reconciliere `CAMPURI_NUME_DOSAR` (format nume) vs. `CAMPURI_IDENTITATE` (set blocabil).
+5. Home: 5 opțiuni cu 2 dezactivate (comercial) — teasere vs. ascunse pe build offline.
+6. Calcul→Generează: o singură sursă de adevăr (Generează cere Calcul reușit?).
+7. Moneda implicită EUR la scop „garantare".
+8. **Popover „!" (mapare wizard vechi→nou) e TEMPORAR** — de șters după validarea mapării.
+
 ## Regenerarea textului AI (feature B — ține de #2 versiuni + narativ AI)
 - La „**Generează**", dacă dosarul are DEJA un raport (generat SAU importat): pentru fiecare
   capitol free-text se arată **textul vechi** din **cel mai recent** dintre {ultimul generat, import}.

@@ -296,4 +296,6 @@ s.addText(q.map((t, i) => ({ text: (i + 1) + ".   " + t, options: { breakLine: t
 s.addText("Orice observație, chiar și „așa nu se face”, e exact ce caut. Mulțumesc pentru timp.",
   { x: 1.0, y: 6.55, w: 11.2, h: 0.5, fontFace: HF, fontSize: 15, italic: true, bold: true, color: P.brassHi, margin: 0 });
 
-pres.writeFile({ fileName: path.join("docs", "prezentare-aplicatie.pptx") }).then(f => console.log("scris:", f));
+// Calea de ieșire e suprascriptibilă prin env PPTX_OUT (util când originalul e deschis în PowerPoint).
+pres.writeFile({ fileName: process.env.PPTX_OUT || path.join("docs", "prezentare-aplicatie.pptx") })
+  .then(f => console.log("scris:", f));
