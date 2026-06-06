@@ -3,6 +3,11 @@
 Index al feature-urilor majore discutate (brainstorming), de implementat după decizie.
 Fiecare subiect are propriul `.md` în `docs/specs/`. Actualizat: 2026-06-06.
 
+> 🚀 **Pentru lansarea pe piață citește întâi [`00-SINTEZA-lansare-pentru-Adi.md`](00-SINTEZA-lansare-pentru-Adi.md)**
+> — sinteza + lista unică de aprobat. Detalii: [`plan-lansare-piata.md`](plan-lansare-piata.md)
+> (audit consiliu + 13 pași), [`strategie-comercializare-intrebari.md`](strategie-comercializare-intrebari.md),
+> [`legal/`](legal/) (evaluare juridică RO + ToS/GDPR/EULA/DPA/disclaimer — DRAFT, necesită avocat).
+
 | # | Subiect | Status | Mărime / loc | Spec |
 |---|---------|--------|--------------|------|
 | 1 | Refacere logică UI „output-first" (+ pașii unui dosar) | **schelet LIVRAT** (cont→ÎNCEPE→workspace, tab-uri output+sub-tab-uri, mapare „!") · rămâne identitate/lock (decizii §B `plan-maine`) | mare · în app | [specs/1-ui-output-first.md](specs/1-ui-output-first.md) |
