@@ -33,6 +33,13 @@ def test_cross_nav_pe_pagini(tmp_path):
         assert 'class="cross-ui"' in html and 'href="/documente"' in html and 'href="/incepe"' in html
 
 
+def test_widget_feedback_pe_tot_ui_nou_si_vechi(tmp_path):
+    # widget-ul de feedback (mutat în subsolul comun) trebuie să apară pe TOATE paginile
+    client = _client(tmp_path)
+    for ruta in ("/", "/wizard", "/documente", "/incepe", "/cont"):
+        assert 'id="fb-open"' in client.get(ruta).text, f"lipsește widget feedback pe {ruta}"
+
+
 def test_documente_index_si_render(tmp_path):
     client = _client(tmp_path)
     idx = client.get("/documente")
