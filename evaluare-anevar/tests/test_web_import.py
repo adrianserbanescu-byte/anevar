@@ -35,3 +35,18 @@ def test_import_url_empty_when_nothing_found(tmp_path):
     resp = client.post("/api/import-url", json={"url": "https://x"})
     assert resp.status_code == 200
     assert resp.json()["pret"] is None
+
+
+def test_import_url_refuza_pagina_de_lista(tmp_path):
+    # Regresie pentru fixul HIGH: un URL care duce la o pagină de listă/căutare NU trebuie
+    # să întoarcă tăcut prețul unui anunț promovat — endpointul răspunde 422 clar.
+    lista = ('<html><head><title>Case de vânzare | Portal</title>'
+             '<meta property="og:description" content="Vezi 1234 anunțuri de case de vânzare.">'
+             '</head><body>299000 EUR · 90 mp</body></html>')
+    storage = Storage(tmp_path / "t.db")
+    storage.init()
+    app = create_app(storage=storage, client=None, fetcher=lambda url: lista)
+    client = TestClient(app)
+    resp = client.post("/api/import-url", json={"url": "https://imobiliare.ro/case"})
+    assert resp.status_code == 422
+    assert "listă" in resp.json()["detail"] or "lista" in resp.json()["detail"]
