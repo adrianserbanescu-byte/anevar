@@ -357,3 +357,39 @@ salvează venitul brut potențial anual în `localStorage`; la deschiderea wizar
 o singură dată (setează metoda=venit, completează câmpul VBP, anunță utilizatorul). +2 teste (punte prezentă în
 `/grila` și `/wizard`). **371 teste verzi**, pyflakes curat. Exe reconstruit cu toate șabloanele A3 și
 **smoke live**: `/wizard`+`/grila`+`/api/grila-chirii` → 200, puntea prezentă în ambele pagini, VBP 12000.00.
+
+### 2026-06-06 — noaptea: noul UI „output-first" funcțional + audit import portaluri + audituri UI
+Sesiune autonomă mare (continuare directivă „dezvoltă singur, nu te opri"). Rezumat în
+`evaluare-anevar/docs/plan-maine-2026-06-06.md` (livrări + decizii pentru Adi + backlog + plan mâine).
+
+**Noul UI „curent" (output-first), schelet complet, end-to-end:**
+- `cont.py` (cont local) + `dosare_fs.py` (stocare pe FOLDERE = sursa de adevăr: `date/dosare/<uuid>/`
+  cu `dosar.json` + versiuni `.docx`; diff existente/noi/dispărute) + `master_config.py` (format nume dosar).
+- `routers/curent.py`: `/cont`, `/incepe` (5 opțiuni), `/dosar/{uuid}` (workspace) + API (cont, dosar nou,
+  salvează snapshot, generează raport.docx ca versiune, **import .docx**).
+- `templates/curent/`: cont/incepe/dosar. Workspace = tab-uri output (Raport/AML/GDPR/Audit/Anexe) +
+  sub-tab-uri (Proprietate/Comparabile/Calcul/Generează) + TOATE câmpurile wizardului vechi + popover „!"
+  (corespondent UI vechi, TEMPORAR/dev) lângă „?".
+- Cont **„Adi S" (8717)** + **4 dosare exemplu** importate din rapoartele Word (seed `scripts/seed_dosare.py`).
+- `importers/docx_dosar.py`: import dosar din `.docx` (filename=identitate sigură, text=beneficiar/scop/dată).
+
+**Audit import portaluri (imobiliare/storia/olx), testat LIVE pe anunțuri reale Breaza + 2 fixuri:**
+1. (HIGH) URL trunchiat→pagină de listă: parserul extrăgea TĂCUT prețul unui anunț promovat nelegat
+   (ex. storia 550.000/57). Acum `pagina_lista` detectată → `to_comparable`/`/api/import-url` refuză; discovery sare.
+2. (MED) „N mp teren" în titlu era pus ca suprafața casei (OLX) → acum atribuit terenului.
+   Concluzie: imobiliare+storia corect; OLX dă prețul dar rar suprafața (cere completare manuală — eșec zgomotos).
+   Călit și `portal_search` (preferă slug-ul cu localitatea → taie promovatele din altă localitate).
+
+**3 audituri UI (a11y + UX + design) → fixuri auto-safe aplicate** (restul = decizii pentru Adi, §B din plan):
+chrome partajat (`_cartus`/`_footer`/`<nav>`), tab-uri WAI-ARIA (`.tabs`+`.subtabs`), popover accesibil
+(`.hint-toggle.is-map`, Escape), placeholder în loc de date demo, indicator de salvare real, nume dosar
+recalculat (gata cu „?_?_?").
+
+**Bug critic prins de e2e:** `dosar.html` redeclara `$` (deja în `_helpers.js`) → tot JS-ul workspace-ului
+era mort în browser; testele unitare nu-l prind (verifică HTML, nu execuția JS). Reparat. `_pw_smoke.py`:
++flux nou-UI (cont→ÎNCEPE→dosar→tab/sub-tab→autosave) → **49 verificări e2e** (was 30).
+
+**Raport Breaza regenerat** (cod la zi, narativ AI real): **135.267 EUR**; atașat la dosarul Breaza.
+**Exe reconstruit** (50 MB, fără biblioteci inutile — verificat că se încarcă doar lxml/docx; pornește în 2s,
+`/cont`+`/incepe` → 200). **464 teste verzi + 49 e2e**, ruff curat, acoperire ≥90%.
+**pptx de prezentare:** NU regenerat (era deschis în PowerPoint — lock activ); de refăcut când îl închizi.

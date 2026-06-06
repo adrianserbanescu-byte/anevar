@@ -5,10 +5,16 @@ Fiecare subiect are propriul `.md` în `docs/specs/`. Actualizat: 2026-06-06.
 
 | # | Subiect | Status | Mărime / loc | Spec |
 |---|---------|--------|--------------|------|
-| 1 | Refacere logică UI „output-first" (+ pașii unui dosar) | de brainstormat · **deblochează #2 și #4** | mare · în app | [specs/1-ui-output-first.md](specs/1-ui-output-first.md) |
-| 2 | Rapoarte salvate + dosar cu identitate | **brainstorm parțial** · stocare buildabilă, identitate depinde de #1 | mediu · în app | [specs/2-rapoarte-salvate.md](specs/2-rapoarte-salvate.md) |
+| 1 | Refacere logică UI „output-first" (+ pașii unui dosar) | **schelet LIVRAT** (cont→ÎNCEPE→workspace, tab-uri output+sub-tab-uri, mapare „!") · rămâne identitate/lock (decizii §B `plan-maine`) | mare · în app | [specs/1-ui-output-first.md](specs/1-ui-output-first.md) |
+| 2 | Rapoarte salvate + dosar cu identitate | **stocare LIVRATĂ** (folder=adevăr, versiuni .docx, diff, import .docx) · identitatea depinde de #1 | mediu · în app | [specs/2-rapoarte-salvate.md](specs/2-rapoarte-salvate.md) |
 | 3 | Localități adăugate de user | de brainstormat | **mic · buildabil acum** | [specs/3-localitati-user.md](specs/3-localitati-user.md) |
 | 4 | Comercializare (tool local premium + AI gateway) | **spec + plan complet ✅** | mare · proiect separat (cloud) | [design](specs/4-comercializare.md) · [plan implementare](specs/4-comercializare-plan-implementare.md) |
+
+> **Progres 2026-06-06 (noapte):** noul UI „curent" e funcțional end-to-end (cont „Adi S" 8717,
+> 4 dosare exemplu importate, workspace cu toate câmpurile mapate, generare raport în folder).
+> Audit import portaluri + 2 fixuri de corectitudine. 3 audituri UI (a11y/UX/design) → fixuri
+> auto-safe aplicate; deciziile de produs sunt în [`plan-maine-2026-06-06.md`](plan-maine-2026-06-06.md) §B.
+> Detalii complete livrări + plan: vezi acel document.
 
 ## Pe scurt
 

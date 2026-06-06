@@ -44,8 +44,14 @@ def build_search_url(portal: str, judet: str, localitate: str = "",
     return f"{baza}/{localitate}" if localitate else baza
 
 
-def extract_listing_urls(html: str, baza: str) -> list[str]:
-    """Extrage URL-urile anunturilor individuale (linkuri /oferta/) dintr-o pagina de cautare."""
+def extract_listing_urls(html: str, baza: str, prefer: str = "") -> list[str]:
+    """Extrage URL-urile anunturilor individuale (linkuri /oferta/) dintr-o pagina de cautare.
+
+    `prefer` (ex. localitatea) — daca e dat SI exista anunturi al caror slug il contine,
+    intoarce doar pe acelea. Astfel anunturile PROMOVATE din alta localitate (ex. un anunt
+    Pipera afisat pe cautarea Breaza) nu mai intra in setul de comparabile. Daca niciunul nu
+    se potriveste, intoarce toate (mai bine ceva decat nimic).
+    """
     soup = BeautifulSoup(html, "html.parser")
     urls: list[str] = []
     vazute = set()
@@ -56,6 +62,11 @@ def extract_listing_urls(html: str, baza: str) -> list[str]:
             if absolut not in vazute:
                 vazute.add(absolut)
                 urls.append(absolut)
+    prefer = (prefer or "").strip().lower()
+    if prefer:
+        potrivite = [u for u in urls if prefer in u.lower()]
+        if potrivite:
+            return potrivite
     return urls
 
 
@@ -75,7 +86,8 @@ def cauta_anunturi(
         except Exception as e:
             log.debug("Cautare esuata (portal=%s, judet=%s, loc=%r): %s", portal, judet, loc, e)
             continue
-        urls = extract_listing_urls(html, baza=BAZE[portal])
+        # la cautarea pe localitate, preferam anunturile cu localitatea in slug (taie promovate)
+        urls = extract_listing_urls(html, baza=BAZE[portal], prefer=loc)
         if urls:
             return urls
     return []
