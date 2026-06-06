@@ -195,6 +195,7 @@ with sync_playwright() as pw:
     check("dosar: fără erori consolă", not errs, "; ".join(errs[:3]))
     check("dosar: nume precompletat (Ana)", "Ana" in p.eval_on_selector("#nume_client", "e=>e.value"))
     check("dosar: popover mapare (!) prezent", p.eval_on_selector(".hint-toggle.is-map", "e=>!!e") is True)
+    check("dosar: ajutor (?) re-adaugat", p.eval_on_selector(".hint-toggle:not(.is-map)", "e=>e.textContent==='?'") is True)
     p.click("#t-aml")
     check("dosar: tab AML comută panoul",
           (not p.eval_on_selector("#p-aml", "e=>e.hidden")) and p.eval_on_selector("#p-raport", "e=>e.hidden"))

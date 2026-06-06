@@ -10,7 +10,7 @@
   <span class="brand-title">← Dosarele mele</span></span></a></nav>
 
 {% set kicker = "Dosar" %}{% set titlu = dosar.nume %}
-{% set subtitlu = "Identitate blocată după prima generare · datele rămân editabile" %}
+{% set subtitlu = "Spațiu de lucru al dosarului · datele se salvează automat în folder" %}
 {% include "_cartus.html" %}
 <p class="hint" id="save-ind" role="status" aria-live="polite">● salvat automat în folder</p>
 
@@ -33,7 +33,7 @@
     </div>
 
     <section role="tabpanel" id="sp-proprietate" aria-labelledby="s-proprietate" tabindex="0">
-      <h3>Identificare <span class="hint">(obligatorii la creare; se blochează după prima generare)</span></h3>
+      <h3>Identificare <span class="hint">(definesc identitatea + numele dosarului)</span></h3>
       <div class="field-row">
         <div class="field"><label for="id_client">ID client</label><input id="id_client" autocomplete="off"></div>
         <div class="field"><label for="nume_client">Nume client</label><input id="nume_client" autocomplete="name"></div>
@@ -99,6 +99,9 @@
             <option value="dcf">DCF</option></select></div>
         <div class="field"><label for="moneda">Monedă</label>
           <select id="moneda"><option value="LEI" selected>LEI</option><option value="EUR">EUR</option></select></div>
+        <div class="field"><label for="curs_valutar">Curs EUR→LEI (BNR)</label>
+          <input id="curs_valutar" placeholder="ex. 4,9750">
+          <small id="curs-info" class="hint" role="status" aria-live="polite"></small></div>
       </div>
       <div id="grup-venit" hidden>
         <h3>Date venit (capitalizare directă)</h3>
@@ -192,17 +195,47 @@ var asumareBox = $("asumare"), genBtn0 = $("genereaza");
 function sincronAsumare(){ if(genBtn0) genBtn0.disabled = !(asumareBox && asumareBox.checked); }
 if(asumareBox){ asumareBox.addEventListener("change", sincronAsumare); sincronAsumare(); }
 
-// „!" popover lângă fiecare label (mapare vechi→nou), accesibil. Temporar; se va șterge.
-var mapSeq = 0;
-document.querySelectorAll("main label[for]").forEach(function(lbl){
-  var id = lbl.getAttribute("for"); var m = MAPARE[id]; if(!m) return;
+// Ajutor contextual „?" (ce înseamnă câmpul) — re-adăugat lângă „!" (mapare vechi→nou).
+var AJUTOR = {
+  id_client:"Identificatorul tău intern pentru client (free-text). Intră în numele dosarului.",
+  nume_client:"Numele clientului/proprietarului. Anonimizat la AI.",
+  scop:"Scopul evaluării — determină tipul valorii + ghidul GEV aplicat.",
+  tip_proprietate:"Tipul activului — determină câmpurile cerute + abordările aplicabile.",
+  judet:"Județul proprietății (zona de căutare a comparabilelor).",
+  localitate:"Localitatea proprietății.",
+  adresa_strada:"Strada și numărul; apar în raport.",
+  numar_cadastral:"Numărul cadastral din extrasul CF. Anonimizat la AI.",
+  carte_funciara:"Numărul cărții funciare. Anonimizat la AI.",
+  beneficiar:"Banca finanțatoare / utilizatorul desemnat al raportului.",
+  data_raportului:"Data întocmirii raportului.",
+  data_evaluarii:"Data la care e valabilă valoarea (de regulă data inspecției).",
+  data_inspectiei:"Data vizitei/inspecției proprietății.",
+  suprafata_teren:"Suprafața terenului (mp).",
+  valoare_teren:"Valoarea terenului (manual; sau calculată din grila de teren dacă ai comparabile).",
+  au:"Aria utilă (mp). Verificare: Au ≤ Acd.",
+  acd:"Aria construită desfășurată (mp). Numitorul pentru CIN.",
+  an_referinta:"Anul de referință al evaluării (vârsta = an referință − an PIF).",
+  elemente:"Elementele de cost (catalog IROVAL): element;cod;um;cantitate;cost_unitar;an_pif, una pe linie.",
+  depreciere:"Punctele de depreciere fizică: vârstă;fracție, una pe linie (interpolate).",
+  comparabile:"Comparabile de proprietate: preț;suprafață, una pe linie.",
+  comparabile_teren:"Comparabile de teren: preț/mp;suprafață — valoarea terenului se calculează din grilă.",
+  metoda:"Metoda de evaluare: cost / piață / ponderată / venit / DCF.",
+  moneda:"Moneda raportării (la garantare, de regulă EUR cu echivalent LEI).",
+  vbp:"Venitul brut potențial anual (chirie de piață × suprafață × 12).",
+  rata_cap:"Rata de capitalizare (fracție, ex. 0.08).",
+  neocupare:"Gradul de neocupare (fracție, ex. 0.1).",
+  cheltuieli:"Cheltuielile anuale de exploatare (lei).",
+  fluxuri:"Fluxurile de numerar anuale pentru DCF, una pe linie.",
+  rata_actualizare:"Rata de actualizare DCF (fracție).",
+  valoare_reziduala:"Valoarea reziduală la finalul perioadei DCF.",
+};
+var popSeq = 0;
+function injecteazaPopover(lbl, glyph, cls, ariaLabel, html){
   var wrap=document.createElement("span"); wrap.className="hint-wrap";
-  var b=document.createElement("button"); b.type="button"; b.className="hint-toggle is-map"; b.textContent="!";
-  b.setAttribute("aria-label","Corespondent în UI-ul vechi pentru acest câmp");
-  b.setAttribute("aria-expanded","false");
-  var pop=document.createElement("small"); pop.className="hint hint-pop";
-  pop.id="map-"+(++mapSeq); b.setAttribute("aria-controls",pop.id);
-  pop.innerHTML="<b>Vechi:</b> "+m.v+"<br>"+m.d;
+  var b=document.createElement("button"); b.type="button"; b.className="hint-toggle"+(cls?" "+cls:"");
+  b.textContent=glyph; b.setAttribute("aria-label",ariaLabel); b.setAttribute("aria-expanded","false");
+  var pop=document.createElement("small"); pop.className="hint hint-pop"; pop.id="pop-"+(++popSeq);
+  b.setAttribute("aria-controls",pop.id); pop.innerHTML=html;
   lbl.appendChild(wrap); wrap.appendChild(b); wrap.appendChild(pop);
   b.addEventListener("click",function(e){ e.stopPropagation();
     var deschis = pop.classList.contains("hint-open");
@@ -210,6 +243,12 @@ document.querySelectorAll("main label[for]").forEach(function(lbl){
       var t=o.parentNode.querySelector(".hint-toggle"); if(t) t.setAttribute("aria-expanded","false"); });
     if(!deschis){ pop.classList.add("hint-open"); b.setAttribute("aria-expanded","true"); }
   });
+}
+document.querySelectorAll("main label[for]").forEach(function(lbl){
+  var id = lbl.getAttribute("for");
+  if(AJUTOR[id]) injecteazaPopover(lbl, "?", "", "Detalii câmp", AJUTOR[id]);     // ajutor contextual
+  var m = MAPARE[id];
+  if(m) injecteazaPopover(lbl, "!", "is-map", "Corespondent în UI-ul vechi", "<b>Vechi:</b> "+m.v+"<br>"+m.d);
 });
 function inchideMap(){ document.querySelectorAll(".hint-pop.hint-open").forEach(function(o){ o.classList.remove("hint-open");
   var t=o.parentNode.querySelector(".hint-toggle"); if(t) t.setAttribute("aria-expanded","false"); }); }
@@ -248,6 +287,18 @@ function sincronMetoda(){ var m=$("metoda").value;
   if($("grup-dcf")) $("grup-dcf").hidden = (m!=="dcf"); }
 if($("metoda")){ $("metoda").addEventListener("change", sincronMetoda); sincronMetoda(); }
 
+// Curs BNR EUR→LEI (re-adăugat): se trage automat când moneda e EUR și câmpul e gol.
+function tragCurs(){
+  if(!$("curs_valutar")) return;
+  $("curs-info").textContent="… se preia cursul BNR";
+  fetch("/api/curs-bnr?moneda=EUR").then(function(r){ return r.ok?r.json():Promise.reject(); })
+    .then(function(d){ if(!$("curs_valutar").value) $("curs_valutar").value=fmtRo(d.curs);
+      $("curs-info").textContent="BNR "+d.data; })
+    .catch(function(){ $("curs-info").textContent="curs indisponibil — completează manual"; });
+}
+if($("moneda")){ $("moneda").addEventListener("change", function(){ if($("moneda").value==="EUR") tragCurs(); });
+  if($("moneda").value==="EUR") tragCurs(); }
+
 // construiește payload-ul de evaluare din câmpuri
 function asambleaza(){
   var elements=$("elemente").value.trim().split("\n").filter(Boolean).map(function(l){var p=l.split(";");return{element:p[0],cod:p[1],um:p[2],cantitate:p[3],cost_unitar:p[4],an_pif:parseInt(p[5])};});
@@ -258,6 +309,8 @@ function asambleaza(){
   var sc=SCOP[$("scop").value]||SCOP.garantare;
   var meta={client_nume:$("nume_client").value||"Client",adresa:[$("adresa_strada").value,$("localitate").value,$("judet").value].filter(Boolean).join(", ")||"-",numar_cadastral:$("numar_cadastral").value,carte_funciara:$("carte_funciara").value,evaluator_nume:"{{ cont.nume if cont else '' }}",evaluator_legitimatie:"{{ cont.legitimatie if cont else '' }}",data_evaluarii:$("data_evaluarii").value||"2026-01-16",data_raportului:$("data_raportului").value||"2026-01-16",moneda:$("moneda").value,scop:sc[0],tip_valoare:sc[1]};
   if($("beneficiar").value) meta.beneficiar=$("beneficiar").value;
+  var curs=($("curs_valutar")&&$("curs_valutar").value||"").replace(",",".").trim();
+  if(curs) meta.curs_valutar=curs;
   var faraConstr=($("tip_proprietate").value==="agricol");
   var building={au:$("au").value||"0",acd:$("acd").value||"0",an_referinta:parseInt($("an_referinta").value)||2025,elements:faraConstr?[]:elements,depreciation_points:faraConstr?[]:dp};
   var land={suprafata:$("suprafata_teren").value||"0"};

@@ -306,16 +306,18 @@ button.ghost:disabled{ color:var(--ink-faint); border-color:var(--line-2); backg
 .doc-card .t{ font-weight:700; color:var(--sienna); }
 .doc-card .d{ font-size:.85rem; color:var(--ink-2); }
 
-/* Sub-tab-uri (rang doi, sub un tab) — pastile discrete ca să nu concureze cu tab-urile. */
-.subtabs{ display:flex; gap:6px; flex-wrap:wrap; margin:14px 0 4px; }
+/* Sub-tab-uri (rang doi) — butoane reale, cu afordanță clară (cerere Adi: arătau plate). */
+.subtabs{ display:flex; gap:8px; flex-wrap:wrap; margin:16px 0 6px; }
 .subtabs [role=tab]{
-  margin:0; padding:6px 14px; font-size:.85rem; font-weight:600;
-  background:var(--paper-sunk); color:var(--ink-2); border:1px solid var(--line);
-  border-radius:999px; box-shadow:none; transform:none;
+  margin:0; padding:8px 18px; font-size:.86rem; font-weight:600; cursor:pointer;
+  background:var(--paper-card); color:var(--sienna); border:1px solid var(--field-border);
+  border-radius:var(--radius-sm);
+  box-shadow:0 1px 0 rgba(255,255,255,.7) inset, 0 1px 2px rgba(22,38,61,.08);
 }
-.subtabs [role=tab]:hover{ background:var(--paper-card); color:var(--sienna); transform:none; }
+.subtabs [role=tab]:hover{ background:var(--sand); border-color:var(--brass); transform:translateY(-1px); }
 .subtabs [role=tab][aria-selected="true"]{
   background:var(--sienna); color:#fdf8ef; border-color:var(--sienna-deep);
+  box-shadow:0 1px 0 rgba(255,255,255,.25) inset, 0 6px 14px -8px rgba(124,58,27,.6);
 }
 
 :focus-visible{ outline:2px solid var(--sienna); outline-offset:2px; }
