@@ -6,15 +6,14 @@
 
 ## 🚨 P0 — RECUPERARE UI NOU (prioritate maximă; precede agenda specială de mai jos)
 > Owner șocat de regresiile UI nou (audit complet în `docs/audit-ui-nou/`). Backend-ul EXISTĂ — totul = frontend.
-> **FĂCUT (commit-uri aab8d20→bmvrpgich):** #1 „?" ✅ · #3 afordanță sub-tab ✅ · #4 curs EUR ✅ · #6 comentariu fals ✅ ·
-> **#7 câmpuri dinamice per tip ✅** · **#8 descoperire inline ✅** · **#14 Anexe sub-tab + upload ✅** · #9 GDPR in-place ✅.
-> **65 e2e + 493 teste. Exe reconstruit.** RĂMAS din recuperare:
-1. [ ] **#9 AML in-place** — port formularul complet din aml.html (KYC, beneficiar real, PEP, 4 semnale risc,
-       10 indicatori, „Evaluează relația" + 6 generatoare .docx) în sub-tabul AML. Backend 100% gata.
-2. [ ] **#9 Audit in-place** — endpoint nou `/api/dosar/{uid}/audit.txt` (refolosește jurnalul) + afișare urmă.
-3. [ ] **Grile reale** (teren/casă/chirii) cu ajustări pe etape + alerte prudențiale 25%/15% — acum doar textarea.
-4. [ ] **#10 Opțiuni Generează** (adnotări/demo) + **#5 flux identitate/denumire folder** (validare la creare + freeze).
-> La fiecare: teste + e2e + commit. Rebuild exe după un batch.
+> **FĂCUT (commit-uri aab8d20→6237772):** #1 „?" ✅ · #3 afordanță sub-tab ✅ · #4 curs EUR ✅ · #5 flux identitate ✅ ·
+> #6 comentariu fals ✅ · **#7 câmpuri dinamice per tip ✅** · **#8 descoperire inline ✅** · **#9 AML in-place ✅** ·
+> #9 GDPR in-place ✅ · #9 Audit in-place ✅ · **#10 opțiune adnotări ✅** · **#14 Anexe sub-tab + upload ✅**.
+> **69 e2e + 495 teste. 11 din 12 plângeri recuperate.** RĂMAS (un singur item mare):
+1. [ ] **Grile reale** (teren/casă/chirii) cu ajustări pe ETAPE (tranzacție compus + proprietate aditiv) +
+       selecție pe ajustare brută minimă + **alerte prudențiale 25%/15%** (control GEV 520) — port din `grila.html`
+       (~340 linii) în sub-tabul Comparabile. Acum: textarea `preț;suprafață` (funcțional, dar fără grila de ajustări).
+       *Notă: pragurile prudențiale = bucket B (confirmă evaluatorul); UI-ul de grilă = bucket A.*
 
 ## 🌟 PRIMUL LOOP (SPECIAL, ~50 min de la 10:43) — DUPĂ recuperarea UI de mai sus; apoi loops normale la 1h
 > Doar primul loop e special; după el, fiecare loop la 1h cu promptul normal (re-planific + rezolv ce pot singur).
