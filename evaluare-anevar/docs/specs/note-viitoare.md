@@ -14,12 +14,18 @@ finalul celor 4 brainstorming-uri). Actualizat: 2026-06-06.
   free-text la creare, **needitabil ulterior** (la import cere ID nou).
 - **„Home UI dosar"** = workspace per dosar, în care intri după oricare din cele 5 opțiuni.
 
-## Regenerarea textului AI (feature nou, derivat — ține de #2 versiuni + narativ AI)
-- La FIECARE generare de raport pentru un dosar cu generare anterioară, userul e întrebat (o dată),
-  per capitol free-text: folosește textul anterior ca **template strict** / **template general** /
-  **generare nouă**; poate alege ce **versiune** anterioară; poate adăuga **textul lui** (marcat
-  strict/template) + **instrucțiuni suplimentare** pentru AI (la strict + generare nouă).
-- AI folosește textul userului ca strict/template doar dacă-l consideră relevant.
+## Regenerarea textului AI (feature B — ține de #2 versiuni + narativ AI)
+- La „**Generează**", dacă dosarul are DEJA un raport (generat SAU importat): pentru fiecare
+  capitol free-text se arată **textul vechi** din **cel mai recent** dintre {ultimul generat, import}.
+- **Opțiunile per capitol vin din MATRICEA din master_administration** (care servește AMBELE cazuri):
+  - **regenerare** (același dosar) → vechi.tip+scop == nou.tip+scop → matricea = „compatibil" → toate
+    capitolele reutilizabile;
+  - **import asemănător** (tip/scop diferit) → matricea decide per capitol: **diferit** (nu importă) /
+    **ghidare** (Perplexity ia în considerare textul) / **particularizat** (ignoră textul).
+- Userul **alege per capitol**: **Strict** (AI modifică doar valorile calculate, text minim schimbat) /
+  **Template** (textul vechi = șablon, valorile se schimbă) / **Generare nouă (free)**.
+- **Opțional**, userul adaugă **hint-uri text** per capitol pentru opțiunea aleasă; poate alege și ce
+  **versiune** anterioară să folosească (din folder). AI folosește hint-ul doar dacă-l consideră relevant.
 
 ## Import „dosar asemănător" (sub-proiect — Slice D)
 - Întrebat tip+scop nou și tip+scop al dosarului importat.
