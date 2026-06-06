@@ -221,6 +221,8 @@ with sync_playwright() as pw:
     check("dosar: județ = listă din /api/localitati", p.eval_on_selector("#judet", "e=>e.options.length>1") is True)
     p.select_option("#judet", index=1)
     check("dosar: localitate dependentă se populează la județ", p.eval_on_selector("#localitate", "e=>e.options.length>1") is True)
+    check("dosar: pre-completare din documente (ingestie PDF)",
+          p.eval_on_selector("#ing-fisier", "e=>!!e") is True and p.eval_on_selector("#ing-tip option[value='cf']", "e=>!!e") is True)
     # tip + scop stabilite la creare -> blocate (read-only) în workspace
     check("dosar: tip proprietate blocat după creare", p.eval_on_selector("#tip_proprietate", "e=>e.disabled") is True)
 

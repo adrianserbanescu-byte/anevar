@@ -33,6 +33,17 @@
     </div>
 
     <section role="tabpanel" id="sp-proprietate" aria-labelledby="s-proprietate" tabindex="0">
+      <details class="grila-det">
+        <summary>📄 Pre-completare din documente (extras CF / releveu / plan)</summary>
+        <p class="hint">Încarcă un PDF și extragem automat câmpurile (nr. cadastral, CF, suprafețe, proprietar…). Verifică-le după.</p>
+        <div class="field-row">
+          <div class="field"><label for="ing-tip">Tip document</label>
+            <select id="ing-tip"><option value="cf">Extras de carte funciară</option><option value="releveu">Releveu</option>
+              <option value="plan">Plan de amplasament</option><option value="cpe">Certificat performanță energetică</option></select></div>
+          <div class="field"><label for="ing-fisier">Fișier PDF</label><input type="file" id="ing-fisier" accept="application/pdf"></div>
+        </div>
+        <span id="ing-status" class="hint" role="status" aria-live="polite"></span>
+      </details>
       <h3>Identificare <span class="hint">(definesc identitatea + numele dosarului)</span></h3>
       <div class="field-row">
         <div class="field"><label for="id_client">ID client</label><input id="id_client" autocomplete="off"></div>
@@ -542,6 +553,25 @@ if($("up-foto")) $("up-foto").addEventListener("change", function(){
 if($("up-doc")) $("up-doc").addEventListener("change", function(){
   Promise.all([].map.call(this.files, _fileURL)).then(function(a){ ANEXE_DOC=ANEXE_DOC.concat(a); randDoc(); }); });
 if($("la-anexe")) $("la-anexe").addEventListener("click", function(){ var rt=$("t-raport"); if(rt) rt.click(); subtab("s-anexe"); });
+
+// Ingestie documente: PDF (CF/releveu/plan/CPE) → /api/ingestie → pre-completează câmpurile (verifică după!).
+if($("ing-fisier")) $("ing-fisier").addEventListener("change", function(){
+  var f=this.files[0]; if(!f) return;
+  $("ing-status").textContent="… se extrag datele din document";
+  _fileURL(f).then(function(durl){
+    return fetch("/api/ingestie",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({tip:$("ing-tip").value, continut:durl})}); })
+    .then(function(r){ return r.ok?r.json():r.json().then(function(e){ return Promise.reject(e.detail||"eroare"); }); })
+    .then(function(d){
+      var MAP={numar_cadastral:"numar_cadastral",carte_funciara:"carte_funciara",suprafata:"suprafata_teren",
+        suprafata_teren:"suprafata_teren",arie_utila:"au",arie_construita:"acd"};
+      var puse=[];
+      Object.keys(MAP).forEach(function(k){ if(d[k]!=null && d[k]!=="" && $(MAP[k])){ $(MAP[k]).value=d[k]; puse.push(MAP[k]); } });
+      if(d.proprietari && d.proprietari.length && $("proprietar")){ $("proprietar").value=d.proprietari[0]; puse.push("proprietar"); }
+      salveaza();
+      $("ing-status").textContent = puse.length ? ("✓ Pre-completat: "+puse.join(", ")+". VERIFICĂ valorile.") : "Documentul nu a produs câmpuri recunoscute — completează manual.";
+    })
+    .catch(function(e){ $("ing-status").textContent="Extragerea a eșuat — "+(typeof e==="string"?e:"verifică PDF-ul."); });
+});
 
 // Descoperire comparabile INLINE (re-integrat în Comparabile; reutilizează /api/descopera). „AI tăiat căutarea" → reparat.
 (function(){
