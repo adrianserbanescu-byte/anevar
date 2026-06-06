@@ -4,6 +4,20 @@
 > (2) aleg și rezolv tot ce pot face singur (fără input de la Adi), (3) la următorul loop reiau.
 > Ce e blocat pe Adi → [`BLOCAT-pe-Adi.md`](BLOCAT-pe-Adi.md) (NU le ating). Actualizat: 2026-06-06.
 
+## 🌟 PRIMUL LOOP (SPECIAL, ~50 min de la 10:43) — agendă cerută de Adi, apoi loops normale la 1h
+> Doar primul loop e special; după el, fiecare loop la 1h cu promptul normal (re-planific + rezolv ce pot singur).
+1. [ ] **SCOP CORECTAT — re-rulez conformitatea pe ÎNTREAGA matrice tip×scop** (NU doar casă+teren+garantare).
+       Toate tipurile (casă, apartament, industrial, agricol, special) × scopuri (garantare, raportare financiară,
+       asigurare, impozitare, litigii) — vezi `profil.py` (9 profile) + `assembler.rezolva_profil`. Pentru fiecare
+       combinație: ce ghid GEV se aplică, ce abordări sunt obligatorii, ce cere standardul vs. ce facem. Update
+       `docs/conformitate/` cu o matrice tip×scop completă.
+2. [ ] **Re-analiză `md files/LEGE nr.md` + `md files/NORME din 2 martie 2021de aplicare a prevederilor.md`** —
+       verific diferențe de conformitate față de ce avem (probabil AML/Legea 129 + Norme ONPCSB; corelez cu modulul `aml/`).
+3. [ ] **ADR-uri formale** (cerere Adi, skill `engineering:architecture`): migrarea SQLite→foldere; modelul de
+       lock-identitate; AI gateway-ul. + alte decizii arhitecturale dacă le consider potrivite (ex. stocare anexe).
+4. [ ] Continuă taskurile inline de mai jos (conformitate Bucket A confirmate, council „de preluat", datorie tehnică).
+
+
 ## ✅ COUNCIL — TOATE rulate (2026-06-06, după reconectarea MCP)
 1. [x] **Council Q2** (topics 3,4,6) — foldat în `9-topicuri-decizie.md`. ✅
 2. [x] **Council Q3** (topics 2,8,9) — foldat în `9-topicuri-decizie.md`. ✅
