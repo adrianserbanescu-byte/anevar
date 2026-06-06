@@ -435,7 +435,14 @@ function numeLoc(id){ var e=$(id); if(!e) return ""; if(e.tagName!=="SELECT") re
     }
     wire("judet","localitate","localitate_alt", W.judet, W.localitate);
     wire("d-judet","d-localitate", null, $("judet")?$("judet").value:"", $("localitate")?$("localitate").value:"");
-  }).catch(function(){ /* listă indisponibilă — selectele rămân cu opțiunea goală */ });
+  }).catch(function(){
+    // Lista indisponibilă: NU lăsa selecturile goale (auto-save ar suprascrie județ/localitate salvate cu "").
+    // Restaurează valorile salvate ca opțiune unică + avertizează; userul își păstrează datele.
+    ["judet","localitate"].forEach(function(id){ var e=$(id), v=W[id]; if(!e) return;
+      if(v){ e.innerHTML="<option value='"+v+"' selected>"+v+"</option>"; }
+      e.title="Lista de localități nu s-a putut încărca; valoarea salvată e păstrată."; });
+    var st=$("save-ind"); if(st) st.textContent="⚠ Lista de localități indisponibilă — verifică conexiunea; datele salvate sunt păstrate.";
+  });
 })();
 
 // Checkpoint de asumare (om în buclă): «Generează» e blocat până confirmă evaluatorul.
@@ -771,7 +778,7 @@ function asambleaza(){
   var land_comparables=$("comparabile_teren").value.trim().split("\n").filter(Boolean).map(function(l){var p=l.split(";");return{pret_mp:p[0],suprafata:p[1]};});
   var SCOP={garantare:["Garantarea creditului ipotecar","Valoarea de piață (SEV 102)"],raportare_financiara:["Raportare financiară (IFRS)","Valoarea justă (IFRS 13)"],asigurare:["Asigurare","Valoarea de asigurare"],impozitare:["Impozitare","Valoarea impozabilă"],litigii:["Litigiu","Valoarea de piață (SEV 102)"]};
   var sc=SCOP[$("scop").value]||SCOP.garantare;
-  var meta={client_nume:$("nume_client").value||"Client",adresa:[$("adresa_strada").value,numeLoc("localitate"),numeLoc("judet")].filter(Boolean).join(", ")||"-",numar_cadastral:$("numar_cadastral").value,carte_funciara:$("carte_funciara").value,evaluator_nume:"{{ cont.nume if cont else '' }}",evaluator_legitimatie:"{{ cont.legitimatie if cont else '' }}",data_evaluarii:$("data_evaluarii").value||"2026-01-16",data_raportului:$("data_raportului").value||"2026-01-16",moneda:$("moneda").value,scop:sc[0],tip_valoare:sc[1]};
+  var meta={client_nume:$("nume_client").value||"Client",adresa:[$("adresa_strada").value,numeLoc("localitate"),numeLoc("judet")].filter(Boolean).join(", ")||"-",numar_cadastral:$("numar_cadastral").value,carte_funciara:$("carte_funciara").value,evaluator_nume:"{{ cont.nume if cont else '' }}",evaluator_legitimatie:"{{ cont.legitimatie if cont else '' }}",data_evaluarii:$("data_evaluarii").value||new Date().toISOString().slice(0,10),data_raportului:$("data_raportului").value||new Date().toISOString().slice(0,10),moneda:$("moneda").value,scop:sc[0],tip_valoare:sc[1]};
   if($("beneficiar").value) meta.beneficiar=$("beneficiar").value;
   if($("proprietar")&&$("proprietar").value) meta.proprietar=$("proprietar").value;
   if($("tip_drept")&&$("tip_drept").value) meta.tip_drept=$("tip_drept").value;
@@ -993,6 +1000,11 @@ $("calc").addEventListener("click", async function(){
   }catch(e){ $("rezultat").textContent="Calculul a eșuat — verifică valorile (suprafețe, elemente, comparabile)."; }
 });
 function genereazaRaport(adnotari, btn, nume){
+  // Nu mai injectăm tăcut o dată: dacă lipsesc datele, avertizăm explicit (risc juridic la garantare).
+  if(!$("data_evaluarii").value || !$("data_raportului").value){
+    if(!confirm("Data evaluării și/sau data raportului nu sunt completate.\n\nRaportul va folosi DATA DE AZI — verifică, fiindcă o dată greșită afectează valabilitatea juridică a evaluării pentru garantare.\n\nContinui cu data de azi?")) {
+      $("gen-status").textContent="Completează datele (evaluare/raport) înainte de generare."; return; }
+  }
   btn.disabled=true; btn.setAttribute("aria-busy","true"); $("gen-status").textContent="Se generează…";
   fetch("/api/dosar/"+UID+"/raport.docx"+(adnotari?"?adnotari=1":""),{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(asambleaza())})
     .then(function(r){ return r.ok ? r.blob() : Promise.reject(); })

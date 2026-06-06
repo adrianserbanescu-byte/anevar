@@ -18,9 +18,24 @@ def create_app(storage: Storage, client: NarrativeClient | None,
                fetcher: Callable[[str], str] = fetch_html) -> FastAPI:
     """Construieste aplicatia cu storage si client AI injectate."""
     from fastapi.middleware.cors import CORSMiddleware
+    from starlette.responses import PlainTextResponse
 
     from evaluare import __version__
     app = FastAPI(title="Evaluare ANEVAR")
+
+    # Gardă anti DNS-rebinding / cross-site: aplicația locală acceptă DOAR Host local.
+    # Un site vizitat (evil.com) care rezolvă la 127.0.0.1 ar trimite Host: evil.com -> respins,
+    # deci nu poate șterge dosare / exfiltra PII prin API-ul local. „testserver" = host-ul TestClient.
+    _HOSTURI_LOCALE = {"127.0.0.1", "localhost", "::1", "testserver"}
+
+    @app.middleware("http")
+    async def doar_host_local(request, call_next):
+        host = (request.headers.get("host") or "127.0.0.1").rsplit(":", 1)[0].strip("[]")
+        if host not in _HOSTURI_LOCALE:
+            return PlainTextResponse("Acces respins: aplicația acceptă doar conexiuni locale.",
+                                     status_code=403)
+        return await call_next(request)
+
     # Permite extensiei de browser sa POST-eze pe /api/import-anunt (aplicatie locala).
     app.add_middleware(
         CORSMiddleware,

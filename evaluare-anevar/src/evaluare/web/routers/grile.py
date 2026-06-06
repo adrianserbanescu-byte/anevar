@@ -16,7 +16,10 @@ def build_router(d: Deps) -> APIRouter:
 
     @router.post("/api/grila-teren")
     def grila_teren(req: GrilaTerenRequest) -> dict:
-        r = evaluate_land(req.comparabile, req.suprafata_subiect)
+        try:
+            r = evaluate_land(req.comparabile, req.suprafata_subiect)
+        except ValueError as e:
+            raise HTTPException(status_code=422, detail=str(e)) from e
         return {
             "preturi_mp_corectate": [str(p) for p in r.preturi_mp_corectate],
             "ajustari_brute": [str(b) for b in r.ajustari_brute],
@@ -28,7 +31,10 @@ def build_router(d: Deps) -> APIRouter:
 
     @router.post("/api/grila-casa")
     def grila_casa(req: GrilaCasaRequest) -> dict:
-        r = evaluate_market(req.comparabile, req.suprafata_subiect)
+        try:
+            r = evaluate_market(req.comparabile, req.suprafata_subiect)
+        except ValueError as e:
+            raise HTTPException(status_code=422, detail=str(e)) from e
         return {
             "preturi_unitare_corectate": [str(p) for p in r.preturi_unitare_corectate],
             "ajustari_brute": [str(b) for b in r.ajustari_brute],

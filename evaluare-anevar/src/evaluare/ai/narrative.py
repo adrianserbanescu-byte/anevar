@@ -75,7 +75,7 @@ SYSTEM_PROMPT = (
 # Plasă de siguranță GDPR: tipare RO de date personale care ar fi putut scăpa de
 # anonimizare (CNP, telefon, e-mail) -> înlocuite înainte de trimiterea la AI.
 _PII_REZIDUAL = [
-    (re.compile(r"\b[1-8]\d{12}\b"), "[REDACTAT-CNP]"),       # CNP: 13 cifre
+    (re.compile(r"\b[1-9]\d{12}\b"), "[REDACTAT-CNP]"),       # CNP: 13 cifre (1-8 cetățeni, 9 rezidenți străini)
     (re.compile(r"\b(?:\+?40|0)7\d{8}\b"), "[REDACTAT-TEL]"),  # mobil RO
     (re.compile(r"\b[\w.+-]+@[\w-]+\.[\w.-]+\b"), "[REDACTAT-EMAIL]"),
 ]

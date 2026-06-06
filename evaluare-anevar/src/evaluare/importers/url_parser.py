@@ -6,10 +6,13 @@ Parserul prefera datele structurate schema.org (stabile) si degradeaza gratios.
 """
 from __future__ import annotations
 
+import ipaddress
 import json
 import re
+import socket
 from collections.abc import Callable
 from decimal import Decimal, InvalidOperation
+from urllib.parse import urlparse
 
 import requests
 from bs4 import BeautifulSoup
@@ -385,9 +388,32 @@ def to_comparable(parsed: ParsedListing) -> Comparable:
     )
 
 
+def _url_public_sigur(url: str) -> bool:
+    """Anti-SSRF: True doar pentru http(s) către un host care rezolvă la IP PUBLIC.
+    Blochează loopback/privat/link-local (127.0.0.1, 10/8, 192.168, 169.254.169.254 etc.)."""
+    try:
+        p = urlparse(url)
+    except ValueError:
+        return False
+    if p.scheme not in ("http", "https") or not p.hostname:
+        return False
+    try:
+        infos = socket.getaddrinfo(p.hostname, p.port or (443 if p.scheme == "https" else 80))
+    except OSError:
+        return False
+    for *_, sockaddr in infos:
+        ip = ipaddress.ip_address(sockaddr[0])
+        if (ip.is_private or ip.is_loopback or ip.is_link_local or ip.is_reserved
+                or ip.is_multicast or ip.is_unspecified):
+            return False
+    return True
+
+
 def fetch_html(url: str) -> str:
     """Descarca HTML-ul unui anunt (live). Nu se foloseste in teste."""
-    resp = requests.get(url, headers={"User-Agent": USER_AGENT}, timeout=15)
+    if not _url_public_sigur(url):
+        raise ValueError("URL respins: sunt permise doar adrese web publice http(s) (protecție anti-SSRF).")
+    resp = requests.get(url, headers={"User-Agent": USER_AGENT}, timeout=15, allow_redirects=True)
     resp.raise_for_status()
     return resp.text
 

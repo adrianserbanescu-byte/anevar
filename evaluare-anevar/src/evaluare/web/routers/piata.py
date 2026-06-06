@@ -54,6 +54,8 @@ def build_router(d: Deps) -> APIRouter:
             raise HTTPException(status_code=400,
                 detail="Tip de document necunoscut. Alege: cf, releveu, plan sau cpe.")
         payload = req.continut.split(",", 1)[1] if req.continut.startswith("data:") else req.continut
+        if len(payload) > 35_000_000:            # ~26 MB după decodare — limită anti-DoS
+            raise HTTPException(status_code=413, detail="Document prea mare (limită ~25 MB).")
         try:
             raw = base64.b64decode(payload, validate=True)
         except Exception:

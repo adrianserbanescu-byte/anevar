@@ -176,6 +176,42 @@ def test_backup_dosare_zip(client):
     assert any(uid in n and n.endswith("dosar.json") for n in z.namelist())
 
 
+# ── Hardening din auditul final (securitate + buguri) ────────────────────────
+def test_grila_casa_goala_422(client):
+    # bug: <3 comparabile -> ValueError din motor; trebuie 422 clar, NU 500.
+    assert client.post("/api/grila-casa", json={"suprafata_subiect": "120", "comparabile": []}).status_code == 422
+    assert client.post("/api/grila-teren", json={"suprafata_subiect": "500", "comparabile": []}).status_code == 422
+
+
+def test_import_prea_mare_413(client):
+    _cont(client)
+    big = "A" * 35_000_001            # peste limita anti-DoS
+    assert client.post("/api/dosar/import-docx",
+                       json={"nume_fisier": "x.docx", "continut": big}).status_code == 413
+    assert client.post("/api/ingestie", json={"tip": "cf", "continut": big}).status_code == 413
+
+
+def test_host_nelocal_respins_403(client):
+    # gardă anti DNS-rebinding: Host ne-local -> 403; default (testserver) -> OK.
+    assert client.get("/incepe", headers={"host": "evil.com"}).status_code == 403
+    assert client.get("/incepe").status_code == 200
+
+
+def test_ssrf_url_guard():
+    from evaluare.importers.url_parser import _url_public_sigur
+    assert _url_public_sigur("http://127.0.0.1:5432") is False      # loopback
+    assert _url_public_sigur("http://169.254.169.254/") is False    # link-local (metadata)
+    assert _url_public_sigur("http://10.0.0.5/x") is False          # privat
+    assert _url_public_sigur("file:///etc/passwd") is False         # schemă nepermisă
+
+
+def test_cnp_redaction_prefix_9():
+    from evaluare.ai import narrative
+    rx = narrative._PII_REZIDUAL[0][0]
+    assert rx.search("9800101123456")    # rezident străin (prefix 9) — acum prins
+    assert rx.search("1800101123456")    # cetățean (prefix 1) — în continuare prins
+
+
 def test_dosar_inexistent_404(client):
     assert client.get("/dosar/nope").status_code == 404
     assert client.get("/api/dosar/nope").status_code == 404
