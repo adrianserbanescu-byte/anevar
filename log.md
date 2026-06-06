@@ -432,3 +432,15 @@ Owner a testat UI-ul nou și a găsit că „e un dezastru" — multe funcții p
 - **AML citare** art.33→43/44/49 aplicat consistent (pending jurist, per decizia Adi în BLOCAT §H30).
 - **90 e2e + 496 teste, verde. Exe reconstruit de multe ori.** Metodă nouă confirmată: verificare VIZUALĂ în browser.
 **Backlog paritate = CURĂȚAT.** Rămâne doar finețe + deciziile pe Adi (`BLOCAT-pe-Adi.md`).
+
+### 2026-06-06 — continuare autonomă: completitudinea descrierii proprietății (GEV 630 / SEV 230)
+Rulare continuă pe conformitatea RAPORTULUI (Bucket A, aditiv/descriptiv — fără metodologie/valori). Adăugat în
+model + raport + UI nou, cu teste:
+- **Sursa tipului valorii** (SEV 102 §20.4): slug „piata" → „valoare de piață (SEV 102/IVS 104)".
+- **Dreptul evaluat** + **sarcini CF** (SEV 230 §40.1/§140 — critic la garantare; avertizează dacă lipsesc).
+- **Act de proprietate** (GEV 630 §16).
+- **Inspecția**: amploare + însoțitor + observații/neconcordanțe + data (GEV 630 §24/§44/§111).
+- **Regim teren** intravilan/extravilan, **utilități**, **regim urbanistic/POT-CUT**, **cale de acces** (GEV 630 §16/§28).
+Verificat raportul asamblat (toate paragrafele se citesc corect + în ordine). **501 teste + 90 e2e. Exe reconstruit.**
+Sinteză conformitate actualizată: #3/#6/#7 = REZOLVATE; rămân Bucket B/C (metodologie, declarație conformitate,
+AML jurist) + decizii Adi (BLOCAT-pe-Adi.md).
