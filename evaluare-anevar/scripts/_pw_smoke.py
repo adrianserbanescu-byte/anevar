@@ -177,7 +177,7 @@ with sync_playwright() as pw:
     # ---------- UI NOU „curent": cont -> ÎNCEPE -> dosar ----------
     # serverul e2e are OUTPUT_DIR izolat în temp -> nu atinge contul/dosarele reale
     ctx.request.post(BASE + "/api/cont", data={"nume": "Tester E2E", "legitimatie": "9999",
-                     "format_dosar": ["id_client", "nume_client", "tip_proprietate"]})
+                     "format_dosar": ["id_client", "nume_client", "tip_proprietate", "data_raport"]})
     p, errs = pagina(ctx, BASE + "/cont")
     check("cont: fără erori consolă", not errs, "; ".join(errs[:3]))
     check("cont: nume precompletat din cont", "Tester E2E" in p.eval_on_selector("#nume", "e=>e.value"))
@@ -190,11 +190,18 @@ with sync_playwright() as pw:
     # Dosar nou cere identitatea ÎNAINTE (nu mai creează „?_?_?")
     p.click("#nou")
     check("incepe: «Dosar nou» dezvăluie formularul de identitate", not p.eval_on_selector("#form-nou", "e=>e.hidden"))
+    # câmpul-dată din numele dosarului = calendar (nu free text)
+    check("incepe: câmp dată în formular = calendar (type=date)",
+          p.eval_on_selector("#n-data_raport", "e=>e.type") == "date")
     p.fill("#n-id_client", "777")
     p.fill("#n-nume_client", "Test Client")
+    p.fill("#n-data_raport", "2026-01-15")
     p.click("#creeaza-nou")
     p.wait_for_url("**/dosar/**", timeout=8000)
     check("incepe: creare cu identitate -> workspace", "/dosar/" in p.url)
+    # linkajul: data introdusă la creare pre-completează câmpul din workspace (#1)
+    check("incepe: data de la creare → pre-completată în workspace (data_raportului)",
+          p.eval_on_selector("#data_raportului", "e=>e.value") == "2026-01-15")
     p.close()
 
     uid = ctx.request.post(BASE + "/api/dosar",

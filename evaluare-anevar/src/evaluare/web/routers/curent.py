@@ -38,10 +38,11 @@ def build_router(d: Deps) -> APIRouter:
     # ── ÎNCEPE (homepage) ────────────────────────────────────────────────────────
     @router.get("/incepe", response_class=HTMLResponse)
     def pagina_incepe(request: Request) -> HTMLResponse:
+        from evaluare.master_config import CAMPURI_NUME_DOSAR
         cont = cont_mod.incarca_cont()
         diff = fs.diff() if cont else {"existente": [], "noi": [], "disparute": []}
         return d.templates.TemplateResponse(request, "curent/incepe.html",
-            {"cont": cont, "diff": diff})
+            {"cont": cont, "diff": diff, "campuri": CAMPURI_NUME_DOSAR})
 
     # ── Dosar (workspace) ────────────────────────────────────────────────────────
     @router.post("/api/dosar")
