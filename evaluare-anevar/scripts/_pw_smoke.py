@@ -222,6 +222,8 @@ with sync_playwright() as pw:
     p.click("#s-comparabile")
     check("dosar: căutare comparabile inline (re-integrată)",
           p.eval_on_selector("#d-cauta", "e=>!!e") is True and p.eval_on_selector("#d-judet", "e=>!!e") is True)
+    check("dosar: import URL + atribute secundare (paritate descoperire)",
+          p.eval_on_selector("#d-url-btn", "e=>!!e") is True and p.eval_on_selector("#d-secundare", "e=>!!e") is True)
     p.click("#s-proprietate")
     p.click("#t-aml")
     check("dosar: tab AML comută panoul",

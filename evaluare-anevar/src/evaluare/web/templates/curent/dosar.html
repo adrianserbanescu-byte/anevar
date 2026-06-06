@@ -122,9 +122,19 @@
         <div class="field"><label for="d-incalzire">Încălzire</label><input id="d-incalzire" placeholder="centrala_gaz"></div>
         <div class="field"><label for="d-teren">Teren (mp)</label><input id="d-teren" placeholder="500"></div>
       </div>
-      <button type="button" id="d-cauta">Caută comparabile</button>
+      <label for="d-secundare">Atribute secundare de potrivire <span class="hint">(opțional, una pe linie)</span></label>
+      <textarea id="d-secundare" rows="2" placeholder="garaj&#10;piscină&#10;termopan"></textarea>
+      <div class="btn-bar">
+        <button type="button" id="d-cauta">🔎 Caută comparabile</button>
+      </div>
       <span id="d-status" class="hint" role="status" aria-live="polite"></span>
       <div id="d-rezultate"></div>
+      <h3>Import dintr-un anunț (URL)</h3>
+      <div class="field-row">
+        <div class="field" style="flex:3"><label for="d-url">Link imobiliare.ro / storia.ro</label><input id="d-url" placeholder="https://www.imobiliare.ro/..."></div>
+        <div class="field"><label for="d-url-btn-l">&nbsp;</label><button type="button" id="d-url-btn">📥 Importă din URL</button></div>
+      </div>
+      <span id="d-url-status" class="hint" role="status" aria-live="polite"></span>
       <hr class="brass-rule">
       <label for="comparabile">Comparabile construcție/proprietate <span class="hint">(preț;suprafață, una pe linie)</span></label>
       <textarea id="comparabile" rows="4" placeholder="250000;120"></textarea>
@@ -449,7 +459,7 @@ if($("la-anexe")) $("la-anexe").addEventListener("click", function(){ var rt=$("
     var payload={portal:$("d-portal").value, judet:$("d-judet").value, localitate:$("d-localitate").value,
       subiect:{an:parseInt($("d-an").value)||null, stare:parseInt($("d-stare").value)||null,
         finisaj:parseInt($("d-finisaj").value)||null, incalzire:$("d-incalzire").value||null, teren:$("d-teren").value||null},
-      atribute_secundare:[], max_candidati:8};
+      atribute_secundare:($("d-secundare")&&$("d-secundare").value||"").split("\n").filter(Boolean), max_candidati:8};
     fetch("/api/descopera",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(payload)})
       .then(function(r){ return r.ok?r.json():Promise.reject(); })
       .then(function(res){
@@ -469,6 +479,18 @@ if($("la-anexe")) $("la-anexe").addEventListener("click", function(){ var rt=$("
         });
       })
       .catch(function(){ $("d-status").textContent="Căutarea a eșuat — verifică internetul și reîncearcă."; });
+  });
+  // Import comparabil dintr-un anunț (URL) → adaugă „preț;suprafață" în grilă.
+  if($("d-url-btn")) $("d-url-btn").addEventListener("click", function(){
+    var url=($("d-url").value||"").trim(); if(!url){ $("d-url-status").textContent="Lipsește linkul."; return; }
+    var b=this; b.disabled=true; $("d-url-status").textContent="… se importă";
+    fetch("/api/import-url",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({url:url})})
+      .then(function(r){ return r.ok?r.json():r.json().then(function(e){ return Promise.reject(e.detail||"eroare"); }); })
+      .then(function(d){ if(!d.pret||!d.suprafata){ $("d-url-status").textContent="Anunțul nu are preț+suprafață structurate — completează manual."; return; }
+        var ta=$("comparabile"); ta.value=(ta.value.trim()?ta.value.trim()+"\n":"")+d.pret+";"+d.suprafata; salveaza();
+        $("d-url-status").textContent="✓ importat: "+(d.titlu||url); $("d-url").value=""; })
+      .catch(function(e){ $("d-url-status").textContent="Import eșuat — "+(typeof e==="string"?e:"verifică linkul/internetul"); })
+      .finally(function(){ b.disabled=false; });
   });
 })();
 
@@ -572,8 +594,14 @@ $("calc").addEventListener("click", async function(){
   try{ var r=await fetch("/api/dosar/"+UID+"/calcul",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(asambleaza())});
     if(!r.ok) throw new Error();
     var d=await r.json();
-    $("rezultat").innerHTML="<p><b>Valoare: "+fmtRo(d.valoare_finala)+" "+$("moneda").value+"</b> ("+d.metoda+")</p>"+
-      "<button type='button' id='la-gen'>Continuă la Generează →</button>";
+    var h="<p><b>Valoare: "+fmtRo(d.valoare_finala)+" "+$("moneda").value+"</b> ("+d.metoda+")</p>";
+    if(d.alerte && d.alerte.length){
+      h+="<div class='callout'><b>⚠ Verificări:</b><ul>"+d.alerte.map(function(a){
+        var cls=(a.nivel==="blocheaza")?"alerta":"hint";
+        return "<li class='"+cls+"'>"+(a.nivel?"<b>["+a.nivel+"]</b> ":"")+(a.mesaj||"")+"</li>"; }).join("")+"</ul></div>";
+    }
+    h+="<button type='button' id='la-gen'>Continuă la Generează →</button>";
+    $("rezultat").innerHTML=h;
     var lg=$("la-gen"); if(lg) lg.addEventListener("click",function(){ subtab("s-genereaza"); });
   }catch(e){ $("rezultat").textContent="Calculul a eșuat — verifică valorile (suprafețe, elemente, comparabile)."; }
 });
