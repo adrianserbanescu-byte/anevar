@@ -229,7 +229,7 @@
   <section role="tabpanel" id="p-aml" aria-labelledby="t-aml" tabindex="0" hidden>
     <div class="avert-warn" role="alert">⚠️ Aplicația <b>NU verifică automat</b> sancțiuni/PEP — verifică manual pe
       <a href="https://www.opensanctions.org/" target="_blank" rel="noopener">OpenSanctions</a> /
-      <a href="https://www.sanctionsmap.eu/" target="_blank" rel="noopener">EU Sanctions Map</a>. Documentele = drafturi (validează cu jurist, Legea 129 art. 33).</div>
+      <a href="https://www.sanctionsmap.eu/" target="_blank" rel="noopener">EU Sanctions Map</a>. Documentele = drafturi (validează cu jurist, Legea 129 art. 43/44/49).</div>
     <fieldset><legend>Entitate evaluator</legend>
       <div class="field-row">
         <div class="field"><label for="aml_tip_entitate">Tip</label>
@@ -544,7 +544,7 @@ if($("audit-gen")) $("audit-gen").addEventListener("click", function(){
   function amlInd(){ var s={}; document.querySelectorAll(".aml-ind:checked").forEach(function(c){ s[c.value]=true; }); return s; }
   function amlBody(){ return Object.assign({tip_entitate:$("aml_tip_entitate").value,azi:$("aml_azi").value,semnale_risc:amlRisc(),semnale_indicatori:amlInd()}, amlClient()); }
   function amlDescarca(url){
-    if(url.indexOf("rts")>=0||url.indexOf("rtn")>=0){ if(!confirm("ATENȚIE — raport de tranzacție (RTS/RTN), draft neverificat juridic. Legea 129 art. 33 prevede sancțiuni. Continui?")) return; }
+    if(url.indexOf("rts")>=0||url.indexOf("rtn")>=0){ if(!confirm("ATENȚIE — raport de tranzacție (RTS/RTN), draft neverificat juridic. Legea 129 art. 43/44/49 prevede sancțiuni. Continui?")) return; }
     var body=Object.assign({}, window._amlBody||amlBody());
     if(url.indexOf("decizie")>=0) body.persoana_desemnata={nume:$("aml_nume").value||"____",prenume:$("aml_prenume").value||""};
     if(url.indexOf("rts")>=0) body.rts={motiv:"indicatori de suspiciune bifați",data_inregistrare:$("aml_azi").value,indicatori:Object.keys(amlInd())};

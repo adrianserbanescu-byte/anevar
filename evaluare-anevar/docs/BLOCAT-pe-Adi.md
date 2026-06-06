@@ -61,7 +61,9 @@
 30. **Eroare de citare în disclaimer AML:** textul citează „Legea 129/2019 art. 33" pentru SANCȚIUNI — greșit;
     corect **art. 43/44 (contravenții) + art. 49 (penal)**.
     ✅ **Corectat (2026-06-06): art. 33 → art. 43/44/49** în `aml/documente.py` (`_antet`) + `docs/audit-aml-pentru-jurist.md` §3 pct. 4; test `test_garduri_council.py` actualizat. **Doar numărul articolului schimbat — restul formulării NEATINS. Necesită confirmare jurist (bucket C).**
-    🟡 **Rămâne (NU am atins — text juridic UI):** aceeași citare apare în `aml.html` (l.19 disclaimer + l.127 confirm RTS/RTN) și `curent/dosar.html` (l.201 hint + l.504 confirm RTS/RTN). **Aplic aceeași corectură (art. 33 → art. 43/44/49) și în UI?** (minor și: `docs/audit-ui-nou/3-paritate-…md` l.40 etichetează greșit confirm() drept „art. 33 tipping-off" — tipping-off = art. 38.)
+    ✅ **Aplicat și în UI (2026-06-06):** aceeași corectură art. 33 → art. 43/44/49 în `aml.html` (disclaimer + confirm RTS/RTN)
+    și `curent/dosar.html` (banner AML + confirm RTS/RTN). `art. 38` (tipping-off/non-divulgare) **lăsat neschimbat — e corect**.
+    **Tot textul juridic e doar numărul articolului; PENDING confirmare jurist (bucket C) — dacă juristul spune altă încadrare, schimb peste tot.**
 31. **Goluri AML noi (jurist):** informare GDPR client înainte de relație (art. 22(2)); ștergere date la expirarea retenției
     (art. 21(4)); coborârea pragului beneficiar-real la risc sporit (Norme art. 16(4)(e)); monitorizare continuă (avem one-shot).
 32. ✅ **Închis:** pragul de „3.000 €" din auditul vechi e **INFIRMAT** — nu există în lege (toate celelalte praguri sunt corecte).

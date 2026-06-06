@@ -16,7 +16,7 @@ Modulul propune — <b>evaluatorul decide și transmite</b> (rapoarte.onpcsb.ro)
   <a href="https://www.sanctionsmap.eu/" target="_blank" rel="noopener">EU Sanctions Map</a> ·
   <a href="https://sanctionssearch.ofac.treas.gov/" target="_blank" rel="noopener">OFAC</a>.
   Documentele generate sunt <b>drafturi neverificate juridic</b> — validează-le cu un jurist AML
-  înainte de transmitere (Legea 129/2019, art. 33).
+  înainte de transmitere (Legea 129/2019, art. 43/44/49).
 </div>
 
 <main id="continut">
@@ -124,7 +124,7 @@ async function descarca(url){
   // Confirmare suplimentară pentru rapoartele de tranzacție (RTS/RTN) — risc legal Art. 33.
   if(url.indexOf('rts')>=0 || url.indexOf('rtn')>=0){
     if(!confirm("ATENȚIE — raport de tranzacție (RTS/RTN).\n\nDocumentul e un DRAFT neverificat juridic. "
-      +"Legea 129/2019, art. 33, prevede sancțiuni (inclusiv penale) pentru raportarea cu rea-credință "
+      +"Legea 129/2019, art. 43/44/49, prevede sancțiuni (inclusiv penale) pentru raportarea cu rea-credință "
       +"sau neglijență gravă. Verifică fiecare afirmație și NU divulga clientului (art. 38).\n\nContinui?"))
       return;
   }
