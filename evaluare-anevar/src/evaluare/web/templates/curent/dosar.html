@@ -87,6 +87,13 @@
         <div class="field"><label for="data_inspectiei">Data vizită</label><input type="date" id="data_inspectiei"></div>
       </div>
       <small class="hint">ℹ️ Data evaluării: dacă o lași goală, generarea AML folosește data de azi.</small>
+      <div class="field-row">
+        <div class="field"><label for="inspectie_amploare">Amploare inspecție</label>
+          <select id="inspectie_amploare"><option value="">—</option><option value="interior și exterior">Interior și exterior</option>
+            <option value="doar exterior">Doar exterior</option><option value="limitată">Limitată</option></select></div>
+        <div class="field"><label for="inspectie_insotitor">Însoțit la inspecție de</label><input id="inspectie_insotitor" placeholder="ex. proprietarul"></div>
+        <div class="field" style="flex:2"><label for="inspectie_observatii">Observații / neconcordanțe la inspecție</label><input id="inspectie_observatii" placeholder="ex. concordanță cu actele; fără neconcordanțe"></div>
+      </div>
       <h3>Date fizice</h3>
       <fieldset id="ap-fields" hidden><legend>Apartament</legend>
         <div class="field-row">
@@ -757,6 +764,10 @@ function asambleaza(){
   if($("proprietar")&&$("proprietar").value) meta.proprietar=$("proprietar").value;
   if($("tip_drept")&&$("tip_drept").value) meta.tip_drept=$("tip_drept").value;
   if($("sarcini")&&$("sarcini").value) meta.sarcini=$("sarcini").value;
+  if($("data_inspectiei")&&$("data_inspectiei").value) meta.data_inspectiei=$("data_inspectiei").value;
+  if($("inspectie_amploare")&&$("inspectie_amploare").value) meta.inspectie_amploare=$("inspectie_amploare").value;
+  if($("inspectie_insotitor")&&$("inspectie_insotitor").value) meta.inspectie_insotitor=$("inspectie_insotitor").value;
+  if($("inspectie_observatii")&&$("inspectie_observatii").value) meta.inspectie_observatii=$("inspectie_observatii").value;
   var curs=($("curs_valutar")&&$("curs_valutar").value||"").replace(",",".").trim();
   if(curs) meta.curs_valutar=curs;
   var faraConstr=($("tip_proprietate").value==="agricol");

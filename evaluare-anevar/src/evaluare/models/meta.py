@@ -23,6 +23,9 @@ class EvaluationMeta(BaseModel):
     data_evaluarii: str                 # ISO sau text, ex. "2026-01-16"
     data_raportului: str
     data_inspectiei: str | None = None
+    inspectie_amploare: str | None = None     # interior+exterior / doar exterior / limitată (GEV 630 §24)
+    inspectie_insotitor: str | None = None    # cine a însoțit la inspecție (§44)
+    inspectie_observatii: str | None = None   # neconcordanțe scriptic↔faptic / limitări (§111.a.3)
     valabilitate: str | None = None
     evaluator_nume: str
     evaluator_legitimatie: str

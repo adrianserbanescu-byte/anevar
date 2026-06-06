@@ -657,6 +657,17 @@ def genereaza_raport(
         doc.add_paragraph("Apartament: " + ", ".join(parti) + ".")
     if ctx.building.inaltime_libera is not None:
         doc.add_paragraph(f"Spatiu industrial: inaltime libera {ctx.building.inaltime_libera} m.")
+    insp = []
+    if meta.data_inspectiei:
+        insp.append(f"data inspecției {meta.data_inspectiei}")
+    if meta.inspectie_amploare:
+        insp.append(f"amploare {meta.inspectie_amploare}")
+    if meta.inspectie_insotitor:
+        insp.append(f"însoțit de {meta.inspectie_insotitor}")
+    doc.add_paragraph("Inspectia proprietatii: " + "; ".join(insp) + "." if insp
+                      else "Inspectia proprietatii: amploarea si insotitorul nu au fost declarate (de completat).")
+    if meta.inspectie_observatii:
+        doc.add_paragraph(f"Observatii / neconcordante scriptic-faptic la inspectie: {meta.inspectie_observatii}.")
     descriere = _narativ(ctx, "Descrierea juridica si fizica a proprietatii")
     if descriere:
         doc.add_paragraph(descriere)

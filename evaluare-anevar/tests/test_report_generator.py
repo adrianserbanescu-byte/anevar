@@ -100,6 +100,19 @@ def test_sarcini_nedeclarate_avertizeaza(tmp_path):
     assert "Sarcini" in text and "de verificat în extrasul de carte funciară" in text
 
 
+def test_raportul_declara_inspectia(tmp_path):
+    # GEV 630 §24/§44: raportul declară amploarea inspecției + însoțitorul.
+    ctx = _ctx()
+    ctx.meta.data_inspectiei = "2026-01-15"
+    ctx.meta.inspectie_amploare = "interior și exterior"
+    ctx.meta.inspectie_insotitor = "proprietarul"
+    out = tmp_path / "raport.docx"
+    genereaza_raport(ctx, out)
+    text = _all_text(out)
+    assert "Inspectia proprietatii" in text
+    assert "interior și exterior" in text and "proprietarul" in text
+
+
 def test_raportul_are_cele_sapte_capitole(tmp_path):
     out = tmp_path / "raport.docx"
     genereaza_raport(_ctx(), out)
