@@ -393,3 +393,22 @@ era mort în browser; testele unitare nu-l prind (verifică HTML, nu execuția J
 **Exe reconstruit** (50 MB, fără biblioteci inutile — verificat că se încarcă doar lxml/docx; pornește în 2s,
 `/cont`+`/incepe` → 200). **464 teste verzi + 49 e2e**, ruff curat, acoperire ≥90%.
 **pptx de prezentare:** NU regenerat (era deschis în PowerPoint — lock activ); de refăcut când îl închizi.
+
+### 2026-06-06 — noaptea (II): pachet de lansare pe piață + audit juridic RO + council #2
+Continuare directivă autonomă. Pachet complet pentru decizia de comercializare (marketing exclus):
+- **3 subagenți paraleli** → `docs/legal/` (evaluare juridică RO 502 linii + ToS/Politică-GDPR/EULA/
+  DPA-art.28/disclaimer profesional, toate DRAFT „necesită avocat"), `docs/plan-lansare-piata.md`
+  (audit temă-cu-temă al consiliului LLM + release-readiness + „Spune DA" 13 pași), 
+  `docs/strategie-comercializare-intrebari.md` (7 decizii comerciale: admin, update deployat,
+  crash-telemetrie, model preț, „instrument nu înlocuitor", mindset).
+- **`docs/00-SINTEZA-lansare-pentru-Adi.md`** = document-umbrelă: opinia mea agregată (am auditat
+  consiliul ȘI propriii agenți) + lista UNICĂ de aprobat (4 porți, marcaj 🧑 tu / 🤖 cod).
+- **Council #2 rulat pe starea CURENTĂ** (primul citise 176 MB/stare veche): convergență — 4/5 modele
+  au cerut INDEPENDENT același lucru ca mine: **asumarea răspunderii trebuie să trăiască în UI**, nu în
+  disclaimer. Nou genuin: **avizul asigurătorului de răspundere ANEVAR** (poate exclude rapoarte AI).
+  Audit în SINTEZĂ §3.5; raw în `docs/review-llm-council-2026-06-06-lansare.md`.
+- **Implementat checkpoint-ul de asumare** (om în buclă) în tab «Generează»: checkbox care BLOCHEAZĂ
+  generarea până confirmă evaluatorul + urmă în dosar; etichetă „AI=proză, numerele=deterministe".
+  e2e 49→**51**. Acoperire narativ 74→89%, ocr 76→96%. **473 teste + 51 e2e.** Exe reconstruit.
+- Memorie locală + MEMORY.md + claude-mem actualizate; tot pe GitHub (push pe master).
+**Decizii pentru Adi:** `00-SINTEZA` §3 (lista de aprobat) + §4 (ce decide doar el).
