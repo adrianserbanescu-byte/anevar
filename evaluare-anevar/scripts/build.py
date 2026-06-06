@@ -9,12 +9,18 @@ dimensiunea. Rulează din rădăcina proiectului:
 """
 from __future__ import annotations
 
+import contextlib
 import shutil
 import subprocess
 import sys
 import tempfile
 import time
 from pathlib import Path
+
+# Consola Windows e cp1252 implicit -> print cu diacritice crapă. Forțăm UTF-8.
+for _flux in (sys.stdout, sys.stderr):
+    with contextlib.suppress(AttributeError, ValueError):
+        _flux.reconfigure(encoding="utf-8")
 
 RADACINA = Path(__file__).resolve().parents[1]
 SPEC = RADACINA / "evaluare-anevar.spec"
