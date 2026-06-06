@@ -40,6 +40,7 @@ class ParsedListing(BaseModel):
     stare_text: str | None = None            # stare normalizata (din construction_status)
     nr_camere: int | None = None
     etaje: str | None = None                 # ex. un nivel
+    pagina_lista: bool = False               # pagina pare listă/căutare, nu un anunț individual
 
 
 def _to_decimal(value) -> Decimal | None:
@@ -268,6 +269,22 @@ def _cauta_in_jsonld(data) -> tuple:
     return pret, moneda, supr
 
 
+# Tipare de pagină de LISTĂ/căutare (NU anunț individual). Un URL trunchiat/expirat
+# redirectează adesea la o pagină de rezultate, de unde s-ar extrage tăcut prețul unui
+# anunț promovat nelegat de subiect — de evitat (evaluatorul ar primi un comparabil greșit).
+_RE_PAGINA_LISTA = re.compile(
+    r"vezi\s+[\d.\s]+\s*anun|"          # og:description „Vezi 84602 anunțuri…"
+    r"anun[țţt]uri\s+de\s+v[âa]nzare|"   # „anunțuri de vânzare"
+    r"rezultate(le)?\s+(ale\s+)?c[ăa]ut[ăa]rii|"
+    r"(apartamente|case|terenuri|garsoniere|vile|imobile)\s+de\s+v[âa]nzare\s*\|",
+    re.IGNORECASE)
+
+
+def _pare_pagina_lista(text: str) -> bool:
+    """True dacă titlul/descrierea arată a pagină de listă/căutare, nu anunț individual."""
+    return bool(_RE_PAGINA_LISTA.search(text or ""))
+
+
 def parse_listing_html(html: str, sursa_url: str = "") -> ParsedListing:
     """Extrage pret, moneda si suprafata; incearca, in ordine: JSON-LD (recursiv),
     __NEXT_DATA__, og:meta + regex pe titlu/descriere."""
@@ -307,9 +324,20 @@ def parse_listing_html(html: str, sursa_url: str = "") -> ParsedListing:
         if og and og.get("content"):
             text_cautare += " " + og["content"]
     if suprafata is None:
-        m = re.search(r"(\d+(?:[.,]\d+)?)\s*mp", text_cautare, re.IGNORECASE)
-        if m:
+        # „N mp" e suprafața TERENULUI dacă „teren" e eticheta dinainte („teren: 2000 mp")
+        # sau urmează imediat după unitate („2000mp Teren") — NU o confunda cu suprafața casei
+        # (ex. OLX „Casă cu 2000mp Teren"). Atenție: fereastra „după" e mică, ca să nu prindă
+        # eticheta câmpului următor („120 mp  Suprafață teren: 300").
+        for m in re.finditer(r"(\d+(?:[.,]\d+)?)\s*mp\b", text_cautare, re.IGNORECASE):
+            inainte = text_cautare[max(0, m.start() - 12):m.start()].lower()
+            dupa = text_cautare[m.end():m.end() + 8].lower()
+            e_teren = "teren" in inainte or re.match(r"\s*\.?\s*teren", dupa)
+            if e_teren:
+                if suprafata_teren is None:
+                    suprafata_teren = _to_decimal(m.group(1))
+                continue
             suprafata = _to_decimal(m.group(1))
+            break
     if pret is None:
         m = re.search(r"(\d[\d.\s]{3,})\s*(eur|euro|€|lei)", text_cautare, re.IGNORECASE)
         if m:
@@ -334,11 +362,17 @@ def parse_listing_html(html: str, sursa_url: str = "") -> ParsedListing:
                          an=car.get("an"), incalzire=car.get("incalzire"),
                          material=car.get("material"), tip_cladire=car.get("tip_cladire"),
                          stare_text=car.get("stare_text"), nr_camere=car.get("nr_camere"),
-                         etaje=car.get("etaje"))
+                         etaje=car.get("etaje"),
+                         pagina_lista=_pare_pagina_lista(text_cautare))
 
 
 def to_comparable(parsed: ParsedListing) -> Comparable:
     """Construieste un Comparable dintr-un ParsedListing (cere pret + suprafata)."""
+    if parsed.pagina_lista:
+        raise ValueError(
+            "URL-ul pare o pagină de listă/căutare, nu un anunt individual; "
+            "verifica linkul (valoarea ar fi a unui anunt nelegat)."
+        )
     if parsed.pret is None or parsed.suprafata is None:
         raise ValueError(
             "Anuntul nu contine pret si suprafata; completati manual comparabilul."

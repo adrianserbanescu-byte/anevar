@@ -20,6 +20,10 @@ def build_router(d: Deps) -> APIRouter:
     @router.post("/api/import-url")
     def importa_url(req: ImportUrlRequest) -> dict:
         parsed = import_from_url(req.url, fetcher=d.fetcher)
+        if parsed.pagina_lista:
+            raise HTTPException(status_code=422, detail=(
+                "Linkul pare o pagină de listă/căutare, nu un anunț individual. "
+                "Deschide anunțul și copiază URL-ul lui."))
         return {
             "pret": str(parsed.pret) if parsed.pret is not None else None,
             "moneda": parsed.moneda,

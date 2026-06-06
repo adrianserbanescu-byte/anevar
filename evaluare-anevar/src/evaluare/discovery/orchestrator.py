@@ -122,6 +122,9 @@ def descopera(
             log.debug("Anunt sarit (fetch esuat) %s: %s", url, e)
             continue
         parsed = parse_listing_html(html, sursa_url=url)
+        if parsed.pagina_lista:                 # pagină de listă/căutare, nu anunț -> sare
+            log.debug("Anunt sarit (pagina de lista) %s", url)
+            continue
         descriere = extrage_descriere(html)
         extraction = extrage_atribute(descriere, atribute_secundare, client=client)
         # suprafata casei pentru potrivire = suprafata reala din anunt (parser, nu LLM)
@@ -169,6 +172,8 @@ def descopera_teren(
             parsed = parse_listing_html(fetcher(url), sursa_url=url)
         except Exception as e:
             log.debug("Anunt teren sarit (fetch/parse esuat) %s: %s", url, e)
+            continue
+        if parsed.pagina_lista:                 # pagină de listă/căutare, nu anunț -> sare
             continue
         supr = parsed.suprafata_teren or parsed.suprafata
         pret_mp = None
