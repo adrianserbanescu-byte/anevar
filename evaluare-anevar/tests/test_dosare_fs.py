@@ -38,6 +38,20 @@ def test_creeaza_listeaza_incarca(baza):
     assert d["creator_legitimatie"] == "8717"
 
 
+def test_retentie_versiuni_docx(baza):
+    from evaluare import dosare_fs as fs
+    uid = fs.creeaza("8717", "Adi S", _wizard())
+    folder = fs.baza() / uid
+    # pre-existente: 12 versiuni vechi (sortabile înaintea celei reale)
+    for i in range(12):
+        (folder / f"raport-2020{i:02d}01-000000-000000.docx").write_text("x", encoding="utf-8")
+    sursa = baza / "nou.docx"
+    sursa.write_text("raport nou", encoding="utf-8")
+    fs.adauga_versiune_docx(uid, sursa)
+    versiuni = list(folder.glob("raport-*.docx"))
+    assert len(versiuni) == fs.PASTREAZA_VERSIUNI          # 10 (cele mai vechi șterse)
+
+
 def test_salveaza_redenumeste_sterge(baza):
     from evaluare import dosare_fs as fs
     uid = fs.creeaza("8717", "Adi S", _wizard())

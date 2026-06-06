@@ -103,12 +103,22 @@ def sterge(uid: str) -> None:
     shutil.rmtree(baza() / uid, ignore_errors=True)
 
 
+PASTREAZA_VERSIUNI = 10   # câte versiuni .docx păstrăm per dosar (retenție)
+
+
 def adauga_versiune_docx(uid: str, sursa: Path) -> str:
-    """Copiază un .docx generat în folderul dosarului (datat). Returnează numele fișierului."""
+    """Copiază un .docx generat în folderul dosarului (datat). Returnează numele fișierului.
+
+    Păstrează ultimele `PASTREAZA_VERSIUNI` versiuni (șterge cele mai vechi) ca să nu crească nelimitat.
+    Numele include microsecunde → unic chiar la generări rapide succesive.
+    """
     folder = baza() / uid
     folder.mkdir(parents=True, exist_ok=True)
-    nume = f"raport-{datetime.now():%Y%m%d-%H%M%S}.docx"
+    nume = f"raport-{datetime.now():%Y%m%d-%H%M%S-%f}.docx"
     shutil.copy(sursa, folder / nume)
+    vechi = sorted(folder.glob("raport-*.docx"))     # sortate cronologic (numele = timestamp)
+    for v in vechi[:-PASTREAZA_VERSIUNI]:
+        v.unlink(missing_ok=True)
     return nume
 
 
