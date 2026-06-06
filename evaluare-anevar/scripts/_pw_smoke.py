@@ -187,6 +187,11 @@ with sync_playwright() as pw:
     p.click("#t-raport")
     p.click("#s-calcul")
     check("dosar: sub-tab Calcul vizibil", not p.eval_on_selector("#sp-calcul", "e=>e.hidden"))
+    # checkpoint de asumare: «Generează» blocat până confirmă evaluatorul
+    p.click("#s-genereaza")
+    check("dosar: Generează blocat fără asumare", p.eval_on_selector("#genereaza", "e=>e.disabled"))
+    p.check("#asumare")
+    check("dosar: Generează activ după asumare", not p.eval_on_selector("#genereaza", "e=>e.disabled"))
     p.click("#s-proprietate")
     p.fill("#au", "111")
     p.dispatch_event("#au", "input")

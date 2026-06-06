@@ -116,6 +116,45 @@ jurist AML, jurist GDPR) + **2 decizii de conformitate** (kill-switch de versiun
 
 ---
 
+## 3.5. Council proaspăt (2026-06-06) — auditul meu + ce schimbă în plan
+
+Am rulat un **al doilea LLM Council pe starea CURENTĂ** (raw: [`review-llm-council-2026-06-06-lansare.md`](review-llm-council-2026-06-06-lansare.md)).
+Concluzia lor și auditul meu:
+
+**Unde consiliul are dreptate (confirm și RIDIC prioritatea):**
+- ✅✅ **Cadrul de răspundere trebuie să trăiască în UI, nu în disclaimer.** 4 din 5 modele au ajuns
+  INDEPENDENT la fix punctul meu §1.1 (checkpoint de asumare + audit trail inalterabil la «Generează»).
+  Convergența asta îl ridică de la „recomandat" la **blocant de lansare top-3.**
+- ✅ **GENUIN NOU — avizul asigurătorului de răspundere profesională ANEVAR.** Asigurarea de malpraxis
+  a evaluatorului ar putea **exclude** rapoartele asistate AI. Nimeni (nici eu, nici agenții) nu
+  prinsese asta. **Adaug ca item de Poarta 0, decizie 🧑.** Fără aviz de la asigurător, „produs tehnic
+  perfect, comercial mort".
+- ✅ **Validarea bancară pe portofoliu real (20-30 dosare) cu departamentul de Risc/IT al UNEI bănci**,
+  nu 2-3 rapoarte ad-hoc — și **după** finalizarea metodologiei. Băncile aud­itează furnizori de risc
+  (normele BNR de externalizare IT), nu fac „peer-review".
+
+**Unde resping/temperez consiliul (audit):**
+- ⚠️ „Băncile nu vor accepta NICIODATĂ rapoarte AI" (Sonnet) e **prea absolut**. Băncile verifică
+  **numerele** (pentru LTV) — iar numerele sunt **deterministe** (motorul de calcul), NU produse de
+  LLM. LLM-ul scrie doar **proza** narativă, pe care evaluatorul o editează și o asumă. Consiliul
+  confundă „AI scrie narativul" cu „AI decide valoarea". **Dar** riscul de PERCEPȚIE e real → de aceea
+  mitigarea e ieftină și nouă: vezi acțiunea 4 mai jos.
+- ⚠️ „Gateway-ul contrazice «offline»" e parțial nedrept: fără internet iese **un raport complet** pe
+  narativ-șablon; AI-ul e doar lustruire opțională. Nu e punct unic de eșec pentru funcția de bază.
+
+**5 acțiuni NOI din council (le adaug în lista de la §3):**
+1. ⬆️ **Ridică checkpoint-ul de asumare în UI (pasul 7) la blocant top-3**, cu **audit trail inalterabil**.
+2. 🧑 **Aviz de la asigurătorul de răspundere profesională ANEVAR** că rapoartele asistate AI sunt acoperite (Poarta 0).
+3. 🤖 **Etichetează în raport CE e AI (proza narativă) vs CE e determinist (toate numerele)** — mitigare
+   ieftină a percepției „valoarea e decisă de AI". (nou, recomandarea council + a mea)
+4. 🤖/🧑 **Validarea bancară = pilot pe 20-30 dosare reale cu Risc/IT-ul UNEI bănci, după metodologie** (nu 2-3 rapoarte la început).
+5. 🧑 **Manual de utilizare + SLA suport + plan de incident/breach** (gpt-5.1) — cadrul procedural pe care băncile/ANEVAR îl cer, înainte de Poarta 0.
+
+**Reordonarea pe care o accept parțial:** consiliul cere metodologie (P2) ÎNAINTE de validări (P0). Eu
+păstrez **peer-review-ul evaluatorilor în paralel de la început** (ei VALIDEAZĂ metodologia — e bucla
+corectă), dar **mut validarea BĂNCILOR după** fixurile de metodologie + un demo complet (acțiunea 4).
+Restul Poarta 0 (AML, GDPR, asigurător) rămâne în paralel — sunt asincrone la terți.
+
 ## 4. Ce decizi DOAR tu (rezumat absolut)
 1. **Pe cine** trimiți la peer-review / jurist AML / jurist GDPR (drumul critic — terți, asincron).
 2. **Screening AML:** API live (OpenSanctions) vs. dezactivare cu trimitere la surse oficiale.

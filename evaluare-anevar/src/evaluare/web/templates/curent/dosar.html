@@ -101,8 +101,15 @@
     </section>
 
     <section role="tabpanel" id="sp-genereaza" aria-labelledby="s-genereaza" tabindex="0" hidden>
-      <p class="hint">Generează raportul .docx; fiecare generare se salvează ca versiune în folderul dosarului.</p>
-      <button type="button" id="genereaza"><span aria-hidden="true">📄</span> Generează și descarcă raportul</button>
+      <p class="hint">Generează raportul .docx; fiecare generare se salvează ca versiune în folderul dosarului.
+       Textul AI e doar <b>proză narativă</b> (draft); <b>toate valorile numerice sunt deterministe</b>
+       (motorul de calcul), nu produse de AI.</p>
+      <div class="callout">
+        <label class="chk"><input type="checkbox" id="asumare">
+          Confirm că am verificat datele și <b>îmi asum profesional</b> valoarea și conținutul raportului,
+          ca evaluator autorizat ANEVAR (semnătura îmi aparține; aplicația doar asistă).</label>
+      </div>
+      <button type="button" id="genereaza" disabled><span aria-hidden="true">📄</span> Generează și descarcă raportul</button>
       <span id="gen-status" class="hint" role="status" aria-live="polite"></span>
     </section>
   </section>
@@ -147,8 +154,15 @@ var MAPARE = {
   moneda:{v:"Pas 4 · Monedă raportare",d:"Garanție = de regulă EUR cu echivalent LEI."},
 };
 // `$` (getElementById) vine din _helpers.js — NU îl redeclara (ar arunca „already declared").
-// încarcă valorile salvate
-Object.keys(WIZARD||{}).forEach(function(k){ if($(k)) $(k).value = WIZARD[k]; });
+// încarcă valorile salvate (checkbox -> .checked, restul -> .value)
+Object.keys(WIZARD||{}).forEach(function(k){ var e=$(k); if(!e) return;
+  if(e.type==="checkbox") e.checked = (WIZARD[k]===true || WIZARD[k]==="true"); else e.value = WIZARD[k]; });
+
+// Checkpoint de asumare (om în buclă): «Generează» e blocat până confirmă evaluatorul.
+// Convergență audit juridic + LLM council: asumarea trebuie să trăiască în UI, cu urmă în dosar.
+var asumareBox = $("asumare"), genBtn0 = $("genereaza");
+function sincronAsumare(){ if(genBtn0) genBtn0.disabled = !(asumareBox && asumareBox.checked); }
+if(asumareBox){ asumareBox.addEventListener("change", sincronAsumare); sincronAsumare(); }
 
 // „!" popover lângă fiecare label (mapare vechi→nou), accesibil. Temporar; se va șterge.
 var mapSeq = 0;
@@ -176,7 +190,7 @@ document.addEventListener("keydown", function(e){ if(e.key==="Escape") inchideMa
 
 // salvare automată (debounce) în folder, cu indicator de stare real
 var tSave;
-function snapshot(){ var s={}; document.querySelectorAll("main input, main select, main textarea").forEach(function(e){ if(e.id) s[e.id]=e.value; }); return s; }
+function snapshot(){ var s={}; document.querySelectorAll("main input, main select, main textarea").forEach(function(e){ if(e.id) s[e.id]=(e.type==="checkbox")?e.checked:e.value; }); return s; }
 function salveaza(){ clearTimeout(tSave); $("save-ind").textContent="… se salvează"; tSave=setTimeout(function(){
   fetch("/api/dosar/"+UID+"/salveaza",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(snapshot())})
     .then(function(r){ $("save-ind").textContent = r.ok ? "● salvat în folder" : "⚠ salvarea a eșuat"; })
