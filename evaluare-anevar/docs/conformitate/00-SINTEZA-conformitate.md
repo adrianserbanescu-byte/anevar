@@ -30,7 +30,7 @@ implementează corect cele 3 abordări, are anonimizare GDPR, alocare valoare, g
 ## 🟠 P1 — Completitudine raport (Bucket A, le pot face; non-metodologie)
 | # | Gol | Bază | Bucket |
 |---|-----|------|--------|
-| 3 | **Tipul valorii nu citează sursa/definiția** în raport | SEV 102 §20.4 (l.754) + 106 §30.6(i) | A |
+| 3 | ✅ **REZOLVAT** — raportul citează acum tipul valorii + sursa (SEV 102/IVS 104) și transformă slug-ul „piata" în denumire lizibilă (`generator._tip_valoare_txt`) | SEV 102 §20.4 (l.754) + 106 §30.6(i) | A ✅ |
 | 4 | **`tip_valoare` hardcodat + `TipValoare="lichidare"` cod mort** → nu se poate cere efectiv un tip ≠ piață | profil.py:12, meta.tip_valoare | A (plumbing) |
 | 5 | **Profil IMPOZITARE → GEV_630 (vs GEV_500) și RAPORTARE_FINANCIARA → GEV_500** — pare inversat (GEV 500 = „valoarea impozabilă"), DAR e **asertat în teste** (`test_assembler_profil.py:51-52`) → intenționat/tested, NU bug accidental | profil.py:54-65 | **B** (confirmă evaluatorul: e intenționat sau de corectat?) |
 | 6 | Date fizice imobiliare lipsă din UI nou (acces, utilități-distanțe, urbanism POT/CUT, act proprietate, tip drept + sarcini CF) | GEV 630 §16/§24/§28; SEV 230 §40/§140 | A (câmpuri) |

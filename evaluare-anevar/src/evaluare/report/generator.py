@@ -78,6 +78,29 @@ def _fmt(v) -> str:
         return str(v)
 
 
+# Denumirea + SURSA/definitia tipului valorii (cerinta SEV 102 §20.4 + SEV 106 §30.6(i):
+# raportul citeaza tipul valorii SI sursa definitiei). Transforma slug-ul intern in text cu referinta.
+_TIP_VALOARE_TXT = {
+    "piata": "valoare de piață (definită conform SEV 102 — Tipuri ale valorii / IVS 104)",
+    "justa": "valoare justă (definită conform SEV 102 / IFRS 13)",
+    "lichidare": "valoare de lichidare (definită conform SEV 102, Anexă)",
+    "asigurare": "valoare de asigurare — cost de înlocuire net (conform GEV 630)",
+    "impozabila": "valoare impozabilă (estimată conform GEV 500)",
+}
+
+
+def _tip_valoare_txt(t: str) -> str:
+    """Denumirea + sursa tipului valorii. Slug cunoscut -> text cu referinta; frază deja citata
+    (conține SEV/IVS/IFRS) -> neschimbată; altfel adaugă referinta SEV 102."""
+    raw = (t or "").strip()
+    key = raw.lower()
+    if key in _TIP_VALOARE_TXT:
+        return _TIP_VALOARE_TXT[key]
+    if any(s in raw for s in ("SEV", "IVS", "IFRS")):
+        return raw
+    return f"{raw} (conform SEV 102 — Tipuri ale valorii)"
+
+
 def _b2(v) -> str:
     """Rotunjeste la 2 zecimale (preturi unitare, EUR/mp)."""
     try:
@@ -218,7 +241,7 @@ def _termeni_referinta(doc: DocxDocument, ctx: ReportContext, adnotari: bool = F
     if meta.beneficiar:
         doc.add_paragraph(f"Beneficiarul / utilizatorul desemnat: {meta.beneficiar}.")
     doc.add_paragraph(f"Scopul evaluarii: {meta.scop}.")
-    doc.add_paragraph(f"Tipul valorii estimate: {meta.tip_valoare}.")
+    doc.add_paragraph(f"Tipul valorii estimate: {_tip_valoare_txt(meta.tip_valoare)}.")
     moneda_txt = f"Moneda raportarii: {meta.moneda}."
     if meta.curs_valutar is not None:
         moneda_txt += f" Curs de schimb EUR/LEI: {meta.curs_valutar}."
@@ -583,7 +606,7 @@ def genereaza_raport(
         f"{meta.carte_funciara}."
     )
     doc.add_paragraph(f"Scopul evaluarii: {meta.scop}.")
-    doc.add_paragraph(f"Tipul valorii: {meta.tip_valoare}.")
+    doc.add_paragraph(f"Tipul valorii: {_tip_valoare_txt(meta.tip_valoare)}.")
     doc.add_paragraph(
         f"Data evaluarii: {meta.data_evaluarii}; data raportului: {meta.data_raportului}."
     )

@@ -68,6 +68,20 @@ def test_raportul_contine_datele_cheie(tmp_path):
     assert "Cea mai buna utilizare" in text        # narativ inserat
 
 
+def test_tipul_valorii_citeaza_sursa(tmp_path):
+    # SEV 102 §20.4 + SEV 106 §30.6(i): slug-ul de tip valoare („piata", cum îl setează un profil)
+    # devine denumire lizibilă + sursa definiției în raport (nu mai afișează slug-ul brut).
+    ctx = _ctx()
+    ctx.meta.tip_valoare = "piata"
+    out = tmp_path / "raport.docx"
+    genereaza_raport(ctx, out)
+    text = _all_text(out)
+    assert "Tipul valorii" in text
+    assert "valoare de piață" in text                # slug -> denumire lizibilă
+    assert "SEV 102" in text                          # sursa/definiția tipului valorii
+    assert "estimate: piata." not in text             # nu mai afișează slug-ul brut
+
+
 def test_raportul_are_cele_sapte_capitole(tmp_path):
     out = tmp_path / "raport.docx"
     genereaza_raport(_ctx(), out)
