@@ -102,6 +102,18 @@ def test_calcul_fara_persistenta_sqlite(client):
     assert client.post("/api/dosar/nope/calcul", json=_payload()).status_code == 404
 
 
+def test_calcul_cu_grila_teren(client):
+    # paritate UI nou: comparabile de teren → valoarea terenului se calculează din grilă
+    _cont(client)
+    uid = client.post("/api/dosar", json={"wizard": {}}).json()["uuid"]
+    p = _payload()
+    p["land_comparables"] = [{"pret_mp": "50", "suprafata": "700"},
+                             {"pret_mp": "55", "suprafata": "650"},
+                             {"pret_mp": "48", "suprafata": "720"}]
+    r = client.post(f"/api/dosar/{uid}/calcul", json=p)
+    assert r.status_code == 200 and r.json()["valoare_finala"]
+
+
 def test_genereaza_raport_salveaza_versiune(client):
     _cont(client)
     uid = client.post("/api/dosar", json={"wizard": {}}).json()["uuid"]

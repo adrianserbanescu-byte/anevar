@@ -84,9 +84,11 @@
     <section role="tabpanel" id="sp-comparabile" aria-labelledby="s-comparabile" tabindex="0" hidden>
       <p class="hint">Descoperirea comparabilelor se face în pagina dedicată
        (<a href="/descoperire" target="_blank" rel="noopener">Descoperire ↗</a>); rezultatele bifate ajung în grilă.</p>
-      <label for="comparabile">Comparabile <span class="hint">(preț;suprafață, una pe linie)</span></label>
+      <label for="comparabile">Comparabile construcție/proprietate <span class="hint">(preț;suprafață, una pe linie)</span></label>
       <textarea id="comparabile" rows="4" placeholder="250000;120"></textarea>
-      <p class="hint">Grile detaliate: <a href="/grila" target="_blank" rel="noopener">Grile ↗</a>.</p>
+      <label for="comparabile_teren">Comparabile teren <span class="hint">(preț/mp;suprafață — opțional; dacă există, valoarea terenului se calculează din grilă, nu manual)</span></label>
+      <textarea id="comparabile_teren" rows="3" placeholder="50;700"></textarea>
+      <p class="hint">Grile detaliate (ajustări pe etape): <a href="/grila" target="_blank" rel="noopener">Grile ↗</a>.</p>
     </section>
 
     <section role="tabpanel" id="sp-calcul" aria-labelledby="s-calcul" tabindex="0" hidden>
@@ -154,6 +156,7 @@ var MAPARE = {
   elemente:{v:"Pas 2 · Elemente de cost",d:"Σ(cantitate×cost_unitar) = CIB (catalog IROVAL)."},
   depreciere:{v:"Pas 2 · Depreciere fizică",d:"Puncte vârstă;fracție interpolate."},
   comparabile:{v:"Pas 3 · Comparabile grilă",d:"preț;suprafață; din descoperire sau manual."},
+  comparabile_teren:{v:"Pas 3 · Grila de teren",d:"preț/mp;suprafață; valoarea terenului din grilă (2 etape)."},
   metoda:{v:"Pas 4 · Metodă",d:"cost/piață/ponderată (venit/DCF în versiunea completă)."},
   moneda:{v:"Pas 4 · Monedă raportare",d:"Garanție = de regulă EUR cu echivalent LEI."},
 };
@@ -223,6 +226,7 @@ function asambleaza(){
   var elements=$("elemente").value.trim().split("\n").filter(Boolean).map(function(l){var p=l.split(";");return{element:p[0],cod:p[1],um:p[2],cantitate:p[3],cost_unitar:p[4],an_pif:parseInt(p[5])};});
   var dp=$("depreciere").value.trim().split("\n").filter(Boolean).map(function(l){var p=l.split(";");return{varsta:parseInt(p[0]),depreciere:p[1]};});
   var comparables=$("comparabile").value.trim().split("\n").filter(Boolean).map(function(l){var p=l.split(";");return{pret:p[0],suprafata:p[1]};});
+  var land_comparables=$("comparabile_teren").value.trim().split("\n").filter(Boolean).map(function(l){var p=l.split(";");return{pret_mp:p[0],suprafata:p[1]};});
   var SCOP={garantare:["Garantarea creditului ipotecar","Valoarea de piață (SEV 102)"],raportare_financiara:["Raportare financiară (IFRS)","Valoarea justă (IFRS 13)"],asigurare:["Asigurare","Valoarea de asigurare"],impozitare:["Impozitare","Valoarea impozabilă"],litigii:["Litigiu","Valoarea de piață (SEV 102)"]};
   var sc=SCOP[$("scop").value]||SCOP.garantare;
   var meta={client_nume:$("nume_client").value||"Client",adresa:[$("adresa_strada").value,$("localitate").value,$("judet").value].filter(Boolean).join(", ")||"-",numar_cadastral:$("numar_cadastral").value,carte_funciara:$("carte_funciara").value,evaluator_nume:"{{ cont.nume if cont else '' }}",evaluator_legitimatie:"{{ cont.legitimatie if cont else '' }}",data_evaluarii:$("data_evaluarii").value||"2026-01-16",data_raportului:$("data_raportului").value||"2026-01-16",moneda:$("moneda").value,scop:sc[0],tip_valoare:sc[1]};
@@ -230,7 +234,7 @@ function asambleaza(){
   var faraConstr=($("tip_proprietate").value==="agricol");
   var building={au:$("au").value||"0",acd:$("acd").value||"0",an_referinta:parseInt($("an_referinta").value)||2025,elements:faraConstr?[]:elements,depreciation_points:faraConstr?[]:dp};
   var land={suprafata:$("suprafata_teren").value||"0"};
-  return {meta:meta,land:land,building:building,comparables:comparables,valoare_teren:$("valoare_teren").value||"0",metoda:$("metoda").value,tip_proprietate:$("tip_proprietate").value,scop:$("scop").value};
+  return {meta:meta,land:land,building:building,comparables:comparables,land_comparables:land_comparables,valoare_teren:$("valoare_teren").value||"0",metoda:$("metoda").value,tip_proprietate:$("tip_proprietate").value,scop:$("scop").value};
 }
 $("calc").addEventListener("click", async function(){
   $("rezultat").textContent="Se calculează…";
