@@ -182,4 +182,22 @@ def build_router(d: Deps) -> APIRouter:
         fs.adauga_versiune_docx(uid, out)              # versiune în folderul dosarului
         return FileResponse(str(out), media_type=DOCX_MIME, filename=f"raport_{uid[:8]}.docx")
 
+    @router.get("/api/backup-dosare.zip")
+    def backup_dosare():
+        """Backup: arhivează TOATE dosarele (folderul OUTPUT_DIR/dosare) într-un .zip descărcabil."""
+        import io
+        import zipfile
+
+        from fastapi.responses import StreamingResponse
+        baza = fs.baza()
+        buf = io.BytesIO()
+        with zipfile.ZipFile(buf, "w", zipfile.ZIP_DEFLATED) as z:
+            if baza.exists():
+                for p in baza.rglob("*"):
+                    if p.is_file():
+                        z.write(p, p.relative_to(baza.parent))
+        buf.seek(0)
+        return StreamingResponse(buf, media_type="application/zip",
+            headers={"Content-Disposition": "attachment; filename=backup-dosare.zip"})
+
     return router

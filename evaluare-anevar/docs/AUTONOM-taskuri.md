@@ -18,8 +18,10 @@
 4. [x] **Județ/localitate = select din `/api/localitati`** (diacritice + slug + dependent + „altă") ✅ · câmp **proprietar** ✅.
 6. [x] **Punte VBP grila chirii → metoda Venit** (buton „Preia VBP") ✅.
 > RĂMAS:
-2. [ ] **Ingestie PDF** (doc-tip + `/api/ingestie`): pre-completare din extras CF/releveu/plan/CPE. Backend există. (mare)
-5. [ ] **Coadă „anunțuri importate din extensia browser"** + **Backup dosare** (utilitar). (`adresa_raport` = N/A, nu există în model.)
+2. [x] **Ingestie PDF** (doc-tip + `/api/ingestie`): pre-completare din extras CF/releveu/plan/CPE ✅.
+5. [x] **Coadă „anunțuri din extensia browser"** ✅ (`/api/anunturi-importate`) + **Backup dosare .zip** ✅ (`/api/backup-dosare.zip`).
+> 🎉 **BACKLOG-UL DE PARITATE UI = CURĂȚAT.** Toate cele ~26 controale lipsă + 30 parțiale din inventar — rezolvate
+> sau acoperite. Rămâne doar muncă de finețe (a11y fină, UX-copy) + deciziile pe Adi (BLOCAT-pe-Adi.md).
 
 ## ✅ PRIMUL LOOP (SPECIAL) — RULAT (2026-06-06 ~11:36, commit b347284)
 1. [x] **SCOP CORECTAT — matrice conformitate tip×scop** → `conformitate/E-matrice-tip-scop.md` (25 combinații). ✅

@@ -164,6 +164,18 @@ def test_genereaza_raport_cu_anexa_foto(client):
     assert r.status_code == 200 and len(r.content) > 1000
 
 
+def test_backup_dosare_zip(client):
+    # Backup: arhivează toate dosarele într-un .zip
+    import io
+    import zipfile
+    _cont(client)
+    uid = client.post("/api/dosar", json={"wizard": {"nume_client": "Z"}}).json()["uuid"]
+    r = client.get("/api/backup-dosare.zip")
+    assert r.status_code == 200
+    z = zipfile.ZipFile(io.BytesIO(r.content))
+    assert any(uid in n and n.endswith("dosar.json") for n in z.namelist())
+
+
 def test_dosar_inexistent_404(client):
     assert client.get("/dosar/nope").status_code == 404
     assert client.get("/api/dosar/nope").status_code == 404
