@@ -37,11 +37,14 @@
 
 ## ☐ Paritate UI nou (feature, additiv — wiring de capacitate existentă, nu decizie de produs)
 - [x] **Grila de teren** (land_comparables) în sub-tab Comparabile. ✅
-- [ ] Chirii→venit / DCF (metodă avansată, câmpuri date_venit/date_dcf) — rar la garantare.
+- [x] **Venit (capitalizare) + DCF** (date_venit/date_dcf, grupuri afișate la metodă). ✅
 - [ ] Anexă foto / scanuri — **GATED comercial** (decizia ta; nu îl fac autonom).
+> Paritate rămasă față de wizard: doar anexa foto/documente (gated comercial). Restul motorului = acoperit în UI nou.
 
-## ⚙ Rebuild exe — PENDING (de făcut la următorul loop, batch cu council)
-Schimbări necompilate în exe: grila teren în UI nou + retenție .docx + widget feedback peste tot.
+## ☐ Securitate / temp
+- [x] Import .docx în director temporar unic (anti-coliziune, păstrează numele pt parser). ✅
+
+## ⚙ Rebuild exe — în curs (include land grid + venit/DCF + retenție + temp safety + feedback peste tot).
 
 ## ☐ Acoperire teste (țintă ≥90%, urc golurile cunoscute)
 - [ ] `report/generator` (~88%) — secțiuni rare (lichidare/DCF).
