@@ -209,6 +209,11 @@ with sync_playwright() as pw:
     p, errs = pagina(ctx, BASE + "/dosar/" + uid)
     check("dosar: fără erori consolă", not errs, "; ".join(errs[:3]))
     check("dosar: nume precompletat (Ana)", "Ana" in p.eval_on_selector("#nume_client", "e=>e.value"))
+    # câmpurile-dată: max=azi + nu se pot alege date viitoare
+    check("dosar: câmp dată are max=azi", p.eval_on_selector("#data_evaluarii", "e=>e.max===new Date().toISOString().slice(0,10)") is True)
+    p.eval_on_selector("#data_evaluarii", "e=>{e.value='2099-12-31'; e.dispatchEvent(new Event('change'));}")
+    check("dosar: dată viitoare blocată (clamp la azi)",
+          p.eval_on_selector("#data_evaluarii", "e=>e.value<=new Date().toISOString().slice(0,10)") is True)
     check("dosar: popover mapare (!) prezent", p.eval_on_selector(".hint-toggle.is-map", "e=>!!e") is True)
     check("dosar: ajutor (?) re-adaugat", p.eval_on_selector(".hint-toggle:not(.is-map)", "e=>e.textContent==='?'") is True)
     # tip + scop stabilite la creare -> blocate (read-only) în workspace

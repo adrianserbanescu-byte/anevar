@@ -466,6 +466,17 @@ function aplicaTip(v){
 if($("tip_proprietate")){ $("tip_proprietate").addEventListener("change", function(){ aplicaTip(); }); aplicaTip(); }
 // Data evaluării (Identificare) ↔ Data evaluării (AML): același câmp, sincronizat.
 if($("data_evaluarii")) $("data_evaluarii").addEventListener("change", function(){ if($("aml_azi")) $("aml_azi").value=this.value; });
+// Toate câmpurile-dată: blochează datele VIITOARE (max=azi) + afișează formatul românesc (zz.ll.aaaa).
+(function(){
+  var azi=new Date().toISOString().slice(0,10);
+  function roData(iso){ if(!iso) return ""; var p=iso.split("-"); return p.length===3 ? p[2]+"."+p[1]+"."+p[0] : iso; }
+  document.querySelectorAll("input[type=date]").forEach(function(d){
+    d.max=azi;
+    var ech=document.createElement("small"); ech.className="hint data-ro"; ech.style.marginLeft="6px"; d.parentNode.appendChild(ech);
+    function upd(){ if(d.value && d.value>azi) d.value=azi; ech.textContent = d.value ? "📅 "+roData(d.value) : ""; }
+    d.addEventListener("change", upd); upd();
+  });
+})();
 
 // Anexe: foto (Anexa 2) + documente/scanuri (Anexa 3) → data-URL base64, incluse în raport.
 var ANEXE_FOTO=[], ANEXE_DOC=[];

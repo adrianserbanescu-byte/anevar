@@ -106,6 +106,17 @@ if(creeazaBtn) creeazaBtn.addEventListener('click', async ()=>{
   const d=await r.json();
   if(d.uuid) window.location.href='/dosar/'+d.uuid; else st.textContent='Eroare la creare.';
 });
+// Câmpurile-dată din formularul de creare: blochează datele viitoare (max=azi) + format românesc (zz.ll.aaaa).
+(function(){
+  var azi=new Date().toISOString().slice(0,10);
+  function roData(iso){ if(!iso) return ""; var p=iso.split("-"); return p.length===3 ? p[2]+"."+p[1]+"."+p[0] : iso; }
+  document.querySelectorAll('#form-nou input[type=date]').forEach(function(d){
+    d.max=azi;
+    var ech=document.createElement('small'); ech.className='hint'; ech.style.marginLeft='6px'; d.parentNode.appendChild(ech);
+    function upd(){ if(d.value && d.value>azi) d.value=azi; ech.textContent = d.value ? '📅 '+roData(d.value) : ''; }
+    d.addEventListener('change', upd); upd();
+  });
+})();
 var impBtn=document.getElementById('importa');
 var fisierImp=document.getElementById('fisier-import');
 if(impBtn) impBtn.addEventListener('click', ()=> fisierImp.click());
