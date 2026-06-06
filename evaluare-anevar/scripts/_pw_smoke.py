@@ -218,6 +218,13 @@ with sync_playwright() as pw:
     p.click("#t-aml")
     check("dosar: tab AML comută panoul",
           (not p.eval_on_selector("#p-aml", "e=>e.hidden")) and p.eval_on_selector("#p-raport", "e=>e.hidden"))
+    # AML in-place: formular + Evaluează (calcul local, fără redirect)
+    check("dosar: AML in-place (formular + buton Evaluează)",
+          p.eval_on_selector("#aml-eval", "e=>!!e") is True and p.eval_on_selector("#aml_tip_client", "e=>!!e") is True)
+    p.fill("#aml_nume", "Test")
+    p.click("#aml-eval")
+    p.wait_for_selector("#aml-rez:has-text('Categorie risc')", timeout=8000)
+    check("dosar: AML evaluare in-place -> rezultat", "Categorie risc" in p.inner_text("#aml-rez"))
     p.click("#t-raport")
     p.click("#s-calcul")
     check("dosar: sub-tab Calcul vizibil", not p.eval_on_selector("#sp-calcul", "e=>e.hidden"))

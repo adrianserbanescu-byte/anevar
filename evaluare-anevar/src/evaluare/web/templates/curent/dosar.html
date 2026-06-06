@@ -193,8 +193,52 @@
     </section>
   </section>
 
-  <section role="tabpanel" id="p-aml" aria-labelledby="t-aml" tabindex="0" hidden><p class="hint">Modulul AML (risc + documente):
-    <a href="/aml" target="_blank" rel="noopener">deschide AML ↗</a></p></section>
+  <section role="tabpanel" id="p-aml" aria-labelledby="t-aml" tabindex="0" hidden>
+    <div class="avert-warn" role="alert">⚠️ Aplicația <b>NU verifică automat</b> sancțiuni/PEP — verifică manual pe
+      <a href="https://www.opensanctions.org/" target="_blank" rel="noopener">OpenSanctions</a> /
+      <a href="https://www.sanctionsmap.eu/" target="_blank" rel="noopener">EU Sanctions Map</a>. Documentele = drafturi (validează cu jurist, Legea 129 art. 33).</div>
+    <fieldset><legend>Entitate evaluator</legend>
+      <div class="field-row">
+        <div class="field"><label for="aml_tip_entitate">Tip</label>
+          <select id="aml_tip_entitate"><option value="PFA">PFA / persoană fizică</option><option value="PJ">Societate (persoană desemnată)</option></select></div>
+        <div class="field"><label for="aml_azi">Data evaluării</label><input type="date" id="aml_azi"></div>
+      </div></fieldset>
+    <fieldset><legend>Client</legend>
+      <div class="field-row">
+        <div class="field"><label for="aml_tip_client">Tip client</label>
+          <select id="aml_tip_client"><option value="PF">Persoană fizică</option><option value="PJ">Persoană juridică</option></select></div>
+        <div class="field"><label for="aml_nume">Nume</label><input id="aml_nume"></div>
+        <div class="field"><label for="aml_prenume">Prenume</label><input id="aml_prenume"></div>
+        <div class="field"><label for="aml_cnp">CNP</label><input id="aml_cnp"></div>
+      </div>
+      <label class="chk"><input type="checkbox" id="aml_pep"> Client / beneficiar real este PEP</label>
+      <div id="aml_pj" hidden>
+        <div class="field-row">
+          <div class="field"><label for="aml_denumire">Denumire PJ</label><input id="aml_denumire"></div>
+          <div class="field"><label for="aml_cui">CUI</label><input id="aml_cui"></div>
+        </div><p class="hint">Beneficiarii reali (&gt;25%) se completează în fișa generată.</p></div>
+    </fieldset>
+    <fieldset><legend>Semnale de risc</legend>
+      <label class="chk"><input type="checkbox" id="aml_tara_risc_inalt"> Țară cu risc înalt</label>
+      <label class="chk"><input type="checkbox" id="aml_pe_lista_sanctiuni"> Pe listă de sancțiuni</label>
+      <label class="chk"><input type="checkbox" id="aml_tranzactie_complexa"> Tranzacție complexă</label>
+      <label class="chk"><input type="checkbox" id="aml_canal_la_distanta"> Relație la distanță</label>
+    </fieldset>
+    <fieldset><legend>Indicatori de suspiciune (HCD 58 art. 6(10))</legend>
+      <label class="chk"><input type="checkbox" class="aml-ind" value="graba_excesiva"> Grabă excesivă</label>
+      <label class="chk"><input type="checkbox" class="aml-ind" value="presiune_documente_insuficiente"> Presiune — documente insuficiente</label>
+      <label class="chk"><input type="checkbox" class="aml-ind" value="nemultumire_nejustificata"> Nemulțumire nejustificată</label>
+      <label class="chk"><input type="checkbox" class="aml-ind" value="presiune_valoare_predeterminata"> Presiune valoare predeterminată</label>
+      <label class="chk"><input type="checkbox" class="aml-ind" value="scop_nedefinit"> Scop nedefinit</label>
+      <label class="chk"><input type="checkbox" class="aml-ind" value="pep_implicat"> PEP implicat</label>
+      <label class="chk"><input type="checkbox" class="aml-ind" value="istoric_atipic_tranzactionare"> Istoric atipic</label>
+      <label class="chk"><input type="checkbox" class="aml-ind" value="tranzactii_in_dezacord_cu_piata"> Tranzacții în dezacord cu piața</label>
+      <label class="chk"><input type="checkbox" class="aml-ind" value="drepturi_litigioase"> Drepturi litigioase</label>
+      <label class="chk"><input type="checkbox" class="aml-ind" value="antecedente_penale"> Antecedente penale</label>
+    </fieldset>
+    <button type="button" id="aml-eval">Evaluează relația</button>
+    <div id="aml-rez" role="status" aria-live="polite"></div>
+  </section>
   <section role="tabpanel" id="p-gdpr" aria-labelledby="t-gdpr" tabindex="0" hidden>
     <p class="hint">Generează documentele GDPR (model) direct de aici:</p>
     <button type="button" id="gdpr-politica">📄 Politică de prelucrare (.docx)</button>
@@ -439,6 +483,48 @@ if($("audit-gen")) $("audit-gen").addEventListener("click", function(){
     .catch(function(){ $("audit-status").textContent="generarea a eșuat — verifică valorile."; })
     .finally(function(){ b.disabled=false; });
 });
+
+// AML in-place (port din aml.html): KYC + risc + indicatori + Evaluează + documente. Nu redirect.
+(function(){
+  var ev=$("aml-eval"); if(!ev) return;
+  if($("aml_azi")&&!$("aml_azi").value) $("aml_azi").value=($("data_evaluarii")&&$("data_evaluarii").value)||new Date().toISOString().slice(0,10);
+  if($("aml_nume")&&!$("aml_nume").value&&$("nume_client")) $("aml_nume").value=$("nume_client").value;
+  if($("aml_tip_client")) $("aml_tip_client").addEventListener("change", function(){ if($("aml_pj")) $("aml_pj").hidden=this.value!=="PJ"; });
+  function amlClient(){
+    if($("aml_tip_client").value==="PJ") return {client_pj:{tip:"PJ",denumire:$("aml_denumire").value,cui:$("aml_cui").value,
+       beneficiari_reali:[{nume:$("aml_nume").value,prenume:$("aml_prenume").value,pep:{este_pep:$("aml_pep").checked}}]}};
+    return {client_pf:{tip:"PF",persoana:{nume:$("aml_nume").value,prenume:$("aml_prenume").value,cnp:$("aml_cnp").value||null},pep:{este_pep:$("aml_pep").checked}}};
+  }
+  function amlRisc(){ var s={}; ["aml_tara_risc_inalt","aml_pe_lista_sanctiuni","aml_tranzactie_complexa","aml_canal_la_distanta"].forEach(function(k){ if($(k)&&$(k).checked) s[k.replace("aml_","")]=true; }); return s; }
+  function amlInd(){ var s={}; document.querySelectorAll(".aml-ind:checked").forEach(function(c){ s[c.value]=true; }); return s; }
+  function amlBody(){ return Object.assign({tip_entitate:$("aml_tip_entitate").value,azi:$("aml_azi").value,semnale_risc:amlRisc(),semnale_indicatori:amlInd()}, amlClient()); }
+  function amlDescarca(url){
+    if(url.indexOf("rts")>=0||url.indexOf("rtn")>=0){ if(!confirm("ATENȚIE — raport de tranzacție (RTS/RTN), draft neverificat juridic. Legea 129 art. 33 prevede sancțiuni. Continui?")) return; }
+    var body=Object.assign({}, window._amlBody||amlBody());
+    if(url.indexOf("decizie")>=0) body.persoana_desemnata={nume:$("aml_nume").value||"____",prenume:$("aml_prenume").value||""};
+    if(url.indexOf("rts")>=0) body.rts={motiv:"indicatori de suspiciune bifați",data_inregistrare:$("aml_azi").value,indicatori:Object.keys(amlInd())};
+    fetch(url,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(body)})
+      .then(function(r){ return r.ok?r.blob():Promise.reject(); })
+      .then(function(b){ var a=document.createElement("a"); a.href=URL.createObjectURL(b); a.download=url.split("/").pop(); a.click(); })
+      .catch(function(){ alert("Documentul nu a putut fi generat."); });
+  }
+  ev.addEventListener("click", function(){
+    var body=amlBody();
+    fetch("/api/aml/evalueaza",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(body)})
+      .then(function(r){ return r.ok?r.json():Promise.reject(); })
+      .then(function(d){
+        var h="<div class='callout'><h3>Rezultat</h3><p>Categorie risc: <span class='badge'>"+d.categorie.toUpperCase()+"</span> — măsuri <b>"+d.nivel_masuri+"</b></p>";
+        if(d.motive_sporit&&d.motive_sporit.length) h+="<p>Motive risc sporit:</p><ul>"+d.motive_sporit.map(function(m){return "<li>"+m+"</li>";}).join("")+"</ul>";
+        if(d.indicatori&&d.indicatori.length) h+="<p>Indicatori activi"+(d.propune_rts?" → <b>se propune RTS</b>":"")+"</p><ul>"+d.indicatori.map(function(i){return "<li>"+i.text+"</li>";}).join("")+"</ul>";
+        if(d.screening&&d.screening.length) h+="<p>Posibile potriviri (demonstrative — verifică manual):</p><ul>"+d.screening.map(function(s){return "<li>"+s.lista+": "+s.intrare+" ("+s.scor+")</li>";}).join("")+"</ul>";
+        var map={norme_interne:"/api/aml/norme-interne.docx",evaluare_risc:"/api/aml/evaluare-risc.docx",fisa_kyc:"/api/aml/fisa-kyc.docx",decizie_desemnare:"/api/aml/decizie.docx",rts:"/api/aml/rts.docx"};
+        h+="<p>Documente:</p><div>"+(d.documente_necesare||[]).map(function(doc){ return "<button type='button' class='ghost' data-url='"+map[doc]+"'>"+doc+"</button> "; }).join("")+"</div></div>";
+        $("aml-rez").innerHTML=h; window._amlBody=body;
+        document.querySelectorAll("#aml-rez button[data-url]").forEach(function(b){ b.addEventListener("click", function(){ amlDescarca(b.dataset.url); }); });
+      })
+      .catch(function(){ $("aml-rez").innerHTML="<p class='hint'>Evaluarea a eșuat — verifică datele.</p>"; });
+  });
+})();
 
 // construiește payload-ul de evaluare din câmpuri
 function asambleaza(){
