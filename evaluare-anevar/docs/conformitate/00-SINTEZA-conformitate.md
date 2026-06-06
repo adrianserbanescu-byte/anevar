@@ -33,7 +33,7 @@ implementează corect cele 3 abordări, are anonimizare GDPR, alocare valoare, g
 | 3 | ✅ **REZOLVAT** — raportul citează acum tipul valorii + sursa (SEV 102/IVS 104) și transformă slug-ul „piata" în denumire lizibilă (`generator._tip_valoare_txt`) | SEV 102 §20.4 (l.754) + 106 §30.6(i) | A ✅ |
 | 4 | **`tip_valoare` hardcodat + `TipValoare="lichidare"` cod mort** → nu se poate cere efectiv un tip ≠ piață | profil.py:12, meta.tip_valoare | A (plumbing) |
 | 5 | **Profil IMPOZITARE → GEV_630 (vs GEV_500) și RAPORTARE_FINANCIARA → GEV_500** — pare inversat (GEV 500 = „valoarea impozabilă"), DAR e **asertat în teste** (`test_assembler_profil.py:51-52`) → intenționat/tested, NU bug accidental | profil.py:54-65 | **B** (confirmă evaluatorul: e intenționat sau de corectat?) |
-| 6 | 🟡 **Mare parte REZOLVAT** — adăugate în UI nou + raport: **tip drept** ✅, **sarcini CF** ✅, **act proprietate** ✅, **regim teren** (intravilan/extravilan) ✅, **proprietar** ✅. Rămâne niche: POT/CUT + utilități-distanțe (mai ales pt teren liber). | GEV 630 §16/§28; SEV 230 §40/§140 | A ✅(parțial) |
+| 6 | ✅ **REZOLVAT** — în UI nou + raport: **tip drept** · **sarcini CF** · **act proprietate** · **regim teren** (intravilan/extravilan) · **proprietar** · **utilități** (apă/canal/gaze/curent/internet) · **regim urbanistic/POT-CUT** (`restrictii_urbanism`) · **cale de acces**. Descrierea proprietății e acum completă pe GEV 630 §16/§28 + SEV 230 §40/§140. | GEV 630 §16/§28; SEV 230 §40/§140 | A ✅ |
 | 7 | ✅ **REZOLVAT** — inspecția: **amploare** + **însoțitor** + **observații/neconcordanțe** în UI nou + raport (avertizează dacă lipsesc) + fix `data_inspectiei` trimisă în payload | GEV 630 §24/§44/§111.a.3 | A ✅ |
 | 8 | Recipisa BIG doar narativă (cerută ca element formal) | GEV 520 §83-84 | A (câmp) + extern |
 
@@ -56,12 +56,15 @@ implementează corect cele 3 abordări, are anonimizare GDPR, alocare valoare, g
 | 16 | **SEV 400 „Verificarea evaluării"** — absent integral (GEV 520 §18 îl invocă) | SEV 400 | modul viitor |
 | 17 | Acord scris pe termenii de referință + disclaimer „asistare, nu AVM" + ESG real (nu hardcodat) | SEV 101 §20.2; SEV 105; SEV 104 ESG | C / B |
 
-## Ce fac EU autonom acum (Bucket A, non-metodologie, cu teste)
-1. **Fix bug framing IMPOZITARE → GEV 500** (#5) — clar greșit, scop non-MVP dar corectitudine.
-2. **Citez sursa tipului valorii** în raport (#3) — aditiv.
-3. **Plumbing tip_valoare** (#4) — permit selectarea tipului (piață/lichidare/etc.) fără a atinge factorul de lichidare (B).
-4. **Alerte noi** (Bucket A) pentru #9/#11/#15 (avertizăm, nu blocăm) — după ce confirmi că vrei alerte noi.
-5. Anexele (#1): backend gata; **aștept OK-ul tău pe re-încadrare** (era „comercial") înainte să portez UI-ul.
+## Ce am FĂCUT autonom (Bucket A, non-metodologie, cu teste) — sesiunea continuă 2026-06-06
+1. ✅ **Sursa tipului valorii** în raport (#3) + slug→denumire (SEV 102/IVS 104).
+2. ✅ **Descrierea proprietății completă** (#6/#7): tip drept, sarcini CF, act, regim teren, utilități, regim urbanistic
+   (POT/CUT), cale de acces, inspecție (amploare/însoțitor/observații) — GEV 630 §16/§24/§28/§44 + SEV 230 §40/§140.
+3. ✅ **Anexele (#1)** dez-gated în UI nou (foto/scanuri → raport) — fac parte din recuperarea de paritate UI.
+> Toate cu teste unitare + e2e; raportul .docx e acum substanțial mai conform pe completitudinea descrierii.
+> RĂMÂN Bucket A neatinse intenționat: #4 plumbing tip_valoare (atinge lichidarea=B); #8 recipisă BIG (extern).
+
+## Ce ESCALADEZ la tine (BLOCAT-pe-Adi) — nemodificate de mine
 
 ## Ce ESCALADEZ la tine (BLOCAT-pe-Adi)
 - **#1 anexe** (re-încadrare P0 vs. comercial-pe-volum) · **#2 wording declarație conformitate** + #9-#15 metodologie
