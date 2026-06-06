@@ -195,10 +195,13 @@
 
   <section role="tabpanel" id="p-aml" aria-labelledby="t-aml" tabindex="0" hidden><p class="hint">Modulul AML (risc + documente):
     <a href="/aml" target="_blank" rel="noopener">deschide AML ↗</a></p></section>
-  <section role="tabpanel" id="p-gdpr" aria-labelledby="t-gdpr" tabindex="0" hidden><p class="hint">Documente GDPR:
-    <a href="/aml" target="_blank" rel="noopener">politică & consimțământ (modul AML) ↗</a> ·
-    <a href="/documente/politica-confidentialitate" target="_blank" rel="noopener">Politica de confidențialitate ↗</a> ·
-    <a href="/documente/disclaimer-profesional" target="_blank" rel="noopener">Disclaimer profesional ↗</a></p></section>
+  <section role="tabpanel" id="p-gdpr" aria-labelledby="t-gdpr" tabindex="0" hidden>
+    <p class="hint">Generează documentele GDPR (model) direct de aici:</p>
+    <button type="button" id="gdpr-politica">📄 Politică de prelucrare (.docx)</button>
+    <button type="button" id="gdpr-consimtamant">📄 Acord de consimțământ (.docx)</button>
+    <span id="gdpr-status" class="hint" role="status" aria-live="polite"></span>
+    <p class="hint">Referință: <a href="/documente/politica-confidentialitate" target="_blank" rel="noopener">Politica de confidențialitate ↗</a> ·
+      <a href="/documente/disclaimer-profesional" target="_blank" rel="noopener">Disclaimer profesional ↗</a></p></section>
   <section role="tabpanel" id="p-audit" aria-labelledby="t-audit" tabindex="0" hidden><p class="hint">Urma de audit se descarcă după calcul (în versiunea comercială, per dosar).
     Evaluarea juridică a produsului: <a href="/documente/evaluare-juridica" target="_blank" rel="noopener">vezi documentul ↗</a>.</p></section>
   <section role="tabpanel" id="p-anexe" aria-labelledby="t-anexe" tabindex="0" hidden><p class="hint">
@@ -410,6 +413,19 @@ if($("la-anexe")) $("la-anexe").addEventListener("click", function(){ var rt=$("
       .catch(function(){ $("d-status").textContent="Căutarea a eșuat — verifică internetul și reîncearcă."; });
   });
 })();
+
+// GDPR in-place: generează documentele model direct din sub-tab (nu redirect la pagina veche).
+function descarcaDoc(url, nume, btn){
+  btn.disabled=true; if($("gdpr-status")) $("gdpr-status").textContent="… se generează";
+  fetch(url,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({})})
+    .then(function(r){ return r.ok?r.blob():Promise.reject(); })
+    .then(function(b){ var u=URL.createObjectURL(b); var a=document.createElement("a"); a.href=u; a.download=nume; a.click(); URL.revokeObjectURL(u);
+      if($("gdpr-status")) $("gdpr-status").textContent="✓ generat"; })
+    .catch(function(){ if($("gdpr-status")) $("gdpr-status").textContent="generarea a eșuat"; })
+    .finally(function(){ btn.disabled=false; });
+}
+if($("gdpr-politica")) $("gdpr-politica").addEventListener("click", function(){ descarcaDoc("/api/gdpr/politica.docx","gdpr_politica.docx", this); });
+if($("gdpr-consimtamant")) $("gdpr-consimtamant").addEventListener("click", function(){ descarcaDoc("/api/gdpr/consimtamant.docx","gdpr_consimtamant.docx", this); });
 
 // construiește payload-ul de evaluare din câmpuri
 function asambleaza(){
