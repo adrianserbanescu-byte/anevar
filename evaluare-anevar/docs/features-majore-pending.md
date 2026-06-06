@@ -24,6 +24,15 @@ Fiecare subiect are propriul `.md` în `docs/specs/`. Actualizat: 2026-06-06.
   mare, infra externă, vine **după** review. **Spec + plan de implementare complete** (MVP pe
   task-uri + faze 2/3 schițate). Gata de construit când decizi.
 
+## Feature-uri derivate din brainstorm (2026-06-06)
+| # | Subiect | Status | Spec |
+|---|---------|--------|------|
+| B | Regenerare text AI (strict/template/nou, per capitol, versiuni) | notat | [note-viitoare.md](specs/note-viitoare.md) |
+| D | Import „dosar asemănător" (merge AI capitole + matrice master_config) | notat | [note-viitoare.md](specs/note-viitoare.md) |
+
+> Parking-lot complet cu toate comentariile ce impactează viitorul: [specs/note-viitoare.md](specs/note-viitoare.md).
+> Decizie nouă: **fără duplicare veche/nou** — noul UI = unicul țintă (mapăm toate feature-urile vechi).
+
 ## Dependență descoperită (2026-06-06)
 Brainstorming-ul lui #2 a scos la iveală că **identitatea unui dosar** (ce câmpuri se blochează
 și declanșează „dosar nou + credit") e definită de **fluxul UI al dosarului = #1**. Deci:
