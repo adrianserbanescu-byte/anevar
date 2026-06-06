@@ -216,6 +216,11 @@ with sync_playwright() as pw:
           p.eval_on_selector("#data_evaluarii", "e=>e.value<=new Date().toISOString().slice(0,10)") is True)
     check("dosar: popover mapare (!) prezent", p.eval_on_selector(".hint-toggle.is-map", "e=>!!e") is True)
     check("dosar: ajutor (?) re-adaugat", p.eval_on_selector(".hint-toggle:not(.is-map)", "e=>e.textContent==='?'") is True)
+    # județ/localitate = liste din /api/localitati (diacritice), cu localitate dependentă
+    p.wait_for_function("document.querySelector('#judet') && document.querySelector('#judet').options.length>1", timeout=8000)
+    check("dosar: județ = listă din /api/localitati", p.eval_on_selector("#judet", "e=>e.options.length>1") is True)
+    p.select_option("#judet", index=1)
+    check("dosar: localitate dependentă se populează la județ", p.eval_on_selector("#localitate", "e=>e.options.length>1") is True)
     # tip + scop stabilite la creare -> blocate (read-only) în workspace
     check("dosar: tip proprietate blocat după creare", p.eval_on_selector("#tip_proprietate", "e=>e.disabled") is True)
 
