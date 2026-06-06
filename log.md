@@ -444,3 +444,16 @@ model + raport + UI nou, cu teste:
 Verificat raportul asamblat (toate paragrafele se citesc corect + în ordine). **501 teste + 90 e2e. Exe reconstruit.**
 Sinteză conformitate actualizată: #3/#6/#7 = REZOLVATE; rămân Bucket B/C (metodologie, declarație conformitate,
 AML jurist) + decizii Adi (BLOCAT-pe-Adi.md).
+
+### 2026-06-06 — audituri finale + LLM council + hardening + pachet feedback
+La cererea Adi: 4 audituri (securitate, buguri/eșecuri silențioase, datorie tehnică, acoperire) → `docs/audit-final/`,
+apoi LLM council (4 modele) pe constatări. Council a confirmat priorități + a prins ce-au ratat auditurile.
+**Implementat 10 fix-uri Bucket-A (securitate+buguri), toate testate + verificate în .exe:**
+- Anti-SSRF (`_url_public_sigur`), gardă Host anti DNS-rebinding (middleware), dată tăcută→azi+confirm,
+  pierdere date localități, grilă→422, creare dosar r.ok, CNP prefix 9, limită DoS 25MB, igienă temp .docx (PII).
+- Bonus prins de e2e cap-coadă: raport/calcul dădeau 500 pe date incomplete → 422 (helper `_context`).
+**Pas „zero crash-uri pentru tester":** descoperire→502 + UI nu maschează eșecul ca „0 candidați"; /api/evaluare→422;
+import-docx confirmat robust; **dosar.json corupt → 404 (nu 500)**. Loguri: VERIFICAT curat (fără PII).
+**Pachet feedback:** `evaluare-anevar/packaging/evaluare-anevar-feedback.zip` (exe 50MB + CITESTE-MA.txt; fără sursă/PII/`md files`).
+**513 teste + 91 e2e, verde.** Council-noi (audit-trail/lock, criptare-la-repaus) → BLOCAT §J.
+Datorie tehnică (unificare grile, `_dosar.js`) = AMÂNAT intenționat post-feedback (nu destabilizez build-ul de trimis).
