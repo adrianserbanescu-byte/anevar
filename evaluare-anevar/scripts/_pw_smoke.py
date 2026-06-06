@@ -250,6 +250,8 @@ with sync_playwright() as pw:
           p.eval_on_selector("#d-cauta", "e=>!!e") is True and p.eval_on_selector("#d-judet", "e=>!!e") is True)
     check("dosar: import URL + atribute secundare (paritate descoperire)",
           p.eval_on_selector("#d-url-btn", "e=>!!e") is True and p.eval_on_selector("#d-secundare", "e=>!!e") is True)
+    check("dosar: comutator căutare construcții/terenuri",
+          p.eval_on_selector("#d-tip option[value='terenuri']", "e=>!!e") is True)
     # grilă de ajustări casă inline (port din grila.html) → /api/grila-casa
     p.eval_on_selector_all("details.grila-det", "els=>els.forEach(e=>{e.open=true;})")
     p.fill("#g-supr", "120")

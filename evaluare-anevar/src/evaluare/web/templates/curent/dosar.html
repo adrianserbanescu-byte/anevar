@@ -114,6 +114,8 @@
     <section role="tabpanel" id="sp-comparabile" aria-labelledby="s-comparabile" tabindex="0" hidden>
       <h3>🔎 Descoperă comparabile</h3>
       <div class="field-row">
+        <div class="field"><label for="d-tip">Caut</label>
+          <select id="d-tip"><option value="case">Construcții (casă/ap.)</option><option value="terenuri">Terenuri</option></select></div>
         <div class="field"><label for="d-portal">Portal</label>
           <select id="d-portal"><option value="toate" selected>Toate portalurile</option>
             <option value="imobiliare">imobiliare.ro</option><option value="storia">storia.ro</option></select></div>
@@ -548,40 +550,45 @@ if($("la-anexe")) $("la-anexe").addEventListener("click", function(){ var rt=$("
   if($("d-localitate")&&!$("d-localitate").value&&$("localitate")) $("d-localitate").value=$("localitate").value;
   function badge(r){ return r>=80?"b-high":"b-mid"; }
   var PORTALURI=["imobiliare","storia"];
-  function randCand(cand){
+  function randCand(cand, teren){
     if(!cand.length){ $("d-rezultate").innerHTML="<p class='hint'>Niciun comparabil. Încearcă doar județul sau altă localitate.</p>"; return; }
     $("d-rezultate").innerHTML="<p class='hint'>"+cand.length+" anunțuri găsite (sortate după scor de relevanță):</p>"+
-      cand.map(function(c){ return "<div class='callout' style='margin:6px 0'>"+
-        "<label class='chk'><input type='checkbox' class='d-bif' data-pret='"+(c.pret||"")+"' data-supr='"+(c.suprafata||"")+"'> "+
-        "<span class='badge "+badge(c.relevanta)+"'>scor "+c.relevanta+"%</span> <b>"+(c.pret?fmtRo(c.pret)+" "+(c.moneda||"EUR"):"preț ?")+"</b> · "+
-        (c.suprafata||"?")+" mp"+(c.teren?" · teren "+c.teren+" mp":"")+(c._portal?" · <small class='hint'>"+c._portal+"</small>":"")+"</label> "+
+      cand.map(function(c){ var val=teren?(c.pret_mp||""):(c.pret||"");
+        return "<div class='callout' style='margin:6px 0'>"+
+        "<label class='chk'><input type='checkbox' class='d-bif' data-pret='"+val+"' data-supr='"+(c.suprafata||"")+"'> "+
+        "<span class='badge "+badge(c.relevanta)+"'>scor "+c.relevanta+"%</span> <b>"+
+        (teren?(c.pret_mp?fmtRo(c.pret_mp)+" EUR/mp":"preț/mp ?"):(c.pret?fmtRo(c.pret)+" "+(c.moneda||"EUR"):"preț ?"))+"</b> · "+
+        (c.suprafata||"?")+" mp"+(!teren&&c.teren?" · teren "+c.teren+" mp":"")+(c._portal?" · <small class='hint'>"+c._portal+"</small>":"")+"</label> "+
         "<a href='"+c.url+"' target='_blank' rel='noopener'>vezi ↗</a>"+
-        (c.explicatie?"<br><small class='hint'>"+c.explicatie+"</small>":"")+"</div>"; }).join("")+
-      "<button type='button' id='d-importa'>Importă bifate în grilă</button>";
+        ((c.explicatie||c.nota)?"<br><small class='hint'>"+(c.explicatie||c.nota)+"</small>":"")+"</div>"; }).join("")+
+      "<button type='button' id='d-importa'>Importă bifate</button>";
     $("d-importa").addEventListener("click", function(){
       var linii=[]; document.querySelectorAll(".d-bif:checked").forEach(function(b){ if(b.dataset.pret&&b.dataset.supr) linii.push(b.dataset.pret+";"+b.dataset.supr); });
       if(!linii.length){ $("d-status").textContent="Bifează cel puțin un candidat."; return; }
-      var ta=$("comparabile"); ta.value=(ta.value.trim()?ta.value.trim()+"\n":"")+linii.join("\n"); salveaza();
-      $("d-status").textContent="✓ "+linii.length+" importate în grilă (jos).";
+      var ta=$(teren?"comparabile_teren":"comparabile"); ta.value=(ta.value.trim()?ta.value.trim()+"\n":"")+linii.join("\n"); salveaza();
+      $("d-status").textContent="✓ "+linii.length+" importate în "+(teren?"Comparabile teren":"grilă")+".";
     });
   }
-  function cerePortal(portal){
-    var payload={portal:portal, judet:$("d-judet").value, localitate:$("d-localitate").value,
+  function cerePortal(portal, teren){
+    var url, payload;
+    if(teren){ url="/api/descopera-teren"; payload={portal:portal, judet:$("d-judet").value, localitate:$("d-localitate").value, suprafata_subiect:$("d-teren").value||null, max_candidati:8}; }
+    else { url="/api/descopera"; payload={portal:portal, judet:$("d-judet").value, localitate:$("d-localitate").value,
       subiect:{an:parseInt($("d-an").value)||null, stare:parseInt($("d-stare").value)||null,
         finisaj:parseInt($("d-finisaj").value)||null, incalzire:$("d-incalzire").value||null, teren:$("d-teren").value||null},
-      atribute_secundare:($("d-secundare")&&$("d-secundare").value||"").split("\n").filter(Boolean), max_candidati:8};
-    return fetch("/api/descopera",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(payload)})
+      atribute_secundare:($("d-secundare")&&$("d-secundare").value||"").split("\n").filter(Boolean), max_candidati:8}; }
+    return fetch(url,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(payload)})
       .then(function(r){ return r.ok?r.json():{candidati:[]}; })
       .then(function(res){ return (res.candidati||[]).map(function(c){ c._portal=portal; return c; }); })
       .catch(function(){ return []; });
   }
   cauta.addEventListener("click", function(){
     $("d-status").textContent="… se caută (poate dura câteva secunde)"; $("d-rezultate").innerHTML="";
+    var teren=($("d-tip")&&$("d-tip").value==="terenuri");
     var sel=$("d-portal").value, portaluri=(sel==="toate")?PORTALURI:[sel];
-    Promise.all(portaluri.map(cerePortal)).then(function(lists){
+    Promise.all(portaluri.map(function(pp){ return cerePortal(pp, teren); })).then(function(lists){
       var cand=[].concat.apply([], lists).sort(function(a,b){ return (b.relevanta||0)-(a.relevanta||0); });
       $("d-status").textContent=cand.length+" candidați"+(sel==="toate"?" (toate portalurile)":"");
-      randCand(cand);
+      randCand(cand, teren);
     });
   });
   // Import comparabil dintr-un anunț (URL) → adaugă „preț;suprafață" în grilă.
