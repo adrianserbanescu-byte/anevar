@@ -14,3 +14,4 @@ __pycache__/
 
 # Date interne Claude Code
 .claude/
+.playwright-mcp/
