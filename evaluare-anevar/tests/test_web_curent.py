@@ -107,3 +107,43 @@ def test_sterge_dosar(client):
     uid = client.post("/api/dosar", json={"wizard": {}}).json()["uuid"]
     client.post(f"/api/dosar/{uid}/sterge")
     assert client.get(f"/api/dosar/{uid}").status_code == 404
+
+
+# ── Import .docx ─────────────────────────────────────────────────────────────
+def _docx_b64(tmp_path, nume):
+    import base64
+
+    import docx
+    doc = docx.Document()
+    doc.add_paragraph("Utilizarea desemnata a evaluării este garantarea împrumutului.")
+    f = tmp_path / nume
+    doc.save(str(f))
+    return "data:application/octet-stream;base64," + base64.b64encode(f.read_bytes()).decode()
+
+
+def test_import_docx_creeaza_dosar_precompletat(client, tmp_path):
+    _cont(client)
+    b64 = _docx_b64(tmp_path, "555 Maria Ionescu casa Sinaia.docx")
+    r = client.post("/api/dosar/import-docx",
+                    json={"nume_fisier": "555 Maria Ionescu casa Sinaia.docx", "continut": b64})
+    assert r.status_code == 200
+    d = r.json()
+    assert d["wizard"]["id_client"] == "555"
+    assert d["wizard"]["nume_client"] == "Maria Ionescu"
+    assert d["wizard"]["judet"] == "Prahova"
+    # raportul sursă e atașat ca versiune
+    folder = client._baza / "date" / "dosare" / d["uuid"]
+    assert len(list(folder.glob("raport-*.docx"))) == 1
+
+
+def test_import_docx_necesita_cont(client, tmp_path):
+    b64 = _docx_b64(tmp_path, "1 X casa Cluj.docx")
+    r = client.post("/api/dosar/import-docx", json={"nume_fisier": "1 X casa Cluj.docx", "continut": b64})
+    assert r.status_code == 403
+
+
+def test_import_docx_continut_invalid_400(client):
+    _cont(client)
+    r = client.post("/api/dosar/import-docx",
+                    json={"nume_fisier": "x.docx", "continut": "@@@nu e base64@@@"})
+    assert r.status_code == 400

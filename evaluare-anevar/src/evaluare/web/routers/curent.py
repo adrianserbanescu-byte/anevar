@@ -16,7 +16,7 @@ from evaluare import dosare_fs as fs
 from evaluare.assembler import EvaluationInput, construieste_context
 from evaluare.report.generator import genereaza_raport
 from evaluare.web.deps import DOCX_MIME, Deps
-from evaluare.web.schemas import ContRequest, DosarNouRequest
+from evaluare.web.schemas import ContRequest, DosarNouRequest, ImportDocxRequest
 
 
 def build_router(d: Deps) -> APIRouter:
@@ -52,6 +52,28 @@ def build_router(d: Deps) -> APIRouter:
         uid = fs.creeaza(cont["legitimatie"], cont["nume"], req.wizard,
                          format_dosar=cont.get("format_dosar"))
         return {"uuid": uid}
+
+    @router.post("/api/dosar/import-docx")
+    def import_docx(req: ImportDocxRequest) -> dict:
+        """Importă un raport .docx ca dosar nou: pre-completează câmpurile + atașează fișierul."""
+        import base64
+
+        from evaluare.importers.docx_dosar import extrage_din_docx
+        cont = cont_mod.incarca_cont()
+        if cont is None:
+            raise HTTPException(403, "Creează întâi un cont.")
+        payload = req.continut.split(",", 1)[1] if req.continut.startswith("data:") else req.continut
+        try:
+            raw = base64.b64decode(payload, validate=True)
+        except Exception:
+            raise HTTPException(400, "Conținut fișier invalid.") from None
+        tmp = Path(tempfile.gettempdir()) / (Path(req.nume_fisier).name or "import.docx")
+        tmp.write_bytes(raw)
+        wizard = extrage_din_docx(tmp)
+        uid = fs.creeaza(cont["legitimatie"], cont["nume"], wizard,
+                         format_dosar=cont.get("format_dosar"))
+        fs.adauga_versiune_docx(uid, tmp)              # atașează raportul sursă
+        return {"uuid": uid, "wizard": wizard}
 
     @router.get("/dosar/{uid}", response_class=HTMLResponse)
     def pagina_dosar(request: Request, uid: str) -> HTMLResponse:

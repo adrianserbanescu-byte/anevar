@@ -17,6 +17,7 @@
     <button type="button" id="nou">➕ Dosar nou</button>
     <a class="btn ghost" href="#salvate">📂 Încarcă dosar salvat</a>
     <button type="button" class="ghost" id="importa">📥 Importă dosarul tău</button>
+    <input type="file" id="fisier-import" accept=".docx" hidden>
     <button type="button" class="ghost" title="Disponibil în versiunea comercială" disabled>🔁 Import asemănător</button>
     <button type="button" class="ghost" title="Disponibil în versiunea comercială" disabled>🧪 Demo</button>
   </div>
@@ -54,8 +55,17 @@ if(nouBtn) nouBtn.addEventListener('click', async ()=>{
   if(d.uuid) window.location.href='/dosar/'+d.uuid;
 });
 var impBtn=document.getElementById('importa');
-if(impBtn) impBtn.addEventListener('click', ()=>{
-  alert('Import folder dosar: în versiunea curentă se face din ÎNCEPE când app-ul detectează un folder nou pe disc (categoria „nou"). Importul prin selecție din explorer vine cu versiunea comercială.');
+var fisierImp=document.getElementById('fisier-import');
+if(impBtn) impBtn.addEventListener('click', ()=> fisierImp.click());
+if(fisierImp) fisierImp.addEventListener('change', async ()=>{
+  const f=fisierImp.files[0]; if(!f) return;
+  impBtn.disabled=true; impBtn.textContent='📥 Se importă…';
+  const continut=await new Promise(res=>{ const r=new FileReader(); r.onload=()=>res(r.result); r.readAsDataURL(f); });
+  const resp=await fetch('/api/dosar/import-docx',{method:'POST',headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({nume_fisier:f.name, continut})});
+  const d=await resp.json();
+  if(d.uuid) window.location.href='/dosar/'+d.uuid;
+  else { impBtn.disabled=false; impBtn.textContent='📥 Importă dosarul tău'; alert('Import eșuat.'); }
 });
 </script>
 {% include "_footer.html" %}

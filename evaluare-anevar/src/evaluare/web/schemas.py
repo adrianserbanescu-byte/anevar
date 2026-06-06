@@ -41,6 +41,12 @@ class DosarNouRequest(BaseModel):
     wizard: dict = {}
 
 
+class ImportDocxRequest(BaseModel):
+    """Import «dosarul tău» dintr-un raport .docx (UI nou): fișier ca data-URL base64."""
+    nume_fisier: str
+    continut: str               # data-URL base64 (.docx)
+
+
 class FeedbackRequest(BaseModel):
     """Feedback de la tester/evaluator (salvat local, offline)."""
     mesaj: str = ""
