@@ -29,6 +29,18 @@ class RedenumesteRequest(BaseModel):
     nume: str
 
 
+class ContRequest(BaseModel):
+    """Crearea contului local (UI nou)."""
+    nume: str
+    legitimatie: str
+    format_dosar: list[str] = []
+
+
+class DosarNouRequest(BaseModel):
+    """Crearea unui dosar nou (UI nou): câmpurile wizard inițiale."""
+    wizard: dict = {}
+
+
 class FeedbackRequest(BaseModel):
     """Feedback de la tester/evaluator (salvat local, offline)."""
     mesaj: str = ""

@@ -11,7 +11,7 @@ from evaluare.ai.narrative import NarrativeClient
 from evaluare.db.storage import Storage
 from evaluare.importers.url_parser import fetch_html
 from evaluare.web.deps import Deps
-from evaluare.web.routers import aml, descoperire, evaluare, grile, pagini, piata
+from evaluare.web.routers import aml, curent, descoperire, evaluare, grile, pagini, piata
 
 
 def create_app(storage: Storage, client: NarrativeClient | None,
@@ -32,7 +32,7 @@ def create_app(storage: Storage, client: NarrativeClient | None,
     templates.env.globals["versiune"] = __version__
     deps = Deps(storage=storage, client=client, fetcher=fetcher, templates=templates)
 
-    for modul in (evaluare, grile, descoperire, piata, aml, pagini):
+    for modul in (evaluare, grile, descoperire, piata, aml, curent, pagini):
         app.include_router(modul.build_router(deps))
 
     return app

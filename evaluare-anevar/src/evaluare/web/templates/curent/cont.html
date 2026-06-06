@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head><meta charset="utf-8"><title>Cont — Evaluare ANEVAR</title>
+<style>{% include "_design.css" %}</style></head>
+<body>
+<a class="skip-link" href="#continut">Sari la conținut</a>
+{% set kicker = "Versiune curentă" %}{% set titlu = "Cont evaluator" %}
+{% set subtitlu = "Identitatea ta + formatul numelui de dosar (se setează o dată)." %}
+{% include "_cartus.html" %}
+<main id="continut">
+  <div class="field-row">
+    <div class="field"><label for="nume">Nume evaluator</label>
+      <input id="nume" value="{{ cont.nume if cont else '' }}"></div>
+    <div class="field"><label for="legitimatie">Legitimație ANEVAR</label>
+      <input id="legitimatie" value="{{ cont.legitimatie if cont else '' }}"></div>
+  </div>
+  <h3>Format nume dosar (minim 3 câmpuri, în ordine)</h3>
+  <p class="hint">Toate dosarele tale vor folosi acest format. „ID client" e free-text la dosar nou,
+   needitabil ulterior.</p>
+  <div id="campuri">
+    {% for cheie, c in campuri.items() %}
+    <label class="chk"><input type="checkbox" class="fmt" value="{{ cheie }}"
+      {% if cont and cheie in cont.format_dosar %}checked{% endif %}> {{ c.eticheta }}</label>
+    {% endfor %}
+  </div>
+  <p class="hint">Previzualizare nume: <b id="preview">—</b></p>
+  <button type="button" id="salveaza">Salvează contul</button>
+  <span id="status" class="hint" role="status"></span>
+</main>
+<script>
+function alese(){ return [...document.querySelectorAll('.fmt:checked')].map(c=>c.value); }
+function refresh(){ const a=alese();
+  document.getElementById('preview').textContent = a.length ? a.join('_') : '—'; }
+document.querySelectorAll('.fmt').forEach(c=>c.addEventListener('change', refresh)); refresh();
+document.getElementById('salveaza').addEventListener('click', async ()=>{
+  const nume=document.getElementById('nume').value.trim();
+  const legitimatie=document.getElementById('legitimatie').value.trim();
+  const format_dosar=alese();
+  if(!nume||!legitimatie){ document.getElementById('status').textContent='Nume + legitimație obligatorii.'; return; }
+  if(format_dosar.length<3){ document.getElementById('status').textContent='Alege minim 3 câmpuri.'; return; }
+  const r=await fetch('/api/cont',{method:'POST',headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({nume,legitimatie,format_dosar})});
+  if(r.ok){ document.getElementById('status').textContent='✓ Cont salvat. Se deschide ÎNCEPE…';
+    setTimeout(()=>window.location.href='/incepe',800); }
+  else { document.getElementById('status').textContent='Eroare la salvare.'; }
+});
+</script>
+{% include "_footer.html" %}
+</body></html>

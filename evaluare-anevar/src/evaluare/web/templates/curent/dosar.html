@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head><meta charset="utf-8"><title>Dosar — {{ dosar.nume }}</title>
+<style>{% include "_design.css" %}
+.tabbar{display:flex;gap:4px;flex-wrap:wrap;border-bottom:2px solid var(--brass);margin:14px 0 0}
+.tabbar button{margin:0;border:1px solid var(--line);border-bottom:none;border-radius:var(--radius-sm) var(--radius-sm) 0 0;background:var(--paper-sunk);color:var(--ink-2);box-shadow:none;transform:none;padding:9px 16px}
+.tabbar button[aria-selected="true"]{background:var(--paper-card);color:var(--sienna);border-color:var(--brass);border-bottom:2px solid var(--paper-card);margin-bottom:-2px}
+.subbar{display:flex;gap:6px;flex-wrap:wrap;margin:10px 0}
+.subbar button{padding:6px 12px;font-size:.85rem}
+.map-toggle{display:inline-grid;place-items:center;width:17px;height:17px;padding:0;margin-left:4px;border-radius:50%;border:1px solid var(--gold);background:var(--warn-bg,#ece4d2);color:var(--gold);font:700 .7rem var(--sans);cursor:pointer;vertical-align:middle;line-height:1;box-shadow:none}
+.map-toggle:hover{background:var(--gold);color:#fff;transform:none}
+.map-pop{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+.map-pop.deschis{position:absolute;top:calc(100% + 6px);left:0;z-index:60;width:max-content;max-width:320px;height:auto;overflow:visible;clip:auto;background:var(--warn-soft,#f4ecc9);border:1px solid var(--gold);border-radius:var(--radius-sm);padding:9px 12px;box-shadow:var(--shadow);font-size:.8rem;line-height:1.45;color:var(--ink-2)}
+</style></head>
+<body>
+<a class="skip-link" href="#continut">Sari la conținut</a>
+<div class="topbar"><a class="brand" href="/incepe"><span class="brand-seal">EA</span>
+  <span class="brand-text"><span class="kicker">Versiune curentă</span>
+  <span class="brand-title">← Dosarele mele</span></span></a></div>
+
+<header class="cartus"><div class="cartus-body"><div class="cartus-text">
+  <div class="kicker">Dosar</div><h1 id="nume-dosar">{{ dosar.nume }}</h1>
+  <p class="cartus-sub">🔒 identitate (blocată după prima generare) · 📝 datele rămân editabile ·
+   ● salvat automat în folder</p>
+</div></div><hr class="brass-rule"></header>
+
+<main id="continut">
+  <div class="tabbar" role="tablist">
+    <button role="tab" data-tab="raport" aria-selected="true">📄 Raport evaluare</button>
+    <button role="tab" data-tab="aml" aria-selected="false">🛡 AML</button>
+    <button role="tab" data-tab="gdpr" aria-selected="false">🔒 GDPR</button>
+    <button role="tab" data-tab="audit" aria-selected="false">🧾 Audit</button>
+    <button role="tab" data-tab="anexe" aria-selected="false">📎 Anexe</button>
+  </div>
+
+  <!-- ============ RAPORT ============ -->
+  <section data-panel="raport">
+    <div class="subbar" role="tablist">
+      <button role="tab" data-sub="proprietate" aria-selected="true">Proprietate</button>
+      <button role="tab" data-sub="comparabile" aria-selected="false">Comparabile</button>
+      <button role="tab" data-sub="calcul" aria-selected="false">Calcul</button>
+      <button role="tab" data-sub="genereaza" aria-selected="false">Generează</button>
+    </div>
+
+    <div data-subpanel="proprietate">
+      <h3>Identificare (obligatorii la creare; se blochează după prima generare)</h3>
+      <div class="field-row">
+        <div class="field"><label for="id_client">ID client</label><input id="id_client"></div>
+        <div class="field"><label for="nume_client">Nume client</label><input id="nume_client"></div>
+      </div>
+      <div class="field-row">
+        <div class="field"><label for="scop">Scop</label>
+          <select id="scop"><option value="garantare">Garantare credit</option>
+            <option value="raportare_financiara">Raportare financiară</option>
+            <option value="asigurare">Asigurare</option><option value="impozitare">Impozitare</option>
+            <option value="litigii">Litigiu</option></select></div>
+        <div class="field"><label for="tip_proprietate">Tip proprietate</label>
+          <select id="tip_proprietate"><option value="casa">Casă + teren</option>
+            <option value="apartament">Apartament</option><option value="industrial">Industrial</option>
+            <option value="agricol">Teren agricol</option><option value="special">Specială</option></select></div>
+      </div>
+      <div class="field-row">
+        <div class="field"><label for="judet">Județ</label><input id="judet"></div>
+        <div class="field"><label for="localitate">Localitate</label><input id="localitate"></div>
+        <div class="field"><label for="adresa_strada">Stradă, nr.</label><input id="adresa_strada"></div>
+      </div>
+      <div class="field-row">
+        <div class="field"><label for="numar_cadastral">Nr. cadastral</label><input id="numar_cadastral"></div>
+        <div class="field"><label for="carte_funciara">Carte funciară</label><input id="carte_funciara"></div>
+        <div class="field"><label for="beneficiar">Beneficiar (bancă)</label><input id="beneficiar"></div>
+      </div>
+      <div class="field-row">
+        <div class="field"><label for="data_raportului">Data raport</label><input type="date" id="data_raportului"></div>
+        <div class="field"><label for="data_evaluarii">Data evaluării</label><input type="date" id="data_evaluarii"></div>
+        <div class="field"><label for="data_inspectiei">Data vizită</label><input type="date" id="data_inspectiei"></div>
+      </div>
+      <h3>Date fizice</h3>
+      <div class="field-row">
+        <div class="field"><label for="suprafata_teren">Suprafață teren (mp)</label><input id="suprafata_teren" value="500"></div>
+        <div class="field"><label for="valoare_teren">Valoare teren (lei)</label><input id="valoare_teren" value="100000"></div>
+      </div>
+      <div class="field-row">
+        <div class="field"><label for="au">Au (mp)</label><input id="au" value="100"></div>
+        <div class="field"><label for="acd">Acd (mp)</label><input id="acd" value="120"></div>
+        <div class="field"><label for="an_referinta">An referință</label><input id="an_referinta" value="2025"></div>
+      </div>
+      <label for="elemente">Elemente cost (element;cod;um;cantitate;cost_unitar;an_pif)</label>
+      <textarea id="elemente" rows="2">Structura;X;mp;120;2000;2015</textarea>
+      <label for="depreciere">Depreciere (varsta;fractie)</label>
+      <textarea id="depreciere" rows="2">5;0.05</textarea>
+    </div>
+
+    <div data-subpanel="comparabile" hidden>
+      <p class="hint">Descoperirea comparabilelor se face în pagina dedicată
+       (<a href="/descoperire" target="_blank">Descoperire ↗</a>); rezultatele bifate ajung în grilă.</p>
+      <label for="comparabile">Comparabile (preț;suprafață, unul pe linie)</label>
+      <textarea id="comparabile" rows="4" placeholder="250000;120"></textarea>
+      <p class="hint">Grile detaliate: <a href="/grila" target="_blank">Grile ↗</a>.</p>
+    </div>
+
+    <div data-subpanel="calcul" hidden>
+      <div class="field-row">
+        <div class="field"><label for="metoda">Metodă</label>
+          <select id="metoda"><option value="cost">Cost</option><option value="piata">Piață</option>
+            <option value="ponderata">Ponderată</option></select></div>
+        <div class="field"><label for="moneda">Monedă</label>
+          <select id="moneda"><option value="LEI" selected>LEI</option><option value="EUR">EUR</option></select></div>
+      </div>
+      <button type="button" id="calc">Calculează</button>
+      <div id="rezultat" role="status" aria-live="polite"></div>
+    </div>
+
+    <div data-subpanel="genereaza" hidden>
+      <p class="hint">Generează raportul `.docx`; fiecare generare se salvează ca versiune în folderul dosarului.</p>
+      <button type="button" id="genereaza">📄 Generează și descarcă raportul</button>
+      <span id="gen-status" class="hint" role="status"></span>
+    </div>
+  </section>
+
+  <section data-panel="aml" hidden><p class="hint">Modulul AML (risc + documente):
+    <a href="/aml" target="_blank">deschide AML ↗</a></p></section>
+  <section data-panel="gdpr" hidden><p class="hint">Documente GDPR:
+    <a href="/aml" target="_blank">politică & consimțământ ↗</a></p></section>
+  <section data-panel="audit" hidden><p class="hint">Urma de audit se descarcă după calcul (în versiunea comercială, per dosar).</p></section>
+  <section data-panel="anexe" hidden><p class="hint">Foto + scanuri documente (Anexa 2/3). Atașarea fișierelor vine cu versiunea comercială;
+    importul PDF pre-completează datele și se atașează aici.</p></section>
+</main>
+
+<script>{% include "_helpers.js" %}</script>
+<script>
+var UID = "{{ dosar.uuid }}";
+var WIZARD = {{ dosar.wizard|tojson }};
+// Maparea „!": câmp -> {vechi, detaliu} (din tabelul wizard vechi → noul UI). Temporar (dev).
+var MAPARE = {
+  id_client:{v:"(nou) ID unic dosar",d:"Auto-completat dacă lipsește; needitabil după creare."},
+  nume_client:{v:"Pas 1 · Nume client",d:"Identitate dosar; anonimizat [CLIENT] la AI."},
+  scop:{v:"Pas 1 · Scopul evaluării",d:"Identitate; determină tip valoare + ghid GEV."},
+  tip_proprietate:{v:"Pas 2 · Tip proprietate",d:"Identitate; determină câmpurile + abordările."},
+  judet:{v:"Pas 1 · Județ",d:"Identitate dacă e în titlu; altfel zona de căutare."},
+  localitate:{v:"Pas 1 · Localitate",d:"Identitate dacă e în titlu."},
+  adresa_strada:{v:"Pas 1 · Stradă, număr",d:"Apare în raport; editabil."},
+  numar_cadastral:{v:"Pas 1 · Nr. cadastral",d:"Editabil; anonimizat [CADASTRAL] la AI."},
+  carte_funciara:{v:"Pas 1 · Carte funciară",d:"Editabil; anonimizat [CF] la AI."},
+  beneficiar:{v:"Pas 1 · Beneficiar (bancă)",d:"Editabil; pentru garantare credit."},
+  data_raportului:{v:"Pas 1 · Data raportului",d:"Editabilă (dacă nu e în titlu)."},
+  data_evaluarii:{v:"Pas 1 · Data evaluării",d:"Editabilă."},
+  data_inspectiei:{v:"Pas 1 · Data inspecției/vizită",d:"Editabilă."},
+  suprafata_teren:{v:"Pas 2 · Suprafață teren",d:"Bază valoare teren + potrivire comparabile."},
+  valoare_teren:{v:"Pas 2 · Valoare teren",d:"Se adaugă la CIN pentru valoarea prin cost."},
+  au:{v:"Pas 2 · Au (arie utilă)",d:"Verificare Au ≤ Acd."},
+  acd:{v:"Pas 2 · Acd",d:"Numitor CIN + suprafața la potrivirea comparabilelor."},
+  an_referinta:{v:"Pas 2 · An referință",d:"Vârsta = an referință − an PIF."},
+  elemente:{v:"Pas 2 · Elemente de cost",d:"Σ(cantitate×cost_unitar) = CIB (catalog IROVAL)."},
+  depreciere:{v:"Pas 2 · Depreciere fizică",d:"Puncte vârstă;fracție interpolate."},
+  comparabile:{v:"Pas 3 · Comparabile grilă",d:"preț;suprafață; din descoperire sau manual."},
+  metoda:{v:"Pas 4 · Metodă",d:"cost/piață/ponderată (venit/DCF în versiunea completă)."},
+  moneda:{v:"Pas 4 · Monedă raportare",d:"Garanție = de regulă EUR cu echivalent LEI."},
+};
+function $(id){ return document.getElementById(id); }
+var CAMPURI = Object.keys(MAPARE).concat(["nume_client"]);  // toate id-urile
+// încarcă valorile salvate
+Object.keys(WIZARD||{}).forEach(function(k){ if($(k)) $(k).value = WIZARD[k]; });
+
+// „!" popover lângă fiecare label (mapare vechi→nou). Temporar; se va șterge.
+document.querySelectorAll("main label[for]").forEach(function(lbl){
+  var id = lbl.getAttribute("for"); var m = MAPARE[id]; if(!m) return;
+  var wrap=document.createElement("span"); wrap.style.position="relative"; wrap.style.display="inline-block";
+  var b=document.createElement("button"); b.type="button"; b.className="map-toggle"; b.textContent="!";
+  b.title="Corespondent în UI-ul vechi";
+  var pop=document.createElement("small"); pop.className="map-pop";
+  pop.innerHTML="<b>Vechi:</b> "+m.v+"<br>"+m.d;
+  lbl.appendChild(wrap); wrap.appendChild(b); wrap.appendChild(pop);
+  b.addEventListener("click",function(e){ e.stopPropagation();
+    document.querySelectorAll(".map-pop.deschis").forEach(function(o){if(o!==pop)o.classList.remove("deschis");});
+    pop.classList.toggle("deschis"); });
+});
+document.addEventListener("click",function(){ document.querySelectorAll(".map-pop.deschis").forEach(function(o){o.classList.remove("deschis");}); });
+
+// salvare automată (debounce) în folder
+var tSave;
+function snapshot(){ var s={}; document.querySelectorAll("main input, main select, main textarea").forEach(function(e){ if(e.id) s[e.id]=e.value; }); return s; }
+function salveaza(){ clearTimeout(tSave); tSave=setTimeout(function(){
+  fetch("/api/dosar/"+UID+"/salveaza",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(snapshot())});
+},700); }
+document.addEventListener("input", salveaza); document.addEventListener("change", salveaza);
+
+// tab-uri output
+document.querySelectorAll(".tabbar button").forEach(function(b){ b.addEventListener("click",function(){
+  document.querySelectorAll(".tabbar button").forEach(function(x){x.setAttribute("aria-selected","false");});
+  b.setAttribute("aria-selected","true");
+  document.querySelectorAll("[data-panel]").forEach(function(p){ p.hidden = p.getAttribute("data-panel")!==b.dataset.tab; });
+}); });
+document.querySelectorAll(".subbar button").forEach(function(b){ b.addEventListener("click",function(){
+  document.querySelectorAll(".subbar button").forEach(function(x){x.setAttribute("aria-selected","false");});
+  b.setAttribute("aria-selected","true");
+  document.querySelectorAll("[data-subpanel]").forEach(function(p){ p.hidden = p.getAttribute("data-subpanel")!==b.dataset.sub; });
+}); });
+
+// construiește payload-ul de evaluare din câmpuri
+function asambleaza(){
+  var elements=$("elemente").value.trim().split("\n").filter(Boolean).map(function(l){var p=l.split(";");return{element:p[0],cod:p[1],um:p[2],cantitate:p[3],cost_unitar:p[4],an_pif:parseInt(p[5])};});
+  var dp=$("depreciere").value.trim().split("\n").filter(Boolean).map(function(l){var p=l.split(";");return{varsta:parseInt(p[0]),depreciere:p[1]};});
+  var comparables=$("comparabile").value.trim().split("\n").filter(Boolean).map(function(l){var p=l.split(";");return{pret:p[0],suprafata:p[1]};});
+  var SCOP={garantare:["Garantarea creditului ipotecar","Valoarea de piață (SEV 102)"],raportare_financiara:["Raportare financiară (IFRS)","Valoarea justă (IFRS 13)"],asigurare:["Asigurare","Valoarea de asigurare"],impozitare:["Impozitare","Valoarea impozabilă"],litigii:["Litigiu","Valoarea de piață (SEV 102)"]};
+  var sc=SCOP[$("scop").value]||SCOP.garantare;
+  var meta={client_nume:$("nume_client").value,adresa:[$("adresa_strada").value,$("localitate").value,$("judet").value].filter(Boolean).join(", "),numar_cadastral:$("numar_cadastral").value,carte_funciara:$("carte_funciara").value,evaluator_nume:"{{ cont.nume if cont else '' }}",evaluator_legitimatie:"{{ cont.legitimatie if cont else '' }}",data_evaluarii:$("data_evaluarii").value||"2026-01-16",data_raportului:$("data_raportului").value||"2026-01-16",moneda:$("moneda").value,scop:sc[0],tip_valoare:sc[1]};
+  if($("beneficiar").value) meta.beneficiar=$("beneficiar").value;
+  var building={au:$("au").value,acd:$("acd").value,an_referinta:parseInt($("an_referinta").value),elements:($("tip_proprietate").value==="agricol")?[]:elements,depreciation_points:($("tip_proprietate").value==="agricol")?[]:dp};
+  var land={suprafata:$("suprafata_teren").value};
+  return {meta:meta,land:land,building:building,comparables:comparables,valoare_teren:$("valoare_teren").value,metoda:$("metoda").value,tip_proprietate:$("tip_proprietate").value,scop:$("scop").value};
+}
+$("calc").addEventListener("click", async function(){
+  $("rezultat").textContent="Se calculează…";
+  try{ var r=await fetch("/api/evaluare",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(asambleaza())});
+    var d=await r.json();
+    $("rezultat").innerHTML="<p><b>Valoare: "+fmtRo(d.valoare_finala)+" "+$("moneda").value+"</b> ("+d.metoda+")</p><p class='hint'>Mergi la „Generează".</p>";
+  }catch(e){ $("rezultat").textContent="Calculul a eșuat — verifică valorile."; }
+});
+$("genereaza").addEventListener("click", function(){
+  $("gen-status").textContent="Se generează…";
+  var f=document.createElement("form"); f.method="POST"; f.action="/api/dosar/"+UID+"/raport.docx";
+  // POST JSON via fetch + download
+  fetch("/api/dosar/"+UID+"/raport.docx",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(asambleaza())})
+    .then(function(r){ return r.ok ? r.blob() : Promise.reject(); })
+    .then(function(b){ var u=URL.createObjectURL(b); var a=document.createElement("a"); a.href=u; a.download="raport.docx"; a.click(); URL.revokeObjectURL(u);
+      $("gen-status").textContent="✓ Generat + salvat ca versiune în folder."; })
+    .catch(function(){ $("gen-status").textContent="Generarea a eșuat."; });
+});
+</script>
+</body></html>

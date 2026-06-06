@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head><meta charset="utf-8"><title>ÎNCEPE — Evaluare ANEVAR</title>
+<style>{% include "_design.css" %}</style></head>
+<body>
+<a class="skip-link" href="#continut">Sari la conținut</a>
+{% set kicker = "Versiune curentă" %}{% set titlu = "ÎNCEPE" %}
+{% set subtitlu = "Creează, încarcă sau importă un dosar." %}{% include "_cartus.html" %}
+<main id="continut">
+  {% if not cont %}
+    <div class="avert-warn">Nu ai cont încă. <a href="/cont">Creează cont</a> pentru a începe.</div>
+  {% else %}
+  <p class="hint">Conectat: <b>{{ cont.nume }}</b> (legitimație {{ cont.legitimatie }}) ·
+   format dosar: <code>{{ cont.format_dosar|join('_') }}</code> · <a href="/cont">editează cont</a></p>
+
+  <div class="row" style="gap:12px;flex-wrap:wrap">
+    <button type="button" id="nou">➕ Dosar nou</button>
+    <a class="btn ghost" href="#salvate">📂 Încarcă dosar salvat</a>
+    <button type="button" class="ghost" id="importa">📥 Importă dosarul tău</button>
+    <button type="button" class="ghost" title="Disponibil în versiunea comercială" disabled>🔁 Import asemănător</button>
+    <button type="button" class="ghost" title="Disponibil în versiunea comercială" disabled>🧪 Demo</button>
+  </div>
+
+  <h2 id="salvate">Dosare salvate</h2>
+  {% if diff.existente or diff.noi %}
+    <table>
+      <tr><th>Nume</th><th>Modificat</th><th></th></tr>
+      {% for x in diff.noi %}
+      <tr><td>{{ x.nume }} <span class="badge b-mid">nou</span></td><td>{{ x.modificat_la }}</td>
+        <td><a class="btn" href="/dosar/{{ x.uuid }}">Deschide</a></td></tr>
+      {% endfor %}
+      {% for x in diff.existente %}
+      <tr><td>{{ x.nume }}</td><td>{{ x.modificat_la }}</td>
+        <td><a class="btn" href="/dosar/{{ x.uuid }}">Deschide</a></td></tr>
+      {% endfor %}
+    </table>
+  {% else %}
+    <p class="hint">Niciun dosar salvat încă. Apasă „➕ Dosar nou".</p>
+  {% endif %}
+
+  {% if diff.disparute %}
+    <h3>⚠ Dosare dispărute (folder șters de pe disc)</h3>
+    <ul class="hint">{% for x in diff.disparute %}<li>{{ x.nume }} ({{ x.uuid[:8] }})</li>{% endfor %}</ul>
+  {% endif %}
+  {% endif %}
+</main>
+<script>
+var nouBtn=document.getElementById('nou');
+if(nouBtn) nouBtn.addEventListener('click', async ()=>{
+  // dosar nou minimal — câmpurile obligatorii se completează în workspace
+  const r=await fetch('/api/dosar',{method:'POST',headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({wizard:{}})});
+  const d=await r.json();
+  if(d.uuid) window.location.href='/dosar/'+d.uuid;
+});
+var impBtn=document.getElementById('importa');
+if(impBtn) impBtn.addEventListener('click', ()=>{
+  alert('Import folder dosar: în versiunea curentă se face din ÎNCEPE când app-ul detectează un folder nou pe disc (categoria „nou"). Importul prin selecție din explorer vine cu versiunea comercială.');
+});
+</script>
+{% include "_footer.html" %}
+</body></html>
