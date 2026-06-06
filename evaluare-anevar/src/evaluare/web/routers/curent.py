@@ -22,6 +22,13 @@ from evaluare.web.schemas import ContRequest, DosarNouRequest, ImportDocxRequest
 def build_router(d: Deps) -> APIRouter:
     router = APIRouter()
 
+    def _context(inp: EvaluationInput):
+        """Construiește contextul; erorile de date (ex. depreciere goală la cost) → 422 clar, nu 500."""
+        try:
+            return construieste_context(inp, client=d.client)
+        except ValueError as e:
+            raise HTTPException(422, f"Date insuficiente sau invalide pentru calcul: {e}") from e
+
     # ── Cont ─────────────────────────────────────────────────────────────────────
     @router.get("/cont", response_class=HTMLResponse)
     def pagina_cont(request: Request) -> HTMLResponse:
@@ -132,7 +139,7 @@ def build_router(d: Deps) -> APIRouter:
             fs.incarca(uid)
         except KeyError:
             raise HTTPException(404, "Dosar inexistent.") from None
-        ctx = construieste_context(inp, client=d.client)
+        ctx = _context(inp)
         return {
             "valoare_finala": str(ctx.reconciled.valoare_finala),
             "metoda": ctx.reconciled.metoda_selectata,
@@ -152,7 +159,7 @@ def build_router(d: Deps) -> APIRouter:
             fs.incarca(uid)
         except KeyError:
             raise HTTPException(404, "Dosar inexistent.") from None
-        ctx = construieste_context(inp, client=d.client)
+        ctx = _context(inp)
         j = JurnalAudit()
         j.inregistreaza("identificare", {"adresa": ctx.meta.adresa,
                                          "cadastral": ctx.meta.numar_cadastral, "scop": ctx.meta.scop})
@@ -178,7 +185,7 @@ def build_router(d: Deps) -> APIRouter:
             fs.incarca(uid)
         except KeyError:
             raise HTTPException(404, "Dosar inexistent.") from None
-        ctx = construieste_context(inp, client=d.client)
+        ctx = _context(inp)
         out = Path(tempfile.gettempdir()) / f"raport_{uid}.docx"
         genereaza_raport(ctx, out, adnotari=bool(adnotari))   # adnotări = note de proveniență (review)
         fs.adauga_versiune_docx(uid, out)              # versiune persistentă în folderul dosarului

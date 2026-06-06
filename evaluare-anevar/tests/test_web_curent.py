@@ -183,6 +183,16 @@ def test_grila_casa_goala_422(client):
     assert client.post("/api/grila-teren", json={"suprafata_subiect": "500", "comparabile": []}).status_code == 422
 
 
+def test_raport_date_insuficiente_422(client):
+    # robustețe: cost fără puncte de depreciere -> 422 clar (din motor), NU 500 nehandelat.
+    _cont(client)
+    uid = client.post("/api/dosar", json={"wizard": {}}).json()["uuid"]
+    p = _payload()
+    p["building"]["depreciation_points"] = []
+    assert client.post(f"/api/dosar/{uid}/raport.docx", json=p).status_code == 422
+    assert client.post(f"/api/dosar/{uid}/calcul", json=p).status_code == 422
+
+
 def test_import_prea_mare_413(client):
     _cont(client)
     big = "A" * 35_000_001            # peste limita anti-DoS

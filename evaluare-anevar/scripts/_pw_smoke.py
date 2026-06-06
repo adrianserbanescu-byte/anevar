@@ -332,6 +332,21 @@ with sync_playwright() as pw:
     p.dispatch_event("#au", "input")
     p.wait_for_selector("#save-ind:has-text('salvat')", timeout=5000)
     check("dosar: autosave -> indicator „salvat”", "salvat" in p.inner_text("#save-ind"), p.inner_text("#save-ind"))
+    # flux COMPLET cap-coadă: completează minim valid + generează + DESCARCĂ .docx (gol acoperire cov #2)
+    p.fill("#acd", "120")
+    p.fill("#an_referinta", "2025")
+    p.fill("#elemente", "Structura;X;mp;120;2000;2015")
+    p.fill("#depreciere", "5;0.05")              # cost are nevoie de puncte de depreciere
+    p.fill("#suprafata_teren", "500")
+    p.fill("#valoare_teren", "100000")
+    p.fill("#data_evaluarii", "2026-01-16")     # setate ca să NU apară confirm-ul de dată lipsă
+    p.fill("#data_raportului", "2026-01-16")
+    p.click("#s-genereaza")
+    p.click("#genereaza")
+    # blob-download via a.click() nu e prins fiabil de expect_download; verificăm statusul de succes „✓ … salvat".
+    p.wait_for_selector("#gen-status:has-text('salvat')", timeout=15000)
+    check("dosar: flux complet → raport generat + salvat ca versiune",
+          "salvat" in p.inner_text("#gen-status"))
     p.close()
 
     # ---------- FEEDBACK: widget -> salvare locală -> pagina /feedback ----------
