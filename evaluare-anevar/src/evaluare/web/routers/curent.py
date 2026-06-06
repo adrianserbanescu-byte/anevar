@@ -104,6 +104,12 @@ def build_router(d: Deps) -> APIRouter:
         fs.sterge(uid)
         return {"ok": True}
 
+    @router.post("/api/dosar/{uid}/scoate-din-index")
+    def scoate_din_index(uid: str) -> dict:
+        """Scoate un dosar DISPĂRUT (folder șters de pe disc) din indexul «ultima vedere»."""
+        fs.sterge_din_index(uid)
+        return {"ok": True}
+
     @router.post("/api/dosar/{uid}/raport.docx")
     def genereaza(uid: str, inp: EvaluationInput) -> FileResponse:
         try:

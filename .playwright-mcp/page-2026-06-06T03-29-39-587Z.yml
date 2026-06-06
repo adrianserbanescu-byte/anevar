@@ -1,0 +1,806 @@
+- generic [active] [ref=e1]:
+  - generic [ref=e4]:
+    - generic:
+      - generic:
+        - generic:
+          - navigation:
+            - generic [ref=e5]:
+              - generic [ref=e6]:
+                - img [ref=e9]
+                - link "Logo Imobiliare.ro" [ref=e12] [cursor=pointer]:
+                  - /url: https://www.imobiliare.ro
+                  - img "Logo Imobiliare.ro" [ref=e13]
+              - generic [ref=e14]:
+                - link "Adaugă anunț" [ref=e15] [cursor=pointer]:
+                  - /url: https://www.imobiliare.ro/cont/anunt/adauga
+                  - img [ref=e16]
+                  - generic [ref=e18]: Adaugă anunț
+                - generic [ref=e19]:
+                  - link "Cont nou" [ref=e24] [cursor=pointer]:
+                    - /url: https://www.imobiliare.ro/cont/inregistrare?step=2&userType=seeker
+                  - link "Intră în cont" [ref=e29] [cursor=pointer]:
+                    - /url: https://www.imobiliare.ro/cont/autentificare
+    - generic [ref=e30]:
+      - navigation [ref=e33]:
+        - list [ref=e34]:
+          - listitem [ref=e35]:
+            - link [ref=e36] [cursor=pointer]:
+              - /url: https://www.imobiliare.ro
+              - img [ref=e37]
+            - img [ref=e39]
+          - listitem [ref=e41]:
+            - link "Vânzare" [ref=e42] [cursor=pointer]:
+              - /url: /vanzare-imobiliare
+          - listitem [ref=e43]:
+            - img [ref=e44]
+            - link "Case individuale" [ref=e46] [cursor=pointer]:
+              - /url: /vanzare-individuale
+          - listitem [ref=e47]:
+            - img [ref=e48]
+            - link "Județul Prahova" [ref=e50] [cursor=pointer]:
+              - /url: /vanzare-individuale/judetul-prahova
+          - listitem [ref=e51]:
+            - img [ref=e52]
+            - link "Breaza" [ref=e54] [cursor=pointer]:
+              - /url: /vanzare-individuale/judetul-prahova/breaza
+          - listitem [ref=e55]:
+            - img [ref=e56]
+            - link "4+ cam" [ref=e58] [cursor=pointer]:
+              - /url: /vanzare-individuale/judetul-prahova/breaza/4-camere
+          - listitem [ref=e59]:
+            - img [ref=e60]
+            - generic [ref=e62]: Breaza vila splendida in zona pitoreasca
+      - generic [ref=e63]:
+        - generic [ref=e64]:
+          - generic [ref=e65]:
+            - generic [ref=e66]:
+              - heading "Breaza vila splendida in zona pitoreasca" [level=1] [ref=e67]
+              - paragraph [ref=e68]:
+                - text: Breaza, Județul Prahova
+                - generic [ref=e69]:
+                  - text: "-"
+                  - link "Vezi Hartă" [ref=e70] [cursor=pointer]:
+                    - /url: "#"
+            - generic [ref=e71]:
+              - generic "price" [ref=e74]:
+                - generic [ref=e75]: 138.000 €
+              - paragraph [ref=e77]:
+                - link "Rate de la 3.227 RON/lună € simulează credit" [ref=e78] [cursor=pointer]:
+                  - /url: https://finance.imobiliare.ro/calculator/credite-ipotecare?oferta=X58L01058&user=false&device_type=desktop#calculator
+                  - text: Rate de la 3.227 RON/lună
+                  - generic [ref=e79]: €
+                  - text: simulează credit
+          - generic [ref=e80]:
+            - generic [ref=e81]:
+              - generic [ref=e82]:
+                - generic [ref=e84]:
+                  - generic [ref=e85] [cursor=pointer]:
+                    - img [ref=e86]
+                    - img "Breaza vila splendida in zona pitoreasca" [ref=e87]
+                  - generic:
+                    - generic:
+                      - img
+                      - generic: "24"
+                - generic [ref=e90]:
+                  - generic:
+                    - generic:
+                      - generic:
+                        - img
+                      - generic: "24"
+                  - generic [ref=e92]:
+                    - img "Breaza vila splendida in zona pitoreasca - 1" [ref=e94] [cursor=pointer]
+                    - img "Breaza vila splendida in zona pitoreasca - 2" [ref=e96] [cursor=pointer]
+                    - img "Breaza vila splendida in zona pitoreasca - 3" [ref=e98] [cursor=pointer]
+                    - img "Breaza vila splendida in zona pitoreasca - 4" [ref=e100] [cursor=pointer]
+                    - img "Breaza vila splendida in zona pitoreasca - 5" [ref=e102] [cursor=pointer]
+                    - img "Breaza vila splendida in zona pitoreasca - 6" [ref=e104] [cursor=pointer]
+                    - img "Breaza vila splendida in zona pitoreasca - 7" [ref=e106] [cursor=pointer]
+                    - img "Breaza vila splendida in zona pitoreasca - 8" [ref=e108] [cursor=pointer]
+                    - img "Breaza vila splendida in zona pitoreasca - 9" [ref=e110] [cursor=pointer]
+                    - img "Breaza vila splendida in zona pitoreasca - 10" [ref=e112] [cursor=pointer]
+                    - img "Breaza vila splendida in zona pitoreasca - 11" [ref=e114] [cursor=pointer]
+                    - img "Breaza vila splendida in zona pitoreasca - 12" [ref=e116] [cursor=pointer]
+                    - img "Breaza vila splendida in zona pitoreasca - 13" [ref=e118] [cursor=pointer]
+                    - img "Breaza vila splendida in zona pitoreasca - 14" [ref=e120] [cursor=pointer]
+                    - img "Breaza vila splendida in zona pitoreasca - 15" [ref=e122] [cursor=pointer]
+                    - img "Breaza vila splendida in zona pitoreasca - 16" [ref=e124] [cursor=pointer]
+                    - img "Breaza vila splendida in zona pitoreasca - 17" [ref=e126] [cursor=pointer]
+                    - img "Breaza vila splendida in zona pitoreasca - 18" [ref=e128] [cursor=pointer]
+                    - img "Breaza vila splendida in zona pitoreasca - 19" [ref=e130] [cursor=pointer]
+                    - img "Breaza vila splendida in zona pitoreasca - 20" [ref=e132] [cursor=pointer]
+                    - img "Breaza vila splendida in zona pitoreasca - 21" [ref=e134] [cursor=pointer]
+                    - img "Breaza vila splendida in zona pitoreasca - 22" [ref=e136] [cursor=pointer]
+                    - img "Breaza vila splendida in zona pitoreasca - 23" [ref=e138] [cursor=pointer]
+                    - img "Breaza vila splendida in zona pitoreasca - 24" [ref=e140] [cursor=pointer]
+                - generic [ref=e143]:
+                  - list [ref=e145]:
+                    - listitem [ref=e146]:
+                      - img [ref=e147]
+                      - generic [ref=e149]: Proprietate reprezentată exclusiv
+                  - generic [ref=e151] [cursor=pointer]:
+                    - generic [ref=e153]:
+                      - generic [ref=e154]:
+                        - img [ref=e156]
+                        - generic [ref=e158]: Salvează
+                      - paragraph [ref=e160]: "21"
+                    - generic [ref=e163]:
+                      - img [ref=e164]
+                      - generic [ref=e167]: Ascunde anunț
+              - generic [ref=e168]:
+                - generic [ref=e170]:
+                  - generic [ref=e171]: "Nr. cam.:"
+                  - generic [ref=e172]:
+                    - img [ref=e174]
+                    - generic [ref=e179]: "6"
+                - generic [ref=e181]:
+                  - generic [ref=e182]: "Sup. utilă:"
+                  - generic [ref=e183]:
+                    - img [ref=e185]
+                    - generic [ref=e187]: 226 mp
+                - generic [ref=e189]:
+                  - generic [ref=e190]: "Sup. teren:"
+                  - generic [ref=e191]:
+                    - img [ref=e193]
+                    - generic [ref=e195]: 400 mp
+                - generic [ref=e197]:
+                  - generic [ref=e198]: "Tip prop.:"
+                  - generic [ref=e199]:
+                    - img [ref=e201]
+                    - generic [ref=e203]: Individuală
+              - generic [ref=e204]:
+                - button "Vezi Hartă" [ref=e209] [cursor=pointer]:
+                  - img [ref=e212]
+                  - generic [ref=e214]: Vezi Hartă
+                - generic [ref=e215]:
+                  - heading "Descriere casă" [level=2] [ref=e217]
+                  - generic [ref=e220]: "Breaza casa singur curte foarte bine amplasata, in cea mai pitoreasca pozitie, 218 mp constructie P+1E+M, 400 mp teren, toate utilitatile: apa, gaz, curent. La Parter are: Living, bucatarie, hol, birou. Etaj 3 dormitoare, baie si bucatarie Mansarda- open space locuibila sa agrement. Curte: foisor, pavaj de piatra naturala- frumos amenajata."
+                - generic [ref=e223]:
+                  - generic [ref=e224]: Mobilat
+                  - generic [ref=e225]: Grădină
+                  - generic [ref=e226]: Curte
+                  - generic [ref=e227]: Aer condiționat
+                  - generic [ref=e228]: Calorifere
+                  - generic [ref=e229]: Centrală proprie
+                  - generic [ref=e230]: Beci
+                  - generic [ref=e231]: Renovat
+              - generic [ref=e232]:
+                - heading "Detalii casă" [level=2] [ref=e233]
+                - generic [ref=e234]:
+                  - generic [ref=e235]:
+                    - generic [ref=e236]: "ID anunț:"
+                    - generic [ref=e237] [cursor=pointer]:
+                      - generic [ref=e239]: X58L01058
+                      - img [ref=e240]
+                    - generic [ref=e242] [cursor=pointer]:
+                      - generic [ref=e244]: "275474743"
+                      - img [ref=e245]
+                  - generic [ref=e247]: "Actualizat în: 05 Iunie 2026"
+                - generic [ref=e249]:
+                  - generic [ref=e250]:
+                    - generic [ref=e251]: "Tip tranzacție:"
+                    - generic [ref=e252]: De vânzare prin agent
+                  - generic [ref=e253]:
+                    - generic [ref=e254]: "Suprafață construită:"
+                    - generic [ref=e255]: 88 mp
+                  - generic [ref=e256]:
+                    - generic [ref=e257]: "Suprafață desfășurată:"
+                    - generic [ref=e258]: 248 mp
+                  - generic [ref=e259]:
+                    - generic [ref=e260]: "Nr. bucătării:"
+                    - generic [ref=e261]: "2"
+                  - generic [ref=e262]:
+                    - generic [ref=e263]: "Nr. băi:"
+                    - generic [ref=e264]: "3"
+                  - generic [ref=e265]:
+                    - generic [ref=e266]: "Nr. balcoane / Terase / Logii:"
+                    - generic [ref=e267]: "2"
+                  - generic [ref=e268]:
+                    - generic [ref=e269]: "Nr. terase:"
+                    - generic [ref=e270]: "1"
+                  - generic [ref=e271]:
+                    - generic [ref=e272]: "Suprafață terase:"
+                    - generic [ref=e273]: 40 mp
+                  - generic [ref=e274]:
+                    - generic [ref=e275]: "Nr. fronturi stradale:"
+                    - generic [ref=e276]: "2"
+                  - generic [ref=e277]:
+                    - generic [ref=e278]: "Front stradal:"
+                    - generic [ref=e279]: 26 m
+                  - generic [ref=e280]:
+                    - generic [ref=e281]: "Învelitoare acoperiș:"
+                    - generic [ref=e282]: Tabla
+                  - generic [ref=e283]:
+                    - generic [ref=e284]: "An construcție:"
+                    - generic [ref=e285]: 2010 (Finalizată)
+                  - generic [ref=e286]:
+                    - generic [ref=e287]: "Structură rezistență:"
+                    - generic [ref=e288]: Beton
+                  - generic [ref=e289]:
+                    - generic [ref=e290]: "Regim înălțime:"
+                    - generic [ref=e291]: P+1E+M
+                  - generic [ref=e292]:
+                    - generic [ref=e293]: "Modalitate de plată:"
+                    - generic [ref=e294]: Cash sau Credit
+                  - generic [ref=e295]:
+                    - generic [ref=e296]: "Mobilat:"
+                    - generic [ref=e297]: Nemobilat
+              - generic [ref=e300]:
+                - heading "Utilități" [level=2] [ref=e301]
+                - generic [ref=e302]:
+                  - generic [ref=e304]:
+                    - generic [ref=e305]:
+                      - generic [ref=e306]: Destinație
+                      - generic [ref=e307]:
+                        - generic [ref=e308]: Rezidențial
+                        - generic [ref=e309]: De vacanță
+                    - generic [ref=e310]:
+                      - generic [ref=e311]: Pereți
+                      - generic [ref=e312]:
+                        - generic [ref=e313]: Faianță
+                        - generic [ref=e314]: Vopsea lavabilă
+                  - generic [ref=e316]:
+                    - generic [ref=e317]:
+                      - generic [ref=e318]: Podele
+                      - generic [ref=e319]:
+                        - generic [ref=e320]: Dușumea
+                        - generic [ref=e321]: Gresie
+                        - generic [ref=e322]: Parchet
+                    - generic [ref=e323]:
+                      - generic [ref=e324]: Rulouri/Obloane
+                      - generic [ref=e326]: PVC
+                  - generic [ref=e328]:
+                    - generic [ref=e329]:
+                      - generic [ref=e330]: Ușă intrare
+                      - generic [ref=e332]: Metal
+                    - generic [ref=e333]:
+                      - generic [ref=e334]: Uși interior
+                      - generic [ref=e336]: Lemn
+                  - generic [ref=e338]:
+                    - generic [ref=e339]:
+                      - generic [ref=e340]: Izolații termice
+                      - generic [ref=e342]: Exterior
+                    - generic [ref=e343]:
+                      - generic [ref=e344]: Ferestre cu geam termopan
+                      - generic [ref=e345]:
+                        - generic [ref=e346]: Lemn
+                        - generic [ref=e347]: PVC
+                  - generic [ref=e349]:
+                    - generic [ref=e350]:
+                      - generic [ref=e351]: Contorizare
+                      - generic [ref=e353]: Contor gaz
+                    - generic [ref=e354]:
+                      - generic [ref=e355]: Bucătărie
+                      - generic [ref=e356]:
+                        - generic [ref=e357]: Mobilată
+                        - generic [ref=e358]: Utilată
+                  - generic [ref=e360]:
+                    - generic [ref=e361]:
+                      - generic [ref=e362]: Electrocasnice
+                      - generic [ref=e363]:
+                        - generic [ref=e364]: Fier de călcat
+                        - generic [ref=e365]: Cafetieră
+                        - generic [ref=e366]: Uscător păr
+                        - generic [ref=e367]: Prăjitor pâine
+                        - generic [ref=e368]: Hi-Fi
+                        - generic [ref=e369]: Mașină de spălat
+                        - generic [ref=e370]: Sandwich-maker
+                        - generic [ref=e371]: Frigider
+                        - generic [ref=e372]: Cuptor microunde
+                        - generic [ref=e373]: Aragaz
+                        - generic [ref=e374]: Hotă
+                        - generic [ref=e375]: Aspirator
+                        - generic [ref=e376]: TV
+                    - generic [ref=e377]:
+                      - generic [ref=e378]: Alte spații utile
+                      - generic [ref=e379]:
+                        - generic [ref=e380]: WC Serviciu
+                        - generic [ref=e381]: Dressing
+                        - generic [ref=e382]: Spațiu depozitare
+                        - generic [ref=e383]: Dependințe
+                  - generic [ref=e385]:
+                    - generic [ref=e386]:
+                      - generic [ref=e387]: Facilități imobil
+                      - generic [ref=e389]: Acoperiș
+                    - generic [ref=e390]:
+                      - generic [ref=e391]: Utilități
+                      - generic [ref=e392]:
+                        - generic [ref=e393]: Gaze
+                        - generic [ref=e394]: Telefon
+                        - generic [ref=e395]: Curent
+                        - generic [ref=e396]: Centrală telefonică
+                        - generic [ref=e397]: Curent trifazic
+                        - generic [ref=e398]: Apă
+                  - generic [ref=e400]:
+                    - generic [ref=e401]:
+                      - generic [ref=e402]: Internet
+                      - generic [ref=e404]: Cablu
+                    - generic [ref=e405]:
+                      - generic [ref=e406]: Amenajare străzi
+                      - generic [ref=e407]:
+                        - generic [ref=e408]: Asfaltate
+                        - generic [ref=e409]: Mijloace de transport în comun
+                        - generic [ref=e410]: Iluminat stradal
+              - generic [ref=e412]:
+                - generic [ref=e414]:
+                  - heading "Certificat energetic:" [level=3] [ref=e415]
+                  - generic [ref=e417]:
+                    - generic [ref=e418]: "Clasa energetică:"
+                    - generic [ref=e419]: B
+                - generic [ref=e421]:
+                  - heading "Vecinătăți:" [level=3] [ref=e422]
+                  - paragraph [ref=e423]: Breaza
+              - generic [ref=e424]:
+                - heading "Puncte de interes" [level=2] [ref=e425]
+                - group [ref=e427]:
+                  - generic "Recreere" [ref=e428] [cursor=pointer]:
+                    - generic [ref=e429]: Recreere
+                    - img [ref=e431]
+                  - generic [ref=e433]:
+                    - generic [ref=e434]:
+                      - img "sports-ground" [ref=e436]
+                      - generic [ref=e437]:
+                        - text: Teren sportiv
+                        - generic [ref=e438]:
+                          - generic [ref=e439]: Terenuri sport
+                          - generic [ref=e440]: aprox. 1207 m
+                    - generic [ref=e441]:
+                      - img "sports-ground" [ref=e443]
+                      - generic [ref=e444]:
+                        - text: Teren handbal
+                        - generic [ref=e445]:
+                          - generic [ref=e446]: Terenuri sport
+                          - generic [ref=e447]: aprox. 1794 m
+                  - link "Vezi toate opțiunile" [ref=e449] [cursor=pointer]:
+                    - /url: "#"
+              - generic [ref=e450]:
+                - heading "Istoricul prețurilor" [level=3] [ref=e451]
+                - generic [ref=e452]:
+                  - img [ref=e472]
+                  - generic [ref=e485]:
+                    - generic [ref=e486]:
+                      - img [ref=e487]
+                      - generic [ref=e490]: Acces la informații premium după autentificare
+                    - link "Login Gratuit" [ref=e491] [cursor=pointer]:
+                      - /url: https://www.imobiliare.ro/cont/autentificare?return_url=https%3A%2F%2Fwww.imobiliare.ro%2Foferta%2Fcasa-individuala-de-vanzare-breaza-mobilata-6-camere-275474743%3Fscroll_to%3Dprice-history&scroll_to=price-history&registration_context=13
+                      - img [ref=e492]
+                      - text: Login Gratuit
+            - complementary [ref=e495]:
+              - generic [ref=e497]:
+                - generic [ref=e499]:
+                  - generic [ref=e500]:
+                    - img "EDNA iMOBILIARE" [ref=e505]
+                    - generic [ref=e506]:
+                      - paragraph [ref=e507]:
+                        - text: Elena
+                        - generic [ref=e508]: Broker Imobiliar
+                      - generic [ref=e509]:
+                        - generic [ref=e510]:
+                          - generic [ref=e511]:
+                            - img [ref=e513]
+                            - img [ref=e516]
+                            - img [ref=e519]
+                            - img [ref=e522]
+                            - img [ref=e525]
+                          - generic [ref=e527]:
+                            - img [ref=e529]
+                            - img [ref=e532]
+                            - img [ref=e535]
+                            - generic [ref=e537]:
+                              - img
+                            - generic [ref=e539]:
+                              - img
+                        - generic [ref=e541]: 2.76(6 review-uri)
+                      - paragraph
+                      - link "EDNA iMOBILIARE PRO" [ref=e542] [cursor=pointer]:
+                        - /url: https://www.imobiliare.ro/agentie/edna-imobiliare
+                        - heading "EDNA iMOBILIARE PRO" [level=4] [ref=e543]:
+                          - text: EDNA iMOBILIARE
+                          - generic [ref=e544]: PRO
+                  - generic [ref=e545]:
+                    - button "0724 ... ... Vezi tot numărul" [ref=e546] [cursor=pointer]:
+                      - img [ref=e548]
+                      - generic [ref=e550]:
+                        - generic [ref=e551]: 0724 ... ...
+                        - generic [ref=e555]: Vezi tot numărul
+                    - button "Trimite mesaj" [ref=e557] [cursor=pointer]:
+                      - img [ref=e560]
+                      - generic [ref=e562]: Trimite mesaj
+                    - link "WhatsApp" [ref=e565] [cursor=pointer]:
+                      - /url: javascript:void(0)
+                      - img [ref=e568]
+                      - text: WhatsApp
+                - button [ref=e571] [cursor=pointer]:
+                  - img [ref=e574]
+              - generic [ref=e576]:
+                - navigation [ref=e577]:
+                  - generic [ref=e578]: "Trimite linkul unui prieten pe:"
+                  - generic [ref=e579]:
+                    - link "Whatsapp" [ref=e580] [cursor=pointer]:
+                      - /url: https://wa.me/?text=https%3A%2F%2Fwww.imobiliare.ro%2Foferta%2Fcasa-individuala-de-vanzare-breaza-mobilata-6-camere-275474743%3Futm_source%3Dwhatsapp%26utm_medium%3Dsocial%26utm_campaign%3Dshare-button
+                      - img [ref=e581]
+                      - generic [ref=e583]: Whatsapp
+                    - link "Facebook" [ref=e584] [cursor=pointer]:
+                      - /url: https://www.facebook.com/sharer/sharer.php?u=https%3A%2F%2Fwww.imobiliare.ro%2Foferta%2Fcasa-individuala-de-vanzare-breaza-mobilata-6-camere-275474743%3Futm_source%3Dfacebook%26utm_medium%3Dsocial%26utm_campaign%3Dshare-button
+                      - img [ref=e585]
+                      - generic [ref=e587]: Facebook
+                    - link "Messenger" [ref=e588] [cursor=pointer]:
+                      - /url: https://www.facebook.com/dialog/send?app_id=155649911692809&link=https%3A%2F%2Fwww.imobiliare.ro%2Foferta%2Fcasa-individuala-de-vanzare-breaza-mobilata-6-camere-275474743%3Futm_source%3Dmessenger%26utm_medium%3Dsocial%26utm_campaign%3Dshare-button&redirect_uri=https://www.imobiliare.ro
+                      - img [ref=e589]
+                      - generic [ref=e591]: Messenger
+                    - generic "Copiază în clipboard" [ref=e592] [cursor=pointer]:
+                      - img [ref=e593]
+                      - generic [ref=e595]: Copiază
+                - button "Raportează anunț" [ref=e597] [cursor=pointer]:
+                  - img [ref=e599]
+                  - generic [ref=e601]: Raportează anunț
+                - button "Ascunde anunț" [ref=e603] [cursor=pointer]:
+                  - img [ref=e605]
+                  - generic [ref=e608]: Ascunde anunț
+              - generic [ref=e610]:
+                - generic [ref=e611]: Cum intenționezi să faci achiziția?
+                - generic [ref=e612]:
+                  - button "Credit" [ref=e613] [cursor=pointer]
+                  - button "Cash" [ref=e615] [cursor=pointer]
+              - generic [ref=e619]:
+                - img [ref=e621]
+                - heading "Activează notificările pentru a fi la curent cu cele mai noi anunțuri imobiliare." [level=4] [ref=e624]:
+                  - text: Activează notificările
+                  - generic [ref=e625]: pentru a fi la curent cu cele mai noi anunțuri imobiliare.
+                - button "Activează Notificările" [ref=e626] [cursor=pointer]:
+                  - generic [ref=e627]: Activează Notificările
+        - generic [ref=e634]:
+          - heading "Detalii despre preț și costuri" [level=3] [ref=e635]
+          - generic [ref=e637]:
+            - paragraph [ref=e638]: Costuri cu achiziția
+            - generic [ref=e639]:
+              - generic [ref=e640]:
+                - generic [ref=e641]:
+                  - generic [ref=e642]:
+                    - img [ref=e643]
+                    - generic [ref=e645]: Fără credit
+                  - generic [ref=e646]:
+                    - img [ref=e647]
+                    - generic [ref=e656]: €
+                - generic [ref=e657]:
+                  - generic [ref=e658]:
+                    - img [ref=e659]
+                    - generic [ref=e669]: Credit ipotecar
+                  - generic [ref=e670]:
+                    - img [ref=e671]
+                    - generic [ref=e680]: €
+                - generic [ref=e681]:
+                  - generic [ref=e682]:
+                    - img [ref=e683]
+                    - generic [ref=e686]: Noua casă
+                  - generic [ref=e687]:
+                    - img [ref=e688]
+                    - generic [ref=e697]: €
+              - separator [ref=e698]
+              - generic [ref=e701]:
+                - generic [ref=e702]: i
+                - paragraph [ref=e703]: "Costuri adiționale mai puțin știute la achiziție: taxe notariale, comisioane etc."
+          - generic [ref=e704]:
+            - generic [ref=e705]:
+              - img [ref=e706]
+              - generic [ref=e709]: Acces la informații premium după autentificare
+            - link "Login Gratuit" [ref=e710] [cursor=pointer]:
+              - /url: https://www.imobiliare.ro/cont/autentificare?return_url=https%3A%2F%2Fwww.imobiliare.ro%2Foferta%2Fcasa-individuala-de-vanzare-breaza-mobilata-6-camere-275474743%3Fscroll_to%3Dprice-analytics&scroll_to=price-analytics&registration_context=11
+              - img [ref=e711]
+              - text: Login Gratuit
+        - generic [ref=e717]:
+          - generic [ref=e718]:
+            - generic [ref=e719]:
+              - heading "Calculator Credit Ipotecar" [level=2] [ref=e720]
+              - paragraph [ref=e721]: Cea mai bună ofertă din portofoliul celor 14 bănci partenere
+            - generic [ref=e722]:
+              - generic [ref=e723]: powered by
+              - img [ref=e724]
+          - generic [ref=e726]:
+            - generic [ref=e727]:
+              - generic [ref=e728]:
+                - generic [ref=e729]:
+                  - generic [ref=e730]: Avans (15%)
+                  - generic [ref=e732]:
+                    - button "Scade avansul" [disabled] [ref=e733]:
+                      - generic: −
+                    - generic [ref=e734]: 20.700 €
+                    - button "Crește avansul" [ref=e735] [cursor=pointer]:
+                      - generic: +
+                  - generic [ref=e736]:
+                    - slider "Avans" [ref=e739] [cursor=pointer]: "15"
+                    - generic [ref=e740]:
+                      - generic [ref=e741]: 15%
+                      - generic [ref=e742]: 80%
+                - generic [ref=e743]:
+                  - generic [ref=e744]: Preț Imobil
+                  - generic [ref=e746]:
+                    - button "Scade prețul" [ref=e747] [cursor=pointer]:
+                      - generic: −
+                    - generic [ref=e748]: 138.000 €
+                    - button "Crește prețul" [ref=e749] [cursor=pointer]:
+                      - generic: +
+                  - generic [ref=e750]:
+                    - slider "Preț Imobil" [ref=e754] [cursor=pointer]: "138000"
+                    - generic [ref=e755]:
+                      - generic [ref=e756]: min 5.000 €
+                      - generic [ref=e757]: 1.000.000 €
+                - generic [ref=e758]:
+                  - generic [ref=e759]: Perioadă
+                  - generic [ref=e761]:
+                    - button "Scade perioada" [ref=e762] [cursor=pointer]:
+                      - generic: −
+                    - generic [ref=e763]: 360 luni
+                    - button "Crește perioada" [disabled] [ref=e764]:
+                      - generic: +
+                  - generic [ref=e765]:
+                    - slider "Perioadă" [ref=e769] [cursor=pointer]: "30"
+                    - generic [ref=e770]:
+                      - generic [ref=e771]: 1 An
+                      - generic [ref=e772]: 30 Ani
+              - generic [ref=e773]:
+                - generic [ref=e774]:
+                  - generic [ref=e775]: Rata lunară estimată
+                  - generic [ref=e776]:
+                    - generic [ref=e777]: "3.227"
+                    - generic [ref=e778]: RON
+                - generic [ref=e779]:
+                  - generic [ref=e780]:
+                    - generic [ref=e781]: "Suma creditată:"
+                    - generic [ref=e782]: 117.300 € • 30 ani
+                  - generic [ref=e783]:
+                    - generic [ref=e784]: "Rata dobândă:"
+                    - generic [ref=e785]: 4.79%
+              - generic [ref=e786]:
+                - img [ref=e787]
+                - paragraph [ref=e789]:
+                  - generic [ref=e790]: Primește o ofertă personalizată gratuit!
+              - generic [ref=e791]:
+                - link "Află cât poți obține" [ref=e792] [cursor=pointer]:
+                  - /url: https://finance.imobiliare.ro/calculator/suma-eligibila-credit?oferta=X58L01058&user=false&device_type=desktop#calculator
+                - link "Hai să începem!" [ref=e793] [cursor=pointer]:
+                  - /url: https://finance.imobiliare.ro/calculator/credite-ipotecare?oferta=X58L01058&user=false&device_type=desktop#contact_form_box
+            - generic [ref=e794]:
+              - 'img "Suma creditată: 117.300 €" [ref=e795]':
+                - img [ref=e796]
+                - generic [ref=e800]:
+                  - generic [ref=e801]: RATA LUNARĂ
+                  - generic [ref=e802]:
+                    - generic [ref=e803]: "3.227"
+                    - generic [ref=e804]: RON
+                  - generic [ref=e805]: "DOBÂNDĂ: 4.79%"
+              - generic [ref=e806]:
+                - generic [ref=e807]:
+                  - generic [ref=e808]:
+                    - generic [ref=e809]: AVANS PLĂTIT
+                    - generic [ref=e810]: 20.700 €
+                  - generic [ref=e811]:
+                    - generic [ref=e812]: CREDIT BANCĂ
+                    - generic [ref=e813]: 117.300 €
+                - generic [ref=e814]:
+                  - generic [ref=e815]:
+                    - generic [ref=e816]: TOTAL DOBÂNZI
+                    - generic [ref=e817]: 104.001 €
+                  - generic [ref=e818]:
+                    - generic [ref=e819]: COST TOTAL
+                    - generic [ref=e820]: 221.301 €
+                - generic [ref=e821]:
+                  - generic [ref=e822]:
+                    - img [ref=e823]
+                    - generic [ref=e825]:
+                      - generic [ref=e826]: 5.0 Google
+                      - generic [ref=e827]: 882 Recenzii
+                  - generic [ref=e829]:
+                    - img [ref=e830]
+                    - generic [ref=e832]:
+                      - generic [ref=e833]: 85.000 +
+                      - generic [ref=e834]: Clienți ajutați
+                  - generic [ref=e836]:
+                    - img [ref=e837]
+                    - generic [ref=e839]:
+                      - generic [ref=e840]: GRATUIT
+                      - generic [ref=e841]: OUG 52/2016
+      - generic [ref=e842]:
+        - heading "Detalii de contact" [level=2] [ref=e844]
+        - generic [ref=e845]:
+          - generic [ref=e846]:
+            - img "EDNA iMOBILIARE" [ref=e849]
+            - generic [ref=e850]:
+              - paragraph [ref=e851]:
+                - text: Elena
+                - generic [ref=e852]: Broker Imobiliar
+              - generic [ref=e853]:
+                - generic [ref=e854]:
+                  - generic [ref=e855]:
+                    - img [ref=e857]
+                    - img [ref=e860]
+                    - img [ref=e863]
+                    - img [ref=e866]
+                    - img [ref=e869]
+                  - generic [ref=e871]:
+                    - img [ref=e873]
+                    - img [ref=e876]
+                    - img [ref=e879]
+                    - generic [ref=e881]:
+                      - img
+                    - generic [ref=e883]:
+                      - img
+                - generic [ref=e885]: 2.76(6 review-uri)
+              - link "EDNA iMOBILIARE PRO" [ref=e886] [cursor=pointer]:
+                - /url: https://www.imobiliare.ro/agentie/edna-imobiliare
+                - heading "EDNA iMOBILIARE PRO" [level=4] [ref=e887]:
+                  - text: EDNA iMOBILIARE
+                  - generic [ref=e888]: PRO
+          - generic [ref=e891]:
+            - button "0724 ... ... Vezi tot numărul" [ref=e892] [cursor=pointer]:
+              - img [ref=e894]
+              - generic [ref=e896]:
+                - generic [ref=e897]: 0724 ... ...
+                - generic [ref=e901]: Vezi tot numărul
+            - button "Trimite mesaj" [ref=e903] [cursor=pointer]:
+              - img [ref=e906]
+              - generic [ref=e908]: Trimite mesaj
+            - link "WhatsApp" [ref=e911] [cursor=pointer]:
+              - /url: javascript:void(0)
+              - img [ref=e914]
+              - text: WhatsApp
+      - generic [ref=e919]:
+        - img [ref=e921]
+        - paragraph [ref=e953]: Abonează-te la newsletter să fii primul care primește cele mai noi recomandări de proprietăți și sfaturi de la experți.
+        - generic [ref=e957]:
+          - textbox "email" [ref=e960]:
+            - /placeholder: Completează adresa ta de email
+          - button "Abonează-te!" [ref=e962] [cursor=pointer]:
+            - generic [ref=e963]: Abonează-te!
+      - generic [ref=e965]:
+        - heading "Căutări similare" [level=3] [ref=e966]
+        - list [ref=e967]:
+          - listitem [ref=e968]:
+            - link "Case individuale de vânzare în Breaza" [ref=e969] [cursor=pointer]:
+              - /url: /vanzare-individuale/judetul-prahova/breaza/4-camere
+          - listitem [ref=e970]:
+            - link "Case individuale de vânzare în Ploiești" [ref=e971] [cursor=pointer]:
+              - /url: /vanzare-individuale/judetul-prahova/ploiesti/4-camere
+          - listitem [ref=e972]:
+            - link "Case individuale de vânzare în Bușteni" [ref=e973] [cursor=pointer]:
+              - /url: /vanzare-individuale/judetul-prahova/busteni/4-camere
+          - listitem [ref=e974]:
+            - link "Case individuale de vânzare în Păulești" [ref=e975] [cursor=pointer]:
+              - /url: /vanzare-individuale/judetul-prahova/paulesti/4-camere
+          - listitem [ref=e976]:
+            - link "Case individuale de vânzare în Câmpina" [ref=e977] [cursor=pointer]:
+              - /url: /vanzare-individuale/judetul-prahova/campina/4-camere
+          - listitem [ref=e978]:
+            - link "Case individuale de vânzare în Sinaia" [ref=e979] [cursor=pointer]:
+              - /url: /vanzare-individuale/judetul-prahova/sinaia/4-camere
+          - listitem [ref=e980]:
+            - link "Case individuale de vânzare în Băicoi" [ref=e981] [cursor=pointer]:
+              - /url: /vanzare-individuale/judetul-prahova/baicoi/4-camere
+          - listitem [ref=e982]:
+            - link "Case individuale de vânzare în Azuga" [ref=e983] [cursor=pointer]:
+              - /url: /vanzare-individuale/judetul-prahova/azuga/4-camere
+          - listitem [ref=e984]:
+            - link "Case individuale de vânzare în Strejnicu" [ref=e985] [cursor=pointer]:
+              - /url: /vanzare-individuale/judetul-prahova/strejnicu/4-camere
+          - listitem [ref=e986]:
+            - link "Case individuale de vânzare în Blejoi" [ref=e987] [cursor=pointer]:
+              - /url: /vanzare-individuale/judetul-prahova/blejoi/4-camere
+          - listitem [ref=e988]:
+            - link "Case individuale de vânzare în Cornu de Jos (Cornu)" [ref=e989] [cursor=pointer]:
+              - /url: /vanzare-individuale/judetul-prahova/cornu-de-jos-cornu/4-camere
+          - listitem [ref=e990]:
+            - link "Case individuale de vânzare în Slănic" [ref=e991] [cursor=pointer]:
+              - /url: /vanzare-individuale/judetul-prahova/slanic/4-camere
+      - generic [ref=e994]:
+        - generic [ref=e995]:
+          - heading "GĂSEȘTI CASA CU CARE CHIAR TE POTRIVEȘTI" [level=3] [ref=e996]
+          - list [ref=e997]:
+            - listitem [ref=e998]:
+              - link "Ansambluri rezidențiale" [ref=e999] [cursor=pointer]:
+                - /url: https://www.imobiliare.ro/ansambluri-rezidentiale
+            - listitem [ref=e1000]:
+              - link "Dezvoltatori imobiliari" [ref=e1001] [cursor=pointer]:
+                - /url: https://www.imobiliare.ro/dezvoltatori
+            - listitem [ref=e1002]:
+              - link "Agenții imobiliare" [ref=e1003] [cursor=pointer]:
+                - /url: https://www.imobiliare.ro/agentii
+            - listitem [ref=e1004]:
+              - link "Apartamente și case în executare silită" [ref=e1005] [cursor=pointer]:
+                - /url: https://www.imobiliare.ro/licitatii
+            - listitem [ref=e1006]:
+              - link "Credite ipotecare" [ref=e1007] [cursor=pointer]:
+                - /url: https://finance.imobiliare.ro/calculator/credite-ipotecare?user=false&device_type=desktop
+        - generic [ref=e1008]:
+          - heading "SERVICIILE NOASTRE" [level=3] [ref=e1009]
+          - list [ref=e1010]:
+            - listitem [ref=e1011]:
+              - link "Despre noi" [ref=e1012] [cursor=pointer]:
+                - /url: https://www.imobiliare.ro/despre-noi
+            - listitem [ref=e1013]:
+              - link "Indicele Imobiliare.ro" [ref=e1014] [cursor=pointer]:
+                - /url: https://www.imobiliare.ro/indicele-imobiliare-ro
+            - listitem [ref=e1015]:
+              - link "prețExpert" [ref=e1016] [cursor=pointer]:
+                - /url: https://www.imobiliare.ro/pret-expert
+            - listitem [ref=e1017]:
+              - link "imoExpert" [ref=e1018] [cursor=pointer]:
+                - /url: https://www.imobiliare.ro/imoexpert/
+            - listitem [ref=e1019]:
+              - link "Servicii" [ref=e1020] [cursor=pointer]:
+                - /url: https://www.imobiliare.ro/servicii
+            - listitem [ref=e1021]:
+              - link "Intră în cont Profesioniști" [ref=e1022] [cursor=pointer]:
+                - /url: https://pro.imobiliare.ro/
+        - generic [ref=e1023]:
+          - heading "CONTACT" [level=3] [ref=e1024]
+          - list [ref=e1025]:
+            - listitem [ref=e1026]:
+              - paragraph [ref=e1027]: "Sediul central - Timișoara Bulevardul Victor Babeș nr. 2, 300230, Timișoara, România Tel: +40.374.40.44.98 / Fax: +40.256.401.179 Email: suport@imobiliare.ro Luni - Vineri 08:00 - 20:00 Punct de lucru - București: Iride Business Park, Bld. Dimitrie Pompeiu 9-9A, Clădirea B2B, 020335, Sector 2, București, România"
+      - contentinfo [ref=e1028]:
+        - generic [ref=e1029]:
+          - generic [ref=e1030]:
+            - heading "Urmărește-ne:" [level=3] [ref=e1031]
+            - generic [ref=e1032]:
+              - link [ref=e1033] [cursor=pointer]:
+                - /url: https://www.facebook.com/www.imobiliare.ro/
+                - img [ref=e1035]
+              - link [ref=e1037] [cursor=pointer]:
+                - /url: https://www.youtube.com/channel/UCmj08bU2rAn6nReVy_odHrw
+                - img [ref=e1039]
+              - link [ref=e1041] [cursor=pointer]:
+                - /url: https://www.instagram.com/imobiliare.ro/
+                - img [ref=e1043]
+              - link [ref=e1045] [cursor=pointer]:
+                - /url: https://ro.linkedin.com/company/imobiliarero
+                - img [ref=e1047]
+              - link [ref=e1049] [cursor=pointer]:
+                - /url: https://www.tiktok.com/@imobiliare.ro
+                - img [ref=e1051]
+            - paragraph [ref=e1053]: © Realmedia Network 1999-2026. Toate drepturile rezervate.
+            - paragraph [ref=e1054]: www.imobiliare.ro și sigla www.imobiliare.ro sunt mărci înregistrate.
+          - generic [ref=e1055]:
+            - heading "Ringier România" [level=3] [ref=e1056]
+            - list [ref=e1057]:
+              - listitem [ref=e1058]:
+                - link "Libertatea" [ref=e1059] [cursor=pointer]:
+                  - /url: https://www.libertatea.ro/
+              - listitem [ref=e1060]:
+                - link "eJobs" [ref=e1061] [cursor=pointer]:
+                  - /url: https://www.ejobs.ro/
+              - listitem [ref=e1062]:
+                - link "Gazeta Sporturilor" [ref=e1063] [cursor=pointer]:
+                  - /url: https://www.gsp.ro/
+              - listitem [ref=e1064]:
+                - link "Imoradar24.ro" [ref=e1065] [cursor=pointer]:
+                  - /url: https://www.imoradar24.ro/
+          - generic [ref=e1066]:
+            - heading "Instalează aplicația" [level=3] [ref=e1067]
+            - generic [ref=e1068]:
+              - link "aplicația imobiliare.ro pe Google Play" [ref=e1069] [cursor=pointer]:
+                - /url: https://play.google.com/store/apps/details?id=com.tapptitude.imobiliare
+                - img "aplicația imobiliare.ro pe Google Play" [ref=e1070]
+              - link "aplicația imobiliare.ro pe App Store" [ref=e1071] [cursor=pointer]:
+                - /url: https://itunes.apple.com/ro/app/imobiliare-ro-expertul-t%C4%83u/id918134827?l=ro&mt=8
+                - img "aplicația imobiliare.ro pe App Store" [ref=e1072]
+            - generic [ref=e1073]:
+              - link "Politica de confidențialitate" [ref=e1074] [cursor=pointer]:
+                - /url: https://www.imobiliare.ro/politica-confidentialitate
+              - text: "|"
+              - link "Termeni și condiții" [ref=e1075] [cursor=pointer]:
+                - /url: https://www.imobiliare.ro/termeni-si-conditii#termeni-si-conditii
+              - text: "|"
+              - button "Preferințe cookies" [ref=e1076] [cursor=pointer]
+              - text: "| Raportează conținut ilegal |"
+              - link "Contact DSA" [ref=e1077] [cursor=pointer]:
+                - /url: https://www.imobiliare.ro/punct-contact-dsa
+              - text: "|"
+              - generic [ref=e1078] [cursor=pointer]: Gestionați recomandările personalizate
+              - link "Raport de transparență" [ref=e1079] [cursor=pointer]:
+                - /url: https://www.imobiliare.ro/document/raport_transparenta_imobiliare_ro.pdf
+              - text: "|"
+              - link "Statistici vizitatori" [ref=e1080] [cursor=pointer]:
+                - /url: https://www.imobiliare.ro/document/S1-S2.pdf
+              - text: "|"
+              - link "ANPC" [ref=e1081] [cursor=pointer]:
+                - /url: https://anpc.ro/
+  - generic:
+    - generic: prev next prev next

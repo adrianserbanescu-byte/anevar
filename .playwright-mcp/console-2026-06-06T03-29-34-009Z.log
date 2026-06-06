@@ -1,0 +1,22 @@
+[    2942ms] [LOG] [Cube App Banner Server] {featureEnabled: true, appBannerEnabled: false, appBannerCustom: false, appBannerSmart: false, userAgent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWeb…KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36} @ https://www.imobiliare.ro/oferta/casa-individuala-de-vanzare-breaza-mobilata-6-camere-275474743:9461
+[    2943ms] [ERROR] Failed to find a valid digest in the 'integrity' attribute for resource 'https://static.cloudflareinsights.com/beacon.min.js/v833ccba57c9e4d2798f2e76cebdd09a11778172276447' with computed SHA-512 integrity 'z4PhNX7vuL3xVChQ1m2AB9Yg5AULVxXcg/SpIdNs6c5H0NE8XYXysP+DGNKHfuwvY7kxvUdBeoGlODJ6+SfaPg=='. The resource has been blocked. @ https://www.imobiliare.ro/oferta/casa-individuala-de-vanzare-breaza-mobilata-6-camere-275474743:0
+[    4238ms] [ERROR] Error: <svg> attribute width: Expected length, "auto". @ https://assets.imobiliare.ro/theme/imo/assets/app-BLVtxbnG.js:5
+[    4239ms] [ERROR] Error: <svg> attribute width: Expected length, "auto". @ https://assets.imobiliare.ro/theme/imo/assets/app-BLVtxbnG.js:5
+[    4239ms] [ERROR] Error: <svg> attribute width: Expected length, "auto". @ https://assets.imobiliare.ro/theme/imo/assets/app-BLVtxbnG.js:5
+[    4239ms] [ERROR] Error: <svg> attribute width: Expected length, "auto". @ https://assets.imobiliare.ro/theme/imo/assets/app-BLVtxbnG.js:5
+[    4239ms] [ERROR] Error: <svg> attribute width: Expected length, "auto". @ https://assets.imobiliare.ro/theme/imo/assets/app-BLVtxbnG.js:5
+[    4240ms] [ERROR] Error: <svg> attribute width: Expected length, "auto". @ https://assets.imobiliare.ro/theme/imo/assets/app-BLVtxbnG.js:5
+[    4240ms] [ERROR] Error: <svg> attribute width: Expected length, "auto". @ https://assets.imobiliare.ro/theme/imo/assets/app-BLVtxbnG.js:5
+[    4241ms] [ERROR] Error: <svg> attribute width: Expected length, "auto". @ https://assets.imobiliare.ro/theme/imo/assets/app-BLVtxbnG.js:5
+[    4241ms] [ERROR] Error: <svg> attribute width: Expected length, "auto". @ https://assets.imobiliare.ro/theme/imo/assets/app-BLVtxbnG.js:5
+[    4241ms] [ERROR] Error: <svg> attribute width: Expected length, "auto". @ https://assets.imobiliare.ro/theme/imo/assets/app-BLVtxbnG.js:5
+[    4266ms] [ERROR] Error: <svg> attribute width: Expected length, "auto". @ https://assets.imobiliare.ro/theme/imo/assets/app-BLVtxbnG.js:5
+[    4267ms] [ERROR] Error: <svg> attribute width: Expected length, "auto". @ https://assets.imobiliare.ro/theme/imo/assets/app-BLVtxbnG.js:5
+[    4267ms] [ERROR] Error: <svg> attribute width: Expected length, "auto". @ https://assets.imobiliare.ro/theme/imo/assets/app-BLVtxbnG.js:5
+[    4267ms] [ERROR] Error: <svg> attribute width: Expected length, "auto". @ https://assets.imobiliare.ro/theme/imo/assets/app-BLVtxbnG.js:5
+[    4267ms] [ERROR] Error: <svg> attribute width: Expected length, "auto". @ https://assets.imobiliare.ro/theme/imo/assets/app-BLVtxbnG.js:5
+[    4269ms] [ERROR] Error: <svg> attribute width: Expected length, "auto". @ https://assets.imobiliare.ro/theme/imo/assets/app-BLVtxbnG.js:5
+[    4269ms] [ERROR] Error: <svg> attribute width: Expected length, "auto". @ https://assets.imobiliare.ro/theme/imo/assets/app-BLVtxbnG.js:5
+[    4269ms] [ERROR] Error: <svg> attribute width: Expected length, "auto". @ https://assets.imobiliare.ro/theme/imo/assets/app-BLVtxbnG.js:5
+[    4270ms] [ERROR] Error: <svg> attribute width: Expected length, "auto". @ https://assets.imobiliare.ro/theme/imo/assets/app-BLVtxbnG.js:5
+[    4270ms] [ERROR] Error: <svg> attribute width: Expected length, "auto". @ https://assets.imobiliare.ro/theme/imo/assets/app-BLVtxbnG.js:5

@@ -1,0 +1,550 @@
+- generic [ref=e1]:
+  - generic [ref=e3]:
+    - generic [ref=e5]:
+      - link "Mergi la pagina principală" [ref=e6] [cursor=pointer]:
+        - /url: /
+        - img "Mergi la pagina principală" [ref=e7]
+      - generic [ref=e8]:
+        - generic:
+          - generic [ref=e9]:
+            - img "Închideți navigarea" [ref=e10] [cursor=pointer]
+            - navigation "Navigare principală" [ref=e12]:
+              - list [ref=e13]:
+                - listitem [ref=e14]:
+                  - list [ref=e15]:
+                    - listitem [ref=e16]:
+                      - button "De vânzare" [ref=e17] [cursor=pointer]:
+                        - generic [ref=e18]:
+                          - text: De vânzare
+                          - img [ref=e19]
+                    - listitem [ref=e21]:
+                      - button "De închiriat" [ref=e22] [cursor=pointer]:
+                        - generic [ref=e23]:
+                          - text: De închiriat
+                          - img [ref=e24]
+                    - listitem [ref=e26]:
+                      - button "Ansambluri rezidențiale" [ref=e27] [cursor=pointer]:
+                        - generic [ref=e28]:
+                          - text: Ansambluri rezidențiale
+                          - img [ref=e29]
+                    - listitem [ref=e31]:
+                      - button "Companii" [ref=e32] [cursor=pointer]:
+                        - generic [ref=e33]:
+                          - text: Companii
+                          - img [ref=e34]
+                    - listitem [ref=e36]:
+                      - link "Index Cartiere" [ref=e37] [cursor=pointer]:
+                        - /url: https://trai.storia.ro
+                        - generic [ref=e38]: Index Cartiere
+                - listitem [ref=e39]:
+                  - button "Contul meu" [ref=e41] [cursor=pointer]:
+                    - generic [ref=e42]:
+                      - img [ref=e43]
+                      - generic [ref=e45]: Contul meu
+                - listitem:
+                  - button "Adaugă anunț" [ref=e48] [cursor=pointer]:
+                    - generic [ref=e49]: Adaugă anunț
+          - img "Deschideți navigarea" [ref=e50] [cursor=pointer]
+    - main [ref=e52]:
+      - generic [ref=e54]:
+        - button "Serimob Serimob" [ref=e55] [cursor=pointer]:
+          - generic [ref=e56]:
+            - img "Serimob" [ref=e57]
+            - paragraph [ref=e58]: Serimob
+        - img [ref=e59]
+      - generic [ref=e63]:
+        - generic [ref=e64]:
+          - button "Înapoi" [ref=e65] [cursor=pointer]:
+            - generic [ref=e67]:
+              - img [ref=e68]
+              - text: Înapoi
+          - generic [ref=e70]:
+            - button "Distribuie" [ref=e71] [cursor=pointer]:
+              - generic [ref=e72]:
+                - img [ref=e74]
+                - generic [ref=e76]: Distribuie
+            - button "Adauga la favorite" [ref=e77] [cursor=pointer]:
+              - img [ref=e79]
+              - generic [ref=e81]: Salvează
+        - generic [ref=e83]:
+          - 'button "Casa de vacanta Breaza / 980 mp teren / view superb/ investiție - Imagine principală: 1/20" [ref=e84] [cursor=pointer]':
+            - 'img "Casa de vacanta Breaza / 980 mp teren / view superb/ investiție - Imagine principală: 1/20" [ref=e86]'
+          - 'button "Casa de vacanta Breaza / 980 mp teren / view superb/ investiție - Imagine principală: 2/20" [ref=e87] [cursor=pointer]':
+            - 'img "Casa de vacanta Breaza / 980 mp teren / view superb/ investiție - Imagine principală: 2/20" [ref=e89]'
+          - 'button "Casa de vacanta Breaza / 980 mp teren / view superb/ investiție - Imagine principală: 3/20" [ref=e90] [cursor=pointer]':
+            - 'img "Casa de vacanta Breaza / 980 mp teren / view superb/ investiție - Imagine principală: 3/20" [ref=e92]'
+          - 'button "Casa de vacanta Breaza / 980 mp teren / view superb/ investiție - Imagine principală: 4/20" [ref=e93] [cursor=pointer]':
+            - 'img "Casa de vacanta Breaza / 980 mp teren / view superb/ investiție - Imagine principală: 4/20" [ref=e95]'
+          - 'button "Casa de vacanta Breaza / 980 mp teren / view superb/ investiție - Imagine principală: 5/20 Toate imaginile (20)" [ref=e96] [cursor=pointer]':
+            - 'img "Casa de vacanta Breaza / 980 mp teren / view superb/ investiție - Imagine principală: 5/20" [ref=e98]'
+            - generic [ref=e99]: Toate imaginile (20)
+          - list [ref=e102]:
+            - listitem [ref=e103]:
+              - button "Solicită releveul" [ref=e104]:
+                - generic [ref=e105]:
+                  - img [ref=e107]
+                  - text: Solicită releveul
+      - generic [ref=e109]:
+        - generic [ref=e110]:
+          - generic [ref=e111]:
+            - heading "Casa de vacanta Breaza / 980 mp teren / view superb/ investiție" [level=1] [ref=e112]
+            - generic [ref=e113]:
+              - strong [ref=e115]: 239 000 €
+              - generic "Prețul pe metru pătrat" [ref=e117]: 937 €/m²
+            - link "Breaza, Prahova" [ref=e120] [cursor=pointer]:
+              - /url: "#map"
+              - img [ref=e121]
+              - text: Breaza, Prahova
+          - generic [ref=e124]:
+            - heading "Case de vânzare" [level=2] [ref=e125]
+            - generic [ref=e126]:
+              - generic [ref=e127]:
+                - generic [ref=e128]: "Suprafață utilă:"
+                - generic [ref=e129]: 255 m²
+              - generic [ref=e132]:
+                - generic [ref=e133]: "Numărul de camere:"
+                - generic [ref=e134]: "5"
+              - generic [ref=e137]:
+                - generic [ref=e138]: "Tip clădire:"
+                - generic [ref=e139]: singur in curte
+              - generic [ref=e142]:
+                - generic [ref=e143]: "Stare:"
+                - generic [ref=e144]: gata de utilizare
+              - generic [ref=e147]:
+                - generic [ref=e148]: "Tip proprietate:"
+                - generic [ref=e149]: locuință utilizată
+              - generic [ref=e152]:
+                - generic [ref=e153]: "Liber de la:"
+                - generic [ref=e154]: fără informații
+              - generic [ref=e157]:
+                - generic [ref=e158]: "Tip vânzător:"
+                - generic [ref=e159]: agenție
+              - generic [ref=e162]:
+                - generic [ref=e163]: "Chirie:"
+                - generic [ref=e164]: fără informații
+              - generic [ref=e167]:
+                - generic [ref=e168]: "Tip încălzire:"
+                - generic [ref=e169]:
+                  - generic [ref=e170]:
+                    - img [ref=e171]
+                    - text: centrală pe gaz
+                  - generic [ref=e174]:
+                    - img [ref=e175]
+                    - text: semineu
+              - generic [ref=e180]:
+                - generic [ref=e181]: "Informații suplimentare:"
+                - generic [ref=e182]: beci
+            - generic [ref=e183]:
+              - button "Detaliile clădirii" [ref=e184] [cursor=pointer]:
+                - generic [ref=e185]:
+                  - paragraph [ref=e186]: Detaliile clădirii
+                  - img [ref=e188]
+              - button "Parcelă și împrejurimi" [ref=e190] [cursor=pointer]:
+                - generic [ref=e191]:
+                  - paragraph [ref=e192]: Parcelă și împrejurimi
+                  - img [ref=e194]
+          - generic [ref=e196]:
+            - heading "Descriere" [level=2] [ref=e197]
+            - generic [ref=e199]:
+              - paragraph [ref=e200]: Vă propunem spre vânzare o proprietate rară situată în Breaza, într-o zonă liniștită, cu priveliște panoramică spectaculoasă asupra munților, dealurilor și orașului — ideală atât pentru locuință permanentă, cât și pentru investiție în turism.
+              - paragraph [ref=e201]: Construită în anul 2014 pentru uz personal, casa este realizată din buștean rotund calibrat și uscat, cu materiale de calitate și atenție la detalii, oferind un ambient cald, autentic și confortabil.
+              - paragraph [ref=e202]: "Caracteristici principale:"
+              - paragraph [ref=e203]: "Suprafață construită: 255 mp"
+              - paragraph [ref=e204]: "Suprafață teren: 980 mp"
+              - paragraph [ref=e205]: "Regim de înălțime: Parter + Etaj"
+              - paragraph [ref=e206]: Acces direct din drum asfaltat
+              - paragraph [ref=e207]: "Compartimentare:"
+              - paragraph [ref=e208]: "Parter:"
+              - paragraph [ref=e209]: living generos cu șemineu și ieșire directă pe terasă
+              - paragraph [ref=e210]: bucătărie open-space
+              - paragraph [ref=e211]: 2 dormitoare
+              - paragraph [ref=e212]: baie
+              - paragraph [ref=e213]: cameră tehnică
+              - paragraph [ref=e214]: cămară
+              - paragraph [ref=e215]: "Etaj:"
+              - paragraph [ref=e216]: 2 dormitoare
+              - paragraph [ref=e217]: baie
+              - paragraph [ref=e218]: balcon cu vedere către munți
+              - paragraph [ref=e219]: "Exterior și facilități:"
+              - paragraph [ref=e220]: Terasă acoperită, ideală pentru relaxare în orice sezon,
+              - paragraph [ref=e221]: beci situat sub terasă.
+              - paragraph [ref=e222]: Terasă deschisă cu acces direct din living,balcon cu vedere panoramică
+              - paragraph [ref=e223]: curte amenajată cu piatră naturală de râu , magazie separată, spațiu verde generos, intimitate și liniște!
+              - paragraph [ref=e224]: "Construcție și dotări:"
+              - paragraph [ref=e225]: Structură din buștean rotund calibrat,
+              - paragraph [ref=e226]: fundație solidă din beton,
+              - paragraph [ref=e227]: parchet masiv (3 cm),
+              - paragraph [ref=e228]: tâmplărie din lemn stratificat,
+              - paragraph [ref=e229]: acoperiș din țiglă ceramică + paratrăsnet,
+              - paragraph [ref=e230]: centrală termică pe gaz,
+              - paragraph [ref=e231]: puț propriu de apă.
+              - paragraph [ref=e232]: "Localizare excelentă:"
+              - paragraph [ref=e233]: Zonă aerisită, fără aglomerație
+              - paragraph [ref=e234]: priveliște panoramică asupra orașului si a dealurilor / munților din zonă,
+              - paragraph [ref=e235]: acces rapid către facilități,
+              - paragraph [ref=e236]: Lidl si centrul orașului la doar 5 minute
+              - paragraph [ref=e237]: "Preț: 259.000 € (negociabil)"
+              - paragraph [ref=e238]: "Pret redus : 239000 euro"
+              - paragraph [ref=e239]: "Comision agenție: 2%"
+              - paragraph [ref=e240]: "Recomandare:"
+              - paragraph [ref=e241]: "Această proprietate rară se pretează excelent pentru:"
+              - paragraph [ref=e242]: locuință permanentă
+              - paragraph [ref=e243]: casă de vacanță
+              - paragraph [ref=e244]: investiție în regim hotelier (Airbnb), datorită poziției, accesului și priveliștii
+              - paragraph [ref=e245]: Pentru mai multe detalii și programarea unei vizionări, vă stăm la dispoziție.
+            - button "Mai mult" [ref=e246]:
+              - generic [ref=e247]:
+                - text: Mai mult
+                - img [ref=e249]
+            - generic [ref=e254]:
+              - paragraph [ref=e256]: "ID: 10255263"
+              - button "Raportează" [ref=e257]:
+                - generic [ref=e258]:
+                  - text: Raportează
+                  - img [ref=e260]
+          - generic [ref=e262]:
+            - generic [ref=e263]:
+              - img [ref=e264]
+              - generic [ref=e267]:
+                - paragraph [ref=e268]: Vrei să primești notificări cu anunțuri similare?
+                - paragraph [ref=e269]: Activează alertele și nu pierde nicio ofertă
+            - button "Vreau notificări despre anunțuri similare" [ref=e270]:
+              - generic [ref=e271]: Vreau notificări despre anunțuri similare
+          - generic [ref=e272]:
+            - heading "Istoric și statistici" [level=2] [ref=e273]
+            - paragraph [ref=e274]: "Ultima actualizare: 5.06.2026"
+            - table [ref=e275]:
+              - rowgroup [ref=e276]:
+                - row "Dată Modificare Preț" [ref=e277]:
+                  - columnheader "Dată" [ref=e278]:
+                    - paragraph [ref=e280]: Dată
+                  - columnheader "Modificare" [ref=e281]:
+                    - paragraph [ref=e283]: Modificare
+                  - columnheader "Preț" [ref=e284]:
+                    - paragraph [ref=e286]: Preț
+              - rowgroup [ref=e287]:
+                - row "XXXXXXXX XXXXXXXX XXXXXXXX" [ref=e288]:
+                  - cell "XXXXXXXX" [ref=e289]:
+                    - generic [ref=e292] [cursor=pointer]: XXXXXXXX
+                  - cell "XXXXXXXX" [ref=e293]:
+                    - generic [ref=e296] [cursor=pointer]: XXXXXXXX
+                  - cell "XXXXXXXX" [ref=e297]:
+                    - generic [ref=e300] [cursor=pointer]: XXXXXXXX
+                - row "XXXXXXXX XXXXXXXX XXXXXXXX" [ref=e301]:
+                  - cell "XXXXXXXX" [ref=e302]:
+                    - generic [ref=e305] [cursor=pointer]: XXXXXXXX
+                  - cell "XXXXXXXX" [ref=e306]:
+                    - generic [ref=e309] [cursor=pointer]: XXXXXXXX
+                  - cell "XXXXXXXX" [ref=e310]:
+                    - generic [ref=e313] [cursor=pointer]: XXXXXXXX
+            - generic [ref=e314]:
+              - generic [ref=e315]:
+                - img [ref=e316]
+                - generic [ref=e319]:
+                  - generic [ref=e320]: XX
+                  - text: vizualizări
+              - generic [ref=e322]:
+                - img [ref=e323]
+                - generic [ref=e325]:
+                  - generic [ref=e326]: XX
+                  - text: salvări
+            - paragraph [ref=e327]: Conectează-te sau creează un cont pentru a accesa istoricul complet al anunțurilor, inclusiv modificările de preț
+            - button "Autentifică-te și verifică detaliile" [ref=e329]:
+              - generic [ref=e330]: Autentifică-te și verifică detaliile
+          - generic [ref=e331]:
+            - heading "Harta" [level=2] [ref=e332]
+            - generic [ref=e333]:
+              - img [ref=e334]
+              - text: Breaza, Prahova
+            - generic [ref=e338]: ‌
+          - generic [ref=e339]:
+            - heading "Despre agenție" [level=4] [ref=e340]
+            - generic [ref=e341]:
+              - 'link "Siglă: Serimob" [ref=e342] [cursor=pointer]':
+                - /url: /ro/companii/agentii/serimob-ID4248944
+                - 'img "Siglă: Serimob" [ref=e343]'
+              - generic [ref=e344]:
+                - strong [ref=e346]: Serimob
+                - generic "Tipul agenției" [ref=e348]: Agenție imobiliară
+                - generic [ref=e349]:
+                  - button "Afișează numărul" [ref=e350] [cursor=pointer]:
+                    - img [ref=e352]
+                    - generic [ref=e354]: Afișează numărul
+                  - button "Afișează numărul" [ref=e355] [cursor=pointer]:
+                    - img [ref=e357]
+                    - generic [ref=e359]: Afișează numărul
+                - generic "Adresa agenției" [ref=e360]: Ghiosesti nr 110, Comarnic, Prahova
+            - button "Verifică portofoliul" [ref=e362]:
+              - generic [ref=e363]: Verifică portofoliul
+        - generic [ref=e368]:
+          - generic [ref=e369]:
+            - img [ref=e372]
+            - generic [ref=e374]:
+              - paragraph [ref=e375]: Oancea Sergiu
+              - link "Serimob" [ref=e376] [cursor=pointer]:
+                - /url: /ro/companii/agentii/serimob-ID4248944
+              - generic [ref=e377]:
+                - button "Afișează numărul" [ref=e378] [cursor=pointer]:
+                  - img [ref=e380]
+                  - generic [ref=e382]: Afișează numărul
+                - button "Afișează numărul" [ref=e383] [cursor=pointer]:
+                  - img [ref=e385]
+                  - generic [ref=e387]: Afișează numărul
+          - generic [ref=e388]:
+            - generic [ref=e389]: Nume*
+            - textbox "Nume*" [ref=e393]:
+              - /placeholder: Nume
+            - generic [ref=e394]: E-mail*
+            - textbox "E-mail*" [ref=e398]:
+              - /placeholder: Email
+            - generic [ref=e399]: Număr de telefon*
+            - generic [ref=e400]:
+              - textbox "+" [ref=e404]: "+40"
+              - textbox "Număr de telefon*" [ref=e408]:
+                - /placeholder: Număr de telefon
+            - generic [ref=e411]: Mesajul tău*
+            - textbox "Mesajul tău*" [ref=e415]:
+              - /placeholder: Scrie mesajul tău…
+              - text: M-aș bucura să aflu mai multe despre oferta dumneavoastră imobiliară.
+            - button "Autorul anunțului va primi datele tale pentru a permite comunicarea. Administratorul acestor date este S.C. OLX Online Services S.R.L. (Storia) mai mult" [ref=e417] [cursor=pointer]:
+              - generic [ref=e418]: Autorul anunțului va primi datele tale pentru a permite comunicarea.
+              - text: Administratorul acestor date este S.C. OLX Online Services S.R.L. (Storia) mai mult
+            - button "Trimite mesajul" [ref=e419]:
+              - generic [ref=e420]: Trimite mesajul
+      - generic [ref=e422]:
+        - generic [ref=e423]:
+          - generic [ref=e424]:
+            - heading "Anunțuri similare" [level=2] [ref=e425]
+            - button "Anunțuri similare" [ref=e426]:
+              - img [ref=e427]
+          - generic [ref=e430]:
+            - link "Casă premium din buștean + teren – 980 mp - pret redus 239.000 EUR Breaza, Prahova 5 camere 255 m² 937 €/m²" [ref=e432] [cursor=pointer]:
+              - /url: /ro/oferta/cas-premium-din-butean-teren-980-mp-pret-redus-IDG9vX
+              - img "Casă premium din buștean + teren – 980 mp - pret redus" [ref=e434]
+              - generic [ref=e435]:
+                - heading "239.000 EUR" [level=2] [ref=e437]
+                - paragraph [ref=e438]: Breaza, Prahova
+                - generic [ref=e439]:
+                  - paragraph [ref=e441]: 5 camere
+                  - paragraph [ref=e443]: 255 m²
+                  - paragraph [ref=e445]: 937 €/m²
+            - link "CASA DE VACANTA//ZONA BREAZA//OCINA DE JOS 150.000 EUR Breaza, Prahova 5 camere 170 m² 882 €/m²" [ref=e447] [cursor=pointer]:
+              - /url: /ro/oferta/casa-de-vacanta-zona-breaza-ocina-de-jos-IDGKm7
+              - img "CASA DE VACANTA//ZONA BREAZA//OCINA DE JOS" [ref=e449]
+              - generic [ref=e450]:
+                - heading "150.000 EUR" [level=2] [ref=e452]
+                - paragraph [ref=e453]: Breaza, Prahova
+                - generic [ref=e454]:
+                  - paragraph [ref=e456]: 5 camere
+                  - paragraph [ref=e458]: 170 m²
+                  - paragraph [ref=e460]: 882 €/m²
+            - link "Casa de vacanta cocheta in Cornu renovata 2023! 215.000 EUR Strada Lacului, Cornu De Jos, Cornu, Prahova 5 camere 130 m² 1 654 €/m²" [ref=e462] [cursor=pointer]:
+              - /url: /ro/oferta/casa-de-vacanta-cocheta-in-cornu-renovata-2023-IDG38e
+              - img "Casa de vacanta cocheta in Cornu renovata 2023!" [ref=e464]
+              - generic [ref=e465]:
+                - heading "215.000 EUR" [level=2] [ref=e467]
+                - paragraph [ref=e468]: Strada Lacului, Cornu De Jos, Cornu, Prahova
+                - generic [ref=e469]:
+                  - paragraph [ref=e471]: 5 camere
+                  - paragraph [ref=e473]: 130 m²
+                  - paragraph [ref=e475]: 1 654 €/m²
+            - link "Vila de vanzare, Breaza Prahova 185.000 EUR Breaza, Prahova 7 camere 279 m² 663 €/m²" [ref=e477] [cursor=pointer]:
+              - /url: /ro/oferta/vila-de-vanzare-breaza-prahova-IDBxt6
+              - img "Vila de vanzare, Breaza Prahova" [ref=e479]
+              - generic [ref=e480]:
+                - heading "185.000 EUR" [level=2] [ref=e482]
+                - paragraph [ref=e483]: Breaza, Prahova
+                - generic [ref=e484]:
+                  - paragraph [ref=e486]: 7 camere
+                  - paragraph [ref=e488]: 279 m²
+                  - paragraph [ref=e490]: 663 €/m²
+        - region "Mai multe anunțuri de la Serimob" [ref=e491]:
+          - heading "Mai multe anunțuri de la Serimob" [level=2] [ref=e493]
+          - generic [ref=e494]:
+            - link "Teren intravilan talea /breaza - view superb 195.000 EUR Talea, Talea, Prahova 13000 m² 15 €/m²" [ref=e496] [cursor=pointer]:
+              - /url: /ro/oferta/teren-intravilan-talea-breaza-view-superb-IDHu97
+              - img "Teren intravilan talea /breaza - view superb" [ref=e498]
+              - generic [ref=e499]:
+                - heading "195.000 EUR" [level=2] [ref=e501]
+                - paragraph [ref=e502]: Talea, Talea, Prahova
+                - generic [ref=e503]:
+                  - paragraph [ref=e505]: 13000 m²
+                  - paragraph [ref=e507]: 15 €/m²
+            - link "Teren intravilan Comarnic cartier poiana 43.000 EUR Comarnic, Prahova 3186 m² 13 €/m²" [ref=e509] [cursor=pointer]:
+              - /url: /ro/oferta/teren-intravilan-comarnic-cartier-poiana-IDHoyr
+              - img "Teren intravilan Comarnic cartier poiana" [ref=e511]
+              - generic [ref=e512]:
+                - heading "43.000 EUR" [level=2] [ref=e514]
+                - paragraph [ref=e515]: Comarnic, Prahova
+                - generic [ref=e516]:
+                  - paragraph [ref=e518]: 3186 m²
+                  - paragraph [ref=e520]: 13 €/m²
+            - link "Casa Comarnic + 1000 mp teren /garaj pret redus 185.000 EUR Comarnic, Prahova 3 camere 155 m² 1 194 €/m²" [ref=e522] [cursor=pointer]:
+              - /url: /ro/oferta/casa-comarnic-1000-mp-teren-garaj-pret-redus-IDH1Te
+              - img "Casa Comarnic + 1000 mp teren /garaj pret redus" [ref=e524]
+              - generic [ref=e525]:
+                - heading "185.000 EUR" [level=2] [ref=e527]
+                - paragraph [ref=e528]: Comarnic, Prahova
+                - generic [ref=e529]:
+                  - paragraph [ref=e531]: 3 camere
+                  - paragraph [ref=e533]: 155 m²
+                  - paragraph [ref=e535]: 1 194 €/m²
+            - link "Teren 5000mp intravilan/cartier ghiosesti lângă pădure 155.000 EUR Comarnic, Prahova 5000 m² 31 €/m²" [ref=e537] [cursor=pointer]:
+              - /url: /ro/oferta/teren-5000mp-intravilan-cartier-ghiosesti-lng-pdure-IDEg5p
+              - img "Teren 5000mp intravilan/cartier ghiosesti lângă pădure" [ref=e539]
+              - generic [ref=e540]:
+                - heading "155.000 EUR" [level=2] [ref=e542]
+                - paragraph [ref=e543]: Comarnic, Prahova
+                - generic [ref=e544]:
+                  - paragraph [ref=e546]: 5000 m²
+                  - paragraph [ref=e548]: 31 €/m²
+        - generic [ref=e550]:
+          - link "Case de vânzare" [ref=e551] [cursor=pointer]:
+            - /url: /ro/rezultate/vanzare/casa/toata-romania
+          - img [ref=e552]
+          - link "5 camere" [ref=e554] [cursor=pointer]:
+            - /url: /ro/rezultate/vanzare/casa,5-camere/toata-romania
+          - img [ref=e555]
+          - link "Prahova" [ref=e557] [cursor=pointer]:
+            - /url: /ro/rezultate/vanzare/casa,5-camere/prahova
+          - img [ref=e558]
+          - link "Breaza" [ref=e560] [cursor=pointer]:
+            - /url: /ro/rezultate/vanzare/casa,5-camere/prahova/breaza
+          - img [ref=e561]
+          - generic [ref=e563]: Casa de vacanta Breaza / 980 mp teren / view superb/ investiție
+    - contentinfo [ref=e564]:
+      - generic [ref=e568]:
+        - img "Storia" [ref=e569]
+        - list [ref=e570]:
+          - listitem [ref=e571]:
+            - paragraph [ref=e572]: DESPRE STORIA
+            - list [ref=e573]:
+              - listitem [ref=e574]:
+                - link "Despre noi" [ref=e575] [cursor=pointer]:
+                  - /url: /ro/info
+              - listitem [ref=e576]:
+                - link "Prețuri" [ref=e577] [cursor=pointer]:
+                  - /url: /ro/preturi
+              - listitem [ref=e578]:
+                - link "Cariere" [ref=e579] [cursor=pointer]:
+                  - /url: https://www.olxgroup.com/
+              - listitem [ref=e580]:
+                - link "Informații juridice" [ref=e581] [cursor=pointer]:
+                  - /url: https://help.storia.ro/storiahelp/s/topic/0TO090000009twJGAQ/informa%C8%9Bii-juridice
+          - listitem [ref=e582]:
+            - paragraph [ref=e583]: Pentru experții în imobiliare
+            - list [ref=e584]:
+              - listitem [ref=e585]:
+                - link "Publicitate" [ref=e586] [cursor=pointer]:
+                  - /url: https://publicitate.olx.ro/
+              - listitem [ref=e587]:
+                - link "Ghid vânzare" [ref=e588] [cursor=pointer]:
+                  - /url: "/blog/ghid-vanzare "
+          - listitem [ref=e589]:
+            - paragraph [ref=e590]: Instrumente utile
+            - list [ref=e591]:
+              - listitem [ref=e592]:
+                - link "Index cartiere" [ref=e593] [cursor=pointer]:
+                  - /url: https://trai.storia.ro/
+              - listitem [ref=e594]:
+                - link "Articole despre imobiliare" [ref=e595] [cursor=pointer]:
+                  - /url: /blog/
+          - listitem [ref=e596]:
+            - paragraph [ref=e597]: PLATFORME
+            - list [ref=e598]:
+              - listitem [ref=e599]:
+                - link "OLX.ro" [ref=e600] [cursor=pointer]:
+                  - /url: https://www.olx.ro/
+              - listitem [ref=e601]:
+                - link "Autovit.ro" [ref=e602] [cursor=pointer]:
+                  - /url: https://www.autovit.ro/
+              - listitem [ref=e603]:
+                - link "Otodom.pl" [ref=e604] [cursor=pointer]:
+                  - /url: https://otodom.pl/
+              - listitem [ref=e605]:
+                - link "Imovirtual.com" [ref=e606] [cursor=pointer]:
+                  - /url: https://imovirtual.com/
+          - listitem [ref=e607]:
+            - paragraph [ref=e608]: Hartă site
+            - list [ref=e609]:
+              - listitem [ref=e610]:
+                - link "Hartă site" [ref=e611] [cursor=pointer]:
+                  - /url: /ro/harta-site
+              - listitem [ref=e612]:
+                - link "Localități" [ref=e613] [cursor=pointer]:
+                  - /url: /ro/harta-site/regiuni/apartament
+          - listitem [ref=e614]:
+            - paragraph [ref=e615]: Contact
+            - list [ref=e616]:
+              - listitem [ref=e617]:
+                - link "Asistență" [ref=e618] [cursor=pointer]:
+                  - /url: https://help.storia.ro/storiahelp/s/contactsupport
+              - listitem [ref=e619]:
+                - link "Ajutor" [ref=e620] [cursor=pointer]:
+                  - /url: https://help.storia.ro/
+              - listitem [ref=e621]:
+                - link "DSA" [ref=e622] [cursor=pointer]:
+                  - /url: https://help.storia.ro/storiahelp/s/topic/0TO09000000kiXCGAY/digital-services-act-dsa
+      - generic [ref=e624]:
+        - generic [ref=e625]:
+          - paragraph [ref=e626]: "URMĂREȘTE-NE PE:"
+          - list [ref=e627]:
+            - listitem [ref=e628]:
+              - link "Facebook" [ref=e629] [cursor=pointer]:
+                - /url: https://www.facebook.com/storia.ro
+            - listitem [ref=e630]:
+              - link "Youtube" [ref=e631] [cursor=pointer]:
+                - /url: https://www.youtube.com/c/Storiaro
+            - listitem [ref=e632]:
+              - link "Instagram" [ref=e633] [cursor=pointer]:
+                - /url: https://www.instagram.com/storia_ro/
+            - listitem [ref=e634]:
+              - link "Tiktok" [ref=e635] [cursor=pointer]:
+                - /url: https://www.tiktok.com/@storia_ro
+            - listitem [ref=e636]:
+              - link "Linkedin" [ref=e637] [cursor=pointer]:
+                - /url: https://www.linkedin.com/company/79635350
+        - generic [ref=e638]:
+          - paragraph [ref=e639]: "Aplicații mobile:"
+          - list [ref=e640]:
+            - listitem [ref=e641]:
+              - link "AppStore" [ref=e642] [cursor=pointer]:
+                - /url: https://apps.apple.com/app/storia/id6475397416
+                - img "AppStore" [ref=e643]
+            - listitem [ref=e644]:
+              - link "Google Play" [ref=e645] [cursor=pointer]:
+                - /url: https://play.google.com/store/apps/details?id=com.olx.realestate.app.storia&referrer=utm_source%3Dstoria.ro%26utm_medium%3Dcpc%26utm_campaign%3Dandroid-app-footer
+                - img "Google Play" [ref=e646]
+      - generic [ref=e648]:
+        - paragraph [ref=e649]: © 2026 Storia, Grupul OLX
+        - list [ref=e650]:
+          - listitem [ref=e651]:
+            - link "Condiții de utilizare" [ref=e652] [cursor=pointer]:
+              - /url: https://help.storia.ro/storiahelp/s/topic/0TO09000000kiXAGAY/
+          - listitem [ref=e653]:
+            - link "Politica de confidențialitate" [ref=e654] [cursor=pointer]:
+              - /url: https://help.storia.ro/storiahelp/s/article/kA009000001vPDgCAM
+          - listitem [ref=e655]:
+            - button "Setări cookies" [ref=e656] [cursor=pointer]
+  - alert [ref=e657]
+  - dialog "Nouă ne pasă ca datele tale personale să rămână confidențiale" [ref=e660]:
+    - generic [ref=e662]:
+      - generic [ref=e664]:
+        - heading "Nouă ne pasă ca datele tale personale să rămână confidențiale" [level=2] [ref=e665]
+        - generic [ref=e666]:
+          - text: Noi și partenerii noștri 438 stocăm și/sau accesăm informații pe dispozitivul dvs., precum identificatorii cookie unici pentru prelucrarea datelor cu caracter personal. Puteți accepta sau gestiona alegerile dvs. făcând clic mai jos sau în orice moment, pe pagina cu politica de confidențialitate. Aceste alegeri vor fi raportate partenerilor noștri și nu vă vor afecta navigarea.
+          - link "Mai multe informații despre confidențialitatea datelor dvs., se deschide într-o fereastră nouă" [ref=e667] [cursor=pointer]:
+            - /url: https://help.storia.ro/storiahelp/s/article/politica-privind-utilizarea-cookies-V0STO
+            - text: Politica privind utilizarea cookies
+        - generic [ref=e668]:
+          - heading "Atât noi, cât și partenerii noștri prelucrăm datele pentru a oferi:" [level=3] [ref=e669]
+          - paragraph [ref=e671]:
+            - text: Utilizarea unor date precise de geolocație . Scanarea activă a caracteristicilor dispozitivului pentru identificare. Stocarea și/sau accesarea informațiilor de pe un dispozitiv. Măsurarea performanței reclamelor . Înțelegerea publicului prin statistici sau combinații de date din surse diferite . Dezvoltarea și îmbunătățirea serviciilor. Crearea profilurilor pentru publicitate personalizată . Crearea profilurilor de conținut personalizat. Utilizarea de date limitate pentru a selecta publicitatea. Măsurarea performanței conținutului. Utilizarea datelor limitate pentru a selecta conținutul . Utilizarea profilurilor pentru selectarea publicității personalizate . Utilizarea profilurilor pentru selectarea conținutului personalizat.
+            - button "Listă parteneri (furnizori)" [ref=e672] [cursor=pointer]
+      - generic [ref=e674]:
+        - button "Accept" [ref=e675] [cursor=pointer]
+        - button "Vizualizați scopuri, Deschide dialogul din centrul preferințelor" [ref=e676] [cursor=pointer]: Vizualizați scopuri
+  - iframe [ref=e679]:
+    - generic [ref=f8e6]:
+      - text: protected by
+      - strong [ref=f8e7]: reCAPTCHA

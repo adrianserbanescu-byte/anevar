@@ -109,6 +109,19 @@ def test_sterge_dosar(client):
     assert client.get(f"/api/dosar/{uid}").status_code == 404
 
 
+def test_scoate_dosar_disparut_din_index(client):
+    import shutil
+
+    from evaluare import dosare_fs as fs
+    _cont(client)
+    uid = client.post("/api/dosar", json={"wizard": {"nume_client": "X"}}).json()["uuid"]
+    client.get("/incepe")                                  # intră în index „ultima vedere"
+    shutil.rmtree(client._baza / "date" / "dosare" / uid)  # folderul dispare de pe disc
+    assert uid in fs._citeste_index()                      # încă în index (dispărut)
+    assert client.post(f"/api/dosar/{uid}/scoate-din-index").json()["ok"] is True
+    assert uid not in fs._citeste_index()                  # scos din index
+
+
 # ── Import .docx ─────────────────────────────────────────────────────────────
 def _docx_b64(tmp_path, nume):
     import base64

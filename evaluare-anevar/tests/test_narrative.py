@@ -109,3 +109,56 @@ def test_fallback_without_client_returns_placeholders():
     assert len(sections) == len(CAPITOLE_NARATIVE)
     assert all(s.text.strip() for s in sections)   # placeholder ne-gol
     assert any("[de completat" in s.text.lower() for s in sections)
+
+
+def test_perplexity_client_complete_fara_retea(monkeypatch):
+    # acoperă PerplexityNarrativeClient.complete fără apel real (monkeypatch requests.post)
+    import requests
+
+    from evaluare.ai.narrative import PerplexityNarrativeClient
+
+    capturat = {}
+
+    class _Resp:
+        def raise_for_status(self):
+            pass
+
+        def json(self):
+            return {"choices": [{"message": {"content": "TEXT NARATIV"}}]}
+
+    def _fake_post(url, **kw):
+        capturat["url"] = url
+        capturat["model"] = kw["json"]["model"]
+        return _Resp()
+
+    monkeypatch.setattr(requests, "post", _fake_post)
+    out = PerplexityNarrativeClient("cheie-falsa", model="sonar").complete("sys", "user")
+    assert out == "TEXT NARATIV"
+    assert "perplexity.ai" in capturat["url"] and capturat["model"] == "sonar"
+
+
+def test_anthropic_client_complete_fara_retea(monkeypatch):
+    # acoperă AnthropicNarrativeClient (constructor + complete) cu un client fals injectat
+    import anthropic
+
+    from evaluare.ai.narrative import AnthropicNarrativeClient
+
+    class _Block:
+        type = "text"
+        text = "NARATIV CLAUDE"
+
+    class _Msg:
+        content = [_Block()]
+
+    class _Messages:
+        def create(self, **kw):
+            assert kw["system"][0]["cache_control"] == {"type": "ephemeral"}
+            return _Msg()
+
+    class _FakeAnthropic:
+        def __init__(self, api_key):
+            self.messages = _Messages()
+
+    monkeypatch.setattr(anthropic, "Anthropic", _FakeAnthropic)
+    out = AnthropicNarrativeClient("cheie-falsa").complete("sys", "user")
+    assert out == "NARATIV CLAUDE"

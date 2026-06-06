@@ -34,6 +34,15 @@
 > rareori suprafața construită (în date structurate) → importul cere completare manuală (eșec
 > *zgomotos*, corect). În Breaza, OLX nu avea anunțuri proprii (a extins căutarea la zone vecine).
 
+**Verificare în browser real** (Playwright, am navigat la anunțuri și am citit ce vede un om):
+| Portal | În browser (om) | API parser | Verdict |
+|--------|-----------------|-----------|---------|
+| imobiliare (Breaza, 226mp) | 138.000 € · utilă 226 · teren 400 | 138000 / 226 / 400 | ✅ identic |
+| storia (Breaza de Sus, 255mp) | 239.000 € · 255 · teren 980 | 239000 / 255 / 980 | ✅ identic |
+| OLX (175.000 €) | 175.000 € · **fără câmp de suprafață** | 175000 / suprafață None | ✅ corect (lipsa e în date, nu în parser) |
+> Deci „API vs. ce citesc eu pe site" = **identic** unde datele există; unde OLX nu are suprafață
+> structurată, nici omul n-o vede (e doar în descrierea liberă) → importul cere completare manuală.
+
 ---
 
 ## B. Decizii care te așteaptă (din audituri + istoric) — le discutăm dimineața

@@ -1,0 +1,185 @@
+[     767ms] [WARNING] Error with Permissions-Policy header: Unrecognized feature: 'ambient-light-sensor'. @ :0
+[     767ms] [WARNING] Error with Permissions-Policy header: Unrecognized feature: 'battery'. @ :0
+[     767ms] [WARNING] Error with Permissions-Policy header: Unrecognized feature: 'document-domain'. @ :0
+[     767ms] [WARNING] Error with Permissions-Policy header: Unrecognized feature: 'execution-while-not-rendered'. @ :0
+[     767ms] [WARNING] Error with Permissions-Policy header: Unrecognized feature: 'execution-while-out-of-viewport'. @ :0
+[     767ms] [WARNING] Error with Permissions-Policy header: Unrecognized feature: 'navigation-override'. @ :0
+[    1330ms] [WARNING] Unsatisfied version ^3.1.3 from @olxeuweb/core of shared singleton module @olx/react-laquesis (required ^3.1.3) @ https://www.olx.ro/app/static/js/main.57214c5b4.js:0
+[    1339ms] [WARNING] Unsatisfied version 0.9.0 from @olxeuweb/core of shared singleton module @olxpwa-lib/categories (required =workspace:0.9.0) @ https://www.olx.ro/app/static/js/main.57214c5b4.js:0
+[    1344ms] [WARNING] Unsatisfied version 0.1.2 from @olxeuweb/core of shared singleton module @olxpwa-lib/i18n/client (required ^workspace:*) @ https://www.olx.ro/app/static/js/main.57214c5b4.js:0
+[    1346ms] [WARNING] Unsatisfied version 0.1.2 from @olxeuweb/core of shared singleton module @olxpwa-lib/i18n/utils (required ^workspace:*) @ https://www.olx.ro/app/static/js/main.57214c5b4.js:0
+[    1347ms] [WARNING] Unsatisfied version 0.1.2 from @olxeuweb/core of shared singleton module @olxpwa-lib/i18n/types (required ^workspace:*) @ https://www.olx.ro/app/static/js/main.57214c5b4.js:0
+[    3091ms] [ERROR] Failed to find a valid digest in the 'integrity' attribute for resource 'https://js-agent.newrelic.com/nr-spa-1.249.0.min.js' with computed SHA-512 integrity 'z4PhNX7vuL3xVChQ1m2AB9Yg5AULVxXcg/SpIdNs6c5H0NE8XYXysP+DGNKHfuwvY7kxvUdBeoGlODJ6+SfaPg=='. The resource has been blocked. @ https://www.olx.ro/d/oferta/casa-cu-suflet-perfecta-pentru-o-familie-care-cauta-linistea-naturii-IDju3RL.html:0
+[    3632ms] [ERROR] Failed to load resource: the server responded with a status of 404 () @ https://exact-location-backend.prd.01.eu-west-1.eu.olx.org/api/v1/offers/287915089?representation=public:0
+[    4196ms] [WARNING] New Relic: Downloading runtime APIs failed... @ https://www.olx.ro/app/static/js/89780.9af559250.chunk.js:0
+[    4197ms] [WARNING] New Relic: A problem occurred when starting up session manager. This page will not start or extend any session. @ https://www.olx.ro/app/static/js/89780.9af559250.chunk.js:0
+[    4197ms] [WARNING] ChunkLoadError: Loading chunk 111 failed.
+(error: https://js-agent.newrelic.com/nr-spa-1.249.0.min.js)
+    at d.f.j (https://www.olx.ro/app/static/js/newRelic.d9438b025.js:1:38219)
+    at https://www.olx.ro/app/static/js/newRelic.d9438b025.js:1:36534
+    at Array.reduce (<anonymous>)
+    at d.e (https://www.olx.ro/app/static/js/newRelic.d9438b025.js:1:36513)
+    at E (https://www.olx.ro/app/static/js/newRelic.d9438b025.js:1:35110)
+    at https://www.olx.ro/app/static/js/newRelic.d9438b025.js:1:35582 @ https://www.olx.ro/app/static/js/89780.9af559250.chunk.js:0
+[    4198ms] [WARNING] New Relic: A problem occurred when starting up session manager. This page will not start or extend any session. @ https://www.olx.ro/app/static/js/89780.9af559250.chunk.js:0
+[    4198ms] [WARNING] ChunkLoadError: Loading chunk 111 failed.
+(error: https://js-agent.newrelic.com/nr-spa-1.249.0.min.js)
+    at d.f.j (https://www.olx.ro/app/static/js/newRelic.d9438b025.js:1:38219)
+    at https://www.olx.ro/app/static/js/newRelic.d9438b025.js:1:36534
+    at Array.reduce (<anonymous>)
+    at d.e (https://www.olx.ro/app/static/js/newRelic.d9438b025.js:1:36513)
+    at E (https://www.olx.ro/app/static/js/newRelic.d9438b025.js:1:35110)
+    at https://www.olx.ro/app/static/js/newRelic.d9438b025.js:1:35582 @ https://www.olx.ro/app/static/js/89780.9af559250.chunk.js:0
+[    4198ms] [WARNING] New Relic: A problem occurred when starting up session manager. This page will not start or extend any session. @ https://www.olx.ro/app/static/js/89780.9af559250.chunk.js:0
+[    4198ms] [WARNING] ChunkLoadError: Loading chunk 111 failed.
+(error: https://js-agent.newrelic.com/nr-spa-1.249.0.min.js)
+    at d.f.j (https://www.olx.ro/app/static/js/newRelic.d9438b025.js:1:38219)
+    at https://www.olx.ro/app/static/js/newRelic.d9438b025.js:1:36534
+    at Array.reduce (<anonymous>)
+    at d.e (https://www.olx.ro/app/static/js/newRelic.d9438b025.js:1:36513)
+    at E (https://www.olx.ro/app/static/js/newRelic.d9438b025.js:1:35110)
+    at https://www.olx.ro/app/static/js/newRelic.d9438b025.js:1:35582 @ https://www.olx.ro/app/static/js/89780.9af559250.chunk.js:0
+[    4199ms] [WARNING] New Relic: A problem occurred when starting up session manager. This page will not start or extend any session. @ https://www.olx.ro/app/static/js/89780.9af559250.chunk.js:0
+[    4199ms] [WARNING] ChunkLoadError: Loading chunk 111 failed.
+(error: https://js-agent.newrelic.com/nr-spa-1.249.0.min.js)
+    at d.f.j (https://www.olx.ro/app/static/js/newRelic.d9438b025.js:1:38219)
+    at https://www.olx.ro/app/static/js/newRelic.d9438b025.js:1:36534
+    at Array.reduce (<anonymous>)
+    at d.e (https://www.olx.ro/app/static/js/newRelic.d9438b025.js:1:36513)
+    at E (https://www.olx.ro/app/static/js/newRelic.d9438b025.js:1:35110)
+    at https://www.olx.ro/app/static/js/newRelic.d9438b025.js:1:35582 @ https://www.olx.ro/app/static/js/89780.9af559250.chunk.js:0
+[    4199ms] [WARNING] New Relic: A problem occurred when starting up session manager. This page will not start or extend any session. @ https://www.olx.ro/app/static/js/89780.9af559250.chunk.js:0
+[    4199ms] [WARNING] ChunkLoadError: Loading chunk 111 failed.
+(error: https://js-agent.newrelic.com/nr-spa-1.249.0.min.js)
+    at d.f.j (https://www.olx.ro/app/static/js/newRelic.d9438b025.js:1:38219)
+    at https://www.olx.ro/app/static/js/newRelic.d9438b025.js:1:36534
+    at Array.reduce (<anonymous>)
+    at d.e (https://www.olx.ro/app/static/js/newRelic.d9438b025.js:1:36513)
+    at E (https://www.olx.ro/app/static/js/newRelic.d9438b025.js:1:35110)
+    at https://www.olx.ro/app/static/js/newRelic.d9438b025.js:1:35582 @ https://www.olx.ro/app/static/js/89780.9af559250.chunk.js:0
+[    4199ms] [WARNING] New Relic: A problem occurred when starting up session manager. This page will not start or extend any session. @ https://www.olx.ro/app/static/js/89780.9af559250.chunk.js:0
+[    4199ms] [WARNING] ChunkLoadError: Loading chunk 111 failed.
+(error: https://js-agent.newrelic.com/nr-spa-1.249.0.min.js)
+    at d.f.j (https://www.olx.ro/app/static/js/newRelic.d9438b025.js:1:38219)
+    at https://www.olx.ro/app/static/js/newRelic.d9438b025.js:1:36534
+    at Array.reduce (<anonymous>)
+    at d.e (https://www.olx.ro/app/static/js/newRelic.d9438b025.js:1:36513)
+    at E (https://www.olx.ro/app/static/js/newRelic.d9438b025.js:1:35110)
+    at https://www.olx.ro/app/static/js/newRelic.d9438b025.js:1:35582 @ https://www.olx.ro/app/static/js/89780.9af559250.chunk.js:0
+[    4199ms] [WARNING] New Relic: A problem occurred when starting up session manager. This page will not start or extend any session. @ https://www.olx.ro/app/static/js/89780.9af559250.chunk.js:0
+[    4199ms] [WARNING] ChunkLoadError: Loading chunk 111 failed.
+(error: https://js-agent.newrelic.com/nr-spa-1.249.0.min.js)
+    at d.f.j (https://www.olx.ro/app/static/js/newRelic.d9438b025.js:1:38219)
+    at https://www.olx.ro/app/static/js/newRelic.d9438b025.js:1:36534
+    at Array.reduce (<anonymous>)
+    at d.e (https://www.olx.ro/app/static/js/newRelic.d9438b025.js:1:36513)
+    at E (https://www.olx.ro/app/static/js/newRelic.d9438b025.js:1:35110)
+    at https://www.olx.ro/app/static/js/newRelic.d9438b025.js:1:35582 @ https://www.olx.ro/app/static/js/89780.9af559250.chunk.js:0
+[    4200ms] [WARNING] New Relic: A problem occurred when starting up session manager. This page will not start or extend any session. @ https://www.olx.ro/app/static/js/89780.9af559250.chunk.js:0
+[    4200ms] [WARNING] ChunkLoadError: Loading chunk 111 failed.
+(error: https://js-agent.newrelic.com/nr-spa-1.249.0.min.js)
+    at d.f.j (https://www.olx.ro/app/static/js/newRelic.d9438b025.js:1:38219)
+    at https://www.olx.ro/app/static/js/newRelic.d9438b025.js:1:36534
+    at Array.reduce (<anonymous>)
+    at d.e (https://www.olx.ro/app/static/js/newRelic.d9438b025.js:1:36513)
+    at E (https://www.olx.ro/app/static/js/newRelic.d9438b025.js:1:35110)
+    at https://www.olx.ro/app/static/js/newRelic.d9438b025.js:1:35582 @ https://www.olx.ro/app/static/js/89780.9af559250.chunk.js:0
+[    4284ms] [ERROR] Failed to find a valid digest in the 'integrity' attribute for resource 'https://js-agent.newrelic.com/nr-spa-1.249.0.min.js' with computed SHA-512 integrity 'z4PhNX7vuL3xVChQ1m2AB9Yg5AULVxXcg/SpIdNs6c5H0NE8XYXysP+DGNKHfuwvY7kxvUdBeoGlODJ6+SfaPg=='. The resource has been blocked. @ https://www.olx.ro/d/oferta/casa-cu-suflet-perfecta-pentru-o-familie-care-cauta-linistea-naturii-IDju3RL.html:0
+[    4289ms] [WARNING] New Relic: Downloading and initializing page_view_event failed... @ https://www.olx.ro/app/static/js/89780.9af559250.chunk.js:0
+[    4289ms] [WARNING] ChunkLoadError: Loading chunk 111 failed.
+(error: https://js-agent.newrelic.com/nr-spa-1.249.0.min.js)
+    at d.f.j (https://www.olx.ro/app/static/js/newRelic.d9438b025.js:1:38219)
+    at https://www.olx.ro/app/static/js/newRelic.d9438b025.js:1:36534
+    at Array.reduce (<anonymous>)
+    at d.e (https://www.olx.ro/app/static/js/newRelic.d9438b025.js:1:36513)
+    at https://www.olx.ro/app/static/js/newRelic.d9438b025.js:1:41031
+    at Generator.throw (<anonymous>)
+    at t (https://www.olx.ro/app/static/js/newRelic.d9438b025.js:1:2630)
+    at c (https://www.olx.ro/app/static/js/newRelic.d9438b025.js:1:40624)
+    at d (https://www.olx.ro/app/static/js/newRelic.d9438b025.js:1:21392) @ https://www.olx.ro/app/static/js/89780.9af559250.chunk.js:0
+[    4290ms] [WARNING] New Relic: Downloading and initializing page_view_timing failed... @ https://www.olx.ro/app/static/js/89780.9af559250.chunk.js:0
+[    4290ms] [WARNING] ChunkLoadError: Loading chunk 111 failed.
+(error: https://js-agent.newrelic.com/nr-spa-1.249.0.min.js)
+    at d.f.j (https://www.olx.ro/app/static/js/newRelic.d9438b025.js:1:38219)
+    at https://www.olx.ro/app/static/js/newRelic.d9438b025.js:1:36534
+    at Array.reduce (<anonymous>)
+    at d.e (https://www.olx.ro/app/static/js/newRelic.d9438b025.js:1:36513)
+    at https://www.olx.ro/app/static/js/newRelic.d9438b025.js:1:41031
+    at Generator.throw (<anonymous>)
+    at t (https://www.olx.ro/app/static/js/newRelic.d9438b025.js:1:2630)
+    at c (https://www.olx.ro/app/static/js/newRelic.d9438b025.js:1:40624)
+    at d (https://www.olx.ro/app/static/js/newRelic.d9438b025.js:1:21392) @ https://www.olx.ro/app/static/js/89780.9af559250.chunk.js:0
+[    4290ms] [WARNING] New Relic: Downloading and initializing metrics failed... @ https://www.olx.ro/app/static/js/89780.9af559250.chunk.js:0
+[    4290ms] [WARNING] ChunkLoadError: Loading chunk 111 failed.
+(error: https://js-agent.newrelic.com/nr-spa-1.249.0.min.js)
+    at d.f.j (https://www.olx.ro/app/static/js/newRelic.d9438b025.js:1:38219)
+    at https://www.olx.ro/app/static/js/newRelic.d9438b025.js:1:36534
+    at Array.reduce (<anonymous>)
+    at d.e (https://www.olx.ro/app/static/js/newRelic.d9438b025.js:1:36513)
+    at https://www.olx.ro/app/static/js/newRelic.d9438b025.js:1:41031
+    at Generator.throw (<anonymous>)
+    at t (https://www.olx.ro/app/static/js/newRelic.d9438b025.js:1:2630)
+    at c (https://www.olx.ro/app/static/js/newRelic.d9438b025.js:1:40624)
+    at d (https://www.olx.ro/app/static/js/newRelic.d9438b025.js:1:21392) @ https://www.olx.ro/app/static/js/89780.9af559250.chunk.js:0
+[    4290ms] [WARNING] New Relic: Downloading and initializing jserrors failed... @ https://www.olx.ro/app/static/js/89780.9af559250.chunk.js:0
+[    4290ms] [WARNING] ChunkLoadError: Loading chunk 111 failed.
+(error: https://js-agent.newrelic.com/nr-spa-1.249.0.min.js)
+    at d.f.j (https://www.olx.ro/app/static/js/newRelic.d9438b025.js:1:38219)
+    at https://www.olx.ro/app/static/js/newRelic.d9438b025.js:1:36534
+    at Array.reduce (<anonymous>)
+    at d.e (https://www.olx.ro/app/static/js/newRelic.d9438b025.js:1:36513)
+    at https://www.olx.ro/app/static/js/newRelic.d9438b025.js:1:41031
+    at Generator.throw (<anonymous>)
+    at t (https://www.olx.ro/app/static/js/newRelic.d9438b025.js:1:2630)
+    at c (https://www.olx.ro/app/static/js/newRelic.d9438b025.js:1:40624)
+    at d (https://www.olx.ro/app/static/js/newRelic.d9438b025.js:1:21392) @ https://www.olx.ro/app/static/js/89780.9af559250.chunk.js:0
+[    4290ms] [WARNING] New Relic: Downloading and initializing ajax failed... @ https://www.olx.ro/app/static/js/89780.9af559250.chunk.js:0
+[    4290ms] [WARNING] ChunkLoadError: Loading chunk 111 failed.
+(error: https://js-agent.newrelic.com/nr-spa-1.249.0.min.js)
+    at d.f.j (https://www.olx.ro/app/static/js/newRelic.d9438b025.js:1:38219)
+    at https://www.olx.ro/app/static/js/newRelic.d9438b025.js:1:36534
+    at Array.reduce (<anonymous>)
+    at d.e (https://www.olx.ro/app/static/js/newRelic.d9438b025.js:1:36513)
+    at https://www.olx.ro/app/static/js/newRelic.d9438b025.js:1:41031
+    at Generator.throw (<anonymous>)
+    at t (https://www.olx.ro/app/static/js/newRelic.d9438b025.js:1:2630)
+    at c (https://www.olx.ro/app/static/js/newRelic.d9438b025.js:1:40624)
+    at d (https://www.olx.ro/app/static/js/newRelic.d9438b025.js:1:21392) @ https://www.olx.ro/app/static/js/89780.9af559250.chunk.js:0
+[    4291ms] [WARNING] New Relic: Downloading and initializing session_trace failed... @ https://www.olx.ro/app/static/js/89780.9af559250.chunk.js:0
+[    4291ms] [WARNING] ChunkLoadError: Loading chunk 111 failed.
+(error: https://js-agent.newrelic.com/nr-spa-1.249.0.min.js)
+    at d.f.j (https://www.olx.ro/app/static/js/newRelic.d9438b025.js:1:38219)
+    at https://www.olx.ro/app/static/js/newRelic.d9438b025.js:1:36534
+    at Array.reduce (<anonymous>)
+    at d.e (https://www.olx.ro/app/static/js/newRelic.d9438b025.js:1:36513)
+    at https://www.olx.ro/app/static/js/newRelic.d9438b025.js:1:41031
+    at Generator.throw (<anonymous>)
+    at t (https://www.olx.ro/app/static/js/newRelic.d9438b025.js:1:2630)
+    at c (https://www.olx.ro/app/static/js/newRelic.d9438b025.js:1:40624)
+    at d (https://www.olx.ro/app/static/js/newRelic.d9438b025.js:1:21392) @ https://www.olx.ro/app/static/js/89780.9af559250.chunk.js:0
+[    4291ms] [WARNING] New Relic: Downloading and initializing page_action failed... @ https://www.olx.ro/app/static/js/89780.9af559250.chunk.js:0
+[    4291ms] [WARNING] ChunkLoadError: Loading chunk 111 failed.
+(error: https://js-agent.newrelic.com/nr-spa-1.249.0.min.js)
+    at d.f.j (https://www.olx.ro/app/static/js/newRelic.d9438b025.js:1:38219)
+    at https://www.olx.ro/app/static/js/newRelic.d9438b025.js:1:36534
+    at Array.reduce (<anonymous>)
+    at d.e (https://www.olx.ro/app/static/js/newRelic.d9438b025.js:1:36513)
+    at https://www.olx.ro/app/static/js/newRelic.d9438b025.js:1:41031
+    at Generator.throw (<anonymous>)
+    at t (https://www.olx.ro/app/static/js/newRelic.d9438b025.js:1:2630)
+    at c (https://www.olx.ro/app/static/js/newRelic.d9438b025.js:1:40624)
+    at d (https://www.olx.ro/app/static/js/newRelic.d9438b025.js:1:21392) @ https://www.olx.ro/app/static/js/89780.9af559250.chunk.js:0
+[    4291ms] [WARNING] New Relic: Downloading and initializing spa failed... @ https://www.olx.ro/app/static/js/89780.9af559250.chunk.js:0
+[    4291ms] [WARNING] ChunkLoadError: Loading chunk 111 failed.
+(error: https://js-agent.newrelic.com/nr-spa-1.249.0.min.js)
+    at d.f.j (https://www.olx.ro/app/static/js/newRelic.d9438b025.js:1:38219)
+    at https://www.olx.ro/app/static/js/newRelic.d9438b025.js:1:36534
+    at Array.reduce (<anonymous>)
+    at d.e (https://www.olx.ro/app/static/js/newRelic.d9438b025.js:1:36513)
+    at https://www.olx.ro/app/static/js/newRelic.d9438b025.js:1:41031
+    at Generator.throw (<anonymous>)
+    at t (https://www.olx.ro/app/static/js/newRelic.d9438b025.js:1:2630)
+    at c (https://www.olx.ro/app/static/js/newRelic.d9438b025.js:1:40624)
+    at d (https://www.olx.ro/app/static/js/newRelic.d9438b025.js:1:21392) @ https://www.olx.ro/app/static/js/89780.9af559250.chunk.js:0
+[    4344ms] [WARNING] Google Maps JavaScript API has been loaded directly without loading=async. This can result in suboptimal performance. For best-practice loading patterns please see https://goo.gle/js-api-loading @ https://www.olx.ro/app/static/js/89780.9af559250.chunk.js:0
+[    4432ms] [WARNING] As of February 21st, 2024, google.maps.Marker is deprecated. Please use google.maps.marker.AdvancedMarkerElement instead. At this time, google.maps.Marker is not scheduled to be discontinued, but google.maps.marker.AdvancedMarkerElement is recommended over google.maps.Marker. While google.maps.Marker will continue to receive bug fixes for any major regressions, existing bugs in google.maps.Marker will not be addressed. At least 12 months notice will be given before support is discontinued. Please see https://developers.google.com/maps/deprecations for additional details and https://developers.google.com/maps/documentation/javascript/advanced-markers/migration for the migration guide. @ https://www.olx.ro/app/static/js/89780.9af559250.chunk.js:0

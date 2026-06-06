@@ -46,7 +46,11 @@
 
   {% if diff.disparute %}
     <h3>⚠ Dosare dispărute (folder șters de pe disc)</h3>
-    <ul class="hint">{% for x in diff.disparute %}<li>{{ x.nume }} ({{ x.uuid[:8] }})</li>{% endfor %}</ul>
+    <ul class="hint">{% for x in diff.disparute %}
+      <li>{{ x.nume }} ({{ x.uuid[:8] }})
+        <button type="button" class="ghost btn-scoate" data-uid="{{ x.uuid }}"
+          style="padding:2px 10px;font-size:.8rem;margin:0 0 0 8px">scoate din listă</button></li>
+    {% endfor %}</ul>
   {% endif %}
   {% endif %}
 </main>
@@ -62,6 +66,10 @@ if(nouBtn) nouBtn.addEventListener('click', async ()=>{
 var impBtn=document.getElementById('importa');
 var fisierImp=document.getElementById('fisier-import');
 if(impBtn) impBtn.addEventListener('click', ()=> fisierImp.click());
+document.querySelectorAll('.btn-scoate').forEach(b=>b.addEventListener('click', async ()=>{
+  await fetch('/api/dosar/'+b.dataset.uid+'/scoate-din-index',{method:'POST'});
+  b.closest('li').remove();
+}));
 var impStatus=document.getElementById('import-status');
 if(fisierImp) fisierImp.addEventListener('change', async ()=>{
   const f=fisierImp.files[0]; if(!f) return;
