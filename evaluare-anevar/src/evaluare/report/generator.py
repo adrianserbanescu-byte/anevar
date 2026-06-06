@@ -256,6 +256,12 @@ def _termeni_referinta(doc: DocxDocument, ctx: ReportContext, adnotari: bool = F
         f"Identificarea proprietatii: {meta.adresa}, nr. cadastral {meta.numar_cadastral}, "
         f"{meta.carte_funciara}."
     )
+    doc.add_paragraph(f"Dreptul evaluat: {meta.tip_drept} (SEV 230).")
+    doc.add_paragraph(
+        f"Sarcini / grevari (extras CF): {meta.sarcini}." if meta.sarcini
+        else "Sarcini / grevari (extras CF): nu au fost declarate; de verificat în extrasul de carte funciară "
+             "actualizat (relevant pentru garantare)."
+    )
     premisa = (
         "Premise: proprietatea este evaluata in ipoteza utilizarii continue, libera de sarcini, "
         "cu exceptia celor mentionate explicit in raport."

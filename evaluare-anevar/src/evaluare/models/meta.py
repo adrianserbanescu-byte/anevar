@@ -16,6 +16,8 @@ class EvaluationMeta(BaseModel):
     adresa: str
     numar_cadastral: str
     carte_funciara: str
+    tip_drept: str = "drept de proprietate deplină"   # dreptul evaluat (SEV 230 §40.1)
+    sarcini: str | None = None                         # ipoteci/servituți din CF (SEV 230 §140; critic la garantare)
     scop: str = "Garantarea creditului ipotecar"
     tip_valoare: str = "Valoarea de piață (SEV 102)"
     data_evaluarii: str                 # ISO sau text, ex. "2026-01-16"

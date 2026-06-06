@@ -75,6 +75,13 @@
         <div class="field"><label for="beneficiar">Beneficiar (bancă)</label><input id="beneficiar"></div>
       </div>
       <div class="field-row">
+        <div class="field"><label for="tip_drept">Dreptul evaluat</label>
+          <select id="tip_drept"><option value="drept de proprietate deplină">Proprietate deplină</option>
+            <option value="drept de proprietate în cotă">Proprietate în cotă</option>
+            <option value="drept de superficie">Superficie</option><option value="drept de uzufruct">Uzufruct</option></select></div>
+        <div class="field" style="flex:2"><label for="sarcini">Sarcini / grevări (extras CF) <span class="hint">(ipoteci, servituți — relevant la garantare)</span></label><input id="sarcini" placeholder="ex. ipotecă în favoarea Băncii X / fără sarcini"></div>
+      </div>
+      <div class="field-row">
         <div class="field"><label for="data_raportului">Data raport</label><input type="date" id="data_raportului"></div>
         <div class="field"><label for="data_evaluarii">Data evaluării</label><input type="date" id="data_evaluarii"></div>
         <div class="field"><label for="data_inspectiei">Data vizită</label><input type="date" id="data_inspectiei"></div>
@@ -748,6 +755,8 @@ function asambleaza(){
   var meta={client_nume:$("nume_client").value||"Client",adresa:[$("adresa_strada").value,numeLoc("localitate"),numeLoc("judet")].filter(Boolean).join(", ")||"-",numar_cadastral:$("numar_cadastral").value,carte_funciara:$("carte_funciara").value,evaluator_nume:"{{ cont.nume if cont else '' }}",evaluator_legitimatie:"{{ cont.legitimatie if cont else '' }}",data_evaluarii:$("data_evaluarii").value||"2026-01-16",data_raportului:$("data_raportului").value||"2026-01-16",moneda:$("moneda").value,scop:sc[0],tip_valoare:sc[1]};
   if($("beneficiar").value) meta.beneficiar=$("beneficiar").value;
   if($("proprietar")&&$("proprietar").value) meta.proprietar=$("proprietar").value;
+  if($("tip_drept")&&$("tip_drept").value) meta.tip_drept=$("tip_drept").value;
+  if($("sarcini")&&$("sarcini").value) meta.sarcini=$("sarcini").value;
   var curs=($("curs_valutar")&&$("curs_valutar").value||"").replace(",",".").trim();
   if(curs) meta.curs_valutar=curs;
   var faraConstr=($("tip_proprietate").value==="agricol");

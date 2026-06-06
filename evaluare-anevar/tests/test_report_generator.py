@@ -82,6 +82,24 @@ def test_tipul_valorii_citeaza_sursa(tmp_path):
     assert "estimate: piata." not in text             # nu mai afișează slug-ul brut
 
 
+def test_raportul_declara_dreptul_si_sarcinile(tmp_path):
+    # SEV 230 §40.1/§140: raportul declară dreptul evaluat + sarcinile CF (critic la garantare).
+    ctx = _ctx()
+    ctx.meta.sarcini = "ipotecă în favoarea Băncii X"
+    out = tmp_path / "raport.docx"
+    genereaza_raport(ctx, out)
+    text = _all_text(out)
+    assert "Dreptul evaluat" in text and "SEV 230" in text
+    assert "ipotecă în favoarea Băncii X" in text
+
+
+def test_sarcini_nedeclarate_avertizeaza(tmp_path):
+    out = tmp_path / "raport.docx"
+    genereaza_raport(_ctx(), out)            # sarcini=None implicit
+    text = _all_text(out)
+    assert "Sarcini" in text and "de verificat în extrasul de carte funciară" in text
+
+
 def test_raportul_are_cele_sapte_capitole(tmp_path):
     out = tmp_path / "raport.docx"
     genereaza_raport(_ctx(), out)
