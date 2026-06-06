@@ -95,9 +95,30 @@
       <div class="field-row">
         <div class="field"><label for="metoda">Metodă</label>
           <select id="metoda"><option value="cost">Cost</option><option value="piata">Piață</option>
-            <option value="ponderata">Ponderată</option></select></div>
+            <option value="ponderata">Ponderată</option><option value="venit">Venit (capitalizare)</option>
+            <option value="dcf">DCF</option></select></div>
         <div class="field"><label for="moneda">Monedă</label>
           <select id="moneda"><option value="LEI" selected>LEI</option><option value="EUR">EUR</option></select></div>
+      </div>
+      <div id="grup-venit" hidden>
+        <h3>Date venit (capitalizare directă)</h3>
+        <div class="field-row">
+          <div class="field"><label for="vbp">Venit brut potențial anual</label><input id="vbp" placeholder="ex. 24000"></div>
+          <div class="field"><label for="rata_cap">Rată capitalizare</label><input id="rata_cap" placeholder="ex. 0.08"></div>
+        </div>
+        <div class="field-row">
+          <div class="field"><label for="neocupare">Grad neocupare</label><input id="neocupare" placeholder="ex. 0.1"></div>
+          <div class="field"><label for="cheltuieli">Cheltuieli exploatare anuale</label><input id="cheltuieli" placeholder="ex. 3000"></div>
+        </div>
+      </div>
+      <div id="grup-dcf" hidden>
+        <h3>Date DCF</h3>
+        <label for="fluxuri">Fluxuri anuale <span class="hint">(o sumă pe linie)</span></label>
+        <textarea id="fluxuri" rows="3" placeholder="10000&#10;11000&#10;12000"></textarea>
+        <div class="field-row">
+          <div class="field"><label for="rata_actualizare">Rată actualizare</label><input id="rata_actualizare" placeholder="ex. 0.1"></div>
+          <div class="field"><label for="valoare_reziduala">Valoare reziduală</label><input id="valoare_reziduala" placeholder="ex. 80000"></div>
+        </div>
       </div>
       <button type="button" id="calc">Calculează</button>
       <div id="rezultat" role="status" aria-live="polite"></div>
@@ -221,6 +242,12 @@ function wireTabs(sel){
 wireTabs(".tabs"); wireTabs(".subtabs");
 function subtab(id){ var b=document.getElementById(id); if(b) b.click(); }
 
+// arată câmpurile de venit/DCF doar la metoda corespunzătoare
+function sincronMetoda(){ var m=$("metoda").value;
+  if($("grup-venit")) $("grup-venit").hidden = (m!=="venit");
+  if($("grup-dcf")) $("grup-dcf").hidden = (m!=="dcf"); }
+if($("metoda")){ $("metoda").addEventListener("change", sincronMetoda); sincronMetoda(); }
+
 // construiește payload-ul de evaluare din câmpuri
 function asambleaza(){
   var elements=$("elemente").value.trim().split("\n").filter(Boolean).map(function(l){var p=l.split(";");return{element:p[0],cod:p[1],um:p[2],cantitate:p[3],cost_unitar:p[4],an_pif:parseInt(p[5])};});
@@ -234,7 +261,11 @@ function asambleaza(){
   var faraConstr=($("tip_proprietate").value==="agricol");
   var building={au:$("au").value||"0",acd:$("acd").value||"0",an_referinta:parseInt($("an_referinta").value)||2025,elements:faraConstr?[]:elements,depreciation_points:faraConstr?[]:dp};
   var land={suprafata:$("suprafata_teren").value||"0"};
-  return {meta:meta,land:land,building:building,comparables:comparables,land_comparables:land_comparables,valoare_teren:$("valoare_teren").value||"0",metoda:$("metoda").value,tip_proprietate:$("tip_proprietate").value,scop:$("scop").value};
+  var m=$("metoda").value;
+  var payload={meta:meta,land:land,building:building,comparables:comparables,land_comparables:land_comparables,valoare_teren:$("valoare_teren").value||"0",metoda:m,tip_proprietate:$("tip_proprietate").value,scop:$("scop").value};
+  if(m==="venit") payload.date_venit={venit_brut_potential:$("vbp").value||"0",grad_neocupare:$("neocupare").value||"0",cheltuieli_exploatare:$("cheltuieli").value||"0",rata_capitalizare:$("rata_cap").value||"0.08"};
+  if(m==="dcf") payload.date_dcf={fluxuri:$("fluxuri").value.trim().split("\n").filter(Boolean),rata_actualizare:$("rata_actualizare").value||"0.1",valoare_reziduala:$("valoare_reziduala").value||"0"};
+  return payload;
 }
 $("calc").addEventListener("click", async function(){
   $("rezultat").textContent="Se calculează…";

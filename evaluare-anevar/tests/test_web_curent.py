@@ -102,6 +102,18 @@ def test_calcul_fara_persistenta_sqlite(client):
     assert client.post("/api/dosar/nope/calcul", json=_payload()).status_code == 404
 
 
+def test_calcul_metoda_venit(client):
+    # paritate UI nou: metoda venit (capitalizare directă) cu date_venit
+    _cont(client)
+    uid = client.post("/api/dosar", json={"wizard": {}}).json()["uuid"]
+    p = _payload()
+    p["metoda"] = "venit"
+    p["date_venit"] = {"venit_brut_potential": "24000", "grad_neocupare": "0.1",
+                       "cheltuieli_exploatare": "3000", "rata_capitalizare": "0.08"}
+    r = client.post(f"/api/dosar/{uid}/calcul", json=p)
+    assert r.status_code == 200 and r.json()["metoda"] == "venit"
+
+
 def test_calcul_cu_grila_teren(client):
     # paritate UI nou: comparabile de teren → valoarea terenului se calculează din grilă
     _cont(client)

@@ -201,6 +201,11 @@ with sync_playwright() as pw:
     p.click("#t-raport")
     p.click("#s-calcul")
     check("dosar: sub-tab Calcul vizibil", not p.eval_on_selector("#sp-calcul", "e=>e.hidden"))
+    # venit/DCF: câmpurile apar doar la metoda corespunzătoare
+    check("dosar: grup venit ascuns la cost", p.eval_on_selector("#grup-venit", "e=>e.hidden"))
+    p.select_option("#metoda", "venit")
+    check("dosar: grup venit vizibil la metoda venit", not p.eval_on_selector("#grup-venit", "e=>e.hidden"))
+    p.select_option("#metoda", "cost")
     # checkpoint de asumare: «Generează» blocat până confirmă evaluatorul
     p.click("#s-genereaza")
     check("dosar: Generează blocat fără asumare", p.eval_on_selector("#genereaza", "e=>e.disabled"))
