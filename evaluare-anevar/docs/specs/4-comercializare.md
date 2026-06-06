@@ -95,6 +95,18 @@ o **funcție edge** = proxy AI. Tu scrii doar proxy-ul AI + 2-3 ecrane. Restul e
 | 2 | trepte + pachete + magic-link + plan anual + UI cotă | scalare |
 | 3 | gestionare sesiuni, semnale anti-abuz, canal update-uri | maturizare |
 
+## Admin + conturi + denumirea dosarelor (Slice C — depinde de gateway)
+- **Cont obligatoriu** la deschiderea versiunii noi: email (Google SSO sau email de muncă +
+  parolă) + **legitimație ANEVAR** asociată. Ștergerea legitimației — **doar admin, din DB online**.
+- **Pagină master-admin** (doar pentru tine): listă useri + opțiuni; editezi ce userul nu poate
+  schimba (email, nume complet, legitimație, format dosare). Necesită DB-ul online de licențe.
+- **Denumirea dosarelor:** userul își alege la creare un template din `master_config.py`
+  (`CAMPURI_NUME_DOSAR`) — min 3 câmpuri, ex. `id_client_nume_client_tip_proprietate`. Fix pentru
+  toate dosarele lui. `id_client` = free-text la dosar nou, **needitabil ulterior**, unic (la
+  import cere ID nou). Sursa opțiunilor = `master_config.py` (hardcodat; per-user în DB online).
+- **UUID dosar:** formă per-user (din opțiuni hardcoded), modificabilă de admin în DB.
+- Modificarea câmpurilor de identitate → **dosar nou + 1 credit** (vezi #2).
+
 ## Confidențialitate / GDPR / legal (de aprofundat la implementare)
 - Gateway-ul vede **doar date anonimizate** → argument de vânzare + GDPR mai simplu.
 - Termeni de serviciu, politică de date, facturare RO (TVA), reguli ANEVAR privind tool-uri
