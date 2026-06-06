@@ -79,6 +79,7 @@
           <select id="tip_drept"><option value="drept de proprietate deplină">Proprietate deplină</option>
             <option value="drept de proprietate în cotă">Proprietate în cotă</option>
             <option value="drept de superficie">Superficie</option><option value="drept de uzufruct">Uzufruct</option></select></div>
+        <div class="field"><label for="act_proprietate">Act de proprietate</label><input id="act_proprietate" placeholder="ex. contract vânzare nr. 123/2015"></div>
         <div class="field" style="flex:2"><label for="sarcini">Sarcini / grevări (extras CF) <span class="hint">(ipoteci, servituți — relevant la garantare)</span></label><input id="sarcini" placeholder="ex. ipotecă în favoarea Băncii X / fără sarcini"></div>
       </div>
       <div class="field-row">
@@ -763,6 +764,7 @@ function asambleaza(){
   if($("beneficiar").value) meta.beneficiar=$("beneficiar").value;
   if($("proprietar")&&$("proprietar").value) meta.proprietar=$("proprietar").value;
   if($("tip_drept")&&$("tip_drept").value) meta.tip_drept=$("tip_drept").value;
+  if($("act_proprietate")&&$("act_proprietate").value) meta.act_proprietate=$("act_proprietate").value;
   if($("sarcini")&&$("sarcini").value) meta.sarcini=$("sarcini").value;
   if($("data_inspectiei")&&$("data_inspectiei").value) meta.data_inspectiei=$("data_inspectiei").value;
   if($("inspectie_amploare")&&$("inspectie_amploare").value) meta.inspectie_amploare=$("inspectie_amploare").value;

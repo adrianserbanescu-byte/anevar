@@ -257,6 +257,8 @@ def _termeni_referinta(doc: DocxDocument, ctx: ReportContext, adnotari: bool = F
         f"{meta.carte_funciara}."
     )
     doc.add_paragraph(f"Dreptul evaluat: {meta.tip_drept} (SEV 230).")
+    if meta.act_proprietate:
+        doc.add_paragraph(f"Act de proprietate: {meta.act_proprietate}.")
     doc.add_paragraph(
         f"Sarcini / grevari (extras CF): {meta.sarcini}." if meta.sarcini
         else "Sarcini / grevari (extras CF): nu au fost declarate; de verificat în extrasul de carte funciară "
