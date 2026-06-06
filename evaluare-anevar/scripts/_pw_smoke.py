@@ -270,6 +270,9 @@ with sync_playwright() as pw:
     check("dosar: grilă ajustări casă inline → valoare de piață", "Valoare de piață" in p.inner_text("#g-rezultat"))
     check("dosar: ajustările grilei chiar se aplică (alertă 25% la ajustare 30%)",
           "ajustare brută" in p.inner_text("#g-rezultat"))
+    check("dosar: grila are <th scope> (a11y tabel)",
+          p.eval_on_selector(".grid-aj th[scope='row']", "e=>!!e") is True
+          and p.eval_on_selector(".grid-aj th[scope='col']", "e=>!!e") is True)
     # grilă de ajustări teren inline → /api/grila-teren
     p.eval_on_selector_all("details.grila-det", "els=>els.forEach(e=>{e.open=true;})")
     p.fill("#gt-supr", "500")

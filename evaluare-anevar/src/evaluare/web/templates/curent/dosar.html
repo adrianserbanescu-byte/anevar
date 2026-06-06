@@ -17,13 +17,14 @@
 <main id="continut">
   <div class="tabs" role="tablist" aria-label="Secțiuni dosar">
     <button type="button" role="tab" id="t-raport" aria-controls="p-raport" aria-selected="true"><span aria-hidden="true">📄</span> Raport evaluare</button>
-    <button type="button" role="tab" id="t-aml" aria-controls="p-aml" aria-selected="false" tabindex="-1"><span aria-hidden="true">🛡</span> AML</button>
-    <button type="button" role="tab" id="t-gdpr" aria-controls="p-gdpr" aria-selected="false" tabindex="-1"><span aria-hidden="true">🔒</span> GDPR</button>
+    <button type="button" role="tab" id="t-aml" aria-controls="p-aml" aria-selected="false" tabindex="-1" title="Combaterea spălării banilor (Legea 129/2019)"><span aria-hidden="true">🛡</span> AML</button>
+    <button type="button" role="tab" id="t-gdpr" aria-controls="p-gdpr" aria-selected="false" tabindex="-1" title="Protecția datelor cu caracter personal (GDPR)"><span aria-hidden="true">🔒</span> GDPR</button>
     <button type="button" role="tab" id="t-audit" aria-controls="p-audit" aria-selected="false" tabindex="-1"><span aria-hidden="true">🧾</span> Audit</button>
   </div>
 
   <!-- ============ RAPORT ============ -->
   <section role="tabpanel" id="p-raport" aria-labelledby="t-raport" tabindex="0">
+    <h2 class="sr-only">Raport de evaluare</h2>
     <div class="subtabs" role="tablist" aria-label="Secțiuni raport">
       <button type="button" role="tab" id="s-proprietate" aria-controls="sp-proprietate" aria-selected="true">Proprietate</button>
       <button type="button" role="tab" id="s-comparabile" aria-controls="sp-comparabile" aria-selected="false" tabindex="-1">Comparabile</button>
@@ -282,7 +283,8 @@
   </section>
 
   <section role="tabpanel" id="p-aml" aria-labelledby="t-aml" tabindex="0" hidden>
-    <div class="avert-warn" role="alert">⚠️ Aplicația <b>NU verifică automat</b> sancțiuni/PEP — verifică manual pe
+    <h2 class="sr-only">Conformitate AML</h2>
+    <div class="avert-warn" role="note">⚠️ Aplicația <b>NU verifică automat</b> sancțiuni/PEP — verifică manual pe
       <a href="https://www.opensanctions.org/" target="_blank" rel="noopener">OpenSanctions</a> /
       <a href="https://www.sanctionsmap.eu/" target="_blank" rel="noopener">EU Sanctions Map</a>. Documentele = drafturi (validează cu jurist, Legea 129 art. 43/44/49).</div>
     <fieldset><legend>Entitate evaluator</legend>
@@ -328,6 +330,7 @@
     <div id="aml-rez" role="status" aria-live="polite"></div>
   </section>
   <section role="tabpanel" id="p-gdpr" aria-labelledby="t-gdpr" tabindex="0" hidden>
+    <h2 class="sr-only">Documente GDPR</h2>
     <p class="hint">Generează documentele GDPR (model) direct de aici:</p>
     <button type="button" id="gdpr-politica">📄 Politică de prelucrare (.docx)</button>
     <button type="button" id="gdpr-consimtamant">📄 Acord de consimțământ (.docx)</button>
@@ -335,6 +338,7 @@
     <p class="hint">Referință: <a href="/documente/politica-confidentialitate" target="_blank" rel="noopener">Politica de confidențialitate ↗</a> ·
       <a href="/documente/disclaimer-profesional" target="_blank" rel="noopener">Disclaimer profesional ↗</a></p></section>
   <section role="tabpanel" id="p-audit" aria-labelledby="t-audit" tabindex="0" hidden>
+    <h2 class="sr-only">Urmă de audit</h2>
     <p class="hint">Urma de audit (jurnal hash-înlănțuit + validare încrucișată) pentru valorile curente:</p>
     <button type="button" id="audit-gen">🧾 Generează urma de audit</button>
     <span id="audit-status" class="hint" role="status" aria-live="polite"></span>
@@ -784,11 +788,11 @@ function asambleaza(){
     {nume:"Sistem încălzire",tip:"procentuala",etapa:"proprietate"},
     {nume:"Alte elemente (garaj, anexe)",tip:"valorica",etapa:"proprietate"}
   ];
-  var i, h="<table class='grid-aj'><tr><th>Element</th>";
-  for(i=0;i<NC;i++) h+="<th>Comp "+(i+1)+"</th>"; h+="</tr>";
-  h+="<tr><th>Preț ofertă (EUR)</th>"; for(i=0;i<NC;i++) h+="<td><input class='g-pret' data-i='"+i+"' aria-label='Preț comp "+(i+1)+"'></td>"; h+="</tr>";
-  h+="<tr><th>Suprafață (mp)</th>"; for(i=0;i<NC;i++) h+="<td><input class='g-sup' data-i='"+i+"' aria-label='Suprafață comp "+(i+1)+"'></td>"; h+="</tr>";
-  ELEM_CASA.forEach(function(e,ei){ h+="<tr><th>"+e.nume+" <small class='hint'>("+(e.tip==='valorica'?'lei':'%')+", "+e.etapa+")</small></th>";
+  var i, h="<table class='grid-aj'><tr><th scope='col'>Element</th>";
+  for(i=0;i<NC;i++) h+="<th scope='col'>Comp "+(i+1)+"</th>"; h+="</tr>";
+  h+="<tr><th scope='row'>Preț ofertă (EUR)</th>"; for(i=0;i<NC;i++) h+="<td><input class='g-pret' data-i='"+i+"' aria-label='Preț comp "+(i+1)+"'></td>"; h+="</tr>";
+  h+="<tr><th scope='row'>Suprafață (mp)</th>"; for(i=0;i<NC;i++) h+="<td><input class='g-sup' data-i='"+i+"' aria-label='Suprafață comp "+(i+1)+"'></td>"; h+="</tr>";
+  ELEM_CASA.forEach(function(e,ei){ h+="<tr><th scope='row'>"+e.nume+" <small class='hint'>("+(e.tip==='valorica'?'lei':'%')+", "+e.etapa+")</small></th>";
     for(i=0;i<NC;i++) h+="<td><input class='g-aj' data-e='"+ei+"' data-i='"+i+"' aria-label='"+e.nume+" comp "+(i+1)+"'></td>"; h+="</tr>"; });
   wrap.innerHTML=h+"</table>";
   function compForm(){
@@ -838,11 +842,11 @@ function asambleaza(){
     {nume:"Regim juridic (intra/extravilan)",etapa:"proprietate"},{nume:"Regim economic (destinație)",etapa:"proprietate"},
     {nume:"Indicatori urbanism (CUT/POT)",etapa:"proprietate"}
   ];
-  var i, h="<table class='grid-aj'><tr><th>Element</th>";
-  for(i=0;i<NC;i++) h+="<th>Comp "+(i+1)+"</th>"; h+="</tr>";
-  h+="<tr><th>Preț (EUR/mp)</th>"; for(i=0;i<NC;i++) h+="<td><input class='gt-pret' data-i='"+i+"' aria-label='Preț/mp comp "+(i+1)+"'></td>"; h+="</tr>";
-  h+="<tr><th>Suprafață (mp)</th>"; for(i=0;i<NC;i++) h+="<td><input class='gt-sup' data-i='"+i+"' aria-label='Suprafață comp "+(i+1)+"'></td>"; h+="</tr>";
-  ELEM_T.forEach(function(e,ei){ h+="<tr><th>"+e.nume+" <small class='hint'>(%, "+e.etapa+")</small></th>";
+  var i, h="<table class='grid-aj'><tr><th scope='col'>Element</th>";
+  for(i=0;i<NC;i++) h+="<th scope='col'>Comp "+(i+1)+"</th>"; h+="</tr>";
+  h+="<tr><th scope='row'>Preț (EUR/mp)</th>"; for(i=0;i<NC;i++) h+="<td><input class='gt-pret' data-i='"+i+"' aria-label='Preț/mp comp "+(i+1)+"'></td>"; h+="</tr>";
+  h+="<tr><th scope='row'>Suprafață (mp)</th>"; for(i=0;i<NC;i++) h+="<td><input class='gt-sup' data-i='"+i+"' aria-label='Suprafață comp "+(i+1)+"'></td>"; h+="</tr>";
+  ELEM_T.forEach(function(e,ei){ h+="<tr><th scope='row'>"+e.nume+" <small class='hint'>(%, "+e.etapa+")</small></th>";
     for(i=0;i<NC;i++) h+="<td><input class='gt-aj' data-e='"+ei+"' data-i='"+i+"' aria-label='"+e.nume+" comp "+(i+1)+"'></td>"; h+="</tr>"; });
   wrap.innerHTML=h+"</table>";
   function compForm(){
@@ -890,11 +894,11 @@ function asambleaza(){
     {nume:"Destinație (rezid./comercial)",tip:"procentuala",etapa:"proprietate"},
     {nume:"Cheltuieli incluse (lei/mp)",tip:"valorica",etapa:"proprietate"}
   ];
-  var i, h="<table class='grid-aj'><tr><th>Element</th>";
-  for(i=0;i<NC;i++) h+="<th>Comp "+(i+1)+"</th>"; h+="</tr>";
-  h+="<tr><th>Chirie (EUR/mp/lună)</th>"; for(i=0;i<NC;i++) h+="<td><input class='gc-pret' data-i='"+i+"' aria-label='Chirie/mp comp "+(i+1)+"'></td>"; h+="</tr>";
-  h+="<tr><th>Suprafață (mp)</th>"; for(i=0;i<NC;i++) h+="<td><input class='gc-sup' data-i='"+i+"' aria-label='Suprafață comp "+(i+1)+"'></td>"; h+="</tr>";
-  ELEM_C.forEach(function(e,ei){ h+="<tr><th>"+e.nume+" <small class='hint'>("+(e.tip==='valorica'?'lei':'%')+", "+e.etapa+")</small></th>";
+  var i, h="<table class='grid-aj'><tr><th scope='col'>Element</th>";
+  for(i=0;i<NC;i++) h+="<th scope='col'>Comp "+(i+1)+"</th>"; h+="</tr>";
+  h+="<tr><th scope='row'>Chirie (EUR/mp/lună)</th>"; for(i=0;i<NC;i++) h+="<td><input class='gc-pret' data-i='"+i+"' aria-label='Chirie/mp comp "+(i+1)+"'></td>"; h+="</tr>";
+  h+="<tr><th scope='row'>Suprafață (mp)</th>"; for(i=0;i<NC;i++) h+="<td><input class='gc-sup' data-i='"+i+"' aria-label='Suprafață comp "+(i+1)+"'></td>"; h+="</tr>";
+  ELEM_C.forEach(function(e,ei){ h+="<tr><th scope='row'>"+e.nume+" <small class='hint'>("+(e.tip==='valorica'?'lei':'%')+", "+e.etapa+")</small></th>";
     for(i=0;i<NC;i++) h+="<td><input class='gc-aj' data-e='"+ei+"' data-i='"+i+"' aria-label='"+e.nume+" comp "+(i+1)+"'></td>"; h+="</tr>"; });
   wrap.innerHTML=h+"</table>";
   function compForm(){
