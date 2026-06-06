@@ -4,15 +4,19 @@
 > (2) aleg și rezolv tot ce pot face singur (fără input de la Adi), (3) la următorul loop reiau.
 > Ce e blocat pe Adi → [`BLOCAT-pe-Adi.md`](BLOCAT-pe-Adi.md) (NU le ating). Actualizat: 2026-06-06.
 
-## 🔄 În curs (checkpoint — app-ul s-a restartat în timpul council-ului)
-- [ ] **9 topicuri → LLM council în 3 interogări** (feature/module): Q1 ✅ (topics 1,5,7 — făcut, am salvat răspunsurile),
-      Q2 ⏳ (topics 3,4,6 — întrerupt de restart, de reluat), Q3 ☐ (topics 2,8,9).
-- [ ] **Sinteză 9 topicuri**: direcție propusă + plan, cu analiza individuală + agregată a council-ului + opinia mea.
-- [ ] **Council ADIȚIONAL** (cerut de Adi): cere fiecărui model PLANUL LUI pentru noul UI (context exhaustiv:
+## 🔄 BLOCAT EXTERN — MCP llm-council offline (se reia la reconectare, la următorul loop)
+- [ ] **Council Q2** (topics 3,4,6) + **Q3** (topics 2,8,9) — de rulat când revine `mcp__llm-council`.
+- [ ] **Council ADIȚIONAL** (cerut de Adi): fiecare model își dă PLANUL lui pentru noul UI (context exhaustiv:
       fișiere exportate, descoperire+AI, UI vechi, toate feature-urile, obiective). Compar cu planul meu + agregat.
-- [ ] **Widget feedback**: verific că a supraviețuit în tot noul UI; sigur era în subsol — dacă nu e și în antet, îl adaug.
-- [ ] **Fișier de sinteză a nopții**: tot ce am făcut singur + ce s-a identificat + recomandări + ce s-a rezolvat +
-      cum am implementat planificarea + cât am folosit din feedback-uri.
+      → la reconectare, foloseso răspunsurile pentru a rafina `9-topicuri-decizie.md` + planul de dezvoltare.
+
+## ✅ Făcut în acest loop
+- [x] **Analiza mea pe toate 9 topicuri** + council Q1 → `9-topicuri-decizie.md`.
+- [x] **Widget feedback** verificat: lipsea din tot UI-ul nou (era doar în `_topbar`) → mutat în `_footer` comun
+      (apare pe toate paginile, vechi+nou). +test. Restul linkurilor neafectate.
+- [x] **Fișier de sinteză a nopții** → `00-SINTEZA-NOAPTE-2026-06-06.md`.
+- [x] Polish auto-safe: badge „recomandat" verde + aria-hidden emoji (index).
+- [x] Listă autonomă creată (acest fișier) + checkpoint durabil la restart.
 
 ## ☐ Datorie tehnică autonomă (din auditul tehnic; le pot face fără decizie de produs)
 - [ ] `listeaza()` — cache pe mtime via `_index.json` (evită rescanarea N fișiere la fiecare /incepe).
