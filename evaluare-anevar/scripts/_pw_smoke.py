@@ -210,6 +210,10 @@ with sync_playwright() as pw:
     p.click("#s-anexe")
     check("dosar: sub-tab Anexe + upload foto",
           (not p.eval_on_selector("#sp-anexe", "e=>e.hidden")) and p.eval_on_selector("#up-foto", "e=>!!e") is True)
+    # modulul de DESCOPERIRE re-integrat inline în Comparabile (formular + buton Caută)
+    p.click("#s-comparabile")
+    check("dosar: căutare comparabile inline (re-integrată)",
+          p.eval_on_selector("#d-cauta", "e=>!!e") is True and p.eval_on_selector("#d-judet", "e=>!!e") is True)
     p.click("#s-proprietate")
     p.click("#t-aml")
     check("dosar: tab AML comută panoul",

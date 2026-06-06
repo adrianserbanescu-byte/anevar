@@ -107,8 +107,24 @@
     </section>
 
     <section role="tabpanel" id="sp-comparabile" aria-labelledby="s-comparabile" tabindex="0" hidden>
-      <p class="hint">Descoperirea comparabilelor se face în pagina dedicată
-       (<a href="/descoperire" target="_blank" rel="noopener">Descoperire ↗</a>); rezultatele bifate ajung în grilă.</p>
+      <h3>🔎 Descoperă comparabile</h3>
+      <div class="field-row">
+        <div class="field"><label for="d-portal">Portal</label>
+          <select id="d-portal"><option value="imobiliare">imobiliare.ro</option><option value="storia">storia.ro</option></select></div>
+        <div class="field"><label for="d-judet">Județ</label><input id="d-judet"></div>
+        <div class="field"><label for="d-localitate">Localitate</label><input id="d-localitate"></div>
+      </div>
+      <div class="field-row">
+        <div class="field"><label for="d-an">An constr.</label><input id="d-an" type="number" placeholder="2013"></div>
+        <div class="field"><label for="d-stare">Stare (1-4)</label><input id="d-stare" type="number" placeholder="3"></div>
+        <div class="field"><label for="d-finisaj">Finisaj (1-4)</label><input id="d-finisaj" type="number" placeholder="4"></div>
+        <div class="field"><label for="d-incalzire">Încălzire</label><input id="d-incalzire" placeholder="centrala_gaz"></div>
+        <div class="field"><label for="d-teren">Teren (mp)</label><input id="d-teren" placeholder="500"></div>
+      </div>
+      <button type="button" id="d-cauta">Caută comparabile</button>
+      <span id="d-status" class="hint" role="status" aria-live="polite"></span>
+      <div id="d-rezultate"></div>
+      <hr class="brass-rule">
       <label for="comparabile">Comparabile construcție/proprietate <span class="hint">(preț;suprafață, una pe linie)</span></label>
       <textarea id="comparabile" rows="4" placeholder="250000;120"></textarea>
       <label for="comparabile_teren">Comparabile teren <span class="hint">(preț/mp;suprafață — opțional; dacă există, valoarea terenului se calculează din grilă, nu manual)</span></label>
@@ -360,6 +376,40 @@ if($("up-foto")) $("up-foto").addEventListener("change", function(){
 if($("up-doc")) $("up-doc").addEventListener("change", function(){
   Promise.all([].map.call(this.files, _fileURL)).then(function(a){ ANEXE_DOC=ANEXE_DOC.concat(a); randDoc(); }); });
 if($("la-anexe")) $("la-anexe").addEventListener("click", function(){ var rt=$("t-raport"); if(rt) rt.click(); subtab("s-anexe"); });
+
+// Descoperire comparabile INLINE (re-integrat în Comparabile; reutilizează /api/descopera). „AI tăiat căutarea" → reparat.
+(function(){
+  var cauta=$("d-cauta"); if(!cauta) return;
+  if($("d-judet")&&!$("d-judet").value&&$("judet")) $("d-judet").value=$("judet").value;
+  if($("d-localitate")&&!$("d-localitate").value&&$("localitate")) $("d-localitate").value=$("localitate").value;
+  function badge(r){ return r>=80?"b-high":"b-mid"; }
+  cauta.addEventListener("click", function(){
+    $("d-status").textContent="… se caută (poate dura câteva secunde)"; $("d-rezultate").innerHTML="";
+    var payload={portal:$("d-portal").value, judet:$("d-judet").value, localitate:$("d-localitate").value,
+      subiect:{an:parseInt($("d-an").value)||null, stare:parseInt($("d-stare").value)||null,
+        finisaj:parseInt($("d-finisaj").value)||null, incalzire:$("d-incalzire").value||null, teren:$("d-teren").value||null},
+      atribute_secundare:[], max_candidati:8};
+    fetch("/api/descopera",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(payload)})
+      .then(function(r){ return r.ok?r.json():Promise.reject(); })
+      .then(function(res){
+        var cand=res.candidati||[]; $("d-status").textContent=cand.length+" candidați";
+        if(!cand.length){ $("d-rezultate").innerHTML="<p class='hint'>Niciun comparabil. Încearcă doar județul sau altă localitate.</p>"; return; }
+        $("d-rezultate").innerHTML=cand.map(function(c){ return "<div class='callout' style='margin:6px 0'>"+
+          "<label class='chk'><input type='checkbox' class='d-bif' data-pret='"+(c.pret||"")+"' data-supr='"+(c.suprafata||"")+"'> "+
+          "<span class='badge "+badge(c.relevanta)+"'>"+c.relevanta+"%</span> <b>"+(c.pret?fmtRo(c.pret)+" "+(c.moneda||"EUR"):"preț ?")+"</b> · "+
+          (c.suprafata||"?")+" mp · teren "+(c.teren||"?")+" mp</label> <a href='"+c.url+"' target='_blank' rel='noopener'>vezi ↗</a>"+
+          (c.explicatie?"<br><small class='hint'>"+c.explicatie+"</small>":"")+"</div>"; }).join("")+
+          "<button type='button' id='d-importa'>Importă bifate în grilă</button>";
+        $("d-importa").addEventListener("click", function(){
+          var linii=[]; document.querySelectorAll(".d-bif:checked").forEach(function(b){ if(b.dataset.pret&&b.dataset.supr) linii.push(b.dataset.pret+";"+b.dataset.supr); });
+          if(!linii.length){ $("d-status").textContent="Bifează cel puțin un candidat."; return; }
+          var ta=$("comparabile"); ta.value=(ta.value.trim()?ta.value.trim()+"\n":"")+linii.join("\n"); salveaza();
+          $("d-status").textContent="✓ "+linii.length+" importate în grilă (jos).";
+        });
+      })
+      .catch(function(){ $("d-status").textContent="Căutarea a eșuat — verifică internetul și reîncearcă."; });
+  });
+})();
 
 // construiește payload-ul de evaluare din câmpuri
 function asambleaza(){
