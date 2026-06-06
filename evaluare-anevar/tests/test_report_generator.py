@@ -68,6 +68,14 @@ def test_raportul_contine_datele_cheie(tmp_path):
     assert "Cea mai buna utilizare" in text        # narativ inserat
 
 
+def test_tip_valoare_txt_cazuri_limita():
+    from evaluare.report.generator import _tip_valoare_txt
+    assert "SEV 102" in _tip_valoare_txt("tip-necunoscut-oarecare")  # slug necunoscut -> ref. adăugată
+    deja = "Valoare specială (SEV 104)"
+    assert _tip_valoare_txt(deja) == deja                            # frază deja citată -> neschimbată
+    assert _tip_valoare_txt("") is not None                          # gol -> nu crapă
+
+
 def test_tipul_valorii_citeaza_sursa(tmp_path):
     # SEV 102 §20.4 + SEV 106 §30.6(i): slug-ul de tip valoare („piata", cum îl setează un profil)
     # devine denumire lizibilă + sursa definiției în raport (nu mai afișează slug-ul brut).

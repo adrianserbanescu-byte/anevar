@@ -74,7 +74,11 @@ def incarca(uid: str) -> dict:
     f = baza() / uid / "dosar.json"
     if not f.exists():
         raise KeyError(f"Dosar inexistent: {uid}")
-    return json.loads(f.read_text(encoding="utf-8"))
+    try:
+        return json.loads(f.read_text(encoding="utf-8"))
+    except (ValueError, OSError) as e:
+        # dosar.json corupt/ilizibil -> tratat ca „nu poate fi încărcat" (404 la caller), nu 500.
+        raise KeyError(f"Dosar ilizibil (fișier corupt): {uid}") from e
 
 
 def salveaza_wizard(uid: str, wizard: dict) -> dict:

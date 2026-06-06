@@ -211,6 +211,27 @@ def test_evaluare_veche_date_insuficiente_422(client):
     assert client.post("/api/evaluare", json=p).status_code == 422
 
 
+def test_dosar_json_corupt_nu_crapa(client):
+    # robustețe: dosar.json corupt -> 404 clar (nu 500); workspace-ul nu trebuie să crape la deschidere.
+    _cont(client)
+    uid = client.post("/api/dosar", json={"wizard": {"nume_client": "X"}}).json()["uuid"]
+    (client._baza / "date" / "dosare" / uid / "dosar.json").write_text("{ corupt", encoding="utf-8")
+    assert client.get(f"/dosar/{uid}").status_code == 404
+    assert client.get(f"/api/dosar/{uid}").status_code == 404
+
+
+def test_calcul_alerte_sunt_expuse(client):
+    # contractul „aplicația avertizează, nu decide": Au>Acd trebuie să apară în `alerte` (nu 200 mut).
+    _cont(client)
+    uid = client.post("/api/dosar", json={"wizard": {}}).json()["uuid"]
+    p = _payload()
+    p["building"]["au"] = "200"          # Au(200) > Acd(120) -> alertă de proprietate
+    r = client.post(f"/api/dosar/{uid}/calcul", json=p)
+    assert r.status_code == 200
+    alerte = r.json()["alerte"]
+    assert isinstance(alerte, list) and len(alerte) >= 1
+
+
 def test_import_prea_mare_413(client):
     _cont(client)
     big = "A" * 35_000_001            # peste limita anti-DoS
