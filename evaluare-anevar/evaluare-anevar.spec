@@ -64,4 +64,6 @@ exe = EXE(
     target_arch=None,
     codesign_identity=None,
     entitlements_file=None,
+    icon="assets/icon.ico",          # siglă casă (assets/icon.ico, vezi scripts/_make_icon.py)
+    version="version_info.txt",      # metadate Windows (Properties → Details)
 )
