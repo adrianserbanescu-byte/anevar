@@ -52,9 +52,15 @@ def baza() -> Path:
     return Path(__file__).parent / "data" / "documente"
 
 
-def listeaza() -> list[dict]:
-    """Documentele care există efectiv pe disc, în ordinea registrului."""
-    return [d for d in REGISTRU if (baza() / d["fisier"]).exists()]
+# Documente interne (strategie/lansare/evaluare juridică de produs) — NU se afișează evaluatorului
+# pe pagina /documente; rămân accesibile prin slug direct. Pagina arată doar ce e util în practică.
+_INTERNE = {"sinteza-lansare", "plan-lansare", "strategie-comercializare", "plan-maine", "evaluare-juridica"}
+
+
+def listeaza(include_interne: bool = False) -> list[dict]:
+    """Documentele utile evaluatorului care există pe disc (fără cele interne de strategie/lansare)."""
+    return [d for d in REGISTRU
+            if (include_interne or d["slug"] not in _INTERNE) and (baza() / d["fisier"]).exists()]
 
 
 def incarca(slug: str) -> tuple[dict, str]:

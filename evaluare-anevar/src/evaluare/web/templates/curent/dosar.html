@@ -20,7 +20,6 @@
     <button type="button" role="tab" id="t-aml" aria-controls="p-aml" aria-selected="false" tabindex="-1"><span aria-hidden="true">🛡</span> AML</button>
     <button type="button" role="tab" id="t-gdpr" aria-controls="p-gdpr" aria-selected="false" tabindex="-1"><span aria-hidden="true">🔒</span> GDPR</button>
     <button type="button" role="tab" id="t-audit" aria-controls="p-audit" aria-selected="false" tabindex="-1"><span aria-hidden="true">🧾</span> Audit</button>
-    <button type="button" role="tab" id="t-anexe" aria-controls="p-anexe" aria-selected="false" tabindex="-1"><span aria-hidden="true">📎</span> Anexe</button>
   </div>
 
   <!-- ============ RAPORT ============ -->
@@ -95,15 +94,17 @@
       </div>
       <div id="grup-constructie">
         <div class="field-row">
-          <div class="field"><label for="au">Au (mp)</label><input id="au" placeholder="ex. 100"></div>
-          <div class="field"><label for="acd">Acd (mp)</label><input id="acd" placeholder="ex. 120"></div>
-          <div class="field"><label for="an_referinta">An referință</label><input id="an_referinta" placeholder="ex. 2025"></div>
+          <div class="field"><label for="au">Arie utilă (mp)</label><input id="au" placeholder="ex. 100"></div>
+          <div class="field"><label for="acd">Arie construită desfășurată (mp)</label><input id="acd" placeholder="ex. 120"></div>
+          <div class="field"><label for="an_referinta">An referință</label><input id="an_referinta" type="number" placeholder="ex. 2025"></div>
         </div>
-        <label for="elemente">Elemente cost <span class="hint">(element;cod;um;cantitate;cost_unitar;an_pif — una pe linie)</span></label>
-        <textarea id="elemente" rows="2" aria-describedby="h-elemente" placeholder="Structura;X;mp;120;2000;2015"></textarea>
-        <small id="h-elemente" class="hint">Lasă gol pentru proprietăți fără construcție (teren).</small>
-        <label for="depreciere">Depreciere <span class="hint">(varsta;fractie)</span></label>
-        <textarea id="depreciere" rows="2" placeholder="5;0.05"></textarea>
+        <div id="grup-cost">
+          <label for="elemente">Elemente de cost (abordarea prin cost) <span class="hint">(element;cod;um;cantitate;cost_unitar;an_pif — una pe linie)</span></label>
+          <textarea id="elemente" rows="2" aria-describedby="h-elemente" placeholder="Structura;X;mp;120;2000;2015"></textarea>
+          <small id="h-elemente" class="hint">Necesare doar pentru abordarea prin cost (casă/industrial/special).</small>
+          <label for="depreciere">Depreciere <span class="hint">(vârstă;fracție, una pe linie)</span></label>
+          <textarea id="depreciere" rows="2" placeholder="5;0.05"></textarea>
+        </div>
       </div>
     </section>
 
@@ -111,14 +112,20 @@
       <h3>🔎 Descoperă comparabile</h3>
       <div class="field-row">
         <div class="field"><label for="d-portal">Portal</label>
-          <select id="d-portal"><option value="imobiliare">imobiliare.ro</option><option value="storia">storia.ro</option></select></div>
+          <select id="d-portal"><option value="toate" selected>Toate portalurile</option>
+            <option value="imobiliare">imobiliare.ro</option><option value="storia">storia.ro</option></select></div>
         <div class="field"><label for="d-judet">Județ</label><input id="d-judet"></div>
         <div class="field"><label for="d-localitate">Localitate</label><input id="d-localitate"></div>
       </div>
       <div class="field-row">
         <div class="field"><label for="d-an">An constr.</label><input id="d-an" type="number" placeholder="2013"></div>
-        <div class="field"><label for="d-stare">Stare (1-4)</label><input id="d-stare" type="number" placeholder="3"></div>
-        <div class="field"><label for="d-finisaj">Finisaj (1-4)</label><input id="d-finisaj" type="number" placeholder="4"></div>
+        <div class="field"><label for="d-stare">Stare</label>
+          <select id="d-stare"><option value="">—</option><option value="1">Degradată</option>
+            <option value="2">Necesită renovare</option><option value="3">Medie / bună</option>
+            <option value="4">Foarte bună / renovată</option><option value="5">Nouă</option></select></div>
+        <div class="field"><label for="d-finisaj">Finisaj</label>
+          <select id="d-finisaj"><option value="">—</option><option value="1">Modest</option>
+            <option value="2">Standard</option><option value="3">Superior</option><option value="4">Lux</option></select></div>
         <div class="field"><label for="d-incalzire">Încălzire</label><input id="d-incalzire" placeholder="centrala_gaz"></div>
         <div class="field"><label for="d-teren">Teren (mp)</label><input id="d-teren" placeholder="500"></div>
       </div>
@@ -284,9 +291,6 @@
     <button type="button" id="audit-gen">🧾 Generează urma de audit</button>
     <span id="audit-status" class="hint" role="status" aria-live="polite"></span>
     <pre id="audit-out" class="document" style="display:none"></pre></section>
-  <section role="tabpanel" id="p-anexe" aria-labelledby="t-anexe" tabindex="0" hidden><p class="hint">
-    Anexele (fotografii + scanuri CF/cadastral) se adaugă în <b>Raport → Anexe</b>, înainte de Generează —
-    fiindcă intră direct în raportul .docx (Anexa 2/3). <button type="button" id="la-anexe">Mergi la Anexe →</button></p></section>
 </main>
 
 <script>{% include "_helpers.js" %}</script>
@@ -324,6 +328,10 @@ var MAPARE = {
 // încarcă valorile salvate (checkbox -> .checked, restul -> .value)
 Object.keys(WIZARD||{}).forEach(function(k){ var e=$(k); if(!e) return;
   if(e.type==="checkbox") e.checked = (WIZARD[k]===true || WIZARD[k]==="true"); else e.value = WIZARD[k]; });
+// Tipul proprietății + scopul, dacă au fost stabilite la crearea dosarului, NU se mai modifică (intră în identitate/nume).
+["tip_proprietate","scop"].forEach(function(k){ var e=$(k);
+  if(e && WIZARD && WIZARD[k]){ e.disabled=true; e.setAttribute("aria-disabled","true");
+    e.title="Stabilit la crearea dosarului — pentru altul, creează un dosar nou."; } });
 
 // Checkpoint de asumare (om în buclă): «Generează» e blocat până confirmă evaluatorul.
 // Convergență audit juridic + LLM council: asumarea trebuie să trăiască în UI, cu urmă în dosar.
@@ -444,8 +452,20 @@ function aplicaTip(v){
   _show("agr-fields", v==="agricol");
   _show("grup-teren", v!=="apartament");      // apartamentul nu are teren standalone
   _show("grup-constructie", v!=="agricol");   // terenul agricol nu are construcție
+  // Abordarea prin cost (elemente + depreciere + metodele cost/ponderată) se aplică doar la construcții
+  // care se evaluează prin cost — NU la apartament (comparație) sau teren agricol.
+  var cost = (v==="casa"||v==="industrial"||v==="special");
+  _show("grup-cost", cost);
+  if($("metoda")){
+    ["cost","ponderata"].forEach(function(val){ var o=$("metoda").querySelector("option[value='"+val+"']");
+      if(o){ o.disabled=!cost; o.hidden=!cost; } });
+    if(!cost && ($("metoda").value==="cost"||$("metoda").value==="ponderata")){
+      $("metoda").value=(v==="agricol"?"piata":"piata"); if(typeof sincronMetoda==="function") sincronMetoda(); }
+  }
 }
 if($("tip_proprietate")){ $("tip_proprietate").addEventListener("change", function(){ aplicaTip(); }); aplicaTip(); }
+// Data evaluării (Identificare) ↔ Data evaluării (AML): același câmp, sincronizat.
+if($("data_evaluarii")) $("data_evaluarii").addEventListener("change", function(){ if($("aml_azi")) $("aml_azi").value=this.value; });
 
 // Anexe: foto (Anexa 2) + documente/scanuri (Anexa 3) → data-URL base64, incluse în raport.
 var ANEXE_FOTO=[], ANEXE_DOC=[];
@@ -466,31 +486,42 @@ if($("la-anexe")) $("la-anexe").addEventListener("click", function(){ var rt=$("
   if($("d-judet")&&!$("d-judet").value&&$("judet")) $("d-judet").value=$("judet").value;
   if($("d-localitate")&&!$("d-localitate").value&&$("localitate")) $("d-localitate").value=$("localitate").value;
   function badge(r){ return r>=80?"b-high":"b-mid"; }
-  cauta.addEventListener("click", function(){
-    $("d-status").textContent="… se caută (poate dura câteva secunde)"; $("d-rezultate").innerHTML="";
-    var payload={portal:$("d-portal").value, judet:$("d-judet").value, localitate:$("d-localitate").value,
+  var PORTALURI=["imobiliare","storia"];
+  function randCand(cand){
+    if(!cand.length){ $("d-rezultate").innerHTML="<p class='hint'>Niciun comparabil. Încearcă doar județul sau altă localitate.</p>"; return; }
+    $("d-rezultate").innerHTML="<p class='hint'>"+cand.length+" anunțuri găsite (sortate după scor de relevanță):</p>"+
+      cand.map(function(c){ return "<div class='callout' style='margin:6px 0'>"+
+        "<label class='chk'><input type='checkbox' class='d-bif' data-pret='"+(c.pret||"")+"' data-supr='"+(c.suprafata||"")+"'> "+
+        "<span class='badge "+badge(c.relevanta)+"'>scor "+c.relevanta+"%</span> <b>"+(c.pret?fmtRo(c.pret)+" "+(c.moneda||"EUR"):"preț ?")+"</b> · "+
+        (c.suprafata||"?")+" mp"+(c.teren?" · teren "+c.teren+" mp":"")+(c._portal?" · <small class='hint'>"+c._portal+"</small>":"")+"</label> "+
+        "<a href='"+c.url+"' target='_blank' rel='noopener'>vezi ↗</a>"+
+        (c.explicatie?"<br><small class='hint'>"+c.explicatie+"</small>":"")+"</div>"; }).join("")+
+      "<button type='button' id='d-importa'>Importă bifate în grilă</button>";
+    $("d-importa").addEventListener("click", function(){
+      var linii=[]; document.querySelectorAll(".d-bif:checked").forEach(function(b){ if(b.dataset.pret&&b.dataset.supr) linii.push(b.dataset.pret+";"+b.dataset.supr); });
+      if(!linii.length){ $("d-status").textContent="Bifează cel puțin un candidat."; return; }
+      var ta=$("comparabile"); ta.value=(ta.value.trim()?ta.value.trim()+"\n":"")+linii.join("\n"); salveaza();
+      $("d-status").textContent="✓ "+linii.length+" importate în grilă (jos).";
+    });
+  }
+  function cerePortal(portal){
+    var payload={portal:portal, judet:$("d-judet").value, localitate:$("d-localitate").value,
       subiect:{an:parseInt($("d-an").value)||null, stare:parseInt($("d-stare").value)||null,
         finisaj:parseInt($("d-finisaj").value)||null, incalzire:$("d-incalzire").value||null, teren:$("d-teren").value||null},
       atribute_secundare:($("d-secundare")&&$("d-secundare").value||"").split("\n").filter(Boolean), max_candidati:8};
-    fetch("/api/descopera",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(payload)})
-      .then(function(r){ return r.ok?r.json():Promise.reject(); })
-      .then(function(res){
-        var cand=res.candidati||[]; $("d-status").textContent=cand.length+" candidați";
-        if(!cand.length){ $("d-rezultate").innerHTML="<p class='hint'>Niciun comparabil. Încearcă doar județul sau altă localitate.</p>"; return; }
-        $("d-rezultate").innerHTML=cand.map(function(c){ return "<div class='callout' style='margin:6px 0'>"+
-          "<label class='chk'><input type='checkbox' class='d-bif' data-pret='"+(c.pret||"")+"' data-supr='"+(c.suprafata||"")+"'> "+
-          "<span class='badge "+badge(c.relevanta)+"'>"+c.relevanta+"%</span> <b>"+(c.pret?fmtRo(c.pret)+" "+(c.moneda||"EUR"):"preț ?")+"</b> · "+
-          (c.suprafata||"?")+" mp · teren "+(c.teren||"?")+" mp</label> <a href='"+c.url+"' target='_blank' rel='noopener'>vezi ↗</a>"+
-          (c.explicatie?"<br><small class='hint'>"+c.explicatie+"</small>":"")+"</div>"; }).join("")+
-          "<button type='button' id='d-importa'>Importă bifate în grilă</button>";
-        $("d-importa").addEventListener("click", function(){
-          var linii=[]; document.querySelectorAll(".d-bif:checked").forEach(function(b){ if(b.dataset.pret&&b.dataset.supr) linii.push(b.dataset.pret+";"+b.dataset.supr); });
-          if(!linii.length){ $("d-status").textContent="Bifează cel puțin un candidat."; return; }
-          var ta=$("comparabile"); ta.value=(ta.value.trim()?ta.value.trim()+"\n":"")+linii.join("\n"); salveaza();
-          $("d-status").textContent="✓ "+linii.length+" importate în grilă (jos).";
-        });
-      })
-      .catch(function(){ $("d-status").textContent="Căutarea a eșuat — verifică internetul și reîncearcă."; });
+    return fetch("/api/descopera",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(payload)})
+      .then(function(r){ return r.ok?r.json():{candidati:[]}; })
+      .then(function(res){ return (res.candidati||[]).map(function(c){ c._portal=portal; return c; }); })
+      .catch(function(){ return []; });
+  }
+  cauta.addEventListener("click", function(){
+    $("d-status").textContent="… se caută (poate dura câteva secunde)"; $("d-rezultate").innerHTML="";
+    var sel=$("d-portal").value, portaluri=(sel==="toate")?PORTALURI:[sel];
+    Promise.all(portaluri.map(cerePortal)).then(function(lists){
+      var cand=[].concat.apply([], lists).sort(function(a,b){ return (b.relevanta||0)-(a.relevanta||0); });
+      $("d-status").textContent=cand.length+" candidați"+(sel==="toate"?" (toate portalurile)":"");
+      randCand(cand);
+    });
   });
   // Import comparabil dintr-un anunț (URL) → adaugă „preț;suprafață" în grilă.
   if($("d-url-btn")) $("d-url-btn").addEventListener("click", function(){
