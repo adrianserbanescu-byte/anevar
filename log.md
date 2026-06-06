@@ -412,3 +412,23 @@ Continuare directivă autonomă. Pachet complet pentru decizia de comercializare
   e2e 49→**51**. Acoperire narativ 74→89%, ocr 76→96%. **473 teste + 51 e2e.** Exe reconstruit.
 - Memorie locală + MEMORY.md + claude-mem actualizate; tot pe GitHub (push pe master).
 **Decizii pentru Adi:** `00-SINTEZA` §3 (lista de aprobat) + §4 (ce decide doar el).
+
+### 2026-06-06 — sesiune lungă: recuperarea funcțională a UI-ului nou (paritate completă) + a11y + conformitate
+Owner a testat UI-ul nou și a găsit că „e un dezastru" — multe funcții pierdute față de wizard. Audit vizual
+(Playwright, nu doar citire de cod) + inventar complet de controale (`docs/audit-ui-nou/`): ~118 controale,
+26 lipsă, 30 parțiale. **Recuperat TOT, verificat vizual, în rulare continuă:**
+- **Recuperare inițială (11 plângeri):** ajutor „?", afordanță sub-taburi, curs EUR, flux identitate la creare,
+  câmpuri dinamice per tip proprietate, descoperire inline (era TĂIATĂ), AML/GDPR/Audit in-place (nu redirect),
+  Anexe sub-tab cu upload, opțiuni Generează.
+- **12 buguri din testarea vizuală:** date RO + blocare dată viitoare, tip/scop blocate după creare, apartament
+  fără cost, Au/Acd text complet, scoruri descoperire, „toate portalurile", documente filtrate, stare/finisaj text.
+- **Grile de ajustare CASĂ+TEREN+CHIRII** inline (2 etape + alertă prudențială 25% GEV 520) + **BUG FIX critic**:
+  cheia `adjustments` (grilele ignorau ajustările) — e2e dovedește acum aplicarea. + punte VBP→Venit.
+- **Județ/localitate** = liste din /api/localitati (diacritice+slug) · **proprietar** · **descoperă terenuri** ·
+  **ingestie PDF** (CF/releveu/plan/CPE → pre-completare) · **coadă extensie browser** · **backup .zip**.
+- **a11y:** th scope pe grile, ordine titluri (h2 sr-only), token CSS rupt, role alert→note, touch targets 32px.
+- **Loop special:** matrice conformitate tip×scop (`E-`), re-analiză LEGE 129+NORME (`F-`), 3 ADR-uri (SQLite→foldere,
+  lock-identitate, AI gateway). Toate discrepanțele → `BLOCAT-pe-Adi.md` §G/§H/§I (bucket B/C).
+- **AML citare** art.33→43/44/49 aplicat consistent (pending jurist, per decizia Adi în BLOCAT §H30).
+- **90 e2e + 496 teste, verde. Exe reconstruit de multe ori.** Metodă nouă confirmată: verificare VIZUALĂ în browser.
+**Backlog paritate = CURĂȚAT.** Rămâne doar finețe + deciziile pe Adi (`BLOCAT-pe-Adi.md`).
