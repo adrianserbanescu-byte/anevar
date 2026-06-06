@@ -170,6 +170,17 @@
         </div>
         <div id="gt-rezultat" role="status" aria-live="polite"></div>
       </details>
+      <details class="grila-det">
+        <summary>📐 Grilă de chirii — pentru abordarea prin venit (chirie/mp + ajustări → VBP)</summary>
+        <p class="hint">Chiria lunară/mp + suprafața fiecărui comparabil + ajustările. Rezultă venitul brut potențial anual (VBP).</p>
+        <div class="field" style="max-width:220px"><label for="gc-supr">Suprafață închiriabilă subiect (mp)</label><input id="gc-supr" placeholder="ex. 100"></div>
+        <div id="grila-chirii-tabel" class="grila-scroll"></div>
+        <div class="btn-bar">
+          <button type="button" id="gc-calc">Calculează grila chirii</button>
+          <button type="button" class="ghost" id="gc-vbp">↑ Preia VBP la metoda Venit</button>
+        </div>
+        <div id="gc-rezultat" role="status" aria-live="polite"></div>
+      </details>
       <p class="hint">Grilă completă (3 tipuri, toate elementele): <a href="/grila" target="_blank" rel="noopener">Grile ↗</a>.</p>
     </section>
 
@@ -691,7 +702,7 @@ function asambleaza(){
       var aj=[];
       ELEM_CASA.forEach(function(e,ei){ var v=wrap.querySelector(".g-aj[data-e='"+ei+"'][data-i='"+i+"']").value;
         if(v&&parseFloat(v)!==0) aj.push({element:e.nume,tip:e.tip,valoare:v,etapa:e.etapa}); });
-      comps.push({pret:pret,suprafata:sup,ajustari:aj});
+      comps.push({pret:pret,suprafata:sup,adjustments:aj});
     }
     return comps;
   }
@@ -745,7 +756,7 @@ function asambleaza(){
       var aj=[];
       ELEM_T.forEach(function(e,ei){ var v=wrap.querySelector(".gt-aj[data-e='"+ei+"'][data-i='"+i+"']").value;
         if(v&&parseFloat(v)!==0) aj.push({element:e.nume,tip:"procentuala",valoare:v,etapa:e.etapa}); });
-      comps.push({pret_mp:pret,suprafata:sup,ajustari:aj});
+      comps.push({pret_mp:pret,suprafata:sup,adjustments:aj});
     }
     return comps;
   }
@@ -767,6 +778,61 @@ function asambleaza(){
     var comps=compForm(); if(!comps.length){ $("gt-rezultat").textContent="Nimic de trimis."; return; }
     var ta=$("comparabile_teren"); ta.value=(ta.value.trim()?ta.value.trim()+"\n":"")+comps.map(function(c){return c.pret_mp+";"+c.suprafata;}).join("\n"); salveaza();
     $("gt-rezultat").textContent="✓ "+comps.length+" comparabile trimise în Comparabile teren.";
+  });
+})();
+// Grilă de CHIRII (port din grila.html): 2 etape + alertă prudențială 25% → VBP pentru abordarea prin venit.
+(function(){
+  var wrap=$("grila-chirii-tabel"); if(!wrap) return;
+  var NC=3;
+  var ELEM_C=[
+    {nume:"Ofertă→Contract (negociere)",tip:"procentuala",etapa:"tranzactie"},
+    {nume:"Condițiile pieței (timp)",tip:"procentuala",etapa:"tranzactie"},
+    {nume:"Localizare",tip:"procentuala",etapa:"proprietate"},{nume:"Suprafață",tip:"procentuala",etapa:"proprietate"},
+    {nume:"Etaj / poziție",tip:"procentuala",etapa:"proprietate"},{nume:"Finisaje / stare",tip:"procentuala",etapa:"proprietate"},
+    {nume:"Dotări (mobilat/utilat)",tip:"procentuala",etapa:"proprietate"},
+    {nume:"Destinație (rezid./comercial)",tip:"procentuala",etapa:"proprietate"},
+    {nume:"Cheltuieli incluse (lei/mp)",tip:"valorica",etapa:"proprietate"}
+  ];
+  var i, h="<table class='grid-aj'><tr><th>Element</th>";
+  for(i=0;i<NC;i++) h+="<th>Comp "+(i+1)+"</th>"; h+="</tr>";
+  h+="<tr><th>Chirie (EUR/mp/lună)</th>"; for(i=0;i<NC;i++) h+="<td><input class='gc-pret' data-i='"+i+"' aria-label='Chirie/mp comp "+(i+1)+"'></td>"; h+="</tr>";
+  h+="<tr><th>Suprafață (mp)</th>"; for(i=0;i<NC;i++) h+="<td><input class='gc-sup' data-i='"+i+"' aria-label='Suprafață comp "+(i+1)+"'></td>"; h+="</tr>";
+  ELEM_C.forEach(function(e,ei){ h+="<tr><th>"+e.nume+" <small class='hint'>("+(e.tip==='valorica'?'lei':'%')+", "+e.etapa+")</small></th>";
+    for(i=0;i<NC;i++) h+="<td><input class='gc-aj' data-e='"+ei+"' data-i='"+i+"' aria-label='"+e.nume+" comp "+(i+1)+"'></td>"; h+="</tr>"; });
+  wrap.innerHTML=h+"</table>";
+  function compForm(){
+    var comps=[];
+    for(var i=0;i<NC;i++){
+      var pret=wrap.querySelector(".gc-pret[data-i='"+i+"']").value, sup=wrap.querySelector(".gc-sup[data-i='"+i+"']").value;
+      if(!pret||!sup) continue;
+      var aj=[];
+      ELEM_C.forEach(function(e,ei){ var v=wrap.querySelector(".gc-aj[data-e='"+ei+"'][data-i='"+i+"']").value;
+        if(v&&parseFloat(v)!==0) aj.push({element:e.nume,tip:e.tip,valoare:v,etapa:e.etapa}); });
+      comps.push({chirie_mp:pret,suprafata:sup,adjustments:aj});
+    }
+    return comps;
+  }
+  var _vbp=null;
+  if($("gc-calc")) $("gc-calc").addEventListener("click", function(){
+    var comps=compForm(), ss=$("gc-supr").value;
+    if(comps.length<3||!ss){ $("gc-rezultat").textContent="Completează suprafața subiect + cel puțin 3 comparabile (chirie/mp+suprafață)."; return; }
+    $("gc-rezultat").textContent="… se calculează grila";
+    fetch("/api/grila-chirii",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({suprafata_subiect:ss,comparabile:comps})})
+      .then(function(r){ return r.ok?r.json():r.json().then(function(e){return Promise.reject(e.detail||"eroare");}); })
+      .then(function(d){
+        _vbp=d.venit_brut_potential;
+        var al=[]; (d.ajustari_brute||[]).forEach(function(b,i){ if(parseFloat(b)>0.25) al.push("Comp "+(i+1)+": ajustare brută "+Math.round(parseFloat(b)*100)+"% > 25% (prag prudențial GEV 520)"); });
+        var html="<div class='callout'><p><b>Venit brut potențial (VBP): "+fmtRo(d.venit_brut_potential)+"/an</b> · chirie/mp aleasă: "+fmtRo(d.chirie_mp_aleasa)+" · chirie lunară: "+fmtRo(d.chirie_lunara)+"</p>";
+        html+=al.length?("<ul>"+al.map(function(a){return "<li class='alerta'>⚠ "+a+"</li>";}).join("")+"</ul>"):"<p class='hint'>✓ Toate ajustările brute sub pragul prudențial de 25%.</p>";
+        $("gc-rezultat").innerHTML=html+"</div>";
+      })
+      .catch(function(e){ $("gc-rezultat").textContent="Grila chirii a eșuat — "+(typeof e==="string"?e:"verifică valorile (minim 3 comparabile)."); });
+  });
+  if($("gc-vbp")) $("gc-vbp").addEventListener("click", function(){
+    if(_vbp===null){ $("gc-rezultat").textContent="Calculează întâi grila de chirii."; return; }
+    if($("vbp")) $("vbp").value=_vbp;
+    if($("metoda")){ $("metoda").value="venit"; if(typeof sincronMetoda==="function") sincronMetoda(); }
+    salveaza(); $("gc-rezultat").textContent="✓ VBP preluat la metoda Venit ("+fmtRo(_vbp)+"/an). Vezi tab-ul Calcul.";
   });
 })();
 $("calc").addEventListener("click", async function(){

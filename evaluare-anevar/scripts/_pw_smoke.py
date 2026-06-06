@@ -246,14 +246,19 @@ with sync_playwright() as pw:
     check("dosar: import URL + atribute secundare (paritate descoperire)",
           p.eval_on_selector("#d-url-btn", "e=>!!e") is True and p.eval_on_selector("#d-secundare", "e=>!!e") is True)
     # grilă de ajustări casă inline (port din grila.html) → /api/grila-casa
-    p.eval_on_selector("details.grila-det", "e=>{e.open=true;}")
+    p.eval_on_selector_all("details.grila-det", "els=>els.forEach(e=>{e.open=true;})")
     p.fill("#g-supr", "120")
     for gi in range(3):
         p.fill(f".g-pret[data-i='{gi}']", str(250000 + gi * 6000))
         p.fill(f".g-sup[data-i='{gi}']", str(120 + gi * 4))
+    # ajustare de 30% pe Comp 1 (etapa proprietate, ELEM_CASA index 6 = Localizare): TREBUIE să declanșeze
+    # alerta prudențială > 25% — dovedește că ajustările (cheia `adjustments`) chiar ajung la motor.
+    p.fill(".g-aj[data-e='6'][data-i='0']", "0.30")
     p.click("#g-calc")
     p.wait_for_selector("#g-rezultat:has-text('Valoare de piață')", timeout=8000)
     check("dosar: grilă ajustări casă inline → valoare de piață", "Valoare de piață" in p.inner_text("#g-rezultat"))
+    check("dosar: ajustările grilei chiar se aplică (alertă 25% la ajustare 30%)",
+          "ajustare brută" in p.inner_text("#g-rezultat"))
     # grilă de ajustări teren inline → /api/grila-teren
     p.eval_on_selector_all("details.grila-det", "els=>els.forEach(e=>{e.open=true;})")
     p.fill("#gt-supr", "500")
@@ -263,6 +268,17 @@ with sync_playwright() as pw:
     p.click("#gt-calc")
     p.wait_for_selector("#gt-rezultat:has-text('Valoare teren')", timeout=8000)
     check("dosar: grilă ajustări teren inline → valoare teren", "Valoare teren" in p.inner_text("#gt-rezultat"))
+    # grilă de chirii inline → /api/grila-chirii → VBP + punte la metoda Venit
+    p.fill("#gc-supr", "100")
+    for gi in range(3):
+        p.fill(f".gc-pret[data-i='{gi}']", str(8 + gi))
+        p.fill(f".gc-sup[data-i='{gi}']", str(90 + gi * 5))
+    p.click("#gc-calc")
+    p.wait_for_selector("#gc-rezultat:has-text('Venit brut')", timeout=8000)
+    check("dosar: grilă chirii inline → VBP", "Venit brut" in p.inner_text("#gc-rezultat"))
+    p.click("#gc-vbp")
+    check("dosar: «Preia VBP» → metoda Venit + câmpul VBP completat",
+          p.eval_on_selector("#vbp", "e=>e.value") != "" and p.eval_on_selector("#metoda", "e=>e.value") == "venit")
     p.click("#s-proprietate")
     p.click("#t-aml")
     check("dosar: tab AML comută panoul",
@@ -278,6 +294,7 @@ with sync_playwright() as pw:
     p.click("#s-calcul")
     check("dosar: sub-tab Calcul vizibil", not p.eval_on_selector("#sp-calcul", "e=>e.hidden"))
     # venit/DCF: câmpurile apar doar la metoda corespunzătoare
+    p.select_option("#metoda", "cost")
     check("dosar: grup venit ascuns la cost", p.eval_on_selector("#grup-venit", "e=>e.hidden"))
     p.select_option("#metoda", "venit")
     check("dosar: grup venit vizibil la metoda venit", not p.eval_on_selector("#grup-venit", "e=>e.hidden"))
