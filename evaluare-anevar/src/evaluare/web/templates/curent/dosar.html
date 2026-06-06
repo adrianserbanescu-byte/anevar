@@ -123,6 +123,15 @@
             <select id="categorie_teren"><option value="intravilan">Intravilan</option><option value="extravilan">Extravilan</option></select></div>
           <div class="field"><label for="valoare_teren">Valoare teren (lei)</label><input id="valoare_teren" placeholder="ex. 100000"></div>
         </div>
+        <fieldset><legend>Utilități (GEV 630)</legend>
+          <label class="chk"><input type="checkbox" class="util" value="apă"> Apă</label>
+          <label class="chk"><input type="checkbox" class="util" value="canalizare"> Canalizare</label>
+          <label class="chk"><input type="checkbox" class="util" value="gaze naturale"> Gaze</label>
+          <label class="chk"><input type="checkbox" class="util" value="energie electrică"> Curent</label>
+          <label class="chk"><input type="checkbox" class="util" value="internet"> Internet</label>
+        </fieldset>
+        <label for="restrictii_urbanism">Regim urbanistic / restricții <span class="hint">(din certificatul de urbanism: POT/CUT, servituți, interdicții)</span></label>
+        <input id="restrictii_urbanism" placeholder="ex. POT 40%, CUT 1.2, fără restricții">
       </div>
       <div id="grup-constructie">
         <div class="field-row">
@@ -781,6 +790,9 @@ function asambleaza(){
   if($("inaltime_libera")&&$("inaltime_libera").value) building.inaltime_libera=$("inaltime_libera").value;
   var land={suprafata:$("suprafata_teren").value||"0"};
   if($("categorie_teren")&&$("categorie_teren").value) land.categorie=$("categorie_teren").value;
+  var util=[]; document.querySelectorAll(".util:checked").forEach(function(c){ util.push(c.value); });
+  if(util.length) land.utilitati=util;
+  if($("restrictii_urbanism")&&$("restrictii_urbanism").value) land.restrictii_urbanism=$("restrictii_urbanism").value;
   if($("categorie_folosinta")&&$("categorie_folosinta").value) land.categorie_folosinta=$("categorie_folosinta").value;
   if($("clasa_calitate")&&$("clasa_calitate").value) land.clasa_calitate=parseInt($("clasa_calitate").value);
   var m=$("metoda").value;
