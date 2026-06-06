@@ -31,9 +31,17 @@
 ## ☐ Datorie tehnică autonomă (din auditul tehnic; le pot face fără decizie de produs)
 - [ ] `listeaza()` — cache pe mtime via `_index.json` (evită rescanarea N fișiere la fiecare /incepe).
 - [ ] Îngustez `except Exception` prea largi + logging (docx_dosar, dosare_fs.diff).
-- [ ] Retenție versiuni `.docx` în folderul dosarului (acum cresc nelimitat).
+- [x] Retenție versiuni `.docx` (păstrează ultimele 10, nume cu microsecunde). ✅
 - [ ] Nume fișiere temporare unice (uid+timestamp) în `gettempdir()` (evită coliziuni).
-- [ ] Extind avertismentul cloud-sync să acopere și `date/dosare/`.
+- [x] Avertisment cloud-sync — deja acoperit (DB + `date/dosare` sub același `baza`). N/A.
+
+## ☐ Paritate UI nou (feature, additiv — wiring de capacitate existentă, nu decizie de produs)
+- [x] **Grila de teren** (land_comparables) în sub-tab Comparabile. ✅
+- [ ] Chirii→venit / DCF (metodă avansată, câmpuri date_venit/date_dcf) — rar la garantare.
+- [ ] Anexă foto / scanuri — **GATED comercial** (decizia ta; nu îl fac autonom).
+
+## ⚙ Rebuild exe — PENDING (de făcut la următorul loop, batch cu council)
+Schimbări necompilate în exe: grila teren în UI nou + retenție .docx + widget feedback peste tot.
 
 ## ☐ Acoperire teste (țintă ≥90%, urc golurile cunoscute)
 - [ ] `report/generator` (~88%) — secțiuni rare (lichidare/DCF).
