@@ -34,7 +34,7 @@ invocat și **întrebările deschise** care necesită decizie juridică. (Punctu
    trimită evaluatorul către surse oficiale + bifă manuală, sau e obligatorie integrarea unui API?**
 3. **Tipping-off (art. 38):** RTS/RTN se păstrează în folderul `aml_confidential` separat de dosar.
    **E acceptabil să se persiste local, sau trebuie generate o singură dată fără urmă pe disc?**
-4. **Răspundere (art. 43/44/49):** drafturile sunt generate (parțial cu AI). **Ce formulări/disclaimere
+4. **Răspundere (art. 33):** drafturile sunt generate (parțial cu AI). **Ce formulări/disclaimere
    sunt necesare ca evaluatorul să nu fie expus la „neglijență gravă"?**
 5. **Norme interne generice vs adaptate:** un model generat e suficient ca **draft**, dar ce trebuie
    neapărat personalizat la entitate înainte de a fi „în vigoare"?
