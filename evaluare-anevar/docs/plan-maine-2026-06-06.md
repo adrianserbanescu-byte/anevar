@@ -131,11 +131,17 @@
 
 ---
 
-## F. Ce mai dezvolt singur (fără să te aștept) — în ordine
-1. **Test e2e nou-UI** în `_pw_smoke.py` (cont → ÎNCEPE → dosar nou → completare → calcul → generează).
-2. **Călire `portal_search`**: ignoră anunțurile promovate/cross-categorie la descoperire (bug din audit E).
-3. **Reduc golurile de acoperire** `ocr`/`narrative` cu fixturi mici + căi de eroare.
-4. **#3 Localități user** dacă rămâne timp (mic, izolat, buildabil).
-5. La fiecare pas: teste + lint + (la final) **rebuild exe**.
+## F. Ce dezvolt singur (fără să te aștept) — progres în buclă autonomă
+- [x] **Test e2e nou-UI** în `_pw_smoke.py` (cont → ÎNCEPE → dosar → tab/sub-tab → autosave) — 49 verificări.
+- [x] **Călire `portal_search`** (preferă localitatea în slug → taie promovatele).
+- [x] **Browser cross-check** imobiliare/storia/olx (API == ce vede omul pe site).
+- [x] **Acoperire `ai/narrative`** 74%→89% (cele 2 clienți reali, fără rețea).
+- [x] **„Scoate din listă"** pentru dosarele dispărute.
+- [ ] **Acoperire `ingestie/ocr`** (~76%) — fixtură PDF mică + cale fallback.
+- [ ] **Acoperire `report/generator`** (~88%) — secțiuni rare (lichidare/DCF).
+- [ ] **GDPR tab** în workspace să nu mai pointeze la `/aml` (distinct) — minim, fără decizie de produs.
+- [ ] **Extensie browser**: test e2e dedicat importului prin extensie.
+- [ ] **#3 Localități user** — **NU** îl construiesc: spec-ul zice „de brainstormat" (aș preîntâmpina o decizie).
 
-> Tot ce e în **F** îl fac autonom. Tot ce e în **B/D1** te așteaptă pe tine.
+> Buclă: la fiecare trezire (+1h) continui lista de mai sus, testez, și rebuild exe la final de batch.
+> Tot ce e în **B/D1** te așteaptă pe tine (decizii de produs).

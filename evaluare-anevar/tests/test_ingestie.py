@@ -18,6 +18,30 @@ def test_num_format_ro():
     assert _num("xyz") is None
 
 
+def test_text_din_pdf_digital_bytes():
+    # PDF digital real (creat cu fitz) -> text extras direct, fără OCR
+    import fitz
+
+    from evaluare.ingestie.ocr import text_din_pdf
+    doc = fitz.open()
+    doc.new_page().insert_text((72, 72), "Suprafata utila 120 mp")
+    data = doc.tobytes()
+    doc.close()
+    assert "120" in text_din_pdf(data)
+    assert "120" in extrage_text(data)              # happy-path prin extrage_text
+
+
+def test_extrage_text_cade_pe_ocr_la_pdf_invalid():
+    # PDF nevalid -> text_din_pdf aruncă -> rulează ocr_fn injectat
+    assert extrage_text(b"nu e pdf", ocr_fn=lambda s: "TEXT OCR REZERVA") == "TEXT OCR REZERVA"
+
+
+def test_extrage_text_ocr_esuat_returneaza_gol():
+    def ocr_bad(s):
+        raise RuntimeError("ocr indisponibil")
+    assert extrage_text(b"nu e pdf", ocr_fn=ocr_bad) == ""
+
+
 def test_extrage_cf():
     text = ("Extras de carte funciara nr. 20145, localitatea Breaza. "
             "Numar cadastral: 20144. Suprafata de 700 mp. "
