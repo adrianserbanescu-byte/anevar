@@ -159,6 +159,17 @@
       </details>
       <label for="comparabile_teren">Comparabile teren <span class="hint">(preț/mp;suprafață — opțional; dacă există, valoarea terenului se calculează din grilă, nu manual)</span></label>
       <textarea id="comparabile_teren" rows="3" placeholder="50;700"></textarea>
+      <details class="grila-det">
+        <summary>📐 Grilă de ajustări — teren (pe etape + alerte prudențiale)</summary>
+        <p class="hint">Preț/mp + suprafața fiecărui comparabil + ajustările (procentuale, fracție 0,05 = +5%).</p>
+        <div class="field" style="max-width:220px"><label for="gt-supr">Suprafață teren subiect (mp)</label><input id="gt-supr" placeholder="ex. 500"></div>
+        <div id="grila-teren-tabel" class="grila-scroll"></div>
+        <div class="btn-bar">
+          <button type="button" id="gt-calc">Calculează grila teren</button>
+          <button type="button" class="ghost" id="gt-import">↑ Trimite în Comparabile teren</button>
+        </div>
+        <div id="gt-rezultat" role="status" aria-live="polite"></div>
+      </details>
       <p class="hint">Grilă completă (3 tipuri, toate elementele): <a href="/grila" target="_blank" rel="noopener">Grile ↗</a>.</p>
     </section>
 
@@ -703,6 +714,59 @@ function asambleaza(){
     var comps=compForm(); if(!comps.length){ $("g-rezultat").textContent="Nimic de trimis."; return; }
     var ta=$("comparabile"); ta.value=(ta.value.trim()?ta.value.trim()+"\n":"")+comps.map(function(c){return c.pret+";"+c.suprafata;}).join("\n"); salveaza();
     $("g-rezultat").textContent="✓ "+comps.length+" prețuri trimise în Comparabile.";
+  });
+})();
+// Grilă de ajustări TEREN (port din grila.html): 2 etape + alertă prudențială 25% (GEV 520).
+(function(){
+  var wrap=$("grila-teren-tabel"); if(!wrap) return;
+  var NC=3;
+  var ELEM_T=[
+    {nume:"Ofertă→Tranzacție",etapa:"tranzactie"},{nume:"Drept de proprietate",etapa:"tranzactie"},
+    {nume:"Finanțare",etapa:"tranzactie"},{nume:"Condiții de vânzare",etapa:"tranzactie"},
+    {nume:"Cheltuieli post-vânzare",etapa:"tranzactie"},{nume:"Condițiile pieței (timp)",etapa:"tranzactie"},
+    {nume:"Localizare",etapa:"proprietate"},{nume:"Acces",etapa:"proprietate"},{nume:"Utilități",etapa:"proprietate"},
+    {nume:"Suprafață",etapa:"proprietate"},{nume:"Deschidere (front stradal)",etapa:"proprietate"},
+    {nume:"Înclinație",etapa:"proprietate"},{nume:"Tip teren",etapa:"proprietate"},{nume:"Document urbanistic",etapa:"proprietate"},
+    {nume:"Regim juridic (intra/extravilan)",etapa:"proprietate"},{nume:"Regim economic (destinație)",etapa:"proprietate"},
+    {nume:"Indicatori urbanism (CUT/POT)",etapa:"proprietate"}
+  ];
+  var i, h="<table class='grid-aj'><tr><th>Element</th>";
+  for(i=0;i<NC;i++) h+="<th>Comp "+(i+1)+"</th>"; h+="</tr>";
+  h+="<tr><th>Preț (EUR/mp)</th>"; for(i=0;i<NC;i++) h+="<td><input class='gt-pret' data-i='"+i+"' aria-label='Preț/mp comp "+(i+1)+"'></td>"; h+="</tr>";
+  h+="<tr><th>Suprafață (mp)</th>"; for(i=0;i<NC;i++) h+="<td><input class='gt-sup' data-i='"+i+"' aria-label='Suprafață comp "+(i+1)+"'></td>"; h+="</tr>";
+  ELEM_T.forEach(function(e,ei){ h+="<tr><th>"+e.nume+" <small class='hint'>(%, "+e.etapa+")</small></th>";
+    for(i=0;i<NC;i++) h+="<td><input class='gt-aj' data-e='"+ei+"' data-i='"+i+"' aria-label='"+e.nume+" comp "+(i+1)+"'></td>"; h+="</tr>"; });
+  wrap.innerHTML=h+"</table>";
+  function compForm(){
+    var comps=[];
+    for(var i=0;i<NC;i++){
+      var pret=wrap.querySelector(".gt-pret[data-i='"+i+"']").value, sup=wrap.querySelector(".gt-sup[data-i='"+i+"']").value;
+      if(!pret||!sup) continue;
+      var aj=[];
+      ELEM_T.forEach(function(e,ei){ var v=wrap.querySelector(".gt-aj[data-e='"+ei+"'][data-i='"+i+"']").value;
+        if(v&&parseFloat(v)!==0) aj.push({element:e.nume,tip:"procentuala",valoare:v,etapa:e.etapa}); });
+      comps.push({pret_mp:pret,suprafata:sup,ajustari:aj});
+    }
+    return comps;
+  }
+  if($("gt-calc")) $("gt-calc").addEventListener("click", function(){
+    var comps=compForm(), ss=$("gt-supr").value;
+    if(comps.length<3||!ss){ $("gt-rezultat").textContent="Completează suprafața subiect + cel puțin 3 comparabile (preț/mp+suprafață)."; return; }
+    $("gt-rezultat").textContent="… se calculează grila";
+    fetch("/api/grila-teren",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({suprafata_subiect:ss,comparabile:comps})})
+      .then(function(r){ return r.ok?r.json():Promise.reject(); })
+      .then(function(d){
+        var al=[]; (d.ajustari_brute||[]).forEach(function(b,i){ if(parseFloat(b)>0.25) al.push("Comp "+(i+1)+": ajustare brută "+Math.round(parseFloat(b)*100)+"% > 25% (prag prudențial GEV 520)"); });
+        var html="<div class='callout'><p><b>Valoare teren: "+fmtRo(d.valoare_teren)+"</b> · preț/mp ales: "+fmtRo(d.pret_mp_ales)+" · comparabil #"+((d.index_selectat||0)+1)+"</p>";
+        html+=al.length?("<ul>"+al.map(function(a){return "<li class='alerta'>⚠ "+a+"</li>";}).join("")+"</ul>"):"<p class='hint'>✓ Toate ajustările brute sub pragul prudențial de 25%.</p>";
+        $("gt-rezultat").innerHTML=html+"</div>";
+      })
+      .catch(function(){ $("gt-rezultat").textContent="Grila teren a eșuat — verifică valorile (minim 3 comparabile)."; });
+  });
+  if($("gt-import")) $("gt-import").addEventListener("click", function(){
+    var comps=compForm(); if(!comps.length){ $("gt-rezultat").textContent="Nimic de trimis."; return; }
+    var ta=$("comparabile_teren"); ta.value=(ta.value.trim()?ta.value.trim()+"\n":"")+comps.map(function(c){return c.pret_mp+";"+c.suprafata;}).join("\n"); salveaza();
+    $("gt-rezultat").textContent="✓ "+comps.length+" comparabile trimise în Comparabile teren.";
   });
 })();
 $("calc").addEventListener("click", async function(){

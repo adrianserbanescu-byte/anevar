@@ -254,6 +254,15 @@ with sync_playwright() as pw:
     p.click("#g-calc")
     p.wait_for_selector("#g-rezultat:has-text('Valoare de piață')", timeout=8000)
     check("dosar: grilă ajustări casă inline → valoare de piață", "Valoare de piață" in p.inner_text("#g-rezultat"))
+    # grilă de ajustări teren inline → /api/grila-teren
+    p.eval_on_selector_all("details.grila-det", "els=>els.forEach(e=>{e.open=true;})")
+    p.fill("#gt-supr", "500")
+    for gi in range(3):
+        p.fill(f".gt-pret[data-i='{gi}']", str(50 + gi * 3))
+        p.fill(f".gt-sup[data-i='{gi}']", str(700 + gi * 20))
+    p.click("#gt-calc")
+    p.wait_for_selector("#gt-rezultat:has-text('Valoare teren')", timeout=8000)
+    check("dosar: grilă ajustări teren inline → valoare teren", "Valoare teren" in p.inner_text("#gt-rezultat"))
     p.click("#s-proprietate")
     p.click("#t-aml")
     check("dosar: tab AML comută panoul",

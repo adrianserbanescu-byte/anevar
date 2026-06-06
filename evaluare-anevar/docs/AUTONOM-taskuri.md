@@ -12,8 +12,8 @@
 > **73 e2e + 495 teste.** Plus (verificat VIZUAL cu Playwright): butoane finalul tab Raport ✅ · 3 butoane Generează ✅ ·
 > alerte validare la calcul ✅ · import URL ✅ · atribute secundare ✅. **Inventar complet: `audit-ui-nou/5-inventar-controale-diff.md`.**
 > RĂMAS din inventar (~118 controale: 26 lipsă, 30 parțiale) — ordonate după impact:
-1. [ ] **Grile reale** (teren/casă/chirii) cu ajustări pe ETAPE + selecție pe ajustare brută minimă +
-       **alerte prudențiale 25%/15%** (GEV 520) — port din `grila.html`. Acum: textarea (funcțional, fără grilă). *(grilă=A; praguri=B)*
+1. [~] **Grile reale** (ajustări pe ETAPE + alertă prudențială 25% GEV 520, inline în Comparabile):
+       **CASĂ ✅** (`/api/grila-casa`) · **TEREN ✅** (`/api/grila-teren`) · CHIRII ⏳ (`/api/grila-chirii`, RentComparable — același tipar).
 2. [ ] **Ingestie PDF** (doc-tip + `/api/ingestie`): pre-completare din extras CF/releveu/plan/CPE. Backend există. (mare)
 3. [ ] **Descoperă TERENURI în zonă** (`/api/descopera-teren`) — acum descoperirea e doar pt clădiri.
 4. [ ] **Județ/localitate = select din `/api/localitati`** (acum text liber → pierd diacritice/slug). + câmp `proprietar` + `adresa_raport`.
