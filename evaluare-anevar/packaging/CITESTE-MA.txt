@@ -1,0 +1,55 @@
+============================================================
+  EVALUARE ANEVAR — asistent evaluare imobiliară (DRAFT)
+  Pachet pentru FEEDBACK · build local, offline
+============================================================
+
+CE ESTE
+-------
+O aplicație care ASISTĂ un evaluator autorizat ANEVAR la întocmirea
+rapoartelor de evaluare imobiliară (casă, apartament, teren etc.),
+inclusiv pentru garantarea creditului bancar. Rulează 100% LOCAL pe
+PC-ul tău (offline) — datele NU părăsesc calculatorul.
+
+CUM O PORNEȘTI
+--------------
+1. Dezarhivează folderul oriunde (ex. pe Desktop).
+2. Dublu-clic pe „evaluare-anevar.exe".
+3. Windows SmartScreen poate afișa un avertisment (aplicația nu e încă
+   semnată digital). Apasă „Informații suplimentare" → „Executare oricum".
+4. Se deschide automat în browserul tău, la adresa locală 127.0.0.1.
+   (Dacă nu se deschide, intră manual pe http://127.0.0.1:8000 )
+5. Ca să o închizi: închide fereastra neagră (consola) a aplicației.
+
+PARCURS RAPID
+-------------
+• Pe prima pagină alege „Homepage nou".
+• Creează un cont (nume + legitimație ANEVAR) — o singură dată.
+• „Dosar nou" → completezi identitatea → se deschide spațiul de lucru.
+• Tab „Raport evaluare": Proprietate → Comparabile → Calcul → Anexe → Generează.
+• Poți: descoperi comparabile pe portaluri, folosi grilele de ajustare
+  (casă/teren/chirii), atașa fotografii/scanuri, genera raportul .docx.
+• Tab-urile AML / GDPR / Audit generează documentele de conformitate.
+
+⚠️ IMPORTANT (răspundere)
+-------------------------
+• Aceasta este o versiune DRAFT, pentru feedback — NU pentru producție.
+• Aplicația AVERTIZEAZĂ și ASISTĂ; NU decide. Valoarea, metodologia și
+  semnătura aparțin evaluatorului autorizat ANEVAR.
+• Toate VALORILE numerice sunt deterministe (motor de calcul). Eventualul
+  text narativ AI e doar proză-draft, de verificat.
+• Documentele juridice/AML (T&C, GDPR, RTS etc.) sunt MODELE neverificate
+  juridic — a se valida cu un jurist înainte de orice utilizare reală.
+• Datele rămân pe disc în clar — păstrează PC-ul/discul protejat (BitLocker).
+
+LA CE FEEDBACK MĂ AJUTĂ CEL MAI MULT
+------------------------------------
+1. Fluxul de lucru: e clar, lipsește ceva față de modul tău de lucru?
+2. Raportul .docx generat: structură, completitudine, conformitate SEV/GEV.
+3. Orice eroare / blocaj / mesaj neclar (notează ce ai făcut înainte).
+4. Câmpuri sau pași care lipsesc sau care nu au sens.
+
+(NU evalua încă: calibrarea metodologică fină — o confirmă un evaluator
+senior; și textele juridice — le confirmă un jurist.)
+
+Mulțumesc pentru feedback!
+============================================================

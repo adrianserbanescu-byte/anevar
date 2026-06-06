@@ -8,3 +8,7 @@ __pycache__/
 build/
 dist/
 feedback-*.csv
+
+# Pachet de feedback (binare mari — nu in git; README-ul ramane)
+packaging/*.zip
+packaging/evaluare-anevar-feedback/
