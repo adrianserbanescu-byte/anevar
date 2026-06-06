@@ -656,16 +656,20 @@ if($("ing-fisier")) $("ing-fisier").addEventListener("change", function(){
         finisaj:parseInt($("d-finisaj").value)||null, incalzire:$("d-incalzire").value||null, teren:$("d-teren").value||null},
       atribute_secundare:($("d-secundare")&&$("d-secundare").value||"").split("\n").filter(Boolean), max_candidati:8}; }
     return fetch(url,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(payload)})
-      .then(function(r){ return r.ok?r.json():{candidati:[]}; })
+      .then(function(r){ if(!r.ok){ cerePortal._erori++; return {candidati:[]}; } return r.json(); })
       .then(function(res){ return (res.candidati||[]).map(function(c){ c._portal=portal; return c; }); })
-      .catch(function(){ return []; });
+      .catch(function(){ cerePortal._erori++; return []; });  // eșec real, nu „0 rezultate"
   }
+  cerePortal._erori=0;
   cauta.addEventListener("click", function(){
     $("d-status").textContent="… se caută (poate dura câteva secunde)"; $("d-rezultate").innerHTML="";
+    cerePortal._erori=0;
     var teren=($("d-tip")&&$("d-tip").value==="terenuri");
     var sel=$("d-portal").value, portaluri=(sel==="toate")?PORTALURI:[sel];
     Promise.all(portaluri.map(function(pp){ return cerePortal(pp, teren); })).then(function(lists){
       var cand=[].concat.apply([], lists).sort(function(a,b){ return (b.relevanta||0)-(a.relevanta||0); });
+      // nu masca eșecul drept „0 candidați": dacă toate portalurile au eșuat, spune-o clar.
+      if(!cand.length && cerePortal._erori){ $("d-status").textContent="Portalul nu a răspuns sau conexiunea a eșuat — încearcă din nou sau adaugă comparabilele manual."; return; }
       $("d-status").textContent=cand.length+" candidați"+(sel==="toate"?" (toate portalurile)":"");
       randCand(cand, teren);
     });

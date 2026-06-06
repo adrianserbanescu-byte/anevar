@@ -193,6 +193,24 @@ def test_raport_date_insuficiente_422(client):
     assert client.post(f"/api/dosar/{uid}/calcul", json=p).status_code == 422
 
 
+def test_import_docx_continut_invalid_nu_crapa(client):
+    # robustețe: conținut care NU e .docx valid -> NU 500; degradează grațios la parsarea numelui.
+    import base64
+    _cont(client)
+    payload = base64.b64encode(b"acesta nu este un document Word").decode()
+    r = client.post("/api/dosar/import-docx",
+                    json={"nume_fisier": "1_Test_casa.docx", "continut": payload})
+    assert r.status_code == 200 and "uuid" in r.json()
+
+
+def test_evaluare_veche_date_insuficiente_422(client):
+    # endpoint-ul vechi /api/evaluare nu trebuie să dea 500 pe date incomplete.
+    _cont(client)
+    p = _payload()
+    p["building"]["depreciation_points"] = []
+    assert client.post("/api/evaluare", json=p).status_code == 422
+
+
 def test_import_prea_mare_413(client):
     _cont(client)
     big = "A" * 35_000_001            # peste limita anti-DoS

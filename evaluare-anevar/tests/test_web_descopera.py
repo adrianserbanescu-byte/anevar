@@ -43,6 +43,28 @@ def test_post_descopera_returns_metodologie_and_candidati(tmp_path):
     assert "relevanta" in c0 and "explicatie" in c0 and "pret" in c0
 
 
+def test_descopera_fetch_esuat_nu_crapa(tmp_path):
+    # robustețe: portal căzut / fără rețea -> NU 500; fie 200 cu listă goală, fie 502 clar.
+    import requests as _rq
+    storage = Storage(tmp_path / "t.db")
+    storage.init()
+
+    def fetcher_cazut(url):
+        raise _rq.ConnectionError("portal indisponibil")
+
+    client = TestClient(create_app(storage=storage, client=None, fetcher=fetcher_cazut))
+    payload = {"portal": "imobiliare", "judet": "ilfov", "localitate": "otopeni",
+               "subiect": {}, "atribute_secundare": [], "max_candidati": 3}
+    r = client.post("/api/descopera", json=payload)
+    assert r.status_code in (200, 502)
+    if r.status_code == 200:
+        assert r.json()["candidati"] == []
+    rt = client.post("/api/descopera-teren", json={
+        "portal": "imobiliare", "judet": "ilfov", "localitate": "otopeni",
+        "suprafata_subiect": "500", "max_candidati": 3})
+    assert rt.status_code in (200, 502)
+
+
 def test_descoperire_page_has_methodology_before_results(tmp_path):
     client = TestClient(_app(tmp_path))
     resp = client.get("/descoperire")

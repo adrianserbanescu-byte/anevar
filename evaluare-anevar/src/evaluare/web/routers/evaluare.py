@@ -29,7 +29,10 @@ def build_router(d: Deps) -> APIRouter:
     @router.post("/api/evaluare")
     def creeaza_evaluare(inp: EvaluationInput) -> dict:
         from evaluare.audit.validare_x import valideaza_incrucisat
-        ctx = construieste_context(inp, client=d.client)
+        try:
+            ctx = construieste_context(inp, client=d.client)
+        except ValueError as e:
+            raise HTTPException(422, f"Date insuficiente sau invalide pentru calcul: {e}") from e
         eid = d.storage.save(ctx)
         alerte = [a.model_dump() for a in valideaza(inp)]
         alerte += [a.model_dump() for a in valideaza_incrucisat(ctx)]  # validare incrucisata (audit)

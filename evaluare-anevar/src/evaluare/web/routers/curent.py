@@ -86,7 +86,7 @@ def build_router(d: Deps) -> APIRouter:
         try:
             tmp = tmpdir / (Path(req.nume_fisier).name or "import.docx")
             tmp.write_bytes(raw)
-            wizard = extrage_din_docx(tmp)
+            wizard = extrage_din_docx(tmp)   # robust: docx ilizibil -> degradează la parsarea numelui
             uid = fs.creeaza(cont["legitimatie"], cont["nume"], wizard,
                              format_dosar=cont.get("format_dosar"))
             fs.adauga_versiune_docx(uid, tmp)          # atașează raportul sursă
