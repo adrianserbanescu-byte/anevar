@@ -4,15 +4,30 @@ from __future__ import annotations
 from evaluare.documente import incarca, listeaza, md_to_html
 
 
-def test_md_titluri_si_hr():
+def test_md_titluri_coborate_cu_un_nivel():
+    # corpul documentului nu trebuie să conțină <h1> (cartușul paginii deține deja h1)
     h = md_to_html("# Unu\n## Doi\n\n---")
-    assert "<h1>Unu</h1>" in h and "<h2>Doi</h2>" in h and "<hr>" in h
+    assert "<h1>" not in h
+    assert "<h2>Unu</h2>" in h and "<h3>Doi</h3>" in h and "<hr>" in h
 
 
 def test_md_bold_cod_link():
     h = md_to_html("Text **gros**, `cod` și [aici](/x).")
     assert "<strong>gros</strong>" in h and "<code>cod</code>" in h
     assert '<a href="/x">aici</a>' in h
+
+
+def test_md_link_periculos_blocat():
+    # javascript: și ghilimelele din URL nu trebuie să producă injecție în atribut
+    h = md_to_html('[x](javascript:alert(1))')
+    assert "javascript:" not in h and 'href="#"' in h
+    h2 = md_to_html('[y](https://ok.ro/a"onmouseover="alert(1))')
+    assert '"onmouseover="' not in h2 and "&quot;" in h2    # ghilimeaua e escapată (nu sparge atributul)
+
+
+def test_md_bloc_de_cod_fence():
+    h = md_to_html("Text.\n\n```python\nx = 1\n```\n\nAlt text.")
+    assert "<pre><code>" in h and "x = 1" in h and "Alt text" in h
 
 
 def test_md_liste():

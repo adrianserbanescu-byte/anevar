@@ -88,6 +88,20 @@ def test_dosar_apare_in_incepe(client):
     assert "/dosar/" in client.get("/incepe").text
 
 
+def test_calcul_fara_persistenta_sqlite(client):
+    # «Calculează» din UI-ul nou NU trebuie să scrie rânduri orfane în SQLite (folder=adevăr)
+    _cont(client)
+    uid = client.post("/api/dosar", json={"wizard": {}}).json()["uuid"]
+    n_inainte = len(client.get("/dosare").text.split("Deschide"))
+    r = client.post(f"/api/dosar/{uid}/calcul", json=_payload())
+    assert r.status_code == 200
+    d = r.json()
+    assert d["valoare_finala"] and d["metoda"] == "cost"
+    assert "id" not in d                                    # calc-only: nu persistă în SQLite
+    assert len(client.get("/dosare").text.split("Deschide")) == n_inainte   # zero dosare noi
+    assert client.post("/api/dosar/nope/calcul", json=_payload()).status_code == 404
+
+
 def test_genereaza_raport_salveaza_versiune(client):
     _cont(client)
     uid = client.post("/api/dosar", json={"wizard": {}}).json()["uuid"]

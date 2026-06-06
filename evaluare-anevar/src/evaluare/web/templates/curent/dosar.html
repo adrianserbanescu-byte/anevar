@@ -105,12 +105,12 @@
       <p class="hint">Generează raportul .docx; fiecare generare se salvează ca versiune în folderul dosarului.
        Textul AI e doar <b>proză narativă</b> (draft); <b>toate valorile numerice sunt deterministe</b>
        (motorul de calcul), nu produse de AI.</p>
-      <div class="callout">
+      <div class="callout" id="asumare-info">
         <label class="chk"><input type="checkbox" id="asumare">
           Confirm că am verificat datele și <b>îmi asum profesional</b> valoarea și conținutul raportului,
           ca evaluator autorizat ANEVAR (semnătura îmi aparține; aplicația doar asistă).</label>
       </div>
-      <button type="button" id="genereaza" disabled><span aria-hidden="true">📄</span> Generează și descarcă raportul</button>
+      <button type="button" id="genereaza" aria-describedby="asumare-info" disabled><span aria-hidden="true">📄</span> Generează și descarcă raportul</button>
       <span id="gen-status" class="hint" role="status" aria-live="polite"></span>
     </section>
   </section>
@@ -234,7 +234,7 @@ function asambleaza(){
 }
 $("calc").addEventListener("click", async function(){
   $("rezultat").textContent="Se calculează…";
-  try{ var r=await fetch("/api/evaluare",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(asambleaza())});
+  try{ var r=await fetch("/api/dosar/"+UID+"/calcul",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(asambleaza())});
     if(!r.ok) throw new Error();
     var d=await r.json();
     $("rezultat").innerHTML="<p><b>Valoare: "+fmtRo(d.valoare_finala)+" "+$("moneda").value+"</b> ("+d.metoda+")</p>"+

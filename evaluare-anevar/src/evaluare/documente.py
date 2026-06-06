@@ -69,12 +69,24 @@ def incarca(slug: str) -> tuple[dict, str]:
 
 
 # ── Convertor Markdown → HTML (minimal, suficient pentru documentele noastre) ────────
+def _url_sigur(u: str) -> str:
+    """Permite doar URL-uri sigure (http/https/mailto/relativ/ancoră); altfel „#".
+
+    Blochează `javascript:`, `data:` etc. și escapează ghilimelele (anti-injecție în atribut).
+    """
+    u = u.strip()
+    if re.match(r"^(https?:|mailto:)", u, re.IGNORECASE) or u.startswith(("/", "#", ".")):
+        return html.escape(u, quote=True)
+    return "#"
+
+
 def _inline(text: str) -> str:
-    """Formatare în linie: escape HTML, apoi **bold**, `cod`, [link](url)."""
+    """Formatare în linie: escape HTML, apoi **bold**, `cod`, [link](url) (URL filtrat)."""
     text = html.escape(text, quote=False)
     text = re.sub(r"`([^`]+)`", r"<code>\1</code>", text)
     text = re.sub(r"\*\*([^*]+)\*\*", r"<strong>\1</strong>", text)
-    text = re.sub(r"\[([^\]]+)\]\(([^)]+)\)", r'<a href="\2">\1</a>', text)
+    text = re.sub(r"\[([^\]]+)\]\(([^)]+)\)",
+                  lambda m: f'<a href="{_url_sigur(m.group(2))}">{m.group(1)}</a>', text)
     return text
 
 
@@ -89,13 +101,21 @@ def md_to_html(md: str) -> str:
         if not s:
             i += 1
             continue
-        if re.match(r"^---+$", s):                          # linie orizontală
+        if s.startswith("```"):                             # bloc de cod (fence)
+            i += 1
+            buf = []
+            while i < n and not linii[i].strip().startswith("```"):
+                buf.append(html.escape(linii[i], quote=False))
+                i += 1
+            i += 1                                          # sare peste fence-ul de închidere
+            out.append("<pre><code>" + "\n".join(buf) + "</code></pre>")
+        elif re.match(r"^---+$", s):                        # linie orizontală
             out.append("<hr>")
             i += 1
-        elif s.startswith("#"):                             # titlu
-            niv = len(s) - len(s.lstrip("#"))
-            niv = min(max(niv, 1), 6)
-            out.append(f"<h{niv}>{_inline(s[niv:].strip())}</h{niv}>")
+        elif s.startswith("#"):                             # titlu (coborât cu 1 nivel: cartușul
+            niv = len(s) - len(s.lstrip("#"))               # paginii deține deja <h1>, deci în
+            niv = min(max(niv, 1) + 1, 6)                   # corpul documentului pornim de la <h2>)
+            out.append(f"<h{niv}>{_inline(s[len(s) - len(s.lstrip('#')):].strip())}</h{niv}>")
             i += 1
         elif s.startswith(">"):                             # citat (poate pe mai multe linii)
             buf = []
@@ -130,8 +150,8 @@ def md_to_html(md: str) -> str:
 
 
 def _e_bloc(s: str) -> bool:
-    """True dacă linia începe un alt bloc (titlu/listă/citat/hr/tabel)."""
-    return (s.startswith(("#", ">", "|")) or s.lstrip()[:2] in ("- ", "* ")
+    """True dacă linia începe un alt bloc (titlu/listă/citat/hr/tabel/cod)."""
+    return (s.startswith(("#", ">", "|", "```")) or s.lstrip()[:2] in ("- ", "* ")
             or bool(re.match(r"^\d+\.\s", s)) or bool(re.match(r"^---+$", s)))
 
 

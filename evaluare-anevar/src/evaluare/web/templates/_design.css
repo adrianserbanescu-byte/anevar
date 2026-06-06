@@ -286,7 +286,19 @@ button.ghost:disabled{ color:var(--ink-faint); border-color:var(--line-2); backg
 
 /* Pagina de selecție a interfeței (index) + carduri document. */
 .alegere{ display:flex; gap:20px; flex-wrap:wrap; margin:24px 0; }
-.alegere .card{ flex:1 1 280px; }
+.alegere .card{ flex:1 1 280px; padding:18px 22px; background:var(--paper-card);
+  border:1px solid var(--line); border-top:3px solid var(--brass); border-radius:var(--radius);
+  box-shadow:var(--shadow); }
+.alegere .card h2{ margin-top:.2em; }
+
+/* Documentul randat din Markdown — scope ca să nu moștenească ornamentele globale de titlu. */
+.document h2::before, .document h3::before, .document h4::before{ content:none; display:none; }
+.document h2{ margin-top:1.4em; }
+.document blockquote{ border-left:3px solid var(--sienna); padding:6px 14px; margin:12px 0;
+  background:var(--paper-sunk); color:var(--ink-2); border-radius:0 var(--radius-sm) var(--radius-sm) 0; }
+.document pre{ background:var(--paper-sunk); border:1px solid var(--line); border-radius:var(--radius-sm);
+  padding:10px 12px; overflow-x:auto; font-size:.85rem; }
+.document table{ font-size:.88rem; }
 .doc-card{ display:block; padding:14px 16px; margin:10px 0; background:var(--paper-card);
   border:1px solid var(--line); border-left:3px solid var(--brass); border-radius:var(--radius-sm);
   text-decoration:none; color:inherit; }

@@ -58,9 +58,16 @@ def creeaza(creator_legitimatie: str, creator_nume: str, wizard: dict,
     return uid
 
 
+def _scrie_atomic(cale: Path, text: str) -> None:
+    """Scrie atomic: fișier temporar lângă țintă + os.replace (evită coruptia la crash)."""
+    tmp = cale.with_suffix(cale.suffix + ".tmp")
+    tmp.write_text(text, encoding="utf-8")
+    os.replace(tmp, cale)
+
+
 def _scrie(uid: str, dosar: dict) -> None:
-    (baza() / uid / "dosar.json").write_text(
-        json.dumps(dosar, ensure_ascii=False, indent=2), encoding="utf-8")
+    _scrie_atomic(baza() / uid / "dosar.json",
+                  json.dumps(dosar, ensure_ascii=False, indent=2))
 
 
 def incarca(uid: str) -> dict:
@@ -153,7 +160,7 @@ def diff() -> dict:
     nou_index = {uid: {"nume": d.get("nume"), "modificat_la": d.get("modificat_la")}
                  for uid, d in pe_disc.items()}
     _fisier_index().parent.mkdir(parents=True, exist_ok=True)
-    _fisier_index().write_text(json.dumps(nou_index, ensure_ascii=False, indent=2), encoding="utf-8")
+    _scrie_atomic(_fisier_index(), json.dumps(nou_index, ensure_ascii=False, indent=2))
     return {"existente": existente, "noi": noi, "disparute": disparute}
 
 
@@ -162,7 +169,7 @@ def sterge_din_index(uid: str) -> None:
     index = _citeste_index()
     if uid in index:
         del index[uid]
-        _fisier_index().write_text(json.dumps(index, ensure_ascii=False, indent=2), encoding="utf-8")
+        _scrie_atomic(_fisier_index(), json.dumps(index, ensure_ascii=False, indent=2))
 
 
 # ── Import folder dosar ──────────────────────────────────────────────────────────

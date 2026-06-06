@@ -13,7 +13,7 @@ from fastapi.responses import FileResponse, HTMLResponse
 
 from evaluare import cont as cont_mod
 from evaluare import dosare_fs as fs
-from evaluare.assembler import EvaluationInput, construieste_context
+from evaluare.assembler import EvaluationInput, construieste_context, valideaza
 from evaluare.report.generator import genereaza_raport
 from evaluare.web.deps import DOCX_MIME, Deps
 from evaluare.web.schemas import ContRequest, DosarNouRequest, ImportDocxRequest
@@ -109,6 +109,23 @@ def build_router(d: Deps) -> APIRouter:
         """Scoate un dosar DISPĂRUT (folder șters de pe disc) din indexul «ultima vedere»."""
         fs.sterge_din_index(uid)
         return {"ok": True}
+
+    @router.post("/api/dosar/{uid}/calcul")
+    def calcul(uid: str, inp: EvaluationInput) -> dict:
+        """Calcul fără persistență în SQLite (dosarele noi se salvează pe foldere, nu în baza veche).
+
+        UI-ul nou folosea /api/evaluare, care scria un rând orfan în SQLite la FIECARE «Calculează».
+        """
+        try:
+            fs.incarca(uid)
+        except KeyError:
+            raise HTTPException(404, "Dosar inexistent.") from None
+        ctx = construieste_context(inp, client=d.client)
+        return {
+            "valoare_finala": str(ctx.reconciled.valoare_finala),
+            "metoda": ctx.reconciled.metoda_selectata,
+            "alerte": [a.model_dump() for a in valideaza(inp)],
+        }
 
     @router.post("/api/dosar/{uid}/raport.docx")
     def genereaza(uid: str, inp: EvaluationInput) -> FileResponse:
