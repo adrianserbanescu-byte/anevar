@@ -626,8 +626,10 @@ pre{ font-family:var(--mono); font-size:.82rem; background:var(--paper-sunk);
 .skip-link{ position:absolute; left:-9999px; top:0; background:var(--ink); color:#fff;
   padding:8px 14px; border-radius:0 0 6px 0; z-index:100; text-decoration:none; }
 .skip-link:focus{ left:0; }
-/* tinte tactile minime (WCAG 2.5.8) */
-button, a.btn, input[type=file]::file-selector-button{ min-height:24px; }
-.del-up, .t-add{ min-height:24px; padding:4px 8px; }
+/* tinte tactile minime (WCAG 2.5.8) — 32px peste pragul minim */
+button, a.btn, input[type=file]::file-selector-button{ min-height:32px; }
+.del-up, .t-add{ min-height:32px; padding:4px 8px; }
+/* focus pe tab-uri/sub-tab-uri plate: offset mai mare ca să nu se suprapună cu bordura */
+[role=tab]:focus-visible{ outline-offset:3px; }
 /* indicator de incarcare */
 [aria-busy="true"]{ cursor:progress; opacity:.7; }

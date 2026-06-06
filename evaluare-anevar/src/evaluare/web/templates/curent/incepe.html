@@ -74,7 +74,7 @@
   {% endif %}
 
   {% if diff.disparute %}
-    <h3>⚠ Dosare dispărute (folder șters de pe disc)</h3>
+    <h3><span aria-hidden="true">⚠</span> Dosare dispărute (folder șters de pe disc)</h3>
     <ul class="hint">{% for x in diff.disparute %}
       <li>{{ x.nume }} ({{ x.uuid[:8] }})
         <button type="button" class="ghost btn-scoate" data-uid="{{ x.uuid }}"
