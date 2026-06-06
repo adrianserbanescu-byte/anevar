@@ -130,6 +130,8 @@
           <label class="chk"><input type="checkbox" class="util" value="energie electrică"> Curent</label>
           <label class="chk"><input type="checkbox" class="util" value="internet"> Internet</label>
         </fieldset>
+        <div class="field"><label for="acces">Cale de acces <span class="hint">(afectează valoarea)</span></label>
+          <input id="acces" placeholder="ex. drum asfaltat / pietruit / servitute de trecere"></div>
         <label for="restrictii_urbanism">Regim urbanistic / restricții <span class="hint">(din certificatul de urbanism: POT/CUT, servituți, interdicții)</span></label>
         <input id="restrictii_urbanism" placeholder="ex. POT 40%, CUT 1.2, fără restricții">
       </div>
@@ -792,6 +794,7 @@ function asambleaza(){
   if($("categorie_teren")&&$("categorie_teren").value) land.categorie=$("categorie_teren").value;
   var util=[]; document.querySelectorAll(".util:checked").forEach(function(c){ util.push(c.value); });
   if(util.length) land.utilitati=util;
+  if($("acces")&&$("acces").value) land.acces=$("acces").value;
   if($("restrictii_urbanism")&&$("restrictii_urbanism").value) land.restrictii_urbanism=$("restrictii_urbanism").value;
   if($("categorie_folosinta")&&$("categorie_folosinta").value) land.categorie_folosinta=$("categorie_folosinta").value;
   if($("clasa_calitate")&&$("clasa_calitate").value) land.clasa_calitate=parseInt($("clasa_calitate").value);

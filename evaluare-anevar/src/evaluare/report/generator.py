@@ -643,6 +643,8 @@ def genereaza_raport(
     if ctx.land.categorie_folosinta is not None:
         clasa = f", clasa de calitate {ctx.land.clasa_calitate}" if ctx.land.clasa_calitate is not None else ""
         doc.add_paragraph(f"Teren agricol: categorie de folosinta {ctx.land.categorie_folosinta}{clasa}.")
+    if ctx.land.acces:                                  # GEV 630 §28 — calea de acces (afecteaza valoarea)
+        doc.add_paragraph(f"Acces: {ctx.land.acces}.")
     if ctx.land.utilitati:                              # GEV 630 §28 — utilitati in descriere
         doc.add_paragraph(f"Utilitati: {', '.join(ctx.land.utilitati)}.")
     if ctx.land.restrictii_urbanism:                    # GEV 630 §16 — regim/restrictii urbanism (POT/CUT etc.)

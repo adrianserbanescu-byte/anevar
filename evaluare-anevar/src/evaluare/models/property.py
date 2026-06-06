@@ -63,6 +63,7 @@ class LandData(BaseModel):
     categorie: str = "intravilan"       # intravilan / extravilan
     deschidere: Decimal | None = None
     utilitati: list[str] = Field(default_factory=list)
+    acces: str | None = None             # cale de acces (drum asfaltat/pietruit/servitute) — GEV 630 §28
     restrictii_urbanism: str | None = None
     categorie_folosinta: str | None = None   # arabil / pasune / vie / livada / padure
     clasa_calitate: int | None = None         # 1..5 (1 = cea mai bună)

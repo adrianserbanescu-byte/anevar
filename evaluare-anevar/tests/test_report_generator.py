@@ -118,11 +118,13 @@ def test_raportul_descrie_utilitati_si_urbanism(tmp_path):
     ctx = _ctx()
     ctx.land.utilitati = ["apă", "energie electrică"]
     ctx.land.restrictii_urbanism = "POT 40%, CUT 1.2"
+    ctx.land.acces = "drum asfaltat"
     out = tmp_path / "raport.docx"
     genereaza_raport(ctx, out)
     text = _all_text(out)
     assert "Utilitati:" in text and "energie electrică" in text
     assert "Regim urbanistic" in text and "POT 40%" in text
+    assert "Acces:" in text and "drum asfaltat" in text
 
 
 def test_raportul_are_cele_sapte_capitole(tmp_path):
