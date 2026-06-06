@@ -65,6 +65,7 @@
         <div class="field"><label for="data_evaluarii">Data evaluării</label><input type="date" id="data_evaluarii"></div>
         <div class="field"><label for="data_inspectiei">Data vizită</label><input type="date" id="data_inspectiei"></div>
       </div>
+      <small class="hint">ℹ️ Data evaluării: dacă o lași goală, generarea AML folosește data de azi.</small>
       <h3>Date fizice</h3>
       <fieldset id="ap-fields" hidden><legend>Apartament</legend>
         <div class="field-row">
@@ -312,7 +313,7 @@ var AJUTOR = {
   carte_funciara:"Numărul cărții funciare. Anonimizat la AI.",
   beneficiar:"Banca finanțatoare / utilizatorul desemnat al raportului.",
   data_raportului:"Data întocmirii raportului.",
-  data_evaluarii:"Data la care e valabilă valoarea (de regulă data inspecției).",
+  data_evaluarii:"Data la care e valabilă valoarea (de regulă data inspecției). Dacă o lași goală, generarea AML folosește data de azi.",
   data_inspectiei:"Data vizitei/inspecției proprietății.",
   suprafata_teren:"Suprafața terenului (mp).",
   valoare_teren:"Valoarea terenului (manual; sau calculată din grila de teren dacă ai comparabile).",
