@@ -83,7 +83,7 @@
 ## ⚙ Rebuild exe — în curs (include land grid + venit/DCF + retenție + temp safety + feedback peste tot).
 
 ## ☐ Acoperire teste (țintă ≥90%, urc golurile cunoscute)
-- [ ] `report/generator` (~88%) — secțiuni rare (lichidare/DCF).
+- [x] ✅ `report/generator` **84%→93%** — acoperite grila de piață, venit (capitalizare), DCF, detalii apartament + industrial (+test `test_raport_sectiuni_rare_*`). Rămân doar ramuri `log.debug` + câteva minore.
 - [ ] Ramuri de eroare neacoperite în `documente.py` (deja 9 teste; verific liniile lipsă).
 
 ## ☐ Polish UI auto-safe (din audituri, fără decizie de produs)

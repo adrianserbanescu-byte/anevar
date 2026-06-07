@@ -82,6 +82,38 @@ def test_raport_offline_fara_ai_e_complet(tmp_path):
     assert "[de completat]" in _all_text(out)   # fallback de șablon pentru secțiunile narative
 
 
+def test_raport_sectiuni_rare_piata_venit_dcf_apartament(tmp_path):
+    # Acoperă secțiunile rare: grila de comparație piață + abordarea prin venit + DCF + detalii apartament.
+    from evaluare.engine.venit import DateVenit, RezultatVenit
+    from evaluare.models.comparable import Comparable
+    from evaluare.models.results import MarketResult
+    ctx = _ctx()
+    ctx.building.etaj = 3                          # apartament -> acoperă blocul 682-690
+    ctx.building.nr_niveluri_bloc = 8
+    ctx.building.an_bloc = 1985
+    ctx.building.cota_teren_indiviza = Decimal("25")
+    ctx.building.inaltime_libera = Decimal("4.5")  # spațiu industrial -> acoperă linia 692
+    ctx.comparables = [Comparable(pret=Decimal("300000"), suprafata=Decimal("320")),
+                       Comparable(pret=Decimal("310000"), suprafata=Decimal("330"))]
+    ctx.market_result = MarketResult(
+        preturi_unitare_corectate=[Decimal("305000"), Decimal("308000")],
+        ajustari_brute=[Decimal("0.05"), Decimal("0.08")],
+        ajustari_nete=[Decimal("0.02"), Decimal("0.03")],
+        index_selectat=0, valoare_piata=Decimal("305000"))
+    ctx.date_venit = DateVenit(venit_brut_potential=Decimal("36000"), grad_neocupare=Decimal("0.1"),
+                               cheltuieli_exploatare=Decimal("6000"), rata_capitalizare=Decimal("0.08"))
+    ctx.venit_result = RezultatVenit(noi=Decimal("26400"), valoare=Decimal("330000"))
+    ctx.dcf_valoare = Decimal("325000")
+    out = tmp_path / "raport.docx"
+    genereaza_raport(ctx, out)
+    text = _all_text(out)
+    assert "Grila de comparatie directa pe pret total" in text       # grila piață (351-371)
+    assert "Abordarea prin venit (capitalizare directă)" in text     # venit (726-737)
+    assert "Abordarea prin venit (DCF)" in text                      # DCF (738-740)
+    assert "etaj 3/8" in text and "an bloc 1985" in text             # detalii apartament
+    assert "Spatiu industrial" in text                               # secțiune industrială (692)
+
+
 def test_tip_valoare_txt_cazuri_limita():
     from evaluare.report.generator import _tip_valoare_txt
     assert "SEV 102" in _tip_valoare_txt("tip-necunoscut-oarecare")  # slug necunoscut -> ref. adăugată
