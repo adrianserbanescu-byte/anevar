@@ -16,11 +16,19 @@ PONDERI_BAZA: dict[str, int] = {
     "suprafata_construita": 5, "an": 5, "stare": 4, "finisaj": 3, "incalzire": 2, "teren": 1,
 }
 
-# Ponderi per categorie de proprietate (`tip_activ`). COMPROMIS TEMPORAR: toate = PONDERI_BAZA
-# (comportament identic cu modelul casei). Când Adi decide D1–D5, se schimbă DOAR aici.
+# APARTAMENT (P0.2) — model propriu: la apartament, NUMĂRUL DE CAMERE și ETAJUL sunt drivere majore,
+# iar terenul e irelevant. Set + ponderi = PROPUNEREA council (calibrabilă de Adi, bucket B).
+# Ordinea cheilor = ordinea de afișare/parcurgere. `etaj` e inclus structural; rămâne „nementionat"
+# (exclus din calcul) până se extrage etajul din anunț — fără efect negativ până atunci.
+PONDERI_APARTAMENT: dict[str, int] = {
+    "suprafata_construita": 7, "etaj": 5, "nr_camere": 4, "an": 3, "stare": 2,
+}
+
+# Ponderi per categorie de proprietate (`tip_activ`). Casa + restul = modelul de bază (compromis
+# temporar, behavior-preserving); APARTAMENTUL are model propriu (P0.2). Valorile = decizie Adi.
 PONDERI_PER_CATEGORIE: dict[str, dict[str, int]] = {
     "casa": dict(PONDERI_BAZA),
-    "apartament": dict(PONDERI_BAZA),
+    "apartament": dict(PONDERI_APARTAMENT),
     "comercial": dict(PONDERI_BAZA),
     "industrial": dict(PONDERI_BAZA),
     "agricol": dict(PONDERI_BAZA),

@@ -95,6 +95,7 @@ class DescoperaRequest(BaseModel):
     subiect: SubjectProfile
     atribute_secundare: list[str] = []
     max_candidati: int = 8
+    tip_activ: str | None = None        # categoria proprietatii (ex. "apartament") -> model de scoring per categorie
 
 
 class AmlEvaluareRequest(BaseModel):

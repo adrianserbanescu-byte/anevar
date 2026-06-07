@@ -108,6 +108,15 @@ def _pret_mp_daca_teren_comparabil(parsed, subiect, teren_candidat):
     return round(parsed.pret / parsed.suprafata)
 
 
+def _apartament_exclus(tip_activ: str | None, subiect_camere, candidat_camere) -> bool:
+    """Filtru de eligibilitate la APARTAMENT: candidatul cu >1 cameră diferență față de subiect NU
+    e comparabil (council, abordare in 2 pasi: filtru + scor). Doar la `tip_activ == "apartament"`
+    si doar cand ambele numere de camere sunt cunoscute (altfel nu filtram, ca sa nu pierdem candidati).
+    """
+    return (tip_activ == "apartament" and subiect_camere is not None
+            and candidat_camere is not None and abs(candidat_camere - subiect_camere) > 1)
+
+
 def descopera(
     portal: str, judet: str, localitate: str, subiect: SubjectProfile,
     atribute_secundare: list, fetcher: Callable[[str], str] = fetch_html,
@@ -142,6 +151,14 @@ def descopera(
         if parsed.suprafata_teren is not None:
             extraction.profile.teren = parsed.suprafata_teren
             extraction.profile.texte.setdefault("teren", str(parsed.suprafata_teren))
+        # numarul de camere din date structurate (driver major la apartament — P0.2)
+        if parsed.nr_camere is not None:
+            extraction.profile.nr_camere = parsed.nr_camere
+            extraction.profile.texte.setdefault("nr_camere", str(parsed.nr_camere))
+        if _apartament_exclus(tip_activ, subiect.nr_camere, parsed.nr_camere):
+            log.debug("Apartament sarit (camere %s vs subiect %s, dif >1) %s",
+                      parsed.nr_camere, subiect.nr_camere, url)
+            continue
         breakdown = scor_candidat(subiect, extraction.profile, ponderi)
         # OLX (și alte anunțuri cu text liber) dau adesea prețul fără suprafață structurată →
         # declasăm scorul + marcăm „completează manual" (council 2026-06-06, Topic 8).

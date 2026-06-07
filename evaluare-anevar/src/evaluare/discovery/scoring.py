@@ -26,6 +26,7 @@ ORDINE = ["suprafata_construita", "an", "stare", "finisaj", "incalzire", "teren"
 PRAG_AN = 25                 # ani peste care diferenta e maxima
 TREPTE_STARE = 4             # 5 trepte -> diferenta maxima 4
 TREPTE_FINISAJ = 3           # 4 trepte -> diferenta maxima 3
+PRAG_ETAJ = 4                # diferenta de etaje peste care e maxima (apartament)
 PRAG_INCREDERE_LIPSA = 3     # >= 3 atribute lipsa -> incredere scazuta
 
 
@@ -66,6 +67,20 @@ def d_suprafata(s: Decimal, c: Decimal) -> float:
     return _d_relativ(s, c)
 
 
+def d_camere(s: int, c: int) -> float:
+    """Distanta pe numarul de camere (apartament): 0 identic, 0.5 o camera, 1 doua+."""
+    return min(abs(s - c) / 2, 1.0)
+
+
+def d_etaj(s: int, c: int) -> float:
+    """Distanta pe etaj (apartament), liniara (calibrabil de Adi).
+
+    TODO (bucket B / council): penalizare NELINIARA — parter/ultimul etaj difera categoric de
+    etajele intermediare. Deocamdata liniara, ca structura; valoarea = decizie de metodologie.
+    """
+    return min(abs(s - c) / PRAG_ETAJ, 1.0)
+
+
 def _d_pentru(nume: str, sv, cv) -> float | None:
     if sv is None or cv is None:
         return None
@@ -81,11 +96,28 @@ def _d_pentru(nume: str, sv, cv) -> float | None:
         return d_incalzire(sv, cv)
     if nume == "teren":
         return d_teren(sv, cv)
+    if nume == "nr_camere":
+        return d_camere(sv, cv)
+    if nume == "etaj":
+        return d_etaj(sv, cv)
     raise ValueError(f"Atribut necunoscut: {nume}")
 
 
 _ETICHETE = {"suprafata_construita": "Supr. construită", "an": "An", "stare": "Stare",
-             "finisaj": "Finisaj", "incalzire": "Încălzire", "teren": "Teren"}
+             "finisaj": "Finisaj", "incalzire": "Încălzire", "teren": "Teren",
+             "nr_camere": "Camere", "etaj": "Etaj"}
+
+# Formula de distanta per atribut (pt. tabelul de metodologie din UI).
+_FORMULE = {
+    "suprafata_construita": "min(|supr_subiect - supr_anunt| / supr_subiect, 1)",
+    "an": "min(|an_subiect - an_anunt| / 25, 1)",
+    "stare": "|treapta_subiect - treapta_anunt| / 4  (5 trepte)",
+    "finisaj": "|treapta_subiect - treapta_anunt| / 3  (4 trepte)",
+    "incalzire": "0 (aceeasi) / 0.5 (aceeasi familie) / 1 (diferita)",
+    "teren": "min(|teren_subiect - teren_anunt| / teren_subiect, 1)",
+    "nr_camere": "min(|camere_subiect - camere_anunt| / 2, 1)",
+    "etaj": "min(|etaj_subiect - etaj_anunt| / 4, 1)",
+}
 
 
 def scor_candidat(subiect: SubjectProfile, candidat: CandidateProfile,
@@ -103,7 +135,7 @@ def scor_candidat(subiect: SubjectProfile, candidat: CandidateProfile,
     ponderi_formula: list[str] = []
     necunoscute = 0
 
-    for nume in ORDINE:
+    for nume in ponderi:        # atributele + ordinea = configul categoriei (config-driven)
         sv = getattr(subiect, nume)
         cv = getattr(candidat, nume)
         pondere = ponderi[nume]
@@ -134,12 +166,12 @@ def scor_candidat(subiect: SubjectProfile, candidat: CandidateProfile,
     else:
         dissim = suma_contributii / suma_ponderi
     relevanta = round(100 * (1 - dissim))
-    cunoscute = len(ORDINE) - necunoscute
+    cunoscute = len(ponderi) - necunoscute
     incredere_scazuta = necunoscute >= PRAG_INCREDERE_LIPSA
 
     numarator = " + ".join(termeni_formula) if termeni_formula else "0"
     numitor = "+".join(ponderi_formula) if ponderi_formula else "1"
-    excluse = [_ETICHETE[n] for n in ORDINE
+    excluse = [_ETICHETE[n] for n in ponderi
                if getattr(subiect, n) is None or getattr(candidat, n) is None]
     nota_excluse = (f" {', '.join(excluse)}: nementionat (exclus din calcul)."
                     if excluse else "")
@@ -160,21 +192,10 @@ def metodologie(ponderi: dict[str, int] | None = None) -> list[dict]:
 
     `ponderi` per categorie (config-driven); None → baza (casa)."""
     ponderi = ponderi if ponderi is not None else PONDERI_BAZA
-    total = sum(ponderi.values())  # implicit 20 (modelul casei)
-    randuri = [
-        ("Supr. construită", "suprafata_construita",
-         "min(|supr_subiect - supr_anunt| / supr_subiect, 1)"),
-        ("An", "an", "min(|an_subiect - an_anunt| / 25, 1)"),
-        ("Stare", "stare", "|treapta_subiect - treapta_anunt| / 4  (5 trepte)"),
-        ("Finisaj", "finisaj", "|treapta_subiect - treapta_anunt| / 3  (4 trepte)"),
-        ("Încălzire", "incalzire", "0 (aceeasi) / 0.5 (aceeasi familie) / 1 (diferita)"),
-        ("Teren", "teren", "min(|teren_subiect - teren_anunt| / teren_subiect, 1)"),
+    total = sum(ponderi.values()) or 1
+    # Config-driven: atributele + ordinea vin din config (casa → 6 randuri ca inainte; apartament → setul lui).
+    return [
+        {"nr": i, "atribut": _ETICHETE.get(cheie, cheie), "pondere": p,
+         "cota": f"{round(100 * p / total)}%", "formula": _FORMULE.get(cheie, "")}
+        for i, (cheie, p) in enumerate(ponderi.items(), start=1)
     ]
-    out = []
-    for i, (eticheta, cheie, formula) in enumerate(randuri, start=1):
-        p = ponderi[cheie]
-        out.append({
-            "nr": i, "atribut": eticheta, "pondere": p,
-            "cota": f"{round(100 * p / total)}%", "formula": formula,
-        })
-    return out
