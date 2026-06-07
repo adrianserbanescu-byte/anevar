@@ -85,6 +85,26 @@
 > ✅ Făcute de mine din audit+council (Bucket A): anti-SSRF, gardă Host (anti DNS-rebind), grilă→422, fix dată
 > tăcută, pierdere date localități, CNP prefix 9, limită DoS, igienă temp .docx (PII). Vezi `docs/audit-final/`.
 
+## K. Audit skill-uri Claude Code (2026-06-07) — vezi `audit-skills-2026-06-07.md`
+> Restul recomandărilor de la cele 6 skill-uri sunt autonome și sunt deja în `AUTONOM-taskuri.md`
+> secțiunea „🔧 Audit skill-uri (2026-06-07)". Aici rămân doar deciziile.
+
+36. **Funcțiile `engine/abordari.py:{abordare_cost, abordare_comparatie}` + `engine/venit.py:abordare_venit` apar ca dead code.**
+    Sunt API public pentru cele 4 abordări ANEVAR (cost, comparație, venit-capitalizare, DCF), dar fluxul curent
+    (`web/routers/evaluare.py`) nu pare să le cheme direct. Decide:
+    (a) **Păstrează** ca API formal (documentează intenția cu docstring + test contract), sau
+    (b) **Șterge** ca dead code (acceptă că abordările sunt expuse doar prin endpoint-uri compozite, nu individual).
+    Recomandare: (a) — sunt suprafața conceptuală conform SEV 2025; un consumator extern (ex. test peer-review) ar putea
+    avea nevoie să le cheme separat.
+
+37. **Retragere endpoint-uri vechi `/api/evaluare/...`** (cuplat cu §D.18 — retragerea UI vechi).
+    Acum coexistă cu `/api/dosar/...` (UI nou) — zero breaking changes în 100 commits, dar duplicarea
+    crește costul de mentenanță. Decide:
+    (a) **Marchez deprecat acum** (header `Deprecation: true` + `Sunset: <data>`, RFC 8594) + log fiecare hit,
+    sau (b) **Aștept până retragi UI-ul vechi** (§D.18).
+    Recomandare: (a) — telemetria ușoară îți arată dacă sunt încă folosite la livrare; dacă da, când deprecăm UI vechi
+    avem date concrete despre cine îl folosește.
+
 > **Regula de aur (respectată peste tot):** aplicația **avertizează**, nu decide. Metodologia și
 > pragurile legale **nu se ating** fără semnătura unui evaluator senior / jurist.
 > Tot ce NU e aici îl fac eu autonom (cod, teste, build, documente, audituri).

@@ -29,14 +29,14 @@
 - **Jurist AML:** #8 audit AML *(BLOCANT)* · #9 (partea AML).
 - **Jurist GDPR:** #9 + #10 (DPA, transfer LLM extra-UE, AI Act).
 - **Bănci (Risc/IT):** #11 scrisoare + #5 raport demo anonimizat → (pilot 20–30 dosare *după* metodologie).
-- **Asigurător răspundere ANEVAR:** cerere de aviz „rapoarte asistate AI sunt acoperite" → **de redactat (lipsește)**.
+- **Asigurător răspundere ANEVAR:** [`cerere-aviz-asigurator.md`](cerere-aviz-asigurator.md) — „rapoarte asistate AI sunt acoperite" ✅ redactat (șablon).
 - **Adi (decizii):** #14 + #13.
 
 ## 2. Pe STARE de pregătire
 - ✅ **Gata de livrat ACUM (Bucket A, fără blocaje):** #1, #2, #3, #4, #5, #6, #12, #13 — și #7/#8/#9/#10/#11 ca **drafturi de trimis** (validarea o face terțul).
 - ⏳ **Se finalizează DUPĂ validare externă:** metodologia (B, din #7) · textele AML/GDPR (C, din #8–#10) · forma pt bănci (#11).
 - ⛔ **Blocat pe tine (🧑):** vezi `BLOCAT-pe-Adi §J` — code-signing, lock identitate la finalizare, criptare-la-repaus, preț.
-- 🆕 **De creat (lipsesc, recomandate de council):** **manual de utilizare** · **SLA suport** · **plan incident/breach** · **cerere aviz asigurător** · etichetarea „AI vs determinist" în raport.
+- ✅ **Create (2026-06-07):** [`manual-utilizare.md`](manual-utilizare.md) · [`SLA-suport.md`](SLA-suport.md) · [`plan-incident-breach.md`](plan-incident-breach.md) · [`cerere-aviz-asigurator.md`](cerere-aviz-asigurator.md) · **etichetarea „AI (proză) vs determinist (toate numerele)" în raport** (în Termeni de referință, cu test). *(Drafturile juridice rămân de validat de jurist.)*
 
 ## 3. Pe POARTĂ de lansare (din planul de lansare)
 - **Poarta 0 — validări externe (drumul critic, pornesc în paralel):** #7 (evaluatori) · #8 (jurist AML) · #9+#10 (jurist GDPR) · #11 (bănci) · aviz asigurător.
@@ -51,6 +51,7 @@
 
 ## 5. Ce aș face EU în continuare (sigur, fără să te blochez)
 1. Convertesc pachetele de trimis (#7–#11) în **PDF** curat, gata de atașat la e-mail.
-2. Redactez **drafturile lipsă**: manual de utilizare, SLA suport, plan incident/breach, cererea de aviz către asigurător.
-3. Implementez etichetarea „AI (proză) vs determinist (toate numerele)" în raport (mitigare percepție bănci).
+2. ✅ **FĂCUT (2026-06-07):** drafturile lipsă — manual de utilizare, SLA suport, plan incident/breach, cerere de aviz asigurător.
+3. ✅ **FĂCUT (2026-06-07):** etichetarea „AI (proză) vs determinist (toate numerele)" în raport (Termeni de referință + test).
 > Toate sunt Bucket A. Restul (cumpărare cert, pe cine trimiți, preț) sunt deciziile tale din `BLOCAT-pe-Adi`.
+> Rămas din lista mea: **#1 conversia pachetelor în PDF** (la cerere).

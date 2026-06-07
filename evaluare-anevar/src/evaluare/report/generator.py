@@ -318,6 +318,21 @@ def _termeni_referinta(doc: DocxDocument, ctx: ReportContext, adnotari: bool = F
         "in scopul declarat, de catre utilizatorul desemnat; difuzarea sau publicarea, integrala ori "
         "partiala, se face numai cu acordul scris al evaluatorului (SEV 101, 20.1 n, o)."
     )
+    # Transparenta privind instrumentul software + AI (mitigare a perceptiei la verificarea bancara):
+    # numerele sunt DETERMINISTE; AI scrie doar proza; evaluatorul verifica si isi asuma.
+    p_ai = doc.add_paragraph()
+    p_ai.add_run("Asistare software si componenta AI (transparenta): ").bold = True
+    p_ai.add_run(
+        "raportul a fost intocmit cu ajutorul unui instrument software de asistenta a evaluarii. "
+        "TOATE valorile numerice din raport (costuri, grilele de comparatie si ajustari, "
+        "capitalizare / DCF, reconcilierea, alocarea valorii si valoarea finala) sunt DETERMINISTE — "
+        "sunt calculate de motorul de evaluare si reproductibile din datele de intrare; ele NU sunt "
+        "generate de inteligenta artificiala. Textul narativ explicativ a fost generat cu asistenta "
+        "instrumentului software (optional cu asistenta AI, pe date anonimizate, fara transmiterea "
+        "datelor cu caracter personal) si a fost verificat, corectat si asumat integral de evaluatorul "
+        "autorizat ANEVAR, caruia ii apartine valoarea si responsabilitatea profesionala. Instrumentul "
+        "asista evaluatorul; nu il inlocuieste si nu decide valoarea."
+    )
 
 
 # --------------------------------------------------------------------------- #

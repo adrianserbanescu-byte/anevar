@@ -170,6 +170,19 @@ def test_termeni_referinta_acopera_sev_101_si_esg(tmp_path):
     assert "Specialist" in text                    # 30.6 o
 
 
+def test_raportul_eticheteaza_ai_vs_determinist(tmp_path):
+    # Mitigare percepție bănci: raportul declară explicit că TOATE numerele sunt deterministe,
+    # AI scrie doar proza, iar evaluatorul verifică și își asumă.
+    out = tmp_path / "raport.docx"
+    genereaza_raport(_ctx(), out)
+    text = _all_text(out)
+    assert "Asistare software si componenta AI" in text
+    assert "DETERMINISTE" in text
+    assert "NU sunt generate de inteligenta artificiala" in text
+    assert "asumat integral de evaluatorul" in text
+    assert "nu il inlocuieste si nu decide valoarea" in text
+
+
 def test_raportul_conform_sev_2025_si_gev_520(tmp_path):
     out = tmp_path / "raport.docx"
     genereaza_raport(_ctx(), out)

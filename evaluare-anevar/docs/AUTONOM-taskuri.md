@@ -88,6 +88,60 @@
 - [ ] Câteva mesaje de eroare cu ghidaj (UX-copy: „Generarea a eșuat" → ce + cum repar).
 - [ ] `aria-hidden` pe emoji din `index.html`/documente unde lipsește.
 
+## 🔧 Audit skill-uri (2026-06-07) — recomandări de la 6 skill-uri rulate
+> Detalii complete în [`audit-skills-2026-06-07.md`](audit-skills-2026-06-07.md).
+> Skill-uri rulate: dependency-audit, find-dead-code, improve-logging, changelog,
+> security-review, find-breaking-rest-api. Două decizii pe Adi → `BLOCAT-pe-Adi.md` §J.
+
+### 🚨 P0 — Securitate (vulnerabilități cu CVE active)
+- [ ] **Upgrade `urllib3 2.6.3 → 2.7.0`** în `evaluare-anevar/requirements.lock` (PYSEC-2026-141 + PYSEC-2026-142, High).
+- [ ] **Upgrade `idna 3.13 → 3.15+`** (CVE-2026-45409 — bypass al fix-ului CVE-2024-3651, Moderate).
+- [ ] Rulează `pytest` + smoke-test exe după upgrade ca să prinzi regresii (atenție la Pillow-style packaging breakage).
+
+### P1 — Logging coverage (8% acum, țintă: ≥50% pe `engine/` + `web/routers/`)
+- [ ] **Adaugă `log = logging.getLogger(__name__)` la 5 routere mute:** `web/routers/{aml,curent,evaluare,descoperire,grile}.py`.
+      Loghează: startup, fiecare endpoint pe entry/exit (debug), erorile 4xx/5xx (warning/error).
+- [ ] **Adaugă logging la modulul `engine/`** (`abordari`, `chirie`, `reconciliation`, `validation`, `venit`) —
+      flux: input → coeficienți → rezultat. Critic pentru audit ANEVAR + reproducibilitate.
+- [ ] **Adaugă logging la `audit/raport_audit.py`** — ironic: modulul de audit nu emite log.
+- [ ] **Adaugă logging la `report/generator.py`** — pentru a ști ce secțiune a eșuat la generare `.docx`.
+- [ ] **Fix silent failures (40 except blocks fără log+raise):**
+  - `importers/url_parser.py` liniile 55, 69, 98, 140, 158, 304, 396, 402 — toate `return None`/`False` la 8 except. Adaugă `log.warning("parse failed for %s: %s", url, e)`.
+  - `discovery/extractor.py` liniile 48, 65, 168 — `return None` la fetch eșuat.
+  - `dosare_fs.py` liniile 79, 138, 158 — `dosar.json` corupt în tăcere.
+  - `indice_anevar.py:33` — `return {}` în tăcere.
+  - **`zona.py:47` — `pass` în except (anti-pattern declarat) → `log.debug("zona necunoscută: %s", e)`.**
+  - `cont.py:28`, `ai/narrative.py:102+110` — fallback silent → `log.debug(...)`.
+
+### P2 — Cod mort (verifică și șterge după confirmare)
+- [ ] `engine/reconciliation.py:13 reconcile` — verifică în tot src/ și teste; dacă orfan, șterge.
+- [ ] `engine/validation.py:90 valideaza_profil` — idem.
+- [ ] `engine/chirie.py:85 date_venit_din_chirie` — idem.
+- [ ] `money.py:14 round_lei`, `money.py:19 pct` — utilități neapelate (poate erau pentru raport vechi).
+- [ ] `localitati.py:13 slugify` — verifică (s-ar putea să fie folosit la generarea slug-urilor).
+- [ ] `report/sectiuni.py:35 sectiuni_pentru_profil` — router-by-profile mort?
+- [ ] `dosare_fs.py:190 importa_folder` — endpoint legacy import folder (înainte de UI nou).
+- [ ] `importers/url_parser.py:372 to_comparable` — verifică (poate apelat via getattr).
+
+### P2 — Securitate defensivă (low risk, fără downside)
+- [ ] Adaugă regex Pydantic pe `{uid}` path params: `uid: str = Field(..., regex=r"^[a-f0-9-]{36}$")` în
+      toate handlers din `web/routers/curent.py` și `evaluare.py`. Defense-in-depth: zero downside.
+- [ ] **Audit defensiv `requests` direct:** verifică dacă `curs_bnr.py:18` și `ai/narrative.py:230` ar putea
+      cândva primi URL din input utilizator. Acum sunt statice (BNR XML + endpoint Anthropic). Documentează în cod.
+
+### P3 — Dependențe outdated fără CVE (programat, după pachet de teste verde)
+- [ ] Upgrade lot mic la sfârșit de iterație: `anthropic 0.105→0.107`, `uvicorn 0.48→0.49`,
+      `pydantic-core 2.46→2.47`, `click`, `pytest-cov`, `requests` (sincronizat cu urllib3), `lxml`,
+      `ruff`, `soupsieve`, `certifi`.
+
+### P3 — Changelog
+- [x] **`CHANGELOG.md` generat** la rădăcina proiectului (33 KB, 499 linii) — vezi commit pending.
+- [ ] Commit-ează `CHANGELOG.md`: `git add CHANGELOG.md && git commit -m "docs: changelog generat din git history (skill changelog@easier-life-skills)"`.
+
+### P3 — Deprecation telemetry (pregătire pentru retragere UI vechi)
+- [ ] **Când Adi confirmă §D.18** (retragerea UI vechi): adaugă header `Deprecation: true` + `Sunset: <data>`
+      (RFC 8594) pe toate endpoint-urile `/api/evaluare/...` și paginile vechi. Telemetria ușoară: log fiecare hit.
+
 ## ✅ Rezolvate în această sesiune de noapte (rezumat — detalii în sinteza nopții)
 - Noul UI „output-first" complet (cont→ÎNCEPE→workspace) + import .docx + cont „Adi S" + 4 dosare exemplu.
 - Index de alegere UI + pagină Documente (convertor MD→HTML propriu) + cross-linkuri antet/subsol.
