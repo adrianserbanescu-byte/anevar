@@ -285,3 +285,23 @@ Macro confirmat pe master (22 nume). Folosire: `{% from "_icon.html" import icon
 - default = `currentColor` (preia navy/alb din context)
 - `ico-gold` = accent (warn, flag)
 - `ico-danger` = roșu (delete)
+
+
+---
+## F. Decizii finale 1-off (A, 2026-06-07) — plan complet
+
+| emoji | rol | decizie A |
+|---|---|---|
+| 👍 / 👎 | thumb-up/down | **RĂMÂN emoji** (reacții feedback, nu iconuri-funcție; `_feedback.html` = lane A) |
+| ➜ | arrow-send | **RĂMÂNE glyph** (direcțional în text, ca →←) |
+| 🔁 | import-similar | → `icon("refresh")` (cerc = reia) |
+| 🧪 | demo | **RĂMÂNE emoji** (1-off niche) |
+| 📝 | doc-edit | → `icon("edit")` (result.html; wizard skip) |
+| 🧭 | compass-wizard | **skip** (ornament `_compas.svg`) |
+
+### Volum FINAL de rollout la GO
+- **~57 iconuri** se convertesc: 55 active + `import-similar`→refresh (incepe.html:28) + `doc-edit`→edit (result.html:34).
+- **RĂMÂN ne-convertite:** 👍👎 (feedback/lane A), ➜ (glyph), 🧪 (demo), 🧭 (ornament), + toate glifele-text (→←↗↑↔ ●), + wizard.html/formular.html (tier-D).
+- **Fișiere atinse la GO (~7):** _feedback*(doar daca A vrea), _nav_cross, aml, cont, incepe, descoperire, dosare, feedback_list, flux_livrabile, grila, index, result. (dosar/wizard/formular excluse)
+
+**STARE: prep 100% complet. Aștept DOAR GO-ul de stil (Adi → A).** La GO: import `{% from "_icon.html" import icon %}` în fiecare pagină + substituție per secțiunea E/F. Test + render + commit incremental.
