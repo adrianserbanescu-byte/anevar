@@ -8,12 +8,20 @@ from evaluare.db.storage import Storage
 from evaluare.web.app import create_app
 
 
+def _fake_pdf(docx):
+    """Convertor PDF fals (deterministic, fără LibreOffice) pentru teste."""
+    from pathlib import Path
+    p = Path(docx).with_suffix(".pdf")
+    p.write_bytes(b"%PDF-1.4 fake\n%%EOF")
+    return p
+
+
 @pytest.fixture
 def client(tmp_path, monkeypatch):
     monkeypatch.setenv("OUTPUT_DIR", str(tmp_path / "date"))
     s = Storage(tmp_path / "d.db")
     s.init()
-    c = TestClient(create_app(storage=s, client=None))
+    c = TestClient(create_app(storage=s, client=None, pdf_converter=_fake_pdf))
     c._baza = tmp_path
     return c
 
@@ -209,6 +217,48 @@ def test_evaluare_veche_date_insuficiente_422(client):
     p = _payload()
     p["building"]["depreciation_points"] = []
     assert client.post("/api/evaluare", json=p).status_code == 422
+
+
+def test_raport_format_pdf(client):
+    # userul alege PDF -> conversie (fake în test) -> răspuns application/pdf.
+    _cont(client)
+    uid = client.post("/api/dosar", json={"wizard": {}}).json()["uuid"]
+    r = client.post(f"/api/dosar/{uid}/raport.docx?fmt=pdf", json=_payload())
+    assert r.status_code == 200
+    assert r.headers["content-type"] == "application/pdf"
+    assert r.content[:4] == b"%PDF"
+
+
+def test_raport_format_ambele_zip(client):
+    # „amândouă" -> .zip cu .docx + .pdf.
+    import io
+    import zipfile
+    _cont(client)
+    uid = client.post("/api/dosar", json={"wizard": {}}).json()["uuid"]
+    r = client.post(f"/api/dosar/{uid}/raport.docx?fmt=ambele", json=_payload())
+    assert r.status_code == 200
+    nume = zipfile.ZipFile(io.BytesIO(r.content)).namelist()
+    assert any(n.endswith(".docx") for n in nume) and any(n.endswith(".pdf") for n in nume)
+
+
+def test_raport_pdf_indisponibil_422(tmp_path, monkeypatch):
+    # fără convertor (LibreOffice/Word) -> 422 clar; .docx-ul tot se salvează în dosar.
+    from evaluare.report.pdf import PdfIndisponibil
+
+    def _fara_convertor(_docx):
+        raise PdfIndisponibil("niciun convertor")
+
+    monkeypatch.setenv("OUTPUT_DIR", str(tmp_path / "date"))
+    s = Storage(tmp_path / "d.db")
+    s.init()
+    c = TestClient(create_app(storage=s, client=None, pdf_converter=_fara_convertor))
+    _cont(c)
+    uid = c.post("/api/dosar", json={"wizard": {}}).json()["uuid"]
+    r = c.post(f"/api/dosar/{uid}/raport.docx?fmt=pdf", json=_payload())
+    assert r.status_code == 422
+    assert "LibreOffice" in r.json()["detail"]
+    # .docx-ul rămâne salvat ca versiune (userul nu pierde munca)
+    assert (tmp_path / "date" / "dosare" / uid).exists()
 
 
 def test_dosar_json_corupt_nu_crapa(client):

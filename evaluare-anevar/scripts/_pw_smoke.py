@@ -327,6 +327,8 @@ with sync_playwright() as pw:
     check("dosar: Generează blocat fără asumare", p.eval_on_selector("#genereaza", "e=>e.disabled"))
     p.check("#asumare")
     check("dosar: Generează activ după asumare", not p.eval_on_selector("#genereaza", "e=>e.disabled"))
+    check("dosar: selector format raport (docx/pdf/ambele)",
+          p.eval_on_selector_all("input[name='gen-fmt']", "e=>e.length") == 3)
     p.click("#s-proprietate")
     p.fill("#au", "111")
     p.dispatch_event("#au", "input")

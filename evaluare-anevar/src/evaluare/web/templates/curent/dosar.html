@@ -294,6 +294,13 @@
           Confirm că am verificat datele și <b>îmi asum profesional</b> valoarea și conținutul raportului,
           ca evaluator autorizat ANEVAR (semnătura îmi aparține; aplicația doar asistă).</label>
       </div>
+      <fieldset id="gen-format" style="border:1px solid #d8dce3;border-radius:8px;padding:8px 12px;margin:8px 0;">
+        <legend style="font-weight:600;padding:0 4px;">Format</legend>
+        <label class="chk"><input type="radio" name="gen-fmt" value="docx" checked> Word (.docx) — editabil</label>
+        <label class="chk"><input type="radio" name="gen-fmt" value="pdf"> PDF</label>
+        <label class="chk"><input type="radio" name="gen-fmt" value="ambele"> Amândouă (.zip)</label>
+        <span class="hint">PDF necesită LibreOffice (gratuit) sau Microsoft Word instalat pe calculator.</span>
+      </fieldset>
       <div class="btn-bar">
         <button type="button" id="genereaza" aria-describedby="asumare-info" disabled><span aria-hidden="true">📄</span> Generează și descarcă raportul</button>
         <button type="button" class="ghost" id="genereaza-demo"><span aria-hidden="true">📝</span> Raport cu note (demo)</button>
@@ -1003,22 +1010,27 @@ $("calc").addEventListener("click", async function(){
     var lg=$("la-gen"); if(lg) lg.addEventListener("click",function(){ subtab("s-genereaza"); });
   }catch(e){ $("rezultat").textContent="Calculul a eșuat — verifică valorile (suprafețe, elemente, comparabile)."; }
 });
-function genereazaRaport(adnotari, btn, nume){
+function genereazaRaport(adnotari, btn, formatForce){
   // Nu mai injectăm tăcut o dată: dacă lipsesc datele, avertizăm explicit (risc juridic la garantare).
   if(!$("data_evaluarii").value || !$("data_raportului").value){
     if(!confirm("Data evaluării și/sau data raportului nu sunt completate.\n\nRaportul va folosi DATA DE AZI — verifică, fiindcă o dată greșită afectează valabilitatea juridică a evaluării pentru garantare.\n\nContinui cu data de azi?")) {
       $("gen-status").textContent="Completează datele (evaluare/raport) înainte de generare."; return; }
   }
-  btn.disabled=true; btn.setAttribute("aria-busy","true"); $("gen-status").textContent="Se generează…";
-  fetch("/api/dosar/"+UID+"/raport.docx"+(adnotari?"?adnotari=1":""),{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(asambleaza())})
-    .then(function(r){ return r.ok ? r.blob() : Promise.reject(); })
+  var sel=document.querySelector('input[name="gen-fmt"]:checked');
+  var fmt=formatForce||(sel?sel.value:"docx");
+  var ext=fmt==="pdf"?"pdf":(fmt==="ambele"?"zip":"docx");
+  var nume=(adnotari?"raport-demo":"raport")+"."+ext;
+  btn.disabled=true; btn.setAttribute("aria-busy","true");
+  $("gen-status").textContent="Se generează"+(fmt!=="docx"?" ("+fmt.toUpperCase()+", poate dura câteva secunde)":"")+"…";
+  fetch("/api/dosar/"+UID+"/raport.docx?fmt="+fmt+(adnotari?"&adnotari=1":""),{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(asambleaza())})
+    .then(function(r){ if(r.ok) return r.blob(); return r.json().catch(function(){return{};}).then(function(j){ throw (j.detail||("Generarea a eșuat (cod "+r.status+").")); }); })
     .then(function(b){ var u=URL.createObjectURL(b); var a=document.createElement("a"); a.href=u; a.download=nume; a.click(); URL.revokeObjectURL(u);
-      $("gen-status").textContent="✓ "+nume+" — salvat ca versiune în folder."; })
-    .catch(function(){ $("gen-status").textContent="Generarea a eșuat."; })
+      $("gen-status").textContent="✓ "+nume+" — .docx salvat ca versiune în folder."; })
+    .catch(function(e){ $("gen-status").textContent=(typeof e==="string"?e:"Generarea a eșuat."); })
     .finally(function(){ btn.disabled=false; btn.removeAttribute("aria-busy"); });
 }
-$("genereaza").addEventListener("click", function(){ genereazaRaport(false, this, "raport.docx"); });
-if($("genereaza-demo")) $("genereaza-demo").addEventListener("click", function(){ genereazaRaport(true, this, "raport-demo.docx"); });
+$("genereaza").addEventListener("click", function(){ genereazaRaport(false, this); });
+if($("genereaza-demo")) $("genereaza-demo").addEventListener("click", function(){ genereazaRaport(true, this, "docx"); });
 if($("gen-audit")) $("gen-audit").addEventListener("click", function(){
   var b=this; b.disabled=true; $("gen-status").textContent="… urmă de audit";
   fetch("/api/dosar/"+UID+"/audit.txt",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(asambleaza())})

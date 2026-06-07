@@ -6,6 +6,7 @@ nu în SQLite. Vezi docs/specs/1-ui-output-first.md.
 from __future__ import annotations
 
 import tempfile
+import zipfile
 from pathlib import Path
 
 from fastapi import APIRouter, HTTPException, Request
@@ -15,6 +16,7 @@ from evaluare import cont as cont_mod
 from evaluare import dosare_fs as fs
 from evaluare.assembler import EvaluationInput, construieste_context, valideaza
 from evaluare.report.generator import genereaza_raport
+from evaluare.report.pdf import PdfIndisponibil
 from evaluare.web.deps import DOCX_MIME, Deps
 from evaluare.web.schemas import ContRequest, DosarNouRequest, ImportDocxRequest
 
@@ -180,19 +182,44 @@ def build_router(d: Deps) -> APIRouter:
         return PlainTextResponse(text_audit(j))
 
     @router.post("/api/dosar/{uid}/raport.docx")
-    def genereaza(uid: str, inp: EvaluationInput, adnotari: int = 0) -> FileResponse:
+    def genereaza(uid: str, inp: EvaluationInput, adnotari: int = 0, fmt: str = "docx") -> FileResponse:
+        """Generează raportul. `fmt` ∈ {docx (implicit), pdf, ambele}. PDF necesită LibreOffice/Word local."""
         try:
             fs.incarca(uid)
         except KeyError:
             raise HTTPException(404, "Dosar inexistent.") from None
         ctx = _context(inp)
-        out = Path(tempfile.gettempdir()) / f"raport_{uid}.docx"
+        tmp = Path(tempfile.gettempdir())
+        out = tmp / f"raport_{uid}.docx"
         genereaza_raport(ctx, out, adnotari=bool(adnotari))   # adnotări = note de proveniență (review)
-        fs.adauga_versiune_docx(uid, out)              # versiune persistentă în folderul dosarului
-        # Igienă PII: șterge copia temporară din %TEMP% după trimitere (versiunea persistă în folder).
+        fs.adauga_versiune_docx(uid, out)              # versiune .docx persistentă (canonică) în folderul dosarului
         from starlette.background import BackgroundTask
-        return FileResponse(str(out), media_type=DOCX_MIME, filename=f"raport_{uid[:8]}.docx",
-                            background=BackgroundTask(lambda: out.unlink(missing_ok=True)))
+
+        def _sterge(*cai):   # igienă PII: copiile temporare se șterg după trimitere
+            return BackgroundTask(lambda: [Path(c).unlink(missing_ok=True) for c in cai])
+
+        nume = f"raport_{uid[:8]}"
+        formate = (fmt or "docx").lower()
+        if formate == "docx":
+            return FileResponse(str(out), media_type=DOCX_MIME, filename=f"{nume}.docx",
+                                background=_sterge(out))
+        # pdf / ambele -> conversie cu convertorul de pe stația evaluatorului (LibreOffice/Word)
+        try:
+            pdf = d.pdf_converter(out)
+        except PdfIndisponibil as e:
+            out.unlink(missing_ok=True)
+            raise HTTPException(422, "PDF indisponibil pe această stație: instalează LibreOffice "
+                                "(gratuit) sau Microsoft Word. Documentul .docx a fost generat și "
+                                "salvat ca versiune în dosar.") from e
+        if formate == "pdf":
+            return FileResponse(str(pdf), media_type="application/pdf", filename=f"{nume}.pdf",
+                                background=_sterge(out, pdf))
+        zpath = tmp / f"raport_{uid}.zip"   # „ambele" -> arhivă cu .docx + .pdf
+        with zipfile.ZipFile(zpath, "w", zipfile.ZIP_DEFLATED) as z:
+            z.write(out, f"{nume}.docx")
+            z.write(pdf, f"{nume}.pdf")
+        return FileResponse(str(zpath), media_type="application/zip", filename=f"{nume}.zip",
+                            background=_sterge(out, pdf, zpath))
 
     @router.get("/api/backup-dosare.zip")
     def backup_dosare():
