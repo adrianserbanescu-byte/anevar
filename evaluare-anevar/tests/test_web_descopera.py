@@ -28,6 +28,19 @@ def _app(tmp_path):
     return create_app(storage=storage, client=FakeClient(), fetcher=fetcher)
 
 
+def test_post_descopera_teren_returns_candidati(tmp_path):
+    # acoperă endpointul /api/descopera-teren (era 0% acoperit) — flux happy-path.
+    client = TestClient(_app(tmp_path))
+    payload = {"portal": "imobiliare", "judet": "ilfov", "localitate": "otopeni",
+               "suprafata_subiect": "500", "max_candidati": 5}
+    resp = client.post("/api/descopera-teren", json=payload)
+    assert resp.status_code == 200
+    data = resp.json()
+    assert "candidati" in data and isinstance(data["candidati"], list)
+    for c in data["candidati"]:   # structura fiecărui candidat-teren
+        assert "url" in c and "pret_mp" in c and "relevanta" in c
+
+
 def test_post_descopera_returns_metodologie_and_candidati(tmp_path):
     client = TestClient(_app(tmp_path))
     payload = {"portal": "imobiliare", "judet": "ilfov", "localitate": "otopeni",
