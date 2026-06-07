@@ -9,245 +9,162 @@
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300..900;1,9..144,400..600&family=Archivo:wght@400;500;600;700&family=Archivo+Narrow:wght@500;600;700&display=swap" rel="stylesheet">
 <style>
   :root{
-    --paper:#f3efe5;
-    --paper-2:#eae4d6;
-    --ink:#1c1d22;
-    --ink-soft:#4a4b52;
-    --line:#c9c1ac;
-    --line-soft:#d9d2c0;
-    --stamp:#1f3a5f;       /* ANEVAR institutional blue */
-    --stamp-2:#2f5688;
-    --seal:#9a2b25;        /* wax-red accent */
-    --gold:#9a7b3f;
-    --ok:#2f6b46;
-    --ok-bg:#e3ede1;
+    --paper:#f3efe5; --paper-2:#eae4d6; --ink:#1c1d22; --ink-soft:#4a4b52;
+    --line:#c9c1ac; --line-soft:#d9d2c0;
+    --stamp:#1f3a5f; --stamp-2:#2f5688; --seal:#9a2b25; --gold:#9a7b3f;
+    --ok:#2f6b46; --ok-bg:#e3ede1;
+    --t1:#5b3a86;   /* firmă */
+    --t2:#1f3a5f;   /* client/dosar */
+    --t3:#9a2b25;   /* eveniment */
     --shadow:0 1px 0 rgba(0,0,0,.04), 0 10px 30px -18px rgba(28,29,34,.45);
   }
   *{box-sizing:border-box;margin:0;padding:0}
   html{scroll-behavior:smooth}
   body{
-    font-family:'Archivo',system-ui,sans-serif;
-    color:var(--ink);
+    font-family:'Archivo',system-ui,sans-serif;color:var(--ink);
     background:
       radial-gradient(120% 80% at 100% 0%, rgba(47,86,136,.06), transparent 60%),
       radial-gradient(100% 70% at 0% 100%, rgba(154,43,37,.04), transparent 55%),
       var(--paper);
-    background-attachment:fixed;
-    min-height:100vh;
-    line-height:1.5;
-    -webkit-font-smoothing:antialiased;
+    background-attachment:fixed;min-height:100vh;line-height:1.5;-webkit-font-smoothing:antialiased;
   }
-  body::before{ /* paper grain */
+  body::before{
     content:"";position:fixed;inset:0;pointer-events:none;z-index:0;opacity:.5;
     background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.035'/%3E%3C/svg%3E");
   }
-  .wrap{position:relative;z-index:1;max-width:1280px;margin:0 auto;padding:0 28px 80px}
+  .wrap{position:relative;z-index:1;max-width:1320px;margin:0 auto;padding:0 28px 80px}
 
-  /* ---------- Masthead ---------- */
-  header.mast{
-    display:flex;align-items:flex-end;justify-content:space-between;gap:24px;
-    padding:30px 0 18px;border-bottom:2px solid var(--ink);
-    margin-bottom:6px;
-  }
+  header.mast{display:flex;align-items:flex-end;justify-content:space-between;gap:24px;padding:30px 0 18px;border-bottom:2px solid var(--ink);margin-bottom:6px}
   .mast .brand{display:flex;align-items:center;gap:16px}
-  .seal{
-    width:54px;height:54px;flex:none;border-radius:50%;
-    display:grid;place-items:center;background:var(--stamp);
-    box-shadow:inset 0 0 0 2px var(--paper), inset 0 0 0 3px var(--stamp);
-    position:relative;
-  }
+  .seal{width:54px;height:54px;flex:none;border-radius:50%;display:grid;place-items:center;background:var(--stamp);box-shadow:inset 0 0 0 2px var(--paper), inset 0 0 0 3px var(--stamp);position:relative}
   .seal svg{width:30px;height:30px}
   .seal::after{content:"";position:absolute;inset:-5px;border-radius:50%;border:1px dashed rgba(31,58,95,.5)}
-  .mast h1{
-    font-family:'Fraunces',serif;font-weight:600;font-size:30px;line-height:.98;letter-spacing:-.01em;
-  }
-  .mast .kicker{
-    font-family:'Archivo Narrow';text-transform:uppercase;letter-spacing:.22em;
-    font-size:11px;color:var(--stamp);font-weight:700;margin-bottom:5px;
-  }
+  .mast h1{font-family:'Fraunces',serif;font-weight:600;font-size:30px;line-height:.98;letter-spacing:-.01em}
+  .mast .kicker{font-family:'Archivo Narrow';text-transform:uppercase;letter-spacing:.22em;font-size:11px;color:var(--stamp);font-weight:700;margin-bottom:5px}
   .mast .meta{text-align:right;font-size:12.5px;color:var(--ink-soft);font-family:'Archivo Narrow';letter-spacing:.04em}
   .mast .meta b{color:var(--ink);font-weight:700}
 
-  .lede{
-    font-family:'Fraunces',serif;font-size:19px;font-weight:400;font-style:italic;
-    color:var(--ink-soft);max-width:760px;margin:22px 0 26px;line-height:1.4;
-  }
+  .lede{font-family:'Fraunces',serif;font-size:19px;font-weight:400;font-style:italic;color:var(--ink-soft);max-width:820px;margin:22px 0 26px;line-height:1.4}
   .lede b{font-style:normal;font-weight:600;color:var(--ink)}
 
-  /* ---------- Pipeline rail ---------- */
-  .rail{
-    display:grid;grid-template-columns:repeat(6,1fr);gap:0;
-    border:1px solid var(--line);border-radius:4px;overflow:hidden;
-    background:var(--paper-2);box-shadow:var(--shadow);margin-bottom:30px;
-  }
-  .step{
-    position:relative;padding:16px 16px 15px;cursor:pointer;text-align:left;
-    border-right:1px solid var(--line);background:transparent;
-    transition:background .25s ease;font-family:inherit;color:inherit;
-  }
+  /* Pipeline rail — 7 steps */
+  .rail{display:grid;grid-template-columns:repeat(7,1fr);gap:0;border:1px solid var(--line);border-radius:4px;overflow:hidden;background:var(--paper-2);box-shadow:var(--shadow);margin-bottom:30px}
+  .step{position:relative;padding:14px 13px 13px;cursor:pointer;text-align:left;border-right:1px solid var(--line);background:transparent;transition:background .25s ease;font-family:inherit;color:inherit}
   .step:last-child{border-right:none}
   .step:hover{background:rgba(255,255,255,.45)}
-  .step .no{
-    font-family:'Archivo Narrow';font-size:11px;letter-spacing:.18em;text-transform:uppercase;
-    color:var(--stamp);font-weight:700;display:flex;align-items:center;gap:7px;
-  }
-  .step .no i{
-    width:18px;height:18px;border-radius:50%;display:inline-grid;place-items:center;
-    border:1.5px solid var(--stamp);font-style:normal;font-size:10px;font-weight:700;
-  }
-  .step .t{font-family:'Fraunces',serif;font-size:16px;font-weight:600;margin-top:8px;line-height:1.05}
-  .step .d{font-size:11.5px;color:var(--ink-soft);margin-top:3px;letter-spacing:.01em}
+  .step .no{font-family:'Archivo Narrow';font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:var(--stamp);font-weight:700;display:flex;align-items:center;gap:6px}
+  .step .no i{width:17px;height:17px;border-radius:50%;display:inline-grid;place-items:center;border:1.5px solid var(--stamp);font-style:normal;font-size:9.5px;font-weight:700}
+  .step .t{font-family:'Fraunces',serif;font-size:14.5px;font-weight:600;margin-top:7px;line-height:1.05}
+  .step .d{font-size:10.5px;color:var(--ink-soft);margin-top:3px;letter-spacing:.01em}
+  .step[data-tier="firma"] .no{color:var(--t1)} .step[data-tier="firma"] .no i{border-color:var(--t1)}
   .step[aria-current="true"]{background:var(--ink)}
-  .step[aria-current="true"] .no,
-  .step[aria-current="true"] .t,
-  .step[aria-current="true"] .d{color:var(--paper)}
+  .step[aria-current="true"] .no,.step[aria-current="true"] .t,.step[aria-current="true"] .d{color:var(--paper)}
   .step[aria-current="true"] .no i{border-color:var(--paper);color:var(--paper)}
-  .step.done .no i{background:var(--ok);border-color:var(--ok);color:#fff}
-  .step.done .no i::after{content:"✓"}
-  .step.done .no i{font-size:0}
-  .step.done .no i::after{font-size:11px}
+  .step.done .no i{background:var(--ok);border-color:var(--ok);color:#fff;font-size:0}
+  .step.done .no i::after{content:"✓";font-size:10px}
 
-  /* ---------- Main grid ---------- */
-  .grid{display:grid;grid-template-columns:1fr 372px;gap:28px;align-items:start}
-  @media(max-width:980px){.grid{grid-template-columns:1fr}}
+  .grid{display:grid;grid-template-columns:1fr 392px;gap:28px;align-items:start}
+  @media(max-width:1000px){.grid{grid-template-columns:1fr}}
 
-  .stage{
-    background:linear-gradient(180deg,#fbf9f3,#f6f2e8);
-    border:1px solid var(--line);border-radius:6px;box-shadow:var(--shadow);
-    padding:30px 32px 34px;position:relative;min-height:430px;
-  }
-  .stage::before{ /* corner fold */
-    content:"";position:absolute;top:0;right:0;border-width:0 26px 26px 0;
-    border-style:solid;border-color:var(--paper) var(--paper-2) var(--line) var(--paper-2);
-    filter:drop-shadow(-2px 2px 2px rgba(0,0,0,.06));
-  }
-  .stage .chip{
-    display:inline-flex;align-items:center;gap:8px;font-family:'Archivo Narrow';
-    text-transform:uppercase;letter-spacing:.18em;font-size:11px;font-weight:700;
-    color:var(--seal);border:1px solid var(--seal);border-radius:2px;padding:4px 9px;
-  }
+  .stage{background:linear-gradient(180deg,#fbf9f3,#f6f2e8);border:1px solid var(--line);border-radius:6px;box-shadow:var(--shadow);padding:30px 32px 34px;position:relative;min-height:440px}
+  .stage::before{content:"";position:absolute;top:0;right:0;border-width:0 26px 26px 0;border-style:solid;border-color:var(--paper) var(--paper-2) var(--line) var(--paper-2);filter:drop-shadow(-2px 2px 2px rgba(0,0,0,.06))}
+  .stage .chip{display:inline-flex;align-items:center;gap:8px;font-family:'Archivo Narrow';text-transform:uppercase;letter-spacing:.18em;font-size:11px;font-weight:700;color:var(--seal);border:1px solid var(--seal);border-radius:2px;padding:4px 9px}
+  .stage .chip.firma{color:var(--t1);border-color:var(--t1)}
   .stage h2{font-family:'Fraunces',serif;font-size:27px;font-weight:600;margin:14px 0 6px;letter-spacing:-.01em}
-  .stage .sub{color:var(--ink-soft);font-size:14px;max-width:54ch}
+  .stage .sub{color:var(--ink-soft);font-size:14px;max-width:56ch}
 
-  .role{
-    margin:20px 0 8px;font-family:'Archivo Narrow';text-transform:uppercase;
-    letter-spacing:.16em;font-size:11px;color:var(--stamp);font-weight:700;
-    border-top:1px dashed var(--line);padding-top:16px;
-  }
+  .role{margin:20px 0 8px;font-family:'Archivo Narrow';text-transform:uppercase;letter-spacing:.16em;font-size:11px;color:var(--stamp);font-weight:700;border-top:1px dashed var(--line);padding-top:16px}
 
-  /* option cards (stage 0) */
   .opts{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:6px}
-  .opt{
-    border:1px solid var(--line);border-radius:4px;padding:13px 14px;background:rgba(255,255,255,.5);
-    display:flex;gap:11px;align-items:flex-start;transition:.18s;
-  }
+  .opt{border:1px solid var(--line);border-radius:4px;padding:13px 14px;background:rgba(255,255,255,.5);display:flex;gap:11px;align-items:flex-start;transition:.18s}
   .opt:hover{border-color:var(--stamp);background:#fff;transform:translateY(-1px)}
   .opt .g{font-size:18px;line-height:1}
   .opt b{font-size:13.5px;display:block}
   .opt span{font-size:11.5px;color:var(--ink-soft)}
 
-  /* field mock */
   .fields{display:grid;grid-template-columns:1fr 1fr;gap:11px 16px;margin-top:6px}
   .f{display:flex;flex-direction:column;gap:4px}
   .f.full{grid-column:1/-1}
   .f label{font-size:11px;font-family:'Archivo Narrow';letter-spacing:.06em;text-transform:uppercase;color:var(--ink-soft);font-weight:600}
-  .f .ctrl{
-    border:1px solid var(--line);border-radius:3px;background:#fdfcf8;padding:9px 11px;font-size:13px;color:var(--ink-soft);
-    display:flex;justify-content:space-between;align-items:center;
-  }
+  .f .ctrl{border:1px solid var(--line);border-radius:3px;background:#fdfcf8;padding:9px 11px;font-size:13px;color:var(--ink-soft);display:flex;justify-content:space-between;align-items:center}
   .f .ctrl.sel{border-color:var(--stamp);color:var(--ink);font-weight:600}
   .f .ctrl small{color:var(--stamp);font-size:11px}
 
-  /* approach pills */
+  .seg{display:inline-flex;border:1px solid var(--line);border-radius:4px;overflow:hidden;margin-top:4px}
+  .seg button{font-family:inherit;font-size:12.5px;padding:8px 16px;border:none;background:#fdfcf8;color:var(--ink-soft);cursor:pointer;font-weight:600}
+  .seg button.on{background:var(--ink);color:var(--paper)}
+
   .pills{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}
-  .pill{
-    border:1px solid var(--line);border-radius:999px;padding:7px 14px;font-size:12.5px;
-    background:rgba(255,255,255,.5);display:flex;align-items:center;gap:7px;
-  }
+  .pill{border:1px solid var(--line);border-radius:999px;padding:7px 14px;font-size:12.5px;background:rgba(255,255,255,.5);display:flex;align-items:center;gap:7px}
   .pill b{font-weight:700}
   .pill.on{background:var(--stamp);color:#fff;border-color:var(--stamp)}
   .pill.on b{color:#fff}
+  .pill.t1.on{background:var(--t1);border-color:var(--t1)}
 
-  .note{
-    margin-top:18px;background:var(--ok-bg);border-left:3px solid var(--ok);
-    padding:11px 14px;border-radius:0 4px 4px 0;font-size:12.5px;color:#27432f;
-  }
+  /* event toggles */
+  .toggles{display:flex;flex-direction:column;gap:9px;margin-top:8px}
+  .tg{display:flex;align-items:center;justify-content:space-between;gap:14px;border:1px solid var(--line);border-radius:5px;padding:11px 14px;background:rgba(255,255,255,.5)}
+  .tg .lab b{font-size:13px}
+  .tg .lab span{display:block;font-size:11.5px;color:var(--ink-soft)}
+  .sw{width:42px;height:24px;border-radius:999px;background:var(--line);position:relative;cursor:pointer;flex:none;transition:.2s;border:none}
+  .sw::after{content:"";position:absolute;top:2px;left:2px;width:20px;height:20px;border-radius:50%;background:#fff;transition:.2s;box-shadow:0 1px 3px rgba(0,0,0,.25)}
+  .sw.on{background:var(--seal)} .sw.on::after{left:20px}
+
+  .note{margin-top:18px;background:var(--ok-bg);border-left:3px solid var(--ok);padding:11px 14px;border-radius:0 4px 4px 0;font-size:12.5px;color:#27432f}
   .note.warn{background:#f6ecdf;border-color:var(--seal);color:#6a3b2c}
+  .note.firma{background:#efeaf6;border-color:var(--t1);color:#3f2c5e}
 
-  /* assume checkpoint */
-  .assume{
-    margin-top:14px;border:1.5px solid var(--seal);border-radius:5px;background:#fbf3ee;
-    padding:16px 18px;display:flex;gap:14px;align-items:flex-start;
-  }
-  .assume .box{
-    width:26px;height:26px;border:2px solid var(--seal);border-radius:4px;flex:none;cursor:pointer;
-    display:grid;place-items:center;color:transparent;font-weight:800;transition:.15s;
-  }
+  .assume{margin-top:14px;border:1.5px solid var(--seal);border-radius:5px;background:#fbf3ee;padding:16px 18px;display:flex;gap:14px;align-items:flex-start}
+  .assume .box{width:26px;height:26px;border:2px solid var(--seal);border-radius:4px;flex:none;cursor:pointer;display:grid;place-items:center;color:transparent;font-weight:800;transition:.15s}
   .assume.checked .box{background:var(--seal);color:#fff}
   .assume p{font-size:13px}
   .assume b{color:var(--seal)}
 
   .actrow{display:flex;gap:10px;margin-top:22px;flex-wrap:wrap}
-  .btn{
-    font-family:'Archivo';font-weight:600;font-size:13px;border-radius:3px;padding:11px 18px;cursor:pointer;
-    border:1px solid var(--ink);background:var(--ink);color:var(--paper);transition:.18s;letter-spacing:.01em;
-  }
+  .btn{font-family:'Archivo';font-weight:600;font-size:13px;border-radius:3px;padding:11px 18px;cursor:pointer;border:1px solid var(--ink);background:var(--ink);color:var(--paper);transition:.18s;letter-spacing:.01em}
   .btn:hover{background:var(--stamp);border-color:var(--stamp)}
   .btn.ghost{background:transparent;color:var(--ink)}
   .btn.ghost:hover{background:rgba(0,0,0,.05);color:var(--ink)}
-  .btn:disabled{opacity:.4;cursor:not-allowed;background:var(--ink);border-color:var(--ink)}
-  .btn:disabled:hover{background:var(--ink)}
+  .btn:disabled{opacity:.4;cursor:not-allowed} .btn:disabled:hover{background:var(--ink)}
 
-  /* ---------- Deliverables dock ---------- */
+  /* Dock */
   .dock{position:sticky;top:18px}
-  .dock-card{
-    border:1px solid var(--line);border-radius:6px;background:var(--paper-2);box-shadow:var(--shadow);overflow:hidden;
-  }
-  .dock-head{
-    background:var(--ink);color:var(--paper);padding:15px 18px;
-  }
+  .dock-card{border:1px solid var(--line);border-radius:6px;background:var(--paper-2);box-shadow:var(--shadow);overflow:hidden}
+  .dock-head{background:var(--ink);color:var(--paper);padding:15px 18px}
   .dock-head .k{font-family:'Archivo Narrow';text-transform:uppercase;letter-spacing:.2em;font-size:10.5px;color:#b9c4d4;font-weight:700}
   .dock-head h3{font-family:'Fraunces',serif;font-weight:600;font-size:19px;margin-top:3px}
   .dock-head .count{font-size:12px;color:#cdd6e2;margin-top:6px;font-family:'Archivo Narrow';letter-spacing:.04em}
   .dock-head .bar{height:5px;border-radius:3px;background:rgba(255,255,255,.18);margin-top:9px;overflow:hidden}
   .dock-head .bar i{display:block;height:100%;background:linear-gradient(90deg,var(--gold),#cdab63);width:0;transition:width .5s cubic-bezier(.2,.8,.2,1)}
 
-  .group{padding:12px 16px 4px;border-top:1px solid var(--line)}
+  .group{padding:11px 16px 4px;border-top:1px solid var(--line)}
   .group:first-of-type{border-top:none}
-  .group .gh{
-    display:flex;align-items:center;justify-content:space-between;
-    font-family:'Archivo Narrow';text-transform:uppercase;letter-spacing:.14em;font-size:10.5px;font-weight:700;color:var(--stamp);margin-bottom:7px;
-  }
-  .group .gh .tag{background:rgba(31,58,95,.1);border-radius:10px;padding:1px 8px;font-size:10px}
+  .group .gh{display:flex;align-items:center;justify-content:space-between;font-family:'Archivo Narrow';text-transform:uppercase;letter-spacing:.12em;font-size:10.5px;font-weight:700;margin-bottom:7px}
+  .group .gh .lvl{display:flex;align-items:center;gap:7px}
+  .group .gh .swatch{width:9px;height:9px;border-radius:2px;display:inline-block}
+  .group .gh .freq{font-size:9.5px;color:var(--ink-soft);background:rgba(0,0,0,.05);border-radius:9px;padding:2px 8px;letter-spacing:.06em}
   ul.del{list-style:none;display:flex;flex-direction:column;gap:5px;padding-bottom:9px}
-  li.d{
-    display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:4px;
-    background:rgba(255,255,255,.35);border:1px solid transparent;font-size:12.5px;color:var(--ink-soft);
-    transition:.35s;
-  }
-  li.d .ic{
-    width:22px;height:22px;flex:none;border-radius:3px;border:1px solid var(--line);
-    display:grid;place-items:center;font-size:10px;color:var(--ink-soft);background:#fdfcf8;font-family:'Archivo Narrow';font-weight:700;
-  }
+  li.d{display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:4px;background:rgba(255,255,255,.35);border:1px solid transparent;font-size:12.5px;color:var(--ink-soft);transition:.35s}
+  li.d .ic{width:22px;height:22px;flex:none;border-radius:3px;border:1px solid var(--line);display:grid;place-items:center;font-size:9px;color:var(--ink-soft);background:#fdfcf8;font-family:'Archivo Narrow';font-weight:700}
   li.d .nm{flex:1;line-height:1.2}
   li.d .nm small{display:block;font-size:10.5px;opacity:.7;font-family:'Archivo Narrow';letter-spacing:.02em}
-  li.d .st{font-size:10px;font-family:'Archivo Narrow';text-transform:uppercase;letter-spacing:.1em;color:var(--line);font-weight:700}
-  li.d.ready{
-    background:var(--ok-bg);border-color:#bcd3bf;color:var(--ink);
-  }
+  li.d .st{font-size:9.5px;font-family:'Archivo Narrow';text-transform:uppercase;letter-spacing:.08em;color:var(--line);font-weight:700;text-align:right}
+  li.d.ready{background:var(--ok-bg);border-color:#bcd3bf;color:var(--ink)}
   li.d.ready .ic{background:var(--ok);border-color:var(--ok);color:#fff}
-  li.d.ready .st{color:var(--ok)}
-  li.d.ready .nm{font-weight:600;color:var(--ink)}
+  li.d.ready .st{color:var(--ok)} li.d.ready .nm{font-weight:600;color:var(--ink)}
+  li.d.na{opacity:.5;background:repeating-linear-gradient(45deg,rgba(0,0,0,.02),rgba(0,0,0,.02) 6px,transparent 6px,transparent 12px)}
+  li.d.na .st{color:var(--ink-soft)}
+  li.d.gap{background:#f6ecdf;border:1px dashed var(--seal)}
+  li.d.gap .ic{background:var(--seal);border-color:var(--seal);color:#fff}
+  li.d.gap .st{color:var(--seal)} li.d.gap .nm{color:#6a3b2c}
 
   .dock-foot{padding:13px 16px 16px;border-top:1px solid var(--line);background:rgba(255,255,255,.25)}
   .dock-foot .hint{font-size:11.5px;color:var(--ink-soft);font-family:'Archivo Narrow';letter-spacing:.02em}
 
-  .legend{display:flex;gap:18px;flex-wrap:wrap;margin-top:26px;font-size:12px;color:var(--ink-soft);align-items:center}
-  .legend b{color:var(--ink);font-family:'Archivo Narrow';text-transform:uppercase;letter-spacing:.14em;font-size:10.5px}
-  .legend .dot{width:9px;height:9px;border-radius:50%;display:inline-block;margin-right:6px;vertical-align:middle}
+  .legend{display:flex;gap:16px;flex-wrap:wrap;margin-top:24px;font-size:11.5px;color:var(--ink-soft);align-items:center}
+  .legend .sw2{width:10px;height:10px;border-radius:2px;display:inline-block;margin-right:6px;vertical-align:middle}
 
   footer.foot{margin-top:34px;border-top:1px solid var(--line);padding-top:16px;font-size:11.5px;color:var(--ink-soft);display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px;font-family:'Archivo Narrow';letter-spacing:.03em}
-
   .reset{font-family:'Archivo Narrow';font-weight:700;letter-spacing:.12em;text-transform:uppercase;font-size:11px;color:var(--seal);background:none;border:none;cursor:pointer}
   .reset:hover{text-decoration:underline}
   .fade{animation:fade .45s ease}
@@ -270,19 +187,19 @@
       </div>
     </div>
     <div class="meta">
+      <div><b>Evaluator:</b> <span id="m-ent">Adi S · PFA</span></div>
       <div><b>Dosar:</b> Breaza · Casă + teren</div>
       <div><b>Profil:</b> garantare credit · GEV 520</div>
-      <div><b>Evaluator:</b> Adi S · membru ANEVAR</div>
     </div>
   </header>
 
   <p class="lede">
-    De la deschiderea dosarului până la predarea către bancă, o evaluare produce <b>11 livrabile</b> pe trei
-    niveluri — <b>Raportul</b> (fondul), <b>Conformitatea</b> (AML + GDPR) și <b>Trasabilitatea</b> (audit).
-    Parcurge etapele: dock-ul din dreapta se completează pe măsură ce fiecare output devine disponibil.
+    Fluxul începe cu <b>evaluatorul (contul)</b> — acolo trăiesc documentele de firmă, generate
+    <b>o singură dată</b> — apoi coboară în dosar. Legea 129/2019 + Normele (Ordin 37/2021) împart
+    livrabilele pe <b>trei niveluri</b>: <b style="color:var(--t1)">Firmă</b>, <b style="color:var(--t2)">Client/dosar</b>
+    și <b style="color:var(--t3)">Eveniment</b>. Dock-ul din dreapta se completează pe fiecare nivel pe măsură ce avansezi.
   </p>
 
-  <!-- Pipeline -->
   <nav class="rail" id="rail" aria-label="Etapele fluxului"></nav>
 
   <div class="grid">
@@ -291,123 +208,125 @@
     <aside class="dock" aria-label="Livrabile produse">
       <div class="dock-card">
         <div class="dock-head">
-          <div class="k">Livrabile · per dosar</div>
+          <div class="k">Livrabile · pe niveluri</div>
           <h3>Dosar de evaluare</h3>
-          <div class="count"><span id="readyN">0</span> din 11 pregătite · toate <b style="color:#cdab63">.docx</b>, toate locale</div>
+          <div class="count"><span id="readyN">0</span> din <span id="totN">10</span> pregătite · toate <b style="color:#cdab63">.docx</b>, locale</div>
           <div class="bar"><i id="bar"></i></div>
         </div>
         <div id="groups"></div>
-        <div class="dock-foot">
-          <div class="hint" id="dockHint">Începe prin a deschide un dosar →</div>
-        </div>
+        <div class="dock-foot"><div class="hint" id="dockHint">Începe cu contul evaluatorului →</div></div>
       </div>
       <div class="legend">
-        <span><span class="dot" style="background:var(--stamp)"></span>Date intrare</span>
-        <span><span class="dot" style="background:var(--seal)"></span>Decizia evaluatorului</span>
-        <span><span class="dot" style="background:var(--ok)"></span>Output pregătit</span>
+        <span><span class="sw2" style="background:var(--t1)"></span>Firmă · o dată</span>
+        <span><span class="sw2" style="background:var(--t2)"></span>Client · per dosar</span>
+        <span><span class="sw2" style="background:var(--t3)"></span>Eveniment · condiționat</span>
+        <span><span class="sw2" style="background:var(--seal);border-radius:50%"></span>Gol de conformitate</span>
       </div>
     </aside>
   </div>
 
   <footer class="foot">
-    <span>Prototip UX · structură extrasă din cod (routers: curent.py · aml.py · evaluare.py)</span>
+    <span>Prototip UX · structură din cod (curent.py · aml.py) + temei legal (Legea 129/2019 · Norme Ord. 37/2021 · F-lege-norme-aml.md)</span>
     <button class="reset" id="reset">↻ Reia fluxul de la capăt</button>
   </footer>
 </div>
 
 <script>
-/* ---------- Deliverable model (din cod) ---------- */
+/* ---------- Deliverables (cu nivel legal) ---------- */
 const DELIVERABLES = [
-  {id:'raport',   grp:'Raport de evaluare', ext:'DOCX', file:'raport_<uid>.docx',           name:'Raport de evaluare', note:'SEV 106 / GEV 520 · cu Anexe foto+scanuri'},
-  {id:'aml_risc', grp:'Conformitate AML',   ext:'DOCX', file:'aml_evaluare_risc.docx',       name:'Evaluare de risc'},
-  {id:'aml_kyc',  grp:'Conformitate AML',   ext:'DOCX', file:'aml_fisa_kyc.docx',            name:'Fișă KYC', note:'beneficiari reali >25%'},
-  {id:'aml_norme',grp:'Conformitate AML',   ext:'DOCX', file:'aml_norme_interne.docx',       name:'Norme interne'},
-  {id:'aml_dec',  grp:'Conformitate AML',   ext:'DOCX', file:'aml_decizie_desemnare.docx',   name:'Decizie de desemnare'},
-  {id:'aml_rtn',  grp:'Conformitate AML',   ext:'DOCX', file:'aml_rtn.docx',                 name:'Raport tranzacții numerar (RTN)'},
-  {id:'aml_rts',  grp:'Conformitate AML',   ext:'DOCX', file:'aml_rts.docx',                 name:'Raport tranzacții suspecte (RTS)'},
-  {id:'gdpr_pol', grp:'Conformitate GDPR',  ext:'DOCX', file:'gdpr_politica_prelucrare.docx',name:'Politică de prelucrare (model)'},
-  {id:'gdpr_con', grp:'Conformitate GDPR',  ext:'DOCX', file:'gdpr_acord_consimtamant.docx', name:'Acord de consimțământ (model)'},
-  {id:'audit',    grp:'Trasabilitate',      ext:'LOG',  file:'urma-audit',                   name:'Urma de audit', note:'calcul reproductibil'},
-  {id:'backup',   grp:'Trasabilitate',      ext:'ZIP',  file:'backup-dosare.zip',            name:'Backup dosare'},
+  // Nivel 1 — firmă (cont evaluator), o singură dată
+  {id:'aml_norme', grp:'firma', ext:'DOCX', name:'Norme interne',          note:'7 capitole · L. art. 24 / N. art. 8'},
+  {id:'aml_dec',   grp:'firma', ext:'DOCX', name:'Decizie de desemnare',   note:'L. art. 23 · scutit la PFA (N. art. 7)', pfaNA:true},
+  {id:'gdpr_pol',  grp:'firma', ext:'DOCX', name:'Politică de prelucrare', note:'model · L. art. 22'},
+  // Raport
+  {id:'raport',    grp:'raport',ext:'DOCX', name:'Raport de evaluare',     note:'SEV 106 / GEV 520 · cu Anexe foto+scanuri'},
+  // Nivel 2 — client / dosar
+  {id:'aml_kyc',   grp:'client',ext:'DOCX', name:'Fișă KYC',               note:'identificare + beneficiar real >25%'},
+  {id:'aml_risc',  grp:'client',ext:'DOCX', name:'Evaluare risc (relație)',note:'riscul ACESTUI client'},
+  {id:'gdpr_con',  grp:'client',ext:'DOCX', name:'Acord de consimțământ',  note:'model'},
+  {id:'gdpr_info', grp:'client',ext:'!',    name:'Notă de informare GDPR', note:'art. 22(2) — LIPSEȘTE în cod', gap:true},
+  // Nivel 3 — eveniment
+  {id:'aml_rtn',   grp:'event', ext:'DOCX', name:'Raport tranzacții numerar', note:'RTN · ≥ 10.000 € · 3 zile lucr.'},
+  {id:'aml_rts',   grp:'event', ext:'DOCX', name:'Raport tranzacții suspecte',note:'RTS · la suspiciune · de îndată'},
+  // Trasabilitate
+  {id:'audit',     grp:'trace', ext:'LOG',  name:'Urma de audit',          note:'calcul reproductibil'},
+  {id:'backup',    grp:'trace', ext:'ZIP',  name:'Backup dosare',          note:'housekeeping'},
 ];
-const GROUP_ORDER = ['Raport de evaluare','Conformitate AML','Conformitate GDPR','Trasabilitate'];
+const GROUPS = {
+  firma:  {title:'Nivel 1 · Firmă (cont)', color:'var(--t1)', freq:'o singură dată'},
+  raport: {title:'Raport de evaluare',     color:'var(--gold)',freq:'per dosar'},
+  client: {title:'Nivel 2 · Client / dosar',color:'var(--t2)', freq:'la fiecare client'},
+  event:  {title:'Nivel 3 · Eveniment',    color:'var(--t3)', freq:'doar dacă apare'},
+  trace:  {title:'Trasabilitate',          color:'var(--ink-soft)',freq:'per dosar'},
+};
+const GROUP_ORDER = ['firma','raport','client','event','trace'];
 
 /* ---------- Stages ---------- */
 const STAGES = [
-  {
-    no:'01', tab:'Deschidere', t:'Deschidere dosar', d:'5 opțiuni de start',
-    chip:'Pas 1 · Inițiere', h:'Cum pornește un dosar nou',
-    sub:'Identitatea dosarului (tip × scop) e fixată acum — nu se mai schimbă, fiindcă intră în numele dosarului și în profilul de evaluare.',
+  { no:'00', tab:'Cont', tier:'firma', t:'Contul evaluatorului', d:'Nivel 1 · firmă',
+    chip:'Pas 0 · Firmă', chipCls:'firma', h:'Evaluatorul = entitate raportoare',
+    sub:'Userul aplicației își configurează contul o singură dată. Aici se generează documentele de firmă (norme interne, decizie de desemnare, politică GDPR) — reutilizate în TOATE dosarele, revizuite la modificări legislative.',
+    unlocks:['aml_norme','aml_dec','gdpr_pol'], body:'cont',
+    hint:'Documentele de firmă se fac o dată. La PFA, decizia de desemnare e scutită (N. art. 7).' },
+  { no:'01', tab:'Dosar', t:'Deschidere dosar', d:'5 opțiuni de start',
+    chip:'Pas 1 · Dosar nou', h:'Cum pornește un dosar',
+    sub:'Identitatea (tip × scop) se fixează acum — intră în numele dosarului și în profilul de evaluare (ghidul GEV). Nu se mai schimbă după creare.',
     unlocks:[], body:'opts',
-    hint:'Identitatea fixează profilul (GEV 520/630/500). De aici pornesc toate livrabilele.'
-  },
-  {
-    no:'02', tab:'Proprietate', t:'Date proprietate', d:'descriere + drept + CF',
+    hint:'Identitatea fixează profilul (GEV 520/630/500).' },
+  { no:'02', tab:'Proprietate', t:'Date proprietate', d:'descriere + drept + CF',
     chip:'Pas 2 · Raport › Proprietate', h:'Descrierea proprietății',
     sub:'Câmpuri dinamice per tip de proprietate. Dreptul evaluat, sarcinile CF, regimul urbanistic și calea de acces sunt obligatorii la garantare (SEV 230 / GEV 630).',
     unlocks:[], body:'fields',
-    hint:'Tot ce completezi aici devine capitole în Raport. Încă nimic generat.'
-  },
-  {
-    no:'03', tab:'Calcul', t:'Comparabile & calcul', d:'3 grile + 3 abordări',
-    chip:'Pas 3 · Raport › Comparabile + Calcul', h:'Grilele și cele 3 abordări',
-    sub:'Grile de ajustare pe 2 etape (casă · teren · chirii) → abordările Cost / Comparație / Venit → reconciliere. Alertă prudențială la ajustare brută >25% (GEV 520).',
+    hint:'Tot ce completezi aici devine capitole în Raport.' },
+  { no:'03', tab:'Calcul', t:'Comparabile & calcul', d:'3 grile + 3 abordări',
+    chip:'Pas 3 · Raport › Calcul', h:'Grilele și cele 3 abordări',
+    sub:'Grile de ajustare pe 2 etape (casă · teren · chirii) → Cost / Comparație / Venit → reconciliere. Alertă prudențială la ajustare brută >25% (GEV 520).',
     unlocks:[], body:'calcul',
-    hint:'Motorul calculează determinist. Raportul e aproape gata — lipsește asumarea.'
-  },
-  {
-    no:'04', tab:'Conformitate', t:'AML & GDPR', d:'8 documente de conformitate',
-    chip:'Pas 4 · Tab AML + GDPR', h:'Pachetul de conformitate',
-    sub:'KYC, evaluare de risc, indicatori de suspiciune (HCD 58), apoi modelele GDPR. Aplicația NU verifică automat sancțiuni/PEP — verificare manuală + drafturi validate de jurist.',
-    unlocks:['aml_risc','aml_kyc','aml_norme','aml_dec','aml_rtn','aml_rts','gdpr_pol','gdpr_con'], body:'aml',
-    hint:'8 documente de conformitate pregătite. Rămâne raportul + audit.'
-  },
-  {
-    no:'05', tab:'Asumare', t:'Asumarea răspunderii', d:'checkpoint om-în-buclă',
+    hint:'Motorul calculează determinist. Raportul e aproape gata.' },
+  { no:'04', tab:'Conformitate', t:'Client & conformitate', d:'Nivel 2 + Nivel 3',
+    chip:'Pas 4 · Tab AML + GDPR', h:'Conformitatea pe acest client',
+    sub:'KYC + evaluarea de risc a RELAȚIEI + consimțământul GDPR (Nivel 2, la fiecare client). RTN/RTS (Nivel 3) apar DOAR dacă se declanșează condiția.',
+    unlocks:['aml_kyc','aml_risc','gdpr_con'], body:'aml',
+    hint:'Documentele de client se fac la fiecare dosar. RTN/RTS doar condiționat.' },
+  { no:'05', tab:'Asumare', t:'Asumarea răspunderii', d:'checkpoint om-în-buclă',
     chip:'Pas 5 · Raport › Generează', h:'Checkpoint de asumare',
-    sub:'Generarea raportului e BLOCATĂ până când evaluatorul confirmă că își asumă conținutul. Numerele sunt deterministe; proza marcată [AI] e sub responsabilitatea evaluatorului.',
+    sub:'Generarea Raportului e BLOCATĂ până confirmă evaluatorul. Numerele sunt deterministe; proza marcată [AI] rămâne în responsabilitatea lui.',
     unlocks:[], body:'assume',
-    hint:'Bifează asumarea ca să deblochezi generarea Raportului.'
-  },
-  {
-    no:'06', tab:'Predare', t:'Generare & predare', d:'toate livrabilele',
+    hint:'Bifează asumarea ca să deblochezi Raportul.' },
+  { no:'06', tab:'Predare', t:'Generare & predare', d:'pachetul complet',
     chip:'Pas 6 · Pachet final', h:'Dosarul complet, gata de predat',
-    sub:'Raportul .docx (cu anexe), urma de audit reproductibilă și backup-ul. Împreună cu conformitatea, formează pachetul predat băncii.',
+    sub:'Raportul .docx (cu anexe), urma de audit și backup-ul. Împreună cu conformitatea de Nivel 1+2(+3), formează pachetul predat băncii.',
     unlocks:['raport','audit','backup'], body:'final',
-    hint:'Toate cele 11 livrabile sunt pregătite. Dosar complet.'
-  },
+    hint:'Toate livrabilele aplicabile sunt pregătite.' },
 ];
 
 /* ---------- State ---------- */
-let cur = 0;
-let assumed = false;
-const reached = new Set();   // stages visited (cumulative unlock)
+let cur = 0, assumed = false, entity='PFA', rtn=false, rts=false;
+const reached = new Set();
 
-/* ---------- Render rail ---------- */
+/* ---------- Rail ---------- */
 const rail = document.getElementById('rail');
 STAGES.forEach((s,i)=>{
   const b=document.createElement('button');
-  b.className='step';b.dataset.i=i;
-  b.innerHTML=`<span class="no"><i>${s.no.replace(/^0/,'')}</i>${s.tab}</span>
-    <span class="t">${s.t}</span><span class="d">${s.d}</span>`;
+  b.className='step';b.dataset.i=i;if(s.tier)b.dataset.tier=s.tier;
+  b.innerHTML=`<span class="no"><i>${parseInt(s.no)}</i>${s.tab}</span><span class="t">${s.t}</span><span class="d">${s.d}</span>`;
   b.onclick=()=>goto(i);
   rail.appendChild(b);
 });
 
-/* ---------- Render dock ---------- */
+/* ---------- Dock ---------- */
 const groupsEl=document.getElementById('groups');
 function buildDock(){
   groupsEl.innerHTML='';
   GROUP_ORDER.forEach(g=>{
+    const meta=GROUPS[g];
     const items=DELIVERABLES.filter(d=>d.grp===g);
     const wrap=document.createElement('div');wrap.className='group';
-    wrap.innerHTML=`<div class="gh"><span>${g}</span><span class="tag">${items.length} ${items.length===1?'doc':'docs'}</span></div>`;
+    wrap.innerHTML=`<div class="gh"><span class="lvl"><span class="swatch" style="background:${meta.color}"></span>${meta.title}</span><span class="freq">${meta.freq}</span></div>`;
     const ul=document.createElement('ul');ul.className='del';
     items.forEach(d=>{
-      const li=document.createElement('li');li.className='d';li.id='del-'+d.id;
-      li.innerHTML=`<span class="ic">${d.ext}</span>
-        <span class="nm">${d.name}${d.note?`<small>${d.note}</small>`:''}</span>
-        <span class="st">în așteptare</span>`;
+      const li=document.createElement('li');li.className='d'+(d.gap?' gap':'');li.id='del-'+d.id;
+      li.innerHTML=`<span class="ic">${d.ext}</span><span class="nm">${d.name}${d.note?`<small>${d.note}</small>`:''}</span><span class="st">${d.gap?'lipsește':'în așteptare'}</span>`;
       ul.appendChild(li);
     });
     wrap.appendChild(ul);groupsEl.appendChild(wrap);
@@ -418,22 +337,34 @@ buildDock();
 /* ---------- Stage bodies ---------- */
 function bodyHTML(s){
   switch(s.body){
+    case 'cont': return `
+      <div class="role">Tipul entității (decide ce documente de firmă sunt obligatorii)</div>
+      <div class="seg" id="entSeg">
+        <button data-e="PFA" class="${entity==='PFA'?'on':''}">PFA / persoană fizică</button>
+        <button data-e="PJ" class="${entity==='PJ'?'on':''}">Societate (PJ)</button>
+      </div>
+      <div class="role">Documente de firmă — generate o singură dată</div>
+      <div class="pills">
+        <span class="pill t1 on">📘 Norme interne</span>
+        <span class="pill t1 ${entity==='PJ'?'on':''}" id="pill-dec">${entity==='PFA'?'⊘ Decizie desemnare — scutit (PFA)':'👤 Decizie desemnare'}</span>
+        <span class="pill t1 on">🔒 Politică GDPR</span>
+      </div>
+      <div class="note firma">Acestea NU se regenerează la fiecare dosar — se revizuiesc doar la modificări legislative. ${entity==='PFA'?'<b>La PFA, persoana desemnată e scutită</b> (N. art. 7) — decizia nu se emite.':'Societatea trebuie să desemneze o persoană (L. art. 23).'}</div>`;
     case 'opts': return `
-      <div class="role">Evaluatorul alege punctul de pornire</div>
+      <div class="role">Punctul de pornire (5 opțiuni)</div>
       <div class="opts">
         <div class="opt"><span class="g">📄</span><div><b>Dosar nou (gol)</b><span>completezi de la zero</span></div></div>
         <div class="opt"><span class="g">⬆️</span><div><b>Import din .docx</b><span>raport Word existent → pre-completare</span></div></div>
-        <div class="opt"><span class="g">🧩</span><div><b>Din extensia de browser</b><span>anunțuri colectate de pe portaluri</span></div></div>
+        <div class="opt"><span class="g">🧩</span><div><b>Din extensia de browser</b><span>anunțuri de pe portaluri</span></div></div>
         <div class="opt"><span class="g">📑</span><div><b>Din ingestie PDF</b><span>CF / releveu / plan / CPE</span></div></div>
-        <div class="opt"><span class="g">🗂️</span><div><b>Din dosar existent</b><span>copiezi un dosar similar</span></div></div>
+        <div class="opt"><span class="g">🗂️</span><div><b>Din dosar existent</b><span>copiezi unul similar</span></div></div>
       </div>
       <div class="role">Identitate (se fixează acum)</div>
       <div class="fields">
         <div class="f"><label>Tip proprietate</label><div class="ctrl sel">Casă + teren <small>▾</small></div></div>
         <div class="f"><label>Scop</label><div class="ctrl sel">Garantare credit <small>▾</small></div></div>
-        <div class="f full"><label>Profil rezultat → ghid</label><div class="ctrl sel">CASA_TEREN_GARANTARE · <small style="color:var(--seal)">GEV 520</small></div></div>
-      </div>
-      <div class="note">Tipul și scopul intră în <b>numele dosarului</b> și în profil — needitabile după creare.</div>`;
+        <div class="f full"><label>Profil → ghid</label><div class="ctrl sel">CASA_TEREN_GARANTARE · <small style="color:var(--seal)">GEV 520</small></div></div>
+      </div>`;
     case 'fields': return `
       <div class="role">Câmpuri dinamice per tip de proprietate</div>
       <div class="fields">
@@ -456,9 +387,8 @@ function bodyHTML(s){
       </div>
       <div class="role">Abordări → reconciliere</div>
       <div class="pills">
-        <span class="pill on">⚙️ <b>Cost</b> (CIN)</span>
-        <span class="pill on">📊 <b>Comparație</b> (piață)</span>
-        <span class="pill">📈 <b>Venit</b> (capitalizare/DCF)</span>
+        <span class="pill on">⚙️ <b>Cost</b></span><span class="pill on">📊 <b>Comparație</b></span>
+        <span class="pill">📈 <b>Venit</b></span>
         <span class="pill" style="margin-left:auto">→ <b>Reconciliere</b></span>
       </div>
       <div class="fields" style="margin-top:16px">
@@ -467,112 +397,97 @@ function bodyHTML(s){
       </div>
       <div class="note warn">Alertă prudențială: ajustare brută a unei comparabile <b>&gt; 25%</b> (GEV 520) → semnalată, nu blochează.</div>`;
     case 'aml': return `
-      <div class="role">AML — cunoaște clientul & evaluează riscul</div>
+      <div class="role">Nivel 2 — cunoaște clientul ACESTUI dosar</div>
       <div class="fields">
         <div class="f"><label>Tip client</label><div class="ctrl sel">Persoană fizică</div></div>
         <div class="f"><label>PEP?</label><div class="ctrl">nu</div></div>
-        <div class="f"><label>Semnale de risc</label><div class="ctrl">— niciunul bifat</div></div>
-        <div class="f"><label>Indicatori suspiciune</label><div class="ctrl">HCD 58 art. 6(10)</div></div>
+        <div class="f"><label>Beneficiar real</label><div class="ctrl">prag 25%+1</div></div>
+        <div class="f"><label>Risc relație</label><div class="ctrl sel">redus → măsuri standard</div></div>
       </div>
-      <div class="role">Documente generate (6 AML + 2 GDPR)</div>
-      <div class="pills">
-        <span class="pill on">Evaluare risc</span><span class="pill on">Fișă KYC</span>
-        <span class="pill on">Norme interne</span><span class="pill on">Decizie desemnare</span>
-        <span class="pill on">RTN</span><span class="pill on">RTS</span>
-        <span class="pill on">GDPR · politică</span><span class="pill on">GDPR · consimțământ</span>
+      <div class="role" style="color:var(--t3)">Nivel 3 — se declanșează DOAR dacă apare condiția</div>
+      <div class="toggles">
+        <div class="tg"><div class="lab"><b>Tranzacție în numerar ≥ 10.000 €</b><span>→ generează RTN (3 zile lucrătoare)</span></div><button class="sw ${rtn?'on':''}" id="sw-rtn" aria-pressed="${rtn}"></button></div>
+        <div class="tg"><div class="lab"><b>Indiciu de suspiciune</b><span>→ generează RTS (de îndată, înainte de tranzacție)</span></div><button class="sw ${rts?'on':''}" id="sw-rts" aria-pressed="${rts}"></button></div>
       </div>
-      <div class="note warn">Aplicația <b>NU verifică automat</b> sancțiuni/PEP (verifici manual: OpenSanctions / EU Sanctions Map). Documentele sunt <b>drafturi</b> — validate de jurist (Legea 129 art. 43/44/49).</div>`;
+      <div class="note warn">Aplicația <b>NU verifică automat</b> sancțiuni/PEP (manual: OpenSanctions / EU Sanctions Map). Documentele = <b>drafturi</b>, validate de jurist (L. 129 art. 43/44/49). Notă: <b>informarea GDPR prealabilă (art. 22(2)) lipsește încă</b> din cod.</div>`;
     case 'assume': return `
       <div class="role">Om în buclă — înainte de generarea Raportului</div>
       <div class="assume ${assumed?'checked':''}" id="assumeBox">
         <div class="box" aria-hidden="true">✓</div>
         <p>Confirm că am verificat datele și <b>îmi asum conținutul raportului</b> ca evaluator autorizat ANEVAR.
-        Înțeleg că valorile sunt deterministe, iar pasajele marcate <b>[AI]</b> rămân în responsabilitatea mea.</p>
+        Valorile sunt deterministe; pasajele marcate <b>[AI]</b> rămân în responsabilitatea mea.</p>
       </div>
       <div class="actrow">
         <button class="btn" id="genBtn" ${assumed?'':'disabled'}>📄 Generează și descarcă Raportul</button>
-        <button class="btn ghost" id="demoBtn">📝 Raport cu note (review)</button>
+        <button class="btn ghost">📝 Raport cu note (review)</button>
       </div>
       <div class="note">Urma de asumare se înregistrează în dosar (cine, când). Fără bifă → generarea e blocată.</div>`;
     case 'final': return `
       <div class="role">Pachetul predat băncii</div>
       <div class="opts">
         <div class="opt"><span class="g">📄</span><div><b>Raport de evaluare</b><span>SEV 106 · cu Anexa 2 (foto) + Anexa 3 (scanuri)</span></div></div>
-        <div class="opt"><span class="g">🛡️</span><div><b>Pachet AML (6)</b><span>risc · KYC · norme · decizie · RTN · RTS</span></div></div>
-        <div class="opt"><span class="g">🔒</span><div><b>Pachet GDPR (2)</b><span>politică + consimțământ</span></div></div>
+        <div class="opt"><span class="g">📘</span><div><b>Conformitate firmă (N1)</b><span>norme${entity==='PJ'?' · decizie':''} · politică GDPR</span></div></div>
+        <div class="opt"><span class="g">🛡️</span><div><b>Conformitate client (N2)</b><span>KYC · risc relație · consimțământ</span></div></div>
         <div class="opt"><span class="g">🧾</span><div><b>Urma de audit</b><span>calcul reproductibil</span></div></div>
       </div>
-      <div class="note">Toate cele <b>11 livrabile</b> sunt pregătite, locale, în format editabil. Dosarul e complet.</div>
-      <div class="actrow">
-        <button class="btn">⬇️ Descarcă tot pachetul</button>
-        <button class="btn ghost">📦 Backup .zip</button>
-      </div>`;
+      <div class="note">Toate livrabilele aplicabile sunt pregătite${(rtn||rts)?` + <b>${[rtn?'RTN':null,rts?'RTS':null].filter(Boolean).join(' & ')}</b> (Nivel 3)`:''}. Dosarul e complet.</div>
+      <div class="actrow"><button class="btn">⬇️ Descarcă tot pachetul</button><button class="btn ghost">📦 Backup .zip</button></div>`;
   }
   return '';
 }
 
-/* ---------- Navigation ---------- */
-function goto(i){
-  cur=i;reached.add(i);
-  // cumulative: mark all stages up to i as reached for unlocking
-  for(let k=0;k<=i;k++) reached.add(k);
-  render();
-}
+/* ---------- Navigation & render ---------- */
+function goto(i){for(let k=0;k<=i;k++)reached.add(k);cur=i;render();}
 function render(){
   const s=STAGES[cur];
-  // rail state
-  [...rail.children].forEach((b,i)=>{
-    b.setAttribute('aria-current', i===cur?'true':'false');
-    b.classList.toggle('done', reached.has(i) && i<cur || (i<cur));
-  });
-  // stage
+  [...rail.children].forEach((b,i)=>{b.setAttribute('aria-current',i===cur?'true':'false');b.classList.toggle('done',i<cur);});
   const st=document.getElementById('stage');
   st.classList.remove('fade');void st.offsetWidth;st.classList.add('fade');
-  st.innerHTML=`<span class="chip">${s.chip}</span>
-    <h2>${s.h}</h2><p class="sub">${s.sub}</p>${bodyHTML(s)}`;
+  st.innerHTML=`<span class="chip ${s.chipCls||''}">${s.chip}</span><h2>${s.h}</h2><p class="sub">${s.sub}</p>${bodyHTML(s)}`;
 
-  // wire interactions per stage
-  if(s.body==='assume'){
-    const box=document.getElementById('assumeBox');
-    const gen=document.getElementById('genBtn');
-    box.onclick=()=>{assumed=!assumed;box.classList.toggle('checked',assumed);gen.disabled=!assumed;};
-    gen.onclick=()=>{ if(assumed){ goto(5);} };
+  if(s.body==='cont'){
+    document.getElementById('entSeg').onclick=e=>{const b=e.target.closest('button');if(!b)return;entity=b.dataset.e;document.getElementById('m-ent').textContent='Adi S · '+entity;render();};
   }
-  if(s.body==='final' || s.body==='opts'){ /* no-op */ }
-
-  // unlock deliverables for every reached stage
-  recalcDeliverables();
-  // hint
+  if(s.body==='aml'){
+    document.getElementById('sw-rtn').onclick=()=>{rtn=!rtn;render();};
+    document.getElementById('sw-rts').onclick=()=>{rts=!rts;render();};
+  }
+  if(s.body==='assume'){
+    const box=document.getElementById('assumeBox'),gen=document.getElementById('genBtn');
+    box.onclick=()=>{assumed=!assumed;box.classList.toggle('checked',assumed);gen.disabled=!assumed;recalc();};
+    gen.onclick=()=>{if(assumed)goto(6);};
+  }
+  recalc();
   document.getElementById('dockHint').textContent=s.hint;
 }
 
-function recalcDeliverables(){
+function recalc(){
   const ready=new Set();
   reached.forEach(i=>STAGES[i].unlocks.forEach(id=>{
-    // raport/audit/backup only after assume done
-    if((id==='raport') && !assumed) return;
+    if(id==='raport' && !assumed) return;
     ready.add(id);
   }));
-  // stage 6 (final) requires assume; if visited without assume, still gate raport
+  if(reached.has(4)){ if(rtn)ready.add('aml_rtn'); if(rts)ready.add('aml_rts'); }
+
+  let total=0,done=0;
   DELIVERABLES.forEach(d=>{
     const li=document.getElementById('del-'+d.id);
-    const on=ready.has(d.id);
+    const na = (d.pfaNA && entity==='PFA');
+    const isEvent = d.grp==='event';
+    li.classList.toggle('na', na);
+    if(d.gap){ li.querySelector('.st').textContent='gol'; return; }       // gap: never counts/ready
+    const on = ready.has(d.id) && !na;
     li.classList.toggle('ready',on);
-    li.querySelector('.st').textContent=on?'pregătit':'în așteptare';
+    li.querySelector('.st').textContent = na?'neaplicabil' : (isEvent && !on)?'condiționat' : on?'pregătit':'în așteptare';
+    if(!na){ total++; if(on)done++; }
   });
-  const n=ready.size;
-  document.getElementById('readyN').textContent=n;
-  document.getElementById('bar').style.width=(n/DELIVERABLES.length*100)+'%';
+  document.getElementById('readyN').textContent=done;
+  document.getElementById('totN').textContent=total;
+  document.getElementById('bar').style.width=(done/Math.max(total,1)*100)+'%';
 }
 
-document.getElementById('reset').onclick=()=>{
-  cur=0;assumed=false;reached.clear();reached.add(0);render();
-  window.scrollTo({top:0,behavior:'smooth'});
-};
-
-// init
-reached.add(0);
-render();
+document.getElementById('reset').onclick=()=>{cur=0;assumed=false;rtn=false;rts=false;reached.clear();reached.add(0);render();window.scrollTo({top:0,behavior:'smooth'});};
+reached.add(0);render();
 </script>
 </body>
 </html>
