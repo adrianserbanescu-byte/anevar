@@ -44,6 +44,19 @@ def test_verifica_integritate_detecteaza_alterarea(baza):
     assert rez[0]["exista"] is True and rez[0]["ok"] is False
 
 
+def test_listeaza_cache_mtime(baza):
+    # Cache antete pe mtime: dosar neschimbat nu se recitește; dosar nou apare; cache corupt se reconstruiește.
+    import evaluare.dosare_fs as fs
+    u1 = fs.creeaza("L1", "Ev", _wizard())
+    assert [d["uuid"] for d in fs.listeaza()] == [u1]
+    assert (fs.baza() / "_cache_antete.json").exists()
+    assert [d["uuid"] for d in fs.listeaza()] == [u1]          # cache hit, același rezultat
+    u2 = fs.creeaza("L1", "Ev", _wizard(id_client="D2"))       # dosar nou NU e ascuns de cache
+    assert {d["uuid"] for d in fs.listeaza()} == {u1, u2}
+    (fs.baza() / "_cache_antete.json").unlink()                # cache șters -> reconstruire transparentă
+    assert len({d["uuid"] for d in fs.listeaza()}) == 2
+
+
 def test_cont_creare_si_incarcare(baza):
     from evaluare import cont
     assert cont.incarca_cont() is None
