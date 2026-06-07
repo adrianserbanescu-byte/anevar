@@ -214,8 +214,8 @@ with sync_playwright() as pw:
     p.eval_on_selector("#data_evaluarii", "e=>{e.value='2099-12-31'; e.dispatchEvent(new Event('change'));}")
     check("dosar: dată viitoare blocată (clamp la azi)",
           p.eval_on_selector("#data_evaluarii", "e=>e.value<=new Date().toISOString().slice(0,10)") is True)
-    check("dosar: popover mapare (!) prezent", p.eval_on_selector(".hint-toggle.is-map", "e=>!!e") is True)
-    check("dosar: ajutor (?) re-adaugat", p.eval_on_selector(".hint-toggle:not(.is-map)", "e=>e.textContent==='?'") is True)
+    # Popover-ul „!" de mapare a fost ELIMINAT (decizia #16, commit b03decc) — rămâne doar ajutorul „?".
+    check("dosar: ajutor (?) prezent", p.eval_on_selector(".hint-toggle", "e=>e.textContent==='?'") is True)
     # județ/localitate = liste din /api/localitati (diacritice), cu localitate dependentă
     p.wait_for_function("document.querySelector('#judet') && document.querySelector('#judet').options.length>1", timeout=8000)
     check("dosar: județ = listă din /api/localitati", p.eval_on_selector("#judet", "e=>e.options.length>1") is True)
