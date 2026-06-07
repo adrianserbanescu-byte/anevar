@@ -505,8 +505,12 @@ function numeLoc(id){ var e=$(id); if(!e) return ""; if(e.tagName!=="SELECT") re
   }).catch(function(){
     // Lista indisponibilă: NU lăsa selecturile goale (auto-save ar suprascrie județ/localitate salvate cu "").
     // Restaurează valorile salvate ca opțiune unică + avertizează; userul își păstrează datele.
-    ["judet","localitate"].forEach(function(id){ var e=$(id), v=W[id]; if(!e) return;
-      if(v){ e.innerHTML="<option value='"+v+"' selected>"+v+"</option>"; }
+    // restaurează proprietatea (judet/localitate) ȘI propagă la descoperire (d-judet/d-localitate),
+    // ca subtabul Comparabile să nu pornească gol când lista eșuează (UX #3 — prins de Adi).
+    [["judet", W.judet], ["localitate", W.localitate],
+     ["d-judet", W.judet], ["d-localitate", W.localitate]].forEach(function(pair){
+      var e=$(pair[0]), v=pair[1]; if(!e || !v) return;
+      e.innerHTML="<option value='"+v+"' selected>"+v+"</option>";
       e.title="Lista de localități nu s-a putut încărca; valoarea salvată e păstrată."; });
     var st=$("save-ind"); if(st) st.textContent="⚠ Lista de localități indisponibilă — verifică conexiunea; datele salvate sunt păstrate.";
   });
