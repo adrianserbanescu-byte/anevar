@@ -154,6 +154,11 @@ async function descarca(url){
   const blob=await r.blob();const a=document.createElement('a');
   a.href=URL.createObjectURL(blob);a.download=url.split('/').pop();a.click();
 }
+// Date-picker: calendar la click pe tot field-ul (aml NU include _helpers.js).
+document.querySelectorAll("input[type=date]").forEach(function(d){
+  d.style.cursor="pointer";
+  d.addEventListener("click", function(){ try{ d.showPicker(); }catch(e){} });
+});
 </script>
 {% include "_footer.html" %}
 </body>

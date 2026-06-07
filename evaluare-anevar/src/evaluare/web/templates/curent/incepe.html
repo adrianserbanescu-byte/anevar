@@ -132,6 +132,8 @@ if(creeazaBtn) creeazaBtn.addEventListener('click', async ()=>{
   function roData(iso){ if(!iso) return ""; var p=iso.split("-"); return p.length===3 ? p[2]+"."+p[1]+"."+p[0] : iso; }
   document.querySelectorAll('#form-nou input[type=date]').forEach(function(d){
     d.max=azi;
+    d.style.cursor='pointer';                                   // calendar la click pe tot field-ul
+    d.addEventListener('click', function(){ try{ d.showPicker(); }catch(e){} });
     var ech=document.createElement('small'); ech.className='hint'; ech.style.marginLeft='6px'; d.parentNode.appendChild(ech);
     function upd(){ if(d.value && d.value>azi) d.value=azi; ech.textContent = d.value ? '📅 '+roData(d.value) : ''; }
     d.addEventListener('change', upd); upd();
