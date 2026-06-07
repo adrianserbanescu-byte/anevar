@@ -1,7 +1,31 @@
 <!DOCTYPE html>
 <html lang="ro">
 <head><meta charset="utf-8"><title>Descoperire comparabile</title>
-<style>{% include "_design.css" %}</style></head>
+<style>{% include "_design.css" %}</style>
+{# P1.3 Hartă: MapLibre GL + OpenFreeMap (gratuit, fără API key). Progressive enhancement —
+   se încarcă de pe CDN; dacă nu e internet (build offline pur), harta degradează grațios la un
+   mesaj. Descoperirea însăși e online-only (scraping portaluri), deci pe pagina asta ai net. #}
+<link rel="stylesheet" href="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.css"
+      onerror="window.__harta_indisponibila=true">
+<script src="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.js"
+        onerror="window.__harta_indisponibila=true"></script>
+<style>
+  #harta-wrap{ margin:14px 0; }
+  #harta{ width:100%; height:380px; border:1px solid var(--line); border-radius:var(--radius);
+    background:var(--paper-sunk); }
+  #harta-mesaj{ padding:16px; color:var(--ink-faint); font-family:var(--sans); font-size:.9rem;
+    text-align:center; border:1px dashed var(--line); border-radius:var(--radius); }
+  .harta-pin{ width:18px; height:18px; border-radius:50% 50% 50% 0; transform:rotate(-45deg);
+    border:2px solid #fff; box-shadow:0 1px 3px rgba(22,38,61,.4); cursor:pointer; }
+  .harta-pin.subiect{ background:var(--ink); width:22px; height:22px; }
+  .harta-pin.b-high{ background:var(--green); } .harta-pin.b-mid{ background:var(--gold); }
+  .harta-pin.b-low{ background:var(--danger); }
+  .harta-legenda{ font-family:var(--sans); font-size:.78rem; color:var(--ink-faint);
+    margin:6px 0 0; display:flex; gap:14px; flex-wrap:wrap; }
+  .harta-legenda span::before{ content:"●"; margin-right:4px; }
+  .lg-subiect::before{ color:var(--ink); } .lg-high::before{ color:var(--green); }
+  .lg-mid::before{ color:var(--gold); } .lg-low::before{ color:var(--danger); }
+</style></head>
 <body>
 <a class="skip-link" href="#continut">Sari la conținut</a>
 {% set pagina = "descoperire" %}{% include "_topbar.html" %}
@@ -41,6 +65,17 @@
 
 <!-- Tabelul de metodologie: ÎNAINTE de rezultate -->
 <div id="metodologie"></div>
+
+<!-- P1.3 Hartă comparabile (apare doar după o căutare cu rezultate ce au coordonate) -->
+<section id="harta-wrap" style="display:none" aria-label="Hartă comparabile">
+  <h2>Hartă comparabile</h2>
+  <div id="harta" role="img" aria-label="Hartă cu subiectul și comparabilele, colorate după relevanță"></div>
+  <p class="harta-legenda" aria-hidden="true">
+    <span class="lg-subiect">Subiect</span><span class="lg-high">Foarte relevant</span>
+    <span class="lg-mid">Relevant</span><span class="lg-low">Slab relevant</span>
+  </p>
+</section>
+
 <h2>Rezultate</h2>
 <div id="rezultate" role="region" aria-label="Rezultate descoperire">
   <p class="hint" id="rezultate-gol">Niciun rezultat încă. Completează formularul de mai sus și apasă
@@ -161,6 +196,58 @@ function randCandidat(c){
     ${sec ? '<p class="hint"><b>Secundare:</b> '+sec+'</p>' : ''}
   </div>`;
 }
+// ── P1.3 Hartă: pini colorați după relevanță; subiectul = pin negru ────────────
+let _harta = null;
+function randHarta(res){
+  const wrap = document.getElementById('harta-wrap');
+  const harta = document.getElementById('harta');
+  // Candidați cu coordonate (B le adaugă din geocoding — `lat`/`lng` numerice).
+  const cuCoord = (res.candidati||[]).filter(c => typeof c.lat === 'number' && typeof c.lng === 'number');
+  const subiect = (typeof res.subiect_lat === 'number' && typeof res.subiect_lng === 'number')
+    ? {lat: res.subiect_lat, lng: res.subiect_lng} : null;
+
+  if(!cuCoord.length && !subiect){ wrap.style.display = 'none'; return; }  // nimic de plasat
+  wrap.style.display = '';
+
+  if(window.__harta_indisponibila || typeof maplibregl === 'undefined'){
+    harta.outerHTML = '<div id="harta-mesaj">Harta necesită conexiune la internet (nu e disponibilă pe ' +
+      'build-ul offline). Coordonatele comparabilelor sunt în lista de mai jos.</div>';
+    return;
+  }
+
+  const centru = subiect || {lat: cuCoord[0].lat, lng: cuCoord[0].lng};
+  if(_harta){ _harta.remove(); _harta = null; }
+  _harta = new maplibregl.Map({
+    container: 'harta', style: 'https://tiles.openfreemap.org/styles/liberty',
+    center: [centru.lng, centru.lat], zoom: 12,
+  });
+  _harta.addControl(new maplibregl.NavigationControl(), 'top-right');
+  _harta.on('load', ()=>{
+    if(subiect){
+      const el = document.createElement('div'); el.className = 'harta-pin subiect';
+      el.setAttribute('aria-label','Proprietatea subiect');
+      new maplibregl.Marker({element: el}).setLngLat([subiect.lng, subiect.lat])
+        .setPopup(new maplibregl.Popup({offset:14}).setText('Subiect (proprietatea evaluată)'))
+        .addTo(_harta);
+    }
+    cuCoord.forEach(c=>{
+      const el = document.createElement('div'); el.className = 'harta-pin ' + badgeClass(c);
+      el.setAttribute('aria-label', relevantaText(c));
+      const txt = relevantaText(c) + ' (' + c.relevanta + '%) · ' +
+        (c.pret ? c.pret + ' ' + (c.moneda||'EUR') : 'preț ?');
+      new maplibregl.Marker({element: el}).setLngLat([c.lng, c.lat])
+        .setPopup(new maplibregl.Popup({offset:14}).setText(txt))
+        .addTo(_harta);
+    });
+    // Fit pe toate punctele dacă sunt 2+.
+    const puncte = cuCoord.map(c=>[c.lng,c.lat]).concat(subiect?[[subiect.lng,subiect.lat]]:[]);
+    if(puncte.length >= 2){
+      const b = puncte.reduce((acc,p)=>acc.extend(p), new maplibregl.LngLatBounds(puncte[0],puncte[0]));
+      _harta.fitBounds(b, {padding:50, maxZoom:14});
+    }
+  });
+}
+
 document.getElementById('f').addEventListener('submit', async (e)=>{
   e.preventDefault();
   const d = Object.fromEntries(new FormData(e.target).entries());
@@ -190,6 +277,7 @@ document.getElementById('f').addEventListener('submit', async (e)=>{
     res.candidati.map(randCandidat).join('')
     + '<button id="copiaza">Copiază comparabilele bifate (pret;suprafata)</button> '
     + '<button id="laGrila">➜ Trimite bifatele la grila casă</button><pre id="out"></pre>';
+  randHarta(res);   // P1.3 — plasează pinii dacă B a furnizat coordonate (altfel rămâne ascunsă)
   document.getElementById('copiaza').addEventListener('click', ()=>{
     const linii = [...document.querySelectorAll('.bif:checked')]
       .map(b => b.dataset.pret + ';' + b.dataset.supr);
