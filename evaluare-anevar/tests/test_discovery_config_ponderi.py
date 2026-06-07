@@ -129,3 +129,56 @@ def test_descopera_include_axe_pe_candidat(tmp_path):
     assert "axe" in c0
     assert set(c0["axe"]) == {"locatie", "fizic", "calitate", "functional"}
     assert c0["axe"]["locatie"] is None
+
+
+# ── Robustete (fix-uri din verificarea adversariala) ─────────────────────────────────────────
+def test_post_pondere_fractionara_si_nonfinita_422(tmp_path):
+    import json as _j
+    client = TestClient(_app(tmp_path))
+    # fractionar -> 422 (ar crapa scorarea daca s-ar persista)
+    assert client.post("/api/descopera/config-ponderi",
+                       json={"ponderi": {"casa": {"an": 2.5}}}).status_code == 422
+    # NaN trimis ca token JSON -> 422 (nu ajunge sa brick-uiasca /api/descopera)
+    r = client.post("/api/descopera/config-ponderi",
+                    content=_j.dumps({"ponderi": {"casa": {"an": float("nan")}}}),
+                    headers={"Content-Type": "application/json"})
+    assert r.status_code == 422
+    # intreg-ca-float (5.0) e ACCEPTAT (coercit la int)
+    assert client.post("/api/descopera/config-ponderi",
+                       json={"ponderi": {"casa": {"an": 5.0}}}).status_code == 200
+
+
+def test_post_cumulativ_zero_respins_si_nu_brickuieste(tmp_path):
+    client = TestClient(_app(tmp_path))
+    atribute = list(PONDERI_BAZA)
+    for atr in atribute[:-1]:            # primele -> ok (efectiv inca > 0)
+        assert client.post("/api/descopera/config-ponderi",
+                           json={"ponderi": {"casa": {atr: 0}}}).status_code == 200
+    # ultimul ar face suma efectiva 0 -> 422, NU se persista
+    assert client.post("/api/descopera/config-ponderi",
+                       json={"ponderi": {"casa": {atribute[-1]: 0}}}).status_code == 422
+    # descoperirea NU e brick-uita (raspuns valid, nu 502)
+    payload = {"portal": "imobiliare", "judet": "ilfov", "localitate": "otopeni",
+               "subiect": {"an": 2013, "stare": 3, "finisaj": 4,
+                           "incalzire": "centrala_gaz", "teren": "500"},
+               "atribute_secundare": [], "max_candidati": 3}
+    assert client.post("/api/descopera", json=payload).status_code == 200
+
+
+def test_post_peste_override_corupt_nu_crapa(tmp_path):
+    from evaluare.discovery.ponderi_store import cale_override
+    cale = cale_override(tmp_path)
+    cale.parent.mkdir(parents=True, exist_ok=True)
+    cale.write_text('{"casa": "garbage", "apartament": {"etaj": 9}}', encoding="utf-8")
+    client = TestClient(_app(tmp_path))
+    assert client.get("/api/descopera/config-ponderi").status_code == 200      # GET tolerant
+    r = client.post("/api/descopera/config-ponderi", json={"ponderi": {"casa": {"teren": 3}}})
+    assert r.status_code == 200                                                 # NU 500
+    assert r.json()["ponderi"]["casa"]["teren"] == 3                           # categorie reparata
+    assert r.json()["ponderi"]["apartament"]["etaj"] == 9                      # override valid pastrat
+
+
+def test_fuzioneaza_override_ignora_nonfinit():
+    eff = fuzioneaza_override({"casa": {"an": float("nan"), "teren": float("inf"), "stare": 2}})
+    assert eff["casa"]["an"] == 5 and eff["casa"]["teren"] == 1   # NaN/Inf ignorate -> default
+    assert eff["casa"]["stare"] == 2

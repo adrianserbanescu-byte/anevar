@@ -7,6 +7,8 @@ nu cod, și se schimbă din UI (D1 al lui C) prin endpointul `/api/descopera/con
 from __future__ import annotations
 
 import json
+import math
+import os
 from pathlib import Path
 
 from evaluare.discovery.ponderi import fuzioneaza_override
@@ -39,15 +41,38 @@ def ponderi_efective(date_dir: Path | str) -> dict[str, dict[str, float]]:
     return fuzioneaza_override(incarca_override(date_dir))
 
 
+def _curata(override: dict) -> dict[str, dict[str, float]]:
+    """Păstrează doar categorii=dict cu valori numerice FINITE (curăță și fișiere hand-edited)."""
+    curat: dict[str, dict[str, float]] = {}
+    for cat, ponderi in override.items():
+        if not isinstance(ponderi, dict):
+            continue
+        vals = {a: v for a, v in ponderi.items()
+                if isinstance(v, (int, float)) and not isinstance(v, bool) and math.isfinite(v)}
+        if vals:
+            curat[cat] = vals
+    return curat
+
+
 def salveaza_override(date_dir: Path | str, override: dict) -> dict:
-    """Fuzionează `override` peste cel existent (editare parțială pe categorie) și-l scrie. Întoarce
-    override-ul stocat (cumulat). Validarea valorilor se face în endpoint, înainte de a ajunge aici.
+    """Fuzionează `override` peste cel existent (editare parțială pe categorie) și-l scrie ATOMIC.
+    Întoarce override-ul stocat (cumulat, curățat). Robust la stare coruptă pe disc: o categorie
+    non-dict existentă e înlocuită, nu provoacă AttributeError. Validarea valorilor = în endpoint.
     """
     existent = incarca_override(date_dir)
     for cat, ponderi in override.items():
-        if isinstance(ponderi, dict):
-            existent.setdefault(cat, {}).update(ponderi)
+        if not isinstance(ponderi, dict):
+            continue
+        dst = existent.get(cat)
+        if not isinstance(dst, dict):          # categorie coruptă (hand-edit/legacy) -> reinițializează
+            dst = {}
+            existent[cat] = dst
+        dst.update(ponderi)
+    curat = _curata(existent)                  # nu persista NaN/Inf/non-dict
     cale = cale_override(date_dir)
     cale.parent.mkdir(parents=True, exist_ok=True)
-    cale.write_text(json.dumps(existent, ensure_ascii=False, indent=2), encoding="utf-8")
-    return existent
+    tmp = cale.with_name(cale.name + ".tmp")   # scriere atomică: scrie temp + os.replace
+    tmp.write_text(json.dumps(curat, ensure_ascii=False, indent=2, allow_nan=False),
+                   encoding="utf-8")
+    os.replace(tmp, cale)
+    return curat

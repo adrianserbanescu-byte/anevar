@@ -11,6 +11,8 @@ acest config (fără cod).
 """
 from __future__ import annotations
 
+import math
+
 # Ponderile istorice (modelul casei) — sursa unică de adevăr până la calibrarea Adi.
 PONDERI_BAZA: dict[str, int] = {
     "suprafata_construita": 5, "an": 5, "stare": 4, "finisaj": 3, "incalzire": 2, "teren": 1,
@@ -72,6 +74,7 @@ def fuzioneaza_override(override: dict | None) -> dict[str, dict[str, float]]:
         if cat not in rezultat or not isinstance(ponderi, dict):
             continue
         for atr, val in ponderi.items():
-            if atr in rezultat[cat] and isinstance(val, (int, float)) and not isinstance(val, bool):
+            if (atr in rezultat[cat] and isinstance(val, (int, float))
+                    and not isinstance(val, bool) and math.isfinite(val)):
                 rezultat[cat][atr] = val
     return rezultat

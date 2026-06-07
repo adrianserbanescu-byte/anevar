@@ -1,13 +1,15 @@
 """Descoperire comparabile din portaluri: casa + teren, pagina /descoperire."""
 from __future__ import annotations
 
+import math
+
 import requests
 from fastapi import APIRouter, HTTPException, Request
 from fastapi.responses import HTMLResponse
 
 from evaluare.discovery import ponderi_store
 from evaluare.discovery.orchestrator import descopera
-from evaluare.discovery.ponderi import AXA_ATRIBUT, AXE, PONDERI_PER_CATEGORIE
+from evaluare.discovery.ponderi import AXA_ATRIBUT, AXE, PONDERI_PER_CATEGORIE, fuzioneaza_override
 from evaluare.discovery.scoring import metodologie
 from evaluare.importers.url_parser import parse_listing_html
 from evaluare.logging_setup import get_logger
@@ -129,25 +131,38 @@ def build_router(d: Deps) -> APIRouter:
 
     @router.post("/api/descopera/config-ponderi")
     def post_config_ponderi(req: ConfigPonderiRequest) -> dict:
-        """Salveaza ponderile editate (D1). Valideaza categorii/atribute cunoscute + valori >= 0 +
-        suma efectiva > 0 pe categorie; persista override-ul local. 422 cu mesaj daca e invalid."""
-        curat: dict[str, dict[str, float]] = {}
+        """Salveaza ponderile editate (D1). Valideaza: categorii/atribute cunoscute, valori finite,
+        intregi, >= 0, iar suma EFECTIVA cumulata (override existent + aceasta editare) > 0 pe
+        categorie; persista override-ul local. 422 cu mesaj daca e invalid (nu persista nimic)."""
+        date_dir = d.storage.db_path.parent
+        curat: dict[str, dict[str, int]] = {}
         for cat, ponderi in req.ponderi.items():
             if cat not in PONDERI_PER_CATEGORIE:
                 raise HTTPException(422, f"Categorie necunoscută: {cat}")
             cunoscute = PONDERI_PER_CATEGORIE[cat]
-            cat_curat: dict[str, float] = {}
+            cat_curat: dict[str, int] = {}
             for atr, val in ponderi.items():
                 if atr not in cunoscute:
                     raise HTTPException(422, f"Atribut necunoscut pentru {cat}: {atr}")
+                if not math.isfinite(val):
+                    raise HTTPException(422, f"Pondere invalidă (non-finită): {cat}.{atr}")
                 if val < 0:
                     raise HTTPException(422, f"Pondere negativă: {cat}.{atr} = {val}")
-                cat_curat[atr] = val
-            proba = {**cunoscute, **cat_curat}          # suma EFECTIVA (override peste default)
-            if sum(proba.values()) <= 0:
-                raise HTTPException(422, f"Ponderile categoriei '{cat}' insumeaza 0 (invalid).")
+                if val != int(val):
+                    raise HTTPException(422, f"Ponderea trebuie să fie număr întreg: {cat}.{atr} = {val}")
+                cat_curat[atr] = int(val)
             curat[cat] = cat_curat
-        ponderi_store.salveaza_override(d.storage.db_path.parent, curat)
+        # Valideaza suma EFECTIVA cumulata (override existent + editarea curenta), nu doar defaults.
+        simulat = {c: dict(p) for c, p in ponderi_store.incarca_override(date_dir).items()
+                   if isinstance(p, dict)}
+        for cat, vals in curat.items():
+            simulat.setdefault(cat, {}).update(vals)
+        efectiv = fuzioneaza_override(simulat)
+        for cat in curat:
+            if sum(efectiv[cat].values()) <= 0:
+                raise HTTPException(
+                    422, f"Ponderile efective ale categoriei '{cat}' ar însuma 0 (invalid).")
+        ponderi_store.salveaza_override(date_dir, curat)
         return {"ok": True, **_config_ponderi_payload()}
 
     @router.get("/descoperire", response_class=HTMLResponse)
