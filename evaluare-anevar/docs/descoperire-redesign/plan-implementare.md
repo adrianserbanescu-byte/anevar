@@ -20,6 +20,14 @@ Council-ul e în consens pe STRUCTURĂ, dar diverge pe valori. De decis:
 
 > Restul planului (structura) NU e blocat de astea — pot construi „țeava", cu ponderile ca **config** ce le setezi tu.
 
+### D5 — detaliere localizare/distanță (decizia Adi, 2026-06-07)
+**Zona/cartierul = semnal categoric PRIMAR; distanța-în-metri = tie-breaker SECUNDAR, doar în aceeași zonă.**
+- **Match localizare:** aceeași stradă > stradă vecină/același cartier ≫ cartier diferit. Cartier diferit, chiar la ~2 km = **„obiect economic diferit"** (ex. *Primăverii ≠ Pantelimon*) → decide ZONA, nu km.
+- **Granularitate după mărimea localității:** sate/comune = **localitatea** (distanța între străzi irelevantă); orașe < 50k = **cartier**; orașe mari = **sub-zonă/rază** (aici distanța-între-străzi devine tie-breaker util).
+- **Calcul:** **haversine** (linie dreaptă, offline ieftin — proxy acceptabil la scară de cartier; **NU routing** încă). Precizie limitată de adresa din anunț: stradă+nr → punct exact; doar stradă → centroid stradă; doar cartier → folosești zona **categoric**, nu km.
+- **Afișare (per D5):** **text**, ex. „Același cartier (Ultracentral) · 400m" / „Cartier diferit (Pantelimon)" — NU km brut băgat în scorul %.
+- **Bucket-B (Adi calibrează):** cât cântărește fiecare prag de zonă. Inginerie (B): structura — zonă categoric + distanță tie-breaker în zonă.
+
 ---
 
 ## P0 — fundație (1–2 sprinturi; consens 4/4)
