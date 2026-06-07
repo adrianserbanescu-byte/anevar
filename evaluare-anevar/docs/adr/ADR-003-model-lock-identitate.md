@@ -1,7 +1,11 @@
 # ADR-003: Modelul de identitate al dosarului + lock-ul la asumare
 
-**Status:** Propus — **declanșatorul exact de lock = decizie Adi** (`BLOCAT-pe-Adi.md` #10)
-**Date:** 2026-06-06
+**Status:** Acceptat (2026-06-07) — **declanșator DECIS de Adi (`BLOCAT-pe-Adi.md` #10): HIBRID TRIPLU** =
+(1) checkpoint de asumare (om-în-buclă) + (2) prima generare `.docx` + (3) **upload fișier submis**
+(ex. raport editat returnat de bancă/client). **Fundația e implementată** (amprentă de integritate per
+versiune + `asumat_la` + trigger upload-submis); rămâne de construit enforcement-ul read-only + clonarea +
+de-lock + `.lock` (vezi Action Items).
+**Date:** 2026-06-06 (revizuit 2026-06-07 cu decizia #10)
 **Deciders:** proprietarul proiectului (Adrian)
 
 ## Context
@@ -41,11 +45,18 @@ localitate)`**. `nume_client` **iese** din identitatea tare (rămâne editabil; 
 `CAMPURI_IDENTITATE` din `dosare_fs.py` se aliniază: `id_client` devine explicit cod fiscal, nu
 free-text generic.
 
-### 2. Lock la asumare
-La **prima generare reușită de `.docx`** (checkpoint de asumare — **declanșatorul exact rămâne
-decizia Adi**, vezi mai jos), identitatea trece **read-only**. Se persistă în `dosar.json`:
-`asumat_la` (timestamp) + `hash` (**SHA256 al conținutului folderului** dosarului → audit
-inalterabil, aliniat SEV).
+### 2. Lock la asumare — **trigger HIBRID TRIPLU (decizia Adi #10)**
+Identitatea se asumă (și apoi trece read-only) la **oricare** din trei momente:
+1. **Checkpoint de asumare** — bifa „îmi asum" care deblochează «Generează» (om-în-buclă, deja existent).
+2. **Prima generare reușită de `.docx`** (`tip="generat"`).
+3. **Upload fișier submis** (`tip="submis"`) — raportul finalizat returnat de bancă/client, încărcat în dosar.
+
+**Implementat (2026-06-07):** fiecare versiune `.docx` salvată (`generat`/`submis`/`import`) primește o
+**amprentă SHA256** + moment în `dosar.json` (`versiuni[]`); prima versiune `generat`/`submis` setează
+`asumat_la`. `verifica_integritate(uid)` reverifică hash-ul fiecărei versiuni → **tamper-evidence** (apare în
+urma de audit). Endpoint: `POST /api/dosar/{uid}/incarca-submis`. *(Hash-ul e per fișier `.docx` asumat — mai
+robust decât hash de folder, fiindcă folderul se schimbă la fiecare auto-save; detectează alterarea
+fișierului asumat.)*
 
 ### 3. Schimbarea identității = dosar nou (clonare)
 Editarea unui câmp tare pe un dosar blocat → dialog roșu „Modifici identitatea = **DOSAR NOU**;
@@ -115,13 +126,14 @@ deschidere** e mecanismul minim și standard. → **`.lock`.**
 
 ## Action Items
 
-1. [ ] **Decizie Adi: declanșatorul exact de lock** (prima generare `.docx` vs. checkpoint de asumare bifat) — `BLOCAT-pe-Adi.md` #10.
-2. [ ] Aliniază `CAMPURI_IDENTITATE` (scoate `nume_client` din identitatea tare; `id_client` = cod fiscal CNP/CUI).
-3. [ ] Persistă `asumat_la` + `hash` (SHA256 folder) în `dosar.json` la asumare; treci identitatea read-only.
-4. [ ] Dialog „Modifici identitatea = DOSAR NOU" + clonare date tehnice/comparabile (uuid nou).
-5. [ ] Buton „Deblochează corectură tipografică" → motiv + intrare în Audit.
-6. [ ] Fișier `.lock` per dosar la deschidere + mod read-only la deschidere concurentă; curățare `.lock` orfane la pornire.
+1. [x] ✅ **Declanșator DECIS (Adi #10):** HIBRID TRIPLU = asumare + prima generare `.docx` + upload submis.
+2. [x] ✅ **Implementat:** `asumat_la` + **amprentă SHA256 per versiune** în `dosar.json`; `verifica_integritate` în urma de audit (tamper-evidence). (`dosare_fs.py`, `web/routers/curent.py` audit.txt, `tests/test_dosare_fs.py`)
+3. [x] ✅ **Implementat (trigger #3):** `POST /api/dosar/{uid}/incarca-submis` + buton UI „Înregistrează fișierul submis" (tab Generează).
+4. [ ] **Enforcement read-only** pe câmpurile de identitate după asumare + dialog „Modifici identitatea = DOSAR NOU" + clonare date tehnice (uuid nou). *(UX — următorul pas, cuplat cu #5)*
+5. [ ] Aliniază `CAMPURI_IDENTITATE` (scoate `nume_client` din identitatea tare; `id_client` = cod fiscal CNP/CUI). *(decizie de produs — atinge numele folderelor + dosarele existente)*
+6. [ ] Buton „Deblochează corectură tipografică" → motiv + intrare în Audit.
+7. [ ] Fișier `.lock` per dosar la deschidere + read-only la deschidere concurentă; curățare `.lock` orfane la pornire.
 
-> **Decizie cerută Adi:** confirm setul de identitate (cod fiscal, fără nume) **și** declanșatorul
-> exact de lock (#10). Restul (hash, clonare, de-lock cu audit, `.lock`) e aliniat council + plan-UI
-> și îl pot implementa odată ce declanșatorul e fixat.
+> **Stare:** declanșatorul e DECIS (#10) și **fundația de audit-inalterabil (hash per versiune + asumat_la +
+> trigger upload-submis) e implementată și testată.** Rămâne de construit **enforcement-ul read-only +
+> clonarea + setul de identitate cod-fiscal** (decizii de UX/produs — Action Items 4-5) + de-lock + `.lock`.

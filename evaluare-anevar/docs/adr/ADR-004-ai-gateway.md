@@ -124,7 +124,7 @@ AI; **obligații GDPR** reale (DPA, transfer extra-UE); cont obligatoriu pentru 
 3. [ ] Cheia LLM **doar** ca secret în gateway (niciodată în `.exe`).
 4. [ ] Întărește pseudonimizarea (nu doar nume/adresă: și suprafață + localitate + indicii unice combinate) **sau** documentează risc rezidual scăzut.
 5. [ ] Metrare **o singură dată/raport** (`capitol="__raport__"`); secțiunile narative nu scad cota.
-6. [ ] Fallback offline (narativ-șablon) verificat: fără net/abonament, raportul iese complet, fără AI.
+6. [x] ✅ **Verificat (test):** fără client AI (offline/fără abonament), raportul iese **complet** cu text-șablon (`tests/test_report_generator.py::test_raport_offline_fara_ai_e_complet`). Offline-first confirmat.
 
 > **Decizie cerută Adi:** confirm arhitectura gateway (felia AI online, restul offline) **și**
 > declanșez validarea juridică pe transferul extra-UE + deschiderea conturilor externe. Fără

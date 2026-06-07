@@ -1,7 +1,9 @@
 # ADR-002: Stocarea pe foldere ca sursă unică de adevăr (retragerea SQLite-ului vechi)
 
-**Status:** Propus — necesită confirmarea Adi (declanșatori migrare/retragere — vezi `BLOCAT-pe-Adi.md` #17, #18)
-**Date:** 2026-06-06
+**Status:** Acceptat (direcție) — **scriptul de migrare e implementat și testat** (`src/evaluare/migrare.py`
++ CLI `scripts/migreaza_sqlite_foldere.py` + `tests/test_migrare.py`); declanșatorii Fazei 2/3 (când rulează
++ când se retrage SQLite) rămân decizia Adi (`BLOCAT-pe-Adi.md` #17, #18).
+**Date:** 2026-06-06 (actualizat 2026-06-07: script implementat)
 **Deciders:** proprietarul proiectului (Adrian)
 
 ## Context
@@ -119,9 +121,9 @@ SQLite rămâne plasă de siguranță; aliniat council Q1.
 ## Action Items
 
 1. [ ] Confirmare Adi pe **declanșatorii fazelor** (când Faza 2, când Faza 3 — `BLOCAT-pe-Adi.md` #17, #18).
-2. [ ] Script migrare `evaluari` row → `dosar.json` (mapează `context_json`/`wizard_json`/`nume`/`creat_la`; copiază anexele).
-3. [ ] Marcaj `migrated` în SQLite (coloană/flag, reversibil) + **log de migrare** obligatoriu, skip-pe-eroare.
-4. [ ] Buton „Migrează în folder" per dosar vechi în UI-ul vechi (Faza 2).
+2. [x] ✅ **Implementat:** `migrare.migreaza(apply)` — dry-run + `--apply`; mapează `wizard_json` → `dosar.json`, copiază rapoartele (`tip="import"`), skip-pe-eroare, jurnal returnat. CLI + teste.
+3. [x] ✅ **Implementat:** marcaj `migrated_uuid` în SQLite (reversibil, ne-distructiv, **idempotent** — re-rularea nu re-migrează).
+4. [ ] Buton „Migrează în folder" per dosar vechi în UI-ul vechi (Faza 2) — *opțional; CLI-ul acoperă deja migrarea în lot*.
 5. [ ] Decizie pentru `import_anunturi` + `feedback` (migrare / păstrare / retragere).
 6. [ ] Faza 3: SQLite read-only + eliminare cod de scriere; smoke pe import/listare/diff din `dosare_fs`.
 

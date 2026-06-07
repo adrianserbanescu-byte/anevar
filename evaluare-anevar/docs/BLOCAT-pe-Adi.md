@@ -62,10 +62,10 @@
     (art. 21(4)); coborârea pragului beneficiar-real la risc sporit (Norme art. 16(4)(e)); monitorizare continuă (avem one-shot).
 32. ✅ **Închis:** pragul de „3.000 €" din auditul vechi e **INFIRMAT** — nu există în lege (toate celelalte praguri sunt corecte).
 
-## I. ADR-uri formale propuse (din `docs/adr/`, loop special) — confirmi declanșatorii
-- **ADR-002** (SQLite→foldere): confirmi declanșatorii Fazei 2/3 (migrare + retragere) → #17/#18.
-- **ADR-003** (lock identitate): confirmi declanșatorul exact de lock — „prima generare .docx" vs „checkpoint asumare" → #10.
-- **ADR-004** (AI gateway): risc transfer LLM extra-UE/SCC + DPA art. 28 + AI Act → #3/#4; conturi externe → #7.
+## I. ADR-uri formale (din `docs/adr/`) — AVANSATE 2026-06-07 (rămân doar deciziile tale)
+- **ADR-002** (SQLite→foldere): ✅ **script de migrare implementat** (`src/evaluare/migrare.py` + CLI + teste, ne-distructiv/idempotent). Rămân: declanșatorii Fazei 2/3 (#17/#18).
+- **ADR-003** (lock identitate): ✅ declanșator **DECIS (#10 hibrid)** + **fundație implementată** (amprentă SHA256 per versiune + `asumat_la` + trigger upload-submis + tamper-evidence în audit). Rămân: enforcement read-only + clonare + identitate cod-fiscal (decizii UX/produs — #10/#12).
+- **ADR-004** (AI gateway): ✅ **offline-fallback verificat (test)**. Rămân: jurist GDPR transfer extra-UE/DPA/AI Act (#3/#4) + conturi externe (#7).
 
 ## J. Audit final + LLM council (2026-06-06) — Bucket-A REZOLVAT; rămân pe tine:
 33. **Criptare la repaus (PII pe disc)** — SQLite + dosare + rapoarte sunt în CLAR. Decizie: (a) doar disclaimer

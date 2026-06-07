@@ -307,6 +307,14 @@
         <button type="button" class="ghost" id="gen-audit"><span aria-hidden="true">🧾</span> Urmă de audit (.txt)</button>
       </div>
       <span id="gen-status" class="hint" role="status" aria-live="polite"></span>
+      <details style="margin-top:10px;">
+        <summary>Încarcă raport <b>submis</b> (returnat de bancă/client)</summary>
+        <p class="hint">Atașează versiunea finală/returnată a raportului (.docx). Se înregistrează cu
+         <b>amprentă de integritate</b> (hash) și marchează identitatea dosarului ca <b>asumată</b> (ADR-003).</p>
+        <input type="file" id="submis-fisier" accept=".docx">
+        <button type="button" class="ghost" id="submis-incarca"><span aria-hidden="true">📎</span> Înregistrează fișierul submis</button>
+        <span id="submis-status" class="hint" role="status" aria-live="polite"></span>
+      </details>
     </section>
     <div class="btn-bar btn-bar-jos">
       <button type="button" class="ghost" id="nav-inapoi"><span aria-hidden="true">◀</span> Înapoi</button>
@@ -1031,6 +1039,21 @@ function genereazaRaport(adnotari, btn, formatForce){
 }
 $("genereaza").addEventListener("click", function(){ genereazaRaport(false, this); });
 if($("genereaza-demo")) $("genereaza-demo").addEventListener("click", function(){ genereazaRaport(true, this, "docx"); });
+if($("submis-incarca")) $("submis-incarca").addEventListener("click", function(){   // ADR-003 trigger #3
+  var f=$("submis-fisier").files[0]; if(!f){ $("submis-status").textContent="Alege un fișier .docx."; return; }
+  this.disabled=true; $("submis-status").textContent="Se înregistrează…";
+  var b=this, rd=new FileReader();
+  rd.onerror=function(){ $("submis-status").textContent="Nu am putut citi fișierul."; b.disabled=false; };
+  rd.onload=function(){
+    fetch("/api/dosar/"+UID+"/incarca-submis",{method:"POST",headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({nume_fisier:f.name, continut:rd.result})})
+      .then(function(r){ if(r.ok) return r.json(); return r.json().catch(function(){return{};}).then(function(j){ throw (j.detail||"Înregistrarea a eșuat."); }); })
+      .then(function(d){ $("submis-status").textContent="✓ Fișier submis înregistrat — identitate asumată"+(d.asumat_la?" ("+d.asumat_la+")":"")+"."; })
+      .catch(function(e){ $("submis-status").textContent=(typeof e==="string"?e:"Înregistrarea a eșuat."); })
+      .finally(function(){ b.disabled=false; });
+  };
+  rd.readAsDataURL(f);
+});
 if($("gen-audit")) $("gen-audit").addEventListener("click", function(){
   var b=this; b.disabled=true; $("gen-status").textContent="… urmă de audit";
   fetch("/api/dosar/"+UID+"/audit.txt",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(asambleaza())})

@@ -261,6 +261,19 @@ def test_raport_pdf_indisponibil_422(tmp_path, monkeypatch):
     assert (tmp_path / "date" / "dosare" / uid).exists()
 
 
+def test_incarca_submis_marcheaza_asumat(client):
+    # ADR-003 trigger #3 (decizia Adi #10): .docx submis → versiune „submis" + identitate asumată.
+    import base64
+    _cont(client)
+    uid = client.post("/api/dosar", json={"wizard": {"nume_client": "X"}}).json()["uuid"]
+    payload = base64.b64encode(b"PK raport finalizat returnat de banca").decode()
+    r = client.post(f"/api/dosar/{uid}/incarca-submis",
+                    json={"nume_fisier": "raport-final.docx", "continut": payload})
+    assert r.status_code == 200 and r.json()["asumat_la"]
+    d = client.get(f"/api/dosar/{uid}").json()
+    assert any(v["tip"] == "submis" for v in d.get("versiuni", []))
+
+
 def test_dosar_json_corupt_nu_crapa(client):
     # robustețe: dosar.json corupt -> 404 clar (nu 500); workspace-ul nu trebuie să crape la deschidere.
     _cont(client)

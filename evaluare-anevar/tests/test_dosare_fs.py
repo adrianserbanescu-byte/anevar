@@ -17,6 +17,33 @@ def _wizard(**extra):
     return w
 
 
+def test_versiune_inregistreaza_integritate_si_asumare(baza):
+    # ADR-003: fiecare versiune .docx primește hash + moment; prima generare setează asumat_la.
+    import evaluare.dosare_fs as fs
+    uid = fs.creeaza("L1", "Evaluator", _wizard())
+    src = baza / "r.docx"
+    src.write_bytes(b"PK raport versiunea 1")
+    fs.adauga_versiune_docx(uid, src, tip="generat")
+    d = fs.incarca(uid)
+    assert d.get("asumat_la")                       # prima generare = asumare
+    assert len(d["versiuni"]) == 1
+    v = d["versiuni"][0]
+    assert v["tip"] == "generat" and len(v["hash"]) == 64
+    assert fs.verifica_integritate(uid)[0]["ok"] is True   # integru la început
+
+
+def test_verifica_integritate_detecteaza_alterarea(baza):
+    # ADR-003: dacă fișierul .docx asumat e modificat ulterior, hash-ul nu mai corespunde (tamper-evidence).
+    import evaluare.dosare_fs as fs
+    uid = fs.creeaza("L1", "Evaluator", _wizard())
+    src = baza / "r.docx"
+    src.write_bytes(b"continut original asumat")
+    nume = fs.adauga_versiune_docx(uid, src, tip="generat")
+    (fs.baza() / uid / nume).write_bytes(b"continut ALTERAT dupa asumare")
+    rez = fs.verifica_integritate(uid)
+    assert rez[0]["exista"] is True and rez[0]["ok"] is False
+
+
 def test_cont_creare_si_incarcare(baza):
     from evaluare import cont
     assert cont.incarca_cont() is None

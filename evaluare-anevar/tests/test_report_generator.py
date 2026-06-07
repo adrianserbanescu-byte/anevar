@@ -68,6 +68,20 @@ def test_raportul_contine_datele_cheie(tmp_path):
     assert "Cea mai buna utilizare" in text        # narativ inserat
 
 
+def test_raport_offline_fara_ai_e_complet(tmp_path):
+    # ADR-004 (offline-first): fără narativ AI (offline / fără client), raportul iese COMPLET
+    # cu text-șablon (fallback), fără să eșueze — dependența online e DOAR pentru lustruirea AI.
+    ctx = _ctx()
+    ctx.narrative = []                 # nicio secțiune AI (ca atunci când nu există client/internet)
+    out = tmp_path / "raport.docx"
+    genereaza_raport(ctx, out)
+    doc = Document(str(out))
+    titluri = "\n".join(p.text for p in doc.paragraphs if p.style.name.startswith("Heading"))
+    for nr in ["1.", "2.", "3.", "4.", "5.", "6.", "7."]:
+        assert nr in titluri           # toate cele 7 capitole prezente
+    assert "[de completat]" in _all_text(out)   # fallback de șablon pentru secțiunile narative
+
+
 def test_tip_valoare_txt_cazuri_limita():
     from evaluare.report.generator import _tip_valoare_txt
     assert "SEV 102" in _tip_valoare_txt("tip-necunoscut-oarecare")  # slug necunoscut -> ref. adăugată

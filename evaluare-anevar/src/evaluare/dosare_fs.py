@@ -9,6 +9,7 @@ ultima dată", folosit DOAR pentru diff (existente / noi / dispărute). Vezi doc
 """
 from __future__ import annotations
 
+import hashlib
 import json
 import os
 import shutil
@@ -110,11 +111,12 @@ def sterge(uid: str) -> None:
 PASTREAZA_VERSIUNI = 10   # câte versiuni .docx păstrăm per dosar (retenție)
 
 
-def adauga_versiune_docx(uid: str, sursa: Path) -> str:
+def adauga_versiune_docx(uid: str, sursa: Path, tip: str = "generat") -> str:
     """Copiază un .docx generat în folderul dosarului (datat). Returnează numele fișierului.
 
     Păstrează ultimele `PASTREAZA_VERSIUNI` versiuni (șterge cele mai vechi) ca să nu crească nelimitat.
     Numele include microsecunde → unic chiar la generări rapide succesive.
+    `tip`: „generat" (raport asumat la «Generează») sau „import" (raport-sursă atașat la import).
     """
     folder = baza() / uid
     folder.mkdir(parents=True, exist_ok=True)
@@ -123,7 +125,53 @@ def adauga_versiune_docx(uid: str, sursa: Path) -> str:
     vechi = sorted(folder.glob("raport-*.docx"))     # sortate cronologic (numele = timestamp)
     for v in vechi[:-PASTREAZA_VERSIUNI]:
         v.unlink(missing_ok=True)
+    _inregistreaza_versiune(uid, nume, tip)          # ADR-003: hash de integritate + moment asumare
     return nume
+
+
+def _hash_fisier(cale: Path) -> str:
+    """SHA256 al unui fișier (amprentă de integritate)."""
+    return hashlib.sha256(cale.read_bytes()).hexdigest()
+
+
+def _inregistreaza_versiune(uid: str, nume: str, tip: str) -> None:
+    """ADR-003: înregistrează în dosar.json hash-ul + momentul fiecărei versiuni (audit inalterabil).
+
+    O versiune „generat" (asumată la «Generează») setează `asumat_la` la prima generare. Permite
+    verificarea ulterioară că fișierul `.docx` asumat NU a fost alterat (vezi `verifica_integritate`).
+    """
+    folder = baza() / uid
+    try:
+        dosar = incarca(uid)
+    except (KeyError, ValueError):
+        return
+    # păstrăm doar înregistrările pentru fișiere care încă există (versiunile vechi se rotesc)
+    versiuni = [v for v in dosar.get("versiuni", []) if (folder / v.get("fisier", "")).exists()]
+    versiuni.append({"fisier": nume, "hash": _hash_fisier(folder / nume), "la": _acum(), "tip": tip})
+    dosar["versiuni"] = versiuni
+    # Trigger de asumare (ADR-003, decizia Adi #10 — hibrid): „generat" (prima generare .docx)
+    # SAU „submis" (fișier finalizat încărcat, ex. returnat de bancă/client). „import" NU asumă.
+    if tip in ("generat", "submis") and not dosar.get("asumat_la"):
+        dosar["asumat_la"] = _acum()
+    dosar["modificat_la"] = _acum()
+    _scrie(uid, dosar)
+
+
+def verifica_integritate(uid: str) -> list[dict]:
+    """ADR-003: reverifică hash-ul fiecărei versiuni salvate vs. cel înregistrat la asumare.
+
+    Întoarce, per versiune: `{fisier, la, tip, exista, ok}` — `ok=False` = fișierul a fost
+    modificat/alterat după asumare (sau lipsește). Tamper-evidence aliniat SEV 2025 / GEV 520.
+    """
+    folder = baza() / uid
+    dosar = incarca(uid)
+    rez = []
+    for v in dosar.get("versiuni", []):
+        f = folder / v.get("fisier", "")
+        exista = f.exists()
+        rez.append({"fisier": v.get("fisier"), "la": v.get("la"), "tip": v.get("tip"),
+                    "exista": exista, "ok": exista and _hash_fisier(f) == v.get("hash")})
+    return rez
 
 
 def listeaza() -> list[dict]:

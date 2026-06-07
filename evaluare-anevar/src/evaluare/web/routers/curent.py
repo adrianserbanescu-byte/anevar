@@ -91,7 +91,7 @@ def build_router(d: Deps) -> APIRouter:
             wizard = extrage_din_docx(tmp)   # robust: docx ilizibil -> degradează la parsarea numelui
             uid = fs.creeaza(cont["legitimatie"], cont["nume"], wizard,
                              format_dosar=cont.get("format_dosar"))
-            fs.adauga_versiune_docx(uid, tmp)          # atașează raportul sursă
+            fs.adauga_versiune_docx(uid, tmp, tip="import")   # atașează raportul sursă (nu „asumat")
         finally:
             shutil.rmtree(tmpdir, ignore_errors=True)
         return {"uuid": uid, "wizard": wizard}
@@ -179,6 +179,9 @@ def build_router(d: Deps) -> APIRouter:
                                            "metoda": ctx.reconciled.metoda_selectata})
         for issue in valideaza_incrucisat(ctx):
             j.inregistreaza("validare_incrucisata", {"nivel": issue.nivel, "mesaj": issue.mesaj})
+        for v in fs.verifica_integritate(uid):   # ADR-003: integritatea versiunilor .docx asumate
+            j.inregistreaza("integritate_versiune", {"fisier": v["fisier"], "asumat_la": v["la"],
+                                                     "tip": v["tip"], "integru": v["ok"]})
         return PlainTextResponse(text_audit(j))
 
     @router.post("/api/dosar/{uid}/raport.docx")
@@ -220,6 +223,34 @@ def build_router(d: Deps) -> APIRouter:
             z.write(pdf, f"{nume}.pdf")
         return FileResponse(str(zpath), media_type="application/zip", filename=f"{nume}.zip",
                             background=_sterge(out, pdf, zpath))
+
+    @router.post("/api/dosar/{uid}/incarca-submis")
+    def incarca_submis(uid: str, req: ImportDocxRequest) -> dict:
+        """ADR-003 (trigger #3, decizia Adi #10): încarcă un .docx SUBMIS (raport finalizat returnat de
+        bancă/client) în dosar → versiune cu hash de integritate + marchează identitatea ca asumată."""
+        import base64
+        import shutil
+        import uuid as _uuid
+        try:
+            fs.incarca(uid)
+        except KeyError:
+            raise HTTPException(404, "Dosar inexistent.") from None
+        payload = req.continut.split(",", 1)[1] if req.continut.startswith("data:") else req.continut
+        if len(payload) > 35_000_000:
+            raise HTTPException(413, "Fișier prea mare (limită ~25 MB).")
+        try:
+            raw = base64.b64decode(payload, validate=True)
+        except Exception:
+            raise HTTPException(400, "Conținut fișier invalid.") from None
+        tmpdir = Path(tempfile.gettempdir()) / f"anevar-submis-{_uuid.uuid4().hex}"
+        tmpdir.mkdir(parents=True, exist_ok=True)
+        try:
+            tmp = tmpdir / (Path(req.nume_fisier).name or "submis.docx")
+            tmp.write_bytes(raw)
+            versiune = fs.adauga_versiune_docx(uid, tmp, tip="submis")
+        finally:
+            shutil.rmtree(tmpdir, ignore_errors=True)
+        return {"versiune": versiune, "asumat_la": fs.incarca(uid).get("asumat_la")}
 
     @router.get("/api/backup-dosare.zip")
     def backup_dosare():
