@@ -145,6 +145,13 @@ if(fisierImp) fisierImp.addEventListener('change', async ()=>{
   }catch(e){ impStatus.textContent='Import eșuat (eroare de rețea).'; }
   impBtn.disabled=false; impBtn.innerHTML='<span aria-hidden="true">📥</span> Importă dosarul tău';
 });
+// F1: cartonașele din /flux-livrabile pre-selectează acțiunea via hash (#nou / #importa / #salvate).
+(function(){
+  var h = (location.hash||'').replace('#','');
+  if(h==='nou' && nouBtn){ nouBtn.click(); }
+  else if(h==='importa' && impBtn){ impBtn.click(); }
+  else if(h==='salvate'){ var s=document.getElementById('salvate'); if(s) s.scrollIntoView({behavior:'smooth'}); }
+})();
 </script>
 {% include "_footer.html" %}
 </body></html>
