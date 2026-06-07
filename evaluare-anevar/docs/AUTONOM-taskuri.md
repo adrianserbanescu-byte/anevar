@@ -63,9 +63,12 @@
 
 ## ☐ Datorie tehnică autonomă (din auditul tehnic; le pot face fără decizie de produs)
 - [ ] `listeaza()` — cache pe mtime via `_index.json` (evită rescanarea N fișiere la fiecare /incepe).
-- [ ] Îngustez `except Exception` prea largi + logging (docx_dosar, dosare_fs.diff).
+- [x] Îngustez `except Exception` prea largi + logging — VERIFICAT (2026-06-07): `dosare_fs.py` deja
+      înguste (ValueError/OSError/KeyError), `docx_dosar.py` fără except; cele din `curent.py` traduc curat
+      în HTTP 4xx (nu eșec silențios). N/A — deja rezolvat. ✅
 - [x] Retenție versiuni `.docx` (păstrează ultimele 10, nume cu microsecunde). ✅
-- [ ] Nume fișiere temporare unice (uid+timestamp) în `gettempdir()` (evită coliziuni).
+- [x] Nume fișiere temporare unice (token uuid) la generarea raportului (`curent.py`: `raport_{uid}_{tok}.docx/.zip`)
+      — evită coliziuni la generări concurente; curățarea PII (background task) păstrată. ✅ (2026-06-07)
 - [x] Avertisment cloud-sync — deja acoperit (DB + `date/dosare` sub același `baza`). N/A.
 
 ## ☐ Paritate UI nou (feature, additiv — wiring de capacitate existentă, nu decizie de produs)

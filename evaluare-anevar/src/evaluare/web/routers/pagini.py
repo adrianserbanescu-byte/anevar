@@ -9,7 +9,7 @@ from datetime import datetime
 from pathlib import Path
 
 from fastapi import APIRouter, Request
-from fastapi.responses import HTMLResponse, PlainTextResponse
+from fastapi.responses import HTMLResponse, PlainTextResponse, Response
 
 from evaluare import __version__
 from evaluare.logging_setup import get_logger
@@ -60,6 +60,19 @@ def build_router(d: Deps) -> APIRouter:
             "uptime_secunde": round(time.time() - pornit_la, 1),
             "anunturi_in_coada": len(d.storage.listeaza_anunturi_importate()),
         }
+
+    @router.get("/favicon.ico", include_in_schema=False)
+    def favicon() -> Response:
+        # Siglă casă-pe-albastru (SVG inline) — evită 404-ul de favicon pe toate paginile.
+        svg = (
+            '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">'
+            '<rect width="24" height="24" rx="4" fill="#1f3a5f"/>'
+            '<path d="M5 11.5 12 6l7 5.5V19H5z" fill="none" stroke="#f3efe5" '
+            'stroke-width="1.5" stroke-linejoin="round"/>'
+            '<path d="M10 19v-4h4v4" fill="none" stroke="#f3efe5" stroke-width="1.5"/></svg>'
+        )
+        return Response(content=svg, media_type="image/svg+xml",
+                        headers={"Cache-Control": "public, max-age=86400"})
 
     @router.get("/", response_class=HTMLResponse)
     def pagina_index(request: Request) -> HTMLResponse:

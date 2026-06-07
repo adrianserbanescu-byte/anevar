@@ -14,15 +14,15 @@ from fastapi import APIRouter, HTTPException, Request
 from fastapi.responses import FileResponse, HTMLResponse
 
 from evaluare import cont as cont_mod
-from evaluare.logging_setup import get_logger
-
-log = get_logger(__name__)
 from evaluare import dosare_fs as fs
 from evaluare.assembler import EvaluationInput, construieste_context, valideaza
+from evaluare.logging_setup import get_logger
 from evaluare.report.generator import genereaza_raport
 from evaluare.report.pdf import PdfIndisponibil
 from evaluare.web.deps import DOCX_MIME, Deps
 from evaluare.web.schemas import ContRequest, DosarNouRequest, ImportDocxRequest
+
+log = get_logger(__name__)
 
 
 def build_router(d: Deps) -> APIRouter:
@@ -52,6 +52,7 @@ def build_router(d: Deps) -> APIRouter:
     @router.get("/incepe", response_class=HTMLResponse)
     def pagina_incepe(request: Request) -> HTMLResponse:
         import os
+
         from evaluare.master_config import CAMPURI_NUME_DOSAR
         cont = cont_mod.incarca_cont()
         diff = fs.diff() if cont else {"existente": [], "noi": [], "disparute": []}
