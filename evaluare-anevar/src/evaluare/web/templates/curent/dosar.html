@@ -46,6 +46,14 @@
         <span id="ing-status" class="hint" role="status" aria-live="polite"></span>
       </details>
       <h3>Identificare <span class="hint">(definesc identitatea + numele dosarului)</span></h3>
+      {% if blocat %}
+      <div class="avert-warn" style="display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:6px 0">
+        <span><span aria-hidden="true">🔒</span> <b>Identitate asumată</b>{% if asumat_la %} la {{ asumat_la }}{% endif %} —
+         câmpurile de identitate sunt <b>read-only</b> (inalterabilitate ADR-003).</span>
+        <button type="button" class="ghost" id="btn-delock" style="margin-left:auto"><span aria-hidden="true">🔓</span> Deblochează corectură</button>
+        <button type="button" class="ghost" id="btn-clone"><span aria-hidden="true">➕</span> Dosar nou (altă identitate)</button>
+      </div>
+      {% endif %}
       <div class="field-row">
         <div class="field"><label for="id_client">ID client</label><input id="id_client" autocomplete="off"></div>
         <div class="field"><label for="nume_client">Nume client</label><input id="nume_client" autocomplete="name"></div>
@@ -392,6 +400,33 @@
 <script>
 var UID = "{{ dosar.uuid }}";
 var WIZARD = {{ dosar.wizard|tojson }};
+var BLOCAT = {{ 'true' if blocat else 'false' }};   // ADR-003: identitate asumată = read-only
+if (BLOCAT) {
+  ["id_client","nume_client","scop","tip_proprietate","judet","localitate"].forEach(function(id){
+    var el=document.getElementById(id);
+    if(el){ el.disabled=true; el.setAttribute("title","Identitate asumată — read-only (ADR-003). Folosește «Deblochează corectură» pentru typo sau «Dosar nou» pentru altă identitate."); }
+  });
+}
+(function(){
+  var bd=document.getElementById("btn-delock");
+  if(bd) bd.addEventListener("click", function(){
+    var motiv=prompt("Motivul deblocării (corectură tipografică, ex. literă greșită în nume/adresă) — intră în urma de audit:");
+    if(!motiv || !motiv.trim()) return;
+    bd.disabled=true;
+    fetch("/api/dosar/"+UID+"/deblocheaza",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({motiv:motiv})})
+      .then(function(r){ if(r.ok){ location.reload(); return; } return r.json().then(function(j){ throw (j.detail||"Deblocare eșuată."); }); })
+      .catch(function(e){ alert(typeof e==="string"?e:"Deblocare eșuată."); bd.disabled=false; });
+  });
+  var bc=document.getElementById("btn-clone");
+  if(bc) bc.addEventListener("click", function(){
+    if(!confirm("Creez un DOSAR NOU cu munca tehnică copiată (identitate editabilă)? Dosarul curent rămâne asumat + intact.")) return;
+    bc.disabled=true;
+    fetch("/api/dosar/"+UID+"/cloneaza",{method:"POST"})
+      .then(function(r){ return r.json(); })
+      .then(function(d){ if(d.uuid){ window.location.href="/dosar/"+d.uuid; } else { throw 0; } })
+      .catch(function(){ alert("Clonare eșuată."); bc.disabled=false; });
+  });
+})();
 // Maparea „!": câmp -> {v: corespondent wizard vechi, d: detaliu}. TEMPORAR (dev); se va șterge.
 var MAPARE = {
   id_client:{v:"(nou) ID unic dosar",d:"Auto-completat dacă lipsește; needitabil după creare."},

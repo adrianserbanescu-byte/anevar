@@ -44,6 +44,54 @@ def test_verifica_integritate_detecteaza_alterarea(baza):
     assert rez[0]["exista"] is True and rez[0]["ok"] is False
 
 
+def test_lock_identitate_dupa_asumare(baza):
+    # ADR-003: după asumare, identitatea e read-only; câmpurile tehnice rămân editabile.
+    import evaluare.dosare_fs as fs
+    uid = fs.creeaza("L1", "Ev", _wizard())
+    assert fs.este_blocat(fs.incarca(uid)) is False            # neasumat -> editabil
+    src = baza / "r.docx"
+    src.write_bytes(b"raport")
+    fs.adauga_versiune_docx(uid, src, tip="generat")           # asumare
+    assert fs.este_blocat(fs.incarca(uid)) is True
+    fs.salveaza_wizard(uid, dict(_wizard(), nume_client="ALTUL", au="999"))
+    d = fs.incarca(uid)
+    assert d["wizard"]["nume_client"] == "Pop"                 # identitate ÎNGHEȚATĂ
+    assert d["wizard"]["au"] == "999"                          # tehnicul s-a actualizat
+
+
+def test_deblocheaza_cere_motiv_si_logheaza(baza):
+    # ADR-003: de-lock typo necesită motiv + intră în audit; re-generarea re-blochează.
+    import evaluare.dosare_fs as fs
+    uid = fs.creeaza("L1", "Ev", _wizard())
+    src = baza / "r.docx"
+    src.write_bytes(b"raport")
+    fs.adauga_versiune_docx(uid, src, tip="generat")
+    with pytest.raises(ValueError):
+        fs.deblocheaza(uid, "   ")                             # motiv gol -> refuzat
+    fs.deblocheaza(uid, "typo în nume: Ppop -> Pop")
+    d = fs.incarca(uid)
+    assert fs.este_blocat(d) is False and d["deblocari"][0]["motiv"].startswith("typo")
+    fs.salveaza_wizard(uid, dict(_wizard(), nume_client="Popa"))
+    assert fs.incarca(uid)["wizard"]["nume_client"] == "Popa"  # editabil după de-lock
+    fs.adauga_versiune_docx(uid, src, tip="generat")           # re-asumare -> re-blochează
+    assert fs.este_blocat(fs.incarca(uid)) is True
+
+
+def test_cloneaza_dosar_nou_neasumat(baza):
+    # ADR-003: clonarea face un dosar NOU neasumat cu munca tehnică; sursa rămâne asumată.
+    import evaluare.dosare_fs as fs
+    uid = fs.creeaza("L1", "Ev", _wizard(au="120"))
+    src = baza / "r.docx"
+    src.write_bytes(b"raport")
+    fs.adauga_versiune_docx(uid, src, tip="generat")
+    nou = fs.cloneaza(uid)
+    dnou = fs.incarca(nou)
+    assert nou != uid and dnou["wizard"]["au"] == "120"        # munca tehnică copiată
+    assert fs.este_blocat(dnou) is False                       # noul dosar e editabil
+    assert "asumat_la" not in dnou and not dnou.get("versiuni")
+    assert fs.este_blocat(fs.incarca(uid)) is True             # sursa rămâne asumată
+
+
 def test_listeaza_cache_mtime(baza):
     # Cache antete pe mtime: dosar neschimbat nu se recitește; dosar nou apare; cache corupt se reconstruiește.
     import evaluare.dosare_fs as fs

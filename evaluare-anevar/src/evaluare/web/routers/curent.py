@@ -115,7 +115,8 @@ def build_router(d: Deps) -> APIRouter:
         except KeyError:
             raise HTTPException(404, "Dosar inexistent.") from None
         return d.templates.TemplateResponse(request, "curent/dosar.html",
-            {"dosar": dosar, "cont": cont_mod.incarca_cont()})
+            {"dosar": dosar, "cont": cont_mod.incarca_cont(),
+             "blocat": fs.este_blocat(dosar), "asumat_la": dosar.get("asumat_la")})
 
     @router.get("/api/dosar/{uid}")
     def citeste_dosar(uid: str) -> dict:
@@ -195,6 +196,8 @@ def build_router(d: Deps) -> APIRouter:
         for v in fs.verifica_integritate(uid):   # ADR-003: integritatea versiunilor .docx asumate
             j.inregistreaza("integritate_versiune", {"fisier": v["fisier"], "asumat_la": v["la"],
                                                      "tip": v["tip"], "integru": v["ok"]})
+        for db in fs.incarca(uid).get("deblocari", []):   # ADR-003: deblocări de identitate (corecturi tipografice)
+            j.inregistreaza("deblocare_identitate", {"la": db.get("la"), "motiv": db.get("motiv")})
         return PlainTextResponse(text_audit(j))
 
     @router.post("/api/dosar/{uid}/raport.docx")
@@ -272,6 +275,28 @@ def build_router(d: Deps) -> APIRouter:
         finally:
             shutil.rmtree(tmpdir, ignore_errors=True)
         return {"versiune": versiune, "asumat_la": fs.incarca(uid).get("asumat_la")}
+
+    @router.post("/api/dosar/{uid}/deblocheaza")
+    def deblocheaza_dosar(uid: str, body: dict) -> dict:
+        """ADR-003: deblochează identitatea pentru o corectură tipografică (motiv obligatoriu → Audit)."""
+        try:
+            fs.incarca(uid)
+        except KeyError:
+            raise HTTPException(404, "Dosar inexistent.") from None
+        try:
+            fs.deblocheaza(uid, str(body.get("motiv", "")))
+        except ValueError as e:
+            raise HTTPException(422, str(e)) from e
+        return {"ok": True, "blocat": False}
+
+    @router.post("/api/dosar/{uid}/cloneaza")
+    def cloneaza_dosar(uid: str) -> dict:
+        """ADR-003: clonează munca tehnică într-un dosar NOU (altă identitate); sursa rămâne asumată."""
+        try:
+            fs.incarca(uid)
+        except KeyError:
+            raise HTTPException(404, "Dosar inexistent.") from None
+        return {"uuid": fs.cloneaza(uid)}
 
     @router.get("/api/backup-dosare.zip")
     def backup_dosare():
