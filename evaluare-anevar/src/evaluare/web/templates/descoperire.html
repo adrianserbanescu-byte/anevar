@@ -34,7 +34,12 @@
   .scor-sec{ opacity:.7; font-weight:400; }
   .cand-meta{ font-size:.85rem; color:var(--ink-faint); margin:6px 0 0; }
   .cand-meta .alerta{ color:var(--danger-ink); font-weight:600; }
-  .cand-chips{ display:flex; flex-wrap:wrap; gap:6px; margin:10px 0 0; }
+  .cand-body{ display:flex; gap:14px; align-items:flex-start; margin:10px 0 0; }
+  .cand-attr{ flex:1 1 auto; min-width:0; }
+  .cand-radar-wrap{ flex:0 0 auto; }
+  .cand-radar{ display:block; }
+  @media(max-width:520px){ .cand-body{ flex-direction:column; } .cand-radar-wrap{ align-self:center; } }
+  .cand-chips{ display:flex; flex-wrap:wrap; gap:6px; }
   .chip-attr{ font-family:var(--sans); font-size:.78rem; background:var(--paper-sunk);
     border:1px solid var(--line); border-radius:var(--radius-pill); padding:2px 10px; color:var(--ink-2); }
   .chip-attr b{ color:var(--ink); }
@@ -219,6 +224,42 @@ function relevantaText(c){
   if(c.relevanta>=60) return 'Relevant';
   return 'Slab relevant';
 }
+// D2: mini-radar pe 4 axe (Locație/Fizic/Calitate/Funcțional) din c.axe. null (ex. locație
+// fără geocoding) = punct la centru + marcaj n/a. SVG inline, fără dependențe.
+const AXE_D2 = [
+  {k:'locatie',   lbl:'Locație',    ang:-90},
+  {k:'fizic',     lbl:'Fizic',      ang:0},
+  {k:'calitate',  lbl:'Calitate',   ang:90},
+  {k:'functional',lbl:'Funcțional', ang:180},
+];
+function randRadar(axe){
+  if(!axe) return '';
+  const cx=52, cy=52, R=38;
+  const pt=(ang,r)=>{ const a=ang*Math.PI/180; return [cx+r*Math.cos(a), cy+r*Math.sin(a)]; };
+  // grilă (100% + 50%) + axe
+  let g='';
+  [R, R/2].forEach(rr=>{
+    const poly=AXE_D2.map(x=>pt(x.ang,rr).map(n=>n.toFixed(1)).join(',')).join(' ');
+    g+=`<polygon points="${poly}" fill="none" stroke="var(--line)" stroke-width="1"/>`;
+  });
+  AXE_D2.forEach(x=>{ const [px,py]=pt(x.ang,R); g+=`<line x1="${cx}" y1="${cy}" x2="${px.toFixed(1)}" y2="${py.toFixed(1)}" stroke="var(--line)" stroke-width="1"/>`; });
+  // poligon de date
+  let naAxe=[];
+  const dpts=AXE_D2.map(x=>{
+    let v=axe[x.k];
+    if(v===null||v===undefined){ naAxe.push(x.lbl); v=0; }
+    const r=R*Math.max(0,Math.min(100,v))/100;
+    return pt(x.ang,r).map(n=>n.toFixed(1)).join(',');
+  }).join(' ');
+  const fill=`<polygon points="${dpts}" fill="rgba(157,74,37,.18)" stroke="var(--sienna)" stroke-width="1.5"/>`;
+  // etichete axe
+  let labels='';
+  AXE_D2.forEach(x=>{ const [lx,ly]=pt(x.ang,R+9);
+    labels+=`<text x="${lx.toFixed(1)}" y="${ly.toFixed(1)}" font-size="7" fill="var(--ink-faint)" text-anchor="middle" dominant-baseline="middle">${x.lbl}</text>`; });
+  const naTxt = naAxe.length ? ` (${naAxe.join('/')}: n/a)` : '';
+  return `<svg class="cand-radar" viewBox="0 0 104 104" width="104" height="104" role="img" `
+    + `aria-label="Profil relevanță pe axe${naTxt}">${g}${fill}${labels}</svg>`;
+}
 const STARE_LBL={'1':'Degradată','2':'Necesită renovare','3':'Medie / bună','4':'Foarte bună / renovată','5':'Nouă'};
 const FINISAJ_LBL={'1':'Modest','2':'Standard','3':'Superior','4':'Lux'};
 function eticheta(nume,v){
@@ -265,7 +306,10 @@ function randCandidat(c){
       <span class="cand-pret">${c.pret?c.pret+' '+(c.moneda||'EUR'):'preț ?'}</span>
     </div>
     <div class="cand-meta">${meta}${avert?' · '+avert:''}</div>
-    ${chipsAtribute(c)}
+    <div class="cand-body">
+      <div class="cand-attr">${chipsAtribute(c)}</div>
+      ${c.axe ? '<div class="cand-radar-wrap">'+randRadar(c.axe)+'</div>' : ''}
+    </div>
     ${sec ? '<p class="cand-sec"><b>Secundare:</b> '+sec+'</p>' : ''}
     <p class="cand-expl">${c.explicatie}</p>
     <div class="cand-foot">
