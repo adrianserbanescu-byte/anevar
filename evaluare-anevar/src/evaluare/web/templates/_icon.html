@@ -1,0 +1,33 @@
+{# Iconuri linie partajate — înlocuiesc emoji (audit Rams #2/#3: off-brand + dependente de platformă).
+   Stil pilot (aprobat de Adi): contur subțire 1.4px, `currentColor` (preia culoarea contextului → navy/gold/alb),
+   1em (în rând cu textul), temă „registru topograf".
+   Folosire:  {% from "_icon.html" import icon %}   apoi   {{ icon("search") }}   /   {{ icon("warn","ico-gold") }}
+   Nume necunoscut -> cade pe „info" (nu rupe randarea). Dict-ul e local în macro intenționat (bulletproof). #}
+{% macro icon(name, cls="") -%}
+{%- set d = {
+  "search":   '<circle cx="7" cy="7" r="4.3"/><path d="M10.2 10.2 14 14"/>',
+  "download": '<path d="M8 2.5v7"/><path d="M5 6.5l3 3 3-3"/><path d="M3.5 13h9"/>',
+  "import":   '<path d="M8 2.5v7"/><path d="M5 6.5l3 3 3-3"/><path d="M3.5 13h9"/>',
+  "upload":   '<path d="M8 13.5v-7"/><path d="M5 9.5l3-3 3 3"/><path d="M3.5 3h9"/>',
+  "save":     '<path d="M3 2.5h7.5L13.5 5.5V13.5H3Z"/><path d="M5 2.5v3.5h5.5V2.5M5.5 13.5V9.5h5v4"/>',
+  "map":      '<path d="M8 14.5s4.5-4.2 4.5-7.5a4.5 4.5 0 1 0-9 0c0 3.3 4.5 7.5 4.5 7.5Z"/><circle cx="8" cy="7" r="1.6"/>',
+  "doc":      '<path d="M4 2.5h5l3 3v8H4Z"/><path d="M9 2.5v3h3"/><path d="M6 9h4M6 11h4"/>',
+  "audit":    '<path d="M4 2.5h5l3 3v8H4Z"/><path d="M9 2.5v3h3"/><path d="M6 10l1.2 1.2L10 8.5"/>',
+  "edit":     '<path d="M11 2.5 13.5 5"/><path d="M2.5 13.5l1-3 7-7L13 6l-7 7-3.5.5Z"/>',
+  "check":    '<path d="M3 8.5l3.5 3.5L13 5"/>',
+  "close":    '<path d="M4 4l8 8M12 4l-8 8"/>',
+  "delete":   '<path d="M3.5 4.5h9"/><path d="M6.3 4.5V3h3.4v1.5"/><path d="M4.7 4.5l.6 9h5.4l.6-9"/>',
+  "refresh":  '<path d="M13 8a5 5 0 1 1-1.6-3.7"/><path d="M13 3.2V6h-2.8"/>',
+  "folder":   '<path d="M2.5 4.5h4l1.5 1.5h5.5v7h-11Z"/>',
+  "add":      '<path d="M8 3.5v9M3.5 8h9"/>',
+  "view":     '<path d="M1.5 8S4 3.5 8 3.5 14.5 8 14.5 8 12 12.5 8 12.5 1.5 8 1.5 8Z"/><circle cx="8" cy="8" r="1.8"/>',
+  "calendar": '<rect x="2.5" y="3.5" width="11" height="10" rx="1"/><path d="M2.5 6.5h11M5.5 2v3M10.5 2v3"/>',
+  "flag":     '<path d="M4 2v12"/><path d="M4 2.5h7l-1.5 2.5L11 7.5H4"/>',
+  "back":     '<path d="M13 8H3"/><path d="M6.5 4.5 3 8l3.5 3.5"/>',
+  "swap":     '<path d="M3 6h9l-2.3-2.3"/><path d="M13 10H4l2.3 2.3"/>',
+  "help":     '<circle cx="8" cy="8" r="5.5"/><path d="M6.3 6.2a1.8 1.8 0 1 1 2.5 1.7c-.5.3-.8.6-.8 1.2v.2"/><path d="M8 11.6h.01"/>',
+  "info":     '<circle cx="8" cy="8" r="5.5"/><path d="M8 7.4v3.1"/><path d="M8 5.2h.01"/>',
+  "warn":     '<path d="M8 2.5 14.5 13.5h-13Z"/><path d="M8 6.5v3.3"/><path d="M8 11.6h.01"/>',
+} -%}
+<svg class="ico{% if cls %} {{ cls }}{% endif %}" viewBox="0 0 16 16" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">{{ d.get(name, d["info"])|safe }}</svg>
+{%- endmacro %}
