@@ -28,9 +28,10 @@ Worktree-urile sunt directoare SEPARATE — editările tale nu se mai văd în d
 1. `git merge sesiune-b` / `sesiune-c` (sau cherry-pick) → rezolvă conflicte → `git push origin master`.
 2. Rulează suita + e2e (sanity).
 3. `python evaluare-anevar/scripts/build.py` → `dist/evaluare-anevar.exe`.
-4. **Validează** (smoke pe o copie temp; întâi eliberează 8000).
-5. **Hot-swap live:** oprește instanța veche → copiază exe-ul nou în `evaluare-anevar/live/` → pornește.
-   Server live: `http://127.0.0.1:8000`, date în `evaluare-anevar/date/`. Downtime ~secunde.
+4. **Validează FĂRĂ downtime** — pornește build-ul nou pe ALT port cât timp live rămâne pe 8000:
+   `ANEVAR_PORT=8011 ANEVAR_NO_BROWSER=1 OUTPUT_DIR=<temp> ./dist/evaluare-anevar.exe` → curl `127.0.0.1:8011`.
+5. **Hot-swap live:** oprește instanța veche (8000) → copiază exe-ul nou în `evaluare-anevar/live/` → pornește cu
+   `ANEVAR_NO_BROWSER=1`. Server: `http://127.0.0.1:8000`, date în `evaluare-anevar/date/`. Downtime ~secunde.
 
 ## De ce worktree și nu doar branch
 Cele 3 sesiuni rulau în ACELAȘI director → branch-urile NU le izolau (lucrau pe aceleași fișiere de pe disc).
