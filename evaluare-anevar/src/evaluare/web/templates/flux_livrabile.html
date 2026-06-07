@@ -118,6 +118,7 @@ a.fl-opt:focus-visible{outline:2px solid var(--sienna);outline-offset:2px}
 .fl-legend .fl-sw2{margin-right:5px;vertical-align:middle}
 </style></head>
 <body>
+{% from "_icon.html" import icon %}
 <a class="skip-link" href="#continut">Sari la conținut</a>
 {% include "_nav_cross.html" %}
 {% set kicker = "Hartă de proces · LOCAL (fără server)" %}
@@ -127,7 +128,7 @@ a.fl-opt:focus-visible{outline:2px solid var(--sienna);outline-offset:2px}
 
 <main id="continut" class="fl-wrap">
   <p class="fl-launch">
-    <a class="fl-cta" href="/incepe"><span aria-hidden="true">➕</span> Începe un dosar →</a>
+    <a class="fl-cta" href="/incepe">{{ icon("add") }} Începe un dosar →</a>
     <span class="fl-launch-hint">Harta de mai jos arată ce produce un dosar. Apasă ca să pornești în workspace.</span>
   </p>
   <nav class="fl-stepper" id="flStepper" aria-label="Etapele fluxului"></nav>
@@ -161,7 +162,7 @@ a.fl-opt:focus-visible{outline:2px solid var(--sienna);outline-offset:2px}
           <a class="fl-opt" href="/incepe#nou"><b>Ingestie PDF</b><span>CF / releveu / plan / CPE</span></a>
           <a class="fl-opt" href="/incepe#salvate"><b>Din dosar existent</b><span>copiezi unul similar</span></a>
         </div>
-        <p class="fl-cta-wrap"><a class="fl-cta" href="/incepe"><span aria-hidden="true">➕</span> Începe un dosar →</a></p>
+        <p class="fl-cta-wrap"><a class="fl-cta" href="/incepe">{{ icon("add") }} Începe un dosar →</a></p>
       </section>
 
       <section class="fl-canvas" data-step="2" hidden>

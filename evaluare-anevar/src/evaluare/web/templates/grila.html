@@ -12,6 +12,7 @@
   }
 </style></head>
 <body>
+{% from "_icon.html" import icon %}
 <a class="skip-link" href="#continut">Sari la conținut</a>
 {% set pagina = "grila" %}{% include "_topbar.html" %}
 {% set kicker = "Registru de evaluare" %}{% set titlu = "Grile de ajustări" %}{% set subtitlu = "Grile de comparabile: teren · casă · chirii." %}{% include "_cartus.html" %}
@@ -22,7 +23,7 @@ cele <span class="eur">valorice</span> în <b>EUR</b> (ex. <code>-5000</code>). 
 Se aplică <b>secvențial</b>; se alege comparabilul cu <b>ajustarea brută minimă</b>.<br>
 Pentru ajustarea <b>„Condițiile pieței (timp)"</b> poți folosi <b>Indicele imobiliar ANEVAR</b>
 (dinamica valorilor de piață/mp).
-<button type="button" onclick="incarcaIndice()">↻ Indicele ANEVAR</button>
+<button type="button" onclick="incarcaIndice()">{{ icon("refresh") }} Indicele ANEVAR</button>
 <span id="indice-status" class="hint" role="status"></span></p>
 <div id="indice-rez"></div>
 

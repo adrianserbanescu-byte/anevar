@@ -14,6 +14,7 @@
     font-weight:600; }
 </style></head>
 <body>
+{% from "_icon.html" import icon %}
 <a class="skip-link" href="#continut">Sari la conținut</a>
 {% include "_nav_cross.html" %}
 <nav class="topbar" aria-label="Navigare principală"><a class="brand" href="/incepe"><span class="brand-seal">EA</span>
@@ -29,14 +30,14 @@
    format dosar: <b>{{ cont.format_dosar | map('replace','_',' ') | map('capitalize') | join(' · ') }}</b> · <a href="/cont">editează cont</a></p>
 
   <div class="row actiuni-incepe">
-    <button type="button" id="nou"><span aria-hidden="true">➕</span> Dosar nou</button>
-    <a class="btn ghost" href="#salvate"><span aria-hidden="true">📂</span> Încarcă dosar salvat</a>
-    <button type="button" class="ghost" id="importa"><span aria-hidden="true">📥</span> Importă dosarul tău</button>
+    <button type="button" id="nou">{{ icon("add") }} Dosar nou</button>
+    <a class="btn ghost" href="#salvate">{{ icon("folder") }} Încarcă dosar salvat</a>
+    <button type="button" class="ghost" id="importa">{{ icon("import") }} Importă dosarul tău</button>
     <input type="file" id="fisier-import" accept=".docx" aria-label="Alege fișierul .docx de importat" hidden>
     {# Build offline: opțiunile comerciale sunt ASCUNSE complet (decizie #15 din 2026-06-07).
        Pe build comercial (gateway online), se afișează — decizie cuplată cu §B.7 conturi externe. #}
     {% if commercial_build %}
-    <button type="button" class="ghost" aria-disabled="true" disabled><span aria-hidden="true">🔁</span> Import asemănător <span class="badge b-mid">comercial</span></button>
+    <button type="button" class="ghost" aria-disabled="true" disabled>{{ icon("refresh") }} Import asemănător <span class="badge b-mid">comercial</span></button>
     <button type="button" class="ghost" aria-disabled="true" disabled><span aria-hidden="true">🧪</span> Demo <span class="badge b-mid">comercial</span></button>
     {% endif %}
   </div>
@@ -85,15 +86,15 @@
     </table>
   {% else %}
     <div class="empty-state">
-      <span class="es-icon" aria-hidden="true">🗂</span>
+      <span class="es-icon">{{ icon("folder") }}</span>
       <h3>Niciun dosar salvat încă</h3>
       <p>Începe primul dosar — identitatea (client, scop, tip) o completezi în pagina dosarului.</p>
-      <button type="button" class="btn" onclick="document.getElementById('nou').click()">➕ Dosar nou</button>
+      <button type="button" class="btn" onclick="document.getElementById('nou').click()">{{ icon("add") }} Dosar nou</button>
     </div>
   {% endif %}
 
   {% if diff.disparute %}
-    <h3><span aria-hidden="true">⚠</span> Dosare dispărute (folder șters de pe disc)</h3>
+    <h3>{{ icon("warn","ico-gold") }} Dosare dispărute (folder șters de pe disc)</h3>
     <ul class="hint">{% for x in diff.disparute %}
       <li>{{ x.nume }} ({{ x.uuid[:8] }})
         <button type="button" class="ghost btn-scoate" data-uid="{{ x.uuid }}"
@@ -161,7 +162,7 @@ if(fisierImp) fisierImp.addEventListener('change', async ()=>{
     if(resp.ok && d.uuid){ window.location.href='/dosar/'+d.uuid; return; }
     impStatus.textContent='Import eșuat: '+((d && d.detail) || 'fișier .docx invalid sau lipsă cont.');
   }catch(e){ impStatus.textContent='Import eșuat (eroare de rețea).'; }
-  impBtn.disabled=false; impBtn.innerHTML='<span aria-hidden="true">📥</span> Importă dosarul tău';
+  impBtn.disabled=false; impBtn.innerHTML='{{ icon("import") }} Importă dosarul tău';
 });
 // F1: cartonașele din /flux-livrabile pre-selectează acțiunea via hash (#nou / #importa / #salvate).
 (function(){

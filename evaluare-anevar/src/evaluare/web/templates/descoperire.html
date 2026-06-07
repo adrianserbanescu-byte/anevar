@@ -67,23 +67,24 @@
     padding-top:10px; border-top:1px solid var(--line); }
 </style></head>
 <body>
+{% from "_icon.html" import icon %}
 <a class="skip-link" href="#continut">Sari la conținut</a>
 {% set pagina = "descoperire" %}{% include "_topbar.html" %}
 {% set kicker = "Registru de evaluare" %}{% set titlu = "Descoperire comparabile" %}{% set subtitlu = "Căutare de comparabile pe portaluri, cu scor de relevanță." %}{% include "_cartus.html" %}
 <main id="continut">
 <div class="avert-warn" role="note">
-  <span aria-hidden="true">⚠️</span> Prețurile extrase sunt din <b>anunțuri (oferte)</b>, nu tranzacții confirmate. Conform GEV 520
+  {{ icon("warn","ico-gold") }} Prețurile extrase sunt din <b>anunțuri (oferte)</b>, nu tranzacții confirmate. Conform GEV 520
   §4.3.4, aplică o ajustare ofertă→tranzacție (tipic −5% … −15%) sau confirmă prețurile prin surse
   independente (notar/agent). Sursă auxiliară, best-effort — verifică datele înainte de folosire.
 </div>
 
 <section id="sectiune-importate" style="display:none">
-  <h2><span aria-hidden="true">📥</span> Anunțuri importate din extensia de browser</h2>
+  <h2>{{ icon("import") }} Anunțuri importate din extensia de browser</h2>
   <p class="hint">Anunțuri trimise din browser (storia.ro / imobiliare.ro) cu extensia
    <b>Import → Evaluare ANEVAR</b>. Prețuri din <b>oferte</b> — aplică ajustarea ofertă→tranzacție.</p>
   <div id="lista-importate" role="region" aria-label="Anunțuri importate"></div>
   <button type="button" id="laGrilaImport"><span aria-hidden="true">➜</span> Trimite bifatele la grila casă</button>
-  <button type="button" id="goleseImport" class="ghost"><span aria-hidden="true">🗑</span> Golește coada</button>
+  <button type="button" id="goleseImport" class="ghost">{{ icon("delete","ico-danger") }} Golește coada</button>
   <span id="import-status" class="hint" role="status" aria-live="polite"></span>
 </section>
 
@@ -136,7 +137,7 @@
 <h2>Rezultate</h2>
 <div id="rezultate" role="region" aria-label="Rezultate descoperire">
   <div class="empty-state" id="rezultate-gol">
-    <span class="es-icon" aria-hidden="true">🔍</span>
+    <span class="es-icon">{{ icon("search") }}</span>
     <h3>Niciun rezultat încă</h3>
     <p>Completează criteriile proprietății subiect de mai sus și pornește căutarea de comparabile pe portaluri.</p>
     <button type="button" class="btn" onclick="document.getElementById('judet').focus()">Completează criteriile ↑</button>
