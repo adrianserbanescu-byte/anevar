@@ -15,7 +15,10 @@ from docx import Document
 from docx.document import Document as DocxDocument
 from docx.shared import Inches, Pt, RGBColor
 
+from evaluare.logging_setup import get_logger
 from evaluare.models.report_context import ReportContext
+
+log = get_logger(__name__)
 
 # Note de provenienta (mod demo/review): explica ce e calculat, extras, AI, exemplu sau placeholder.
 ADNOTARI = {
@@ -74,7 +77,8 @@ def _fmt(v) -> str:
     try:
         d = Decimal(str(v)).quantize(Decimal("1"))
         return f"{int(d):,}".replace(",", ".")
-    except Exception:
+    except Exception as e:
+        log.debug("Valoare neformatabilă numeric (%r), folosesc str(): %s", v, e)
         return str(v)
 
 
@@ -105,7 +109,8 @@ def _b2(v) -> str:
     """Rotunjeste la 2 zecimale (preturi unitare, EUR/mp)."""
     try:
         return f"{Decimal(str(v)).quantize(Decimal('0.01'))}"
-    except Exception:
+    except Exception as e:
+        log.debug("Valoare neformatabilă numeric (%r), folosesc str(): %s", v, e)
         return str(v)
 
 
@@ -113,7 +118,8 @@ def _pct(v) -> str:
     """Fractie -> procent cu 2 zecimale (0.1727 -> '17.27%')."""
     try:
         return f"{(Decimal(str(v)) * 100).quantize(Decimal('0.01'))}%"
-    except Exception:
+    except Exception as e:
+        log.debug("Valoare neformatabilă numeric (%r), folosesc str(): %s", v, e)
         return str(v)
 
 
@@ -561,28 +567,32 @@ def _adauga_anexe(doc: DocxDocument, ctx: ReportContext, adnotari: bool = False)
 
     doc.add_paragraph("Anexa 2 — Planse fotografice ale proprietatii:")
     inserate = 0
-    for data_url in ctx.photos:
+    for i, data_url in enumerate(ctx.photos, 1):
         stream = _decode_foto(data_url)
         if stream is None:
+            log.warning("Anexa 2: fotografia %d nu a putut fi decodată (date invalide) — sărită.", i)
             continue
         try:
             doc.add_picture(stream, width=Inches(5.5))
             inserate += 1
-        except Exception:
-            continue  # fisier imagine corupt / format neacceptat -> sarim
+        except Exception as e:   # fisier imagine corupt / format neacceptat -> sarim, dar lasam urma
+            log.warning("Anexa 2: fotografia %d nu a putut fi inserată (corupt/format neacceptat): %s", i, e)
+            continue
     if inserate == 0:
         doc.add_paragraph("[de atasat].")
 
     doc.add_paragraph("Anexa 3 — Documente cadastrale, extras CF si acte juridice:")
     doc_inserate = 0
-    for data_url in ctx.documente:
+    for i, data_url in enumerate(ctx.documente, 1):
         stream = _decode_foto(data_url)
         if stream is None:
+            log.warning("Anexa 3: documentul %d nu a putut fi decodat (date invalide) — sărit.", i)
             continue
         try:
             doc.add_picture(stream, width=Inches(5.5))
             doc_inserate += 1
-        except Exception:
+        except Exception as e:
+            log.warning("Anexa 3: documentul %d nu a putut fi inserat (corupt/format neacceptat): %s", i, e)
             continue
     if doc_inserate == 0:
         doc.add_paragraph("[de atasat].")

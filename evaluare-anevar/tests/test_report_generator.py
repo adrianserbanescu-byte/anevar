@@ -300,3 +300,22 @@ def test_raportul_contine_grila_teren_si_alocare(tmp_path):
     assert "Pret/mp corectat" in text
     assert "ALOCAREA VALORII" in text
     assert "Valoarea constructiilor" in text
+
+
+def test_anexe_corupte_logheaza_avertisment_nu_dispar_tacut(tmp_path, caplog):
+    """Eșec silențios reparat: o fotografie/scan care nu se poate insera lasă acum o urmă în jurnal
+    (nu mai dispare tăcut din raport), iar raportul se generează oricum."""
+    import base64
+    import logging
+
+    ctx = _ctx()
+    # foto: base64 valid dar NU e imagine -> add_picture eșuează (ramura `except` reparată)
+    ctx.photos = ["data:image/png;base64," + base64.b64encode(b"nu este o imagine reala").decode()]
+    # document: base64 invalid -> _decode_foto întoarce None (ramura de decodare)
+    ctx.documente = ["@@@base64-invalid@@@"]
+    out = tmp_path / "raport.docx"
+    with caplog.at_level(logging.WARNING, logger="evaluare.report.generator"):
+        genereaza_raport(ctx, out)
+    assert out.exists()                                   # raportul se generează oricum (nu crapă)
+    assert "Anexa 2: fotografia 1 nu a putut fi inserată" in caplog.text
+    assert "Anexa 3: documentul 1 nu a putut fi decodat" in caplog.text
