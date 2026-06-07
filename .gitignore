@@ -32,3 +32,6 @@ evaluare-anevar/docs/docx/
 
 # Loguri de runtime ale aplicației (RotatingFileHandler)
 *.log
+
+# Deploy local „live" (exe + date de runtime — nu în git)
+evaluare-anevar/live/
