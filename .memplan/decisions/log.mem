@@ -1,0 +1,38 @@
+# Decisions log — migrat din BLOCAT-pe-Adi.md §A-§K (2026-06-07)
+# Format MemScript v1: ~timestamp +decision:slug,detail=text,status=open|resolved,bucket=A|B|C|D
+# Buckets: A=lansare (avocat/jurist/banca), B=achizitii, C=produs UI/dosar, D=arhitectura, E=comercial
+~2026-06-07T04:45Z +decision:avocat-aml-audit,because=risc-penal-Legea-129,status=open,bucket=A,blocant=absolut
+~2026-06-07T04:45Z +decision:evaluatori-seniori-peer-review,because=valideaza-metodologia,status=open,bucket=A,count=2-3
+~2026-06-07T04:45Z +decision:jurist-gdpr,because=DPA-art28+SCC+AI-Act,status=open,bucket=A
+~2026-06-07T04:45Z +decision:asigurator-raspundere-profesionala,because=AI-acoperit-sau-exclus,status=open,bucket=A,critic=council2
+~2026-06-07T04:45Z +decision:pilot-banca,because=20-30-dosare-cu-Risc+IT,status=open,bucket=A,dupa=fixuri-metodologie
+~2026-06-07T04:45Z +decision:certificat-code-signing,because=SmartScreen-sperie-profesionisti,status=open,bucket=B,cost=150-300eur-an
+~2026-06-07T04:45Z +decision:conturi-Supabase-OAuth-Stripe,because=Faza-0-comercializare,status=open,bucket=B
+~2026-06-07T04:45Z +decision:screening-aml-api-vs-manual,because=OpenSanctions-API-live-sau-dezactivare,status=open,bucket=B
+~2026-06-07T04:45Z +decision:ordine-creare-dosar,because=gol-acum-vs-modal-identitate-inainte,status=open,bucket=C
+~2026-06-07T04:45Z +decision:blocare-identitate-dupa-generare,because=declansator-lock-readonly,status=open,bucket=C,critic=ADR-003
+~2026-06-07T04:45Z +decision:import-dosar-format,because=docx-acum-vs-folder-importa,status=open,bucket=C
+~2026-06-07T04:45Z +decision:campuri-nume-vs-identitate,because=CAMPURI_NUME_DOSAR-superset,status=open,bucket=C
+~2026-06-07T04:45Z +decision:moneda-implicita-EUR-garantare,because=acum-LEI-default,status=open,bucket=C
+~2026-06-07T04:45Z +decision:calcul-genereaza-cuplate,because=o-singura-sursa-adevar,status=open,bucket=C
+~2026-06-07T04:45Z +decision:home-5-optiuni-2-dezactivate,because=teasere-vs-ascunse-offline,status=open,bucket=C
+~2026-06-07T04:45Z +decision:popover-temporar-stergere,because=dupa-validarea-mapparii,status=open,bucket=C
+~2026-06-07T04:45Z +decision:anexa-foto-P0-conformitate,because=SEV2025-GEV630-gating-doar-volum,status=open,bucket=C,critic=10-20-poze-gratis
+~2026-06-07T04:45Z +decision:regenerare-AI-template-default,because=pastreaza-vocea-actualizeaza-valori,status=open,bucket=C
+~2026-06-07T04:45Z +decision:import-asemanator-matrice-PII,because=Zona-GHIDARE-Descriere-DIFERIT-detectie-PII,status=open,bucket=C
+~2026-06-07T04:45Z +decision:migrare-sqlite-foldere,because=punti-vs-disjuncte-vs-retrage,status=open,bucket=D
+~2026-06-07T04:45Z +decision:retragere-UI-vechi,because=cand-oprim-intretinerea,status=open,bucket=D
+~2026-06-07T04:45Z +decision:paritate-UI-nou-anexa-foto,because=datorie-pariate-blocata-de-decizia-anexa,status=open,bucket=D
+~2026-06-07T04:45Z +decision:model-pret-tier,because=Pro-299-399lei-luna-o-treapta-lansare,status=open,bucket=E
+~2026-06-07T04:45Z +decision:ordine-comerciala-validare-prima,because=5-evaluatori-reali-inainte-de-gateway,status=open,bucket=E
+~2026-06-07T04:45Z +decision:master-admin-Supabase-vs-panou,because=Studio+SQL-vs-custom,status=open,bucket=E
+~2026-06-07T04:45Z +decision:matrice-tip-scop-25-combinatii,because=Bucket-B-evaluator,status=open,bucket=G,ref=conformitate/E-matrice
+~2026-06-07T04:45Z +decision:aml-praguri-tranzactie-ocazionala,because=Bucket-C-jurist-pending,status=open,bucket=H,ref=conformitate/F-lege-norme
+~2026-06-07T04:45Z +decision:ADR-002-SQLite-foldere,because=trigger-de-confirmat,status=open,bucket=I
+~2026-06-07T04:45Z +decision:ADR-003-lock-identitate,because=trigger-de-confirmat-cuplat-cu-#10,status=open,bucket=I
+~2026-06-07T04:45Z +decision:ADR-004-AI-gateway,because=trigger-de-confirmat,status=open,bucket=I
+~2026-06-07T04:45Z +decision:criptare-la-repaus-PII,because=disclaimer-vs-BitLocker-vs-parola,status=open,bucket=J,nivel=council-minim-a+b
+~2026-06-07T04:45Z +decision:lock-identitate-finalizare,because=BLOCANT-lansare-ADR-003,status=open,bucket=J
+~2026-06-07T04:45Z +decision:minim-lansare-sigura-ordine,because=disclaimere-alerte-lock-anexe,status=open,bucket=J
+~2026-06-07T04:45Z +decision:engine-abordari-pastreaza-vs-sterge,because=API-SEV2025-vs-dead-code,status=open,bucket=K,recomandare=pastreaza,ref=audit-skills-2026-06-07
+~2026-06-07T04:45Z +decision:retragere-endpoints-vechi-deprecation,because=Deprecation-header-acum-vs-asteapta,status=open,bucket=K,recomandare=marcheaza-acum,ref=audit-skills-2026-06-07

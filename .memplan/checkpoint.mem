@@ -1,0 +1,8 @@
+# Checkpoint — starea curenta a proiectului (sursa pentru /review si /start)
+~2026-06-07T04:50Z step:audit-skills-rulat-output-migrat-in-memplan
+~2026-06-07T04:50Z next-action:upgrade-urllib3-2.7.0+idna-3.15
+~2026-06-07T04:50Z open-tasks:33
+~2026-06-07T04:50Z open-decisions:37
+~2026-06-07T04:50Z resolved-bucket-A-from-audit-final:anti-SSRF+host-check+grila-422+date-fix+localitati+CNP+DoS+temp-docx
+~2026-06-07T04:50Z exe-status:50MB-include-grile-venit-DCF-retentie-temp-safety-feedback
+~2026-06-07T04:50Z test-status:487+teste+73-e2e-coverage-fail_under=90

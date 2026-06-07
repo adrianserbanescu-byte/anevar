@@ -15,3 +15,6 @@ __pycache__/
 # Date interne Claude Code
 .claude/
 .playwright-mcp/
+
+# Memplan: session marker (UUID per sesiune, regenerat la fiecare start)
+.memplan/.session_id

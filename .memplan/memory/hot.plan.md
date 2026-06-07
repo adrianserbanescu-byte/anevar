@@ -2,5 +2,11 @@
 
 ## Hot
 
-*(empty)*
+**Focus**: lansare-comerciala  
+**Blocant Absolut**: avocat-aml-pending  
+**Urgent**: upgrade-urllib3+idna-CVE-active  
+**Current Branch**: master  
+**Parallel Track**: rebuild-exe-include-grile-venit-DCF-retentie-temp-safety  
+**Recent Completed**: audit-skill-uri-cu-6-tools-rulate-rapoarte-in-AUTONOM+BLOCAT+audit-skills-2026-06-07  
+**Protocol**: never-pause+aml-bucket-c+ui-vechi-doar-la-cerere-Adi  
 
