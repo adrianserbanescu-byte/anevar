@@ -121,7 +121,7 @@ căutare pe portal → scrape HTML (fetch_html, HTTP direct) → parsare anunț 
 
 ---
 
-## 5. Întrebările pentru council (Q1–Q8)
+## 5. Întrebările pentru council (Q1–Q9)
 
 **Q1 — Criterii principale per categorie.** Pentru fiecare dintre cele 5 categorii (atenție la #5 catch-all): ce criterii principale ați pune în ranking, cu ce ponderi și ce formule de similaritate? Pentru #5 — set minimal comun + criterii pe sub-tip, sau altă strategie?
 Sub-întrebări:
@@ -149,6 +149,8 @@ Notă pe căutare vs. extracție: stradă/număr **APAR în textul anunțului** 
 *Una* dintre opțiunile de evaluat (nu propunerea centrală): un „consiliu de API-uri" care caută/extrage în paralel pe mai multe surse/extractoare, apoi un „API-lider" consolidează / atribuie un scor de încredere. *Date noi (de luat în calcul):* ipoteza „interogarea e ieftină" e **parțial confirmată** — extracția costă efectiv puțin (panel: llama-3.3-70b $0.10/$0.32 per M, vezi Q5), deci a rula mai multe extractoare în paralel e fezabil ca preț; **rămâne deschis** dacă orchestrarea multi-API aduce câștig real față de status quo (un scraper + un LLM ieftin), care deja funcționează. Cu ce trade-off-uri (latență, complexitate, drift între surse)? *(Delimitare: Q6 = grad de încredere PER SURSĂ afișat în UI; Q7 = arhitectură de orchestrare multi-API. Sunt întrebări distincte.)*
 
 **Q8 — Riscuri, dependențe, prioritizare.** Care sunt riscurile, dependențele și **ordinea de prioritate** recomandată pentru tot ce e mai sus: modelare per categorie, acoperire căutare (inclusiv surse noi pentru #3/#5), locație granulară, eventuala distanță în scor, dependența de LLM pentru stare/finisaj, încredere per sursă, și eventualul consiliu de API-uri?
+
+**Q9 — Altceva (catch-all).** Ce **NU** v-am întrebat, dar ar trebui? Orice abordare alternativă, oportunitate, risc, sau idee din afara cadrului de mai sus — inclusiv contestarea unei premise de bază (ex. „modelul de similaritate ponderată e abordarea greșită; ar trebui altceva"). Aici căutăm exact ce ne scapă nouă: dacă ați proiecta „Descoperă" de la zero, ce ați face diferit?
 
 ---
 
