@@ -228,11 +228,13 @@ function relevantaText(c){
 }
 // D2: mini-radar pe 4 axe (Locație/Fizic/Calitate/Funcțional) din c.axe. null (ex. locație
 // fără geocoding) = punct la centru + marcaj n/a. SVG inline, fără dependențe.
+// anchor per axă: etichetele laterale ies în afară pe orizontală (altfel se taie la
+// marginea viewBox-ului) → dreapta=start, stânga=end, sus/jos=middle.
 const AXE_D2 = [
-  {k:'locatie',   lbl:'Locație',    ang:-90},
-  {k:'fizic',     lbl:'Fizic',      ang:0},
-  {k:'calitate',  lbl:'Calitate',   ang:90},
-  {k:'functional',lbl:'Funcțional', ang:180},
+  {k:'locatie',   lbl:'Locație',    ang:-90, anchor:'middle'},
+  {k:'fizic',     lbl:'Fizic',      ang:0,   anchor:'start'},
+  {k:'calitate',  lbl:'Calitate',   ang:90,  anchor:'middle'},
+  {k:'functional',lbl:'Funcțional', ang:180, anchor:'end'},
 ];
 function randRadar(axe){
   if(!axe) return '';
@@ -254,12 +256,13 @@ function randRadar(axe){
     return pt(x.ang,r).map(n=>n.toFixed(1)).join(',');
   }).join(' ');
   const fill=`<polygon points="${dpts}" fill="rgba(157,74,37,.18)" stroke="var(--sienna)" stroke-width="1.5"/>`;
-  // etichete axe
+  // etichete axe (offset mic + anchor adaptat; viewBox lărgit lateral ca să încapă „Funcțional")
   let labels='';
-  AXE_D2.forEach(x=>{ const [lx,ly]=pt(x.ang,R+9);
-    labels+=`<text x="${lx.toFixed(1)}" y="${ly.toFixed(1)}" font-size="7" fill="var(--ink-faint)" text-anchor="middle" dominant-baseline="middle">${x.lbl}</text>`; });
+  AXE_D2.forEach(x=>{ const [lx,ly]=pt(x.ang,R+6);
+    labels+=`<text x="${lx.toFixed(1)}" y="${ly.toFixed(1)}" font-size="6.5" fill="var(--ink-faint)" text-anchor="${x.anchor}" dominant-baseline="middle">${x.lbl}</text>`; });
   const naTxt = naAxe.length ? ` (${naAxe.join('/')}: n/a)` : '';
-  return `<svg class="cand-radar" viewBox="0 0 104 104" width="104" height="104" role="img" `
+  // viewBox extins stânga/dreapta (−30 … 134 = lățime 164) ca etichetele orizontale să nu fie tăiate.
+  return `<svg class="cand-radar" viewBox="-30 0 164 108" width="120" height="79" role="img" `
     + `aria-label="Profil relevanță pe axe${naTxt}">${g}${fill}${labels}</svg>`;
 }
 const STARE_LBL={'1':'Degradată','2':'Necesită renovare','3':'Medie / bună','4':'Foarte bună / renovată','5':'Nouă'};
