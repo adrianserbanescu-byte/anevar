@@ -435,6 +435,24 @@ button.is-loading::after{
 }
 @media (prefers-reduced-motion:reduce){ .spinner, button.is-loading::after{ animation:none; } }
 
+/* Grid editabil: înlocuiește textarea-urile „CSV cu ;" cu rânduri structurate (audit Tier-C, data-entry).
+   JS gridEditabil(id, cols) serializează înapoi în textarea-ul ascuns → contractul backend rămâne neatins. */
+.grid-edit{ margin:6px 0 2px; border:1px solid var(--line); border-radius:var(--radius-sm); overflow:hidden; background:var(--paper-card); }
+.grid-edit table{ width:100%; border-collapse:collapse; }
+.grid-edit thead th{ background:var(--paper-sunk); color:var(--ink-2); font-size:.7rem; font-weight:700;
+  text-transform:uppercase; letter-spacing:.03em; text-align:left; padding:5px 8px; border-bottom:1px solid var(--line); }
+.grid-edit tbody td{ padding:1px 5px; border-bottom:1px solid var(--line-2); }
+.grid-edit tbody tr:last-child td{ border-bottom:0; }
+.grid-edit input{ width:100%; box-sizing:border-box; border:0; background:transparent; padding:6px 4px; font:inherit; color:var(--ink); }
+.grid-edit input:focus{ outline:2px solid var(--sienna); outline-offset:-2px; border-radius:3px; background:#fff; }
+.grid-edit td.ge-rm{ width:32px; text-align:center; padding:0; }
+.grid-edit td.ge-rm button{ border:0; background:none; color:var(--danger); font-size:14px; line-height:1; cursor:pointer; padding:4px 6px; border-radius:4px; opacity:.5; }
+.grid-edit td.ge-rm button:hover{ opacity:1; background:var(--danger-soft); }
+.grid-add{ display:inline-flex; align-items:center; gap:.35em; margin:3px 0 10px; padding:.35em .85em;
+  border:1px dashed var(--line-2); border-radius:var(--radius-pill); background:var(--paper-sunk);
+  color:var(--ink-2); font:600 .82rem/1 inherit; cursor:pointer; }
+.grid-add:hover{ border-color:var(--gold); color:var(--ink); background:var(--paper-card); }
+
 /* ----------------------------------------------------- Wizard: pași */
 main{ display:block; }
 .pas{

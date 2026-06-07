@@ -154,10 +154,10 @@
           <div class="field"><label for="an_referinta">An referință</label><input id="an_referinta" type="number" placeholder="ex. 2025"></div>
         </div>
         <div id="grup-cost">
-          <label for="elemente">Elemente de cost (abordarea prin cost) <span class="hint">(element;cod;um;cantitate;cost_unitar;an_pif — una pe linie)</span></label>
+          <label for="elemente">Elemente de cost (abordarea prin cost)</label>
           <textarea id="elemente" rows="2" aria-describedby="h-elemente" placeholder="Structura;X;mp;120;2000;2015"></textarea>
           <small id="h-elemente" class="hint">Necesare doar pentru abordarea prin cost (casă/industrial/special).</small>
-          <label for="depreciere">Depreciere <span class="hint">(vârstă;fracție, una pe linie)</span></label>
+          <label for="depreciere">Depreciere fizică <span class="hint">(vârstă în ani → fracție 0–1)</span></label>
           <textarea id="depreciere" rows="2" placeholder="5;0.05"></textarea>
         </div>
       </div>
@@ -275,7 +275,7 @@
       </div>
       <div id="grup-dcf" hidden>
         <h3>Date DCF</h3>
-        <label for="fluxuri">Fluxuri anuale <span class="hint">(o sumă pe linie)</span></label>
+        <label for="fluxuri">Fluxuri anuale <span class="hint">(venit net, un an pe rând)</span></label>
         <textarea id="fluxuri" rows="3" placeholder="10000&#10;11000&#10;12000"></textarea>
         <div class="field-row">
           <div class="field"><label for="rata_actualizare">Rată actualizare</label><input id="rata_actualizare" placeholder="ex. 0.1"></div>
@@ -654,6 +654,64 @@ if($("data_evaluarii")) $("data_evaluarii").addEventListener("change", function(
     function upd(){ if(d.value && d.value>azi) d.value=azi; ech.textContent = d.value ? "📅 "+roData(d.value) : ""; }
     d.addEventListener("change", upd); upd();
   });
+})();
+
+// ---- Grid editabil peste textarea „CSV cu ;" (audit Tier-C: data-entry structurat, fără serializare manuală) ----
+// Rânduri = linii, coloane = câmpuri „;". Sincronizează ÎNAPOI în textarea-ul (ascuns) → contractul backend rămâne.
+// Construit doar cu DOM safe (createElement/textContent) — fără innerHTML.
+function gridEditabil(id, cols, addLabel){
+  var ta=$(id); if(!ta || ta._grid) return;
+  ta.hidden=true; ta.setAttribute("aria-hidden","true"); ta.tabIndex=-1;
+  var wrap=document.createElement("div"); wrap.className="grid-edit";
+  var table=document.createElement("table"), thead=document.createElement("thead"), htr=document.createElement("tr");
+  cols.forEach(function(c){ var th=document.createElement("th"); th.textContent=c.label; if(c.w) th.style.width=c.w; htr.appendChild(th); });
+  var thx=document.createElement("th"); thx.setAttribute("aria-hidden","true"); htr.appendChild(thx);
+  thead.appendChild(htr); table.appendChild(thead);
+  var tbody=document.createElement("tbody"); table.appendChild(tbody); wrap.appendChild(table);
+  var add=document.createElement("button"); add.type="button"; add.className="grid-add";
+  var plus=document.createElement("span"); plus.setAttribute("aria-hidden","true"); plus.textContent="+";
+  add.appendChild(plus); add.appendChild(document.createTextNode(" "+(addLabel||"adaugă rând")));
+  ta.parentNode.insertBefore(wrap, ta.nextSibling);
+  ta.parentNode.insertBefore(add, wrap.nextSibling);
+  function rand(vals){
+    var tr=document.createElement("tr");
+    cols.forEach(function(c,i){
+      var td=document.createElement("td"), inp=document.createElement("input");
+      inp.value=(vals[i]!=null?vals[i]:""); if(c.ph) inp.placeholder=c.ph; if(c.num) inp.inputMode="decimal";
+      inp.setAttribute("aria-label", c.label); inp.addEventListener("input", sync);
+      td.appendChild(inp); tr.appendChild(td);
+    });
+    var rm=document.createElement("td"); rm.className="ge-rm";
+    var rb=document.createElement("button"); rb.type="button"; rb.title="Șterge rândul";
+    rb.setAttribute("aria-label","Șterge rândul"); rb.textContent="✕";
+    rb.addEventListener("click", function(){ tr.parentNode.removeChild(tr); if(!tbody.children.length) adauga([]); sync(); });
+    rm.appendChild(rb); tr.appendChild(rm); return tr;
+  }
+  function adauga(vals){ tbody.appendChild(rand(vals||[])); }
+  function sync(){
+    var linii=[];
+    Array.prototype.forEach.call(tbody.children, function(tr){
+      var vals=Array.prototype.map.call(tr.querySelectorAll("input"), function(i){ return i.value.trim(); });
+      if(vals.some(function(x){ return x; })) linii.push(vals.join(";"));
+    });
+    ta.value=linii.join("\n");
+    if(typeof salveaza==="function") salveaza();
+  }
+  function load(){
+    while(tbody.firstChild) tbody.removeChild(tbody.firstChild);
+    var linii=(ta.value||"").replace(/\r\n/g,"\n").trim().split("\n").filter(Boolean);
+    if(!linii.length) adauga([]); else linii.forEach(function(l){ adauga(l.split(";")); });
+  }
+  add.addEventListener("click", function(){ adauga([]); var last=tbody.lastChild, inp=last&&last.querySelector("input"); if(inp) inp.focus(); });
+  ta._grid={ refresh:load }; load();
+}
+(function(){   // câmpuri cost/depreciere/DCF = manual-entry (fără scrieri externe) → conversie curată
+  gridEditabil("elemente",[
+    {label:"Element",ph:"Structură",w:"23%"},{label:"Cod",ph:"S",w:"9%"},{label:"U.M.",ph:"mp",w:"9%"},
+    {label:"Cant.",ph:"120",num:1,w:"13%"},{label:"Cost unitar",ph:"2000",num:1,w:"19%"},{label:"An PIF",ph:"2015",num:1,w:"12%"}
+  ],"adaugă element");
+  gridEditabil("depreciere",[{label:"Vârstă (ani)",ph:"5",num:1},{label:"Fracție (0–1)",ph:"0.05",num:1}],"adaugă punct");
+  gridEditabil("fluxuri",[{label:"Flux anual (venit net)",ph:"10000",num:1}],"adaugă an");
 })();
 
 // Anexe: foto (Anexa 2) + documente/scanuri (Anexa 3) → data-URL base64, incluse în raport.
