@@ -129,6 +129,7 @@ def test_descopera_include_axe_pe_candidat(tmp_path):
     assert "axe" in c0
     assert set(c0["axe"]) == {"locatie", "fizic", "calitate", "functional"}
     assert c0["axe"]["locatie"] is None
+    assert "poza" in c0          # cheia exista mereu pt carduri (None daca anuntul n-are og:image)
 
 
 # ── Robustete (fix-uri din verificarea adversariala) ─────────────────────────────────────────

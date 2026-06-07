@@ -120,7 +120,7 @@ def _apartament_exclus(tip_activ: str | None, subiect_camere, candidat_camere) -
 def descopera(
     portal: str, judet: str, localitate: str, subiect: SubjectProfile,
     atribute_secundare: list, fetcher: Callable[[str], str] = fetch_html,
-    client: NarrativeClient | None = None, max_candidati: int = 8,
+    client: NarrativeClient | None = None, max_candidati: int = 20,
     tip_activ: str | None = None, ponderi: dict | None = None,
 ) -> list[CandidateResult]:
     """Pipeline complet de descoperire. Întoarce candidați rankați după relevanță.
@@ -170,8 +170,8 @@ def descopera(
         pret_mp = _pret_mp_daca_teren_comparabil(parsed, subiect, extraction.profile.teren)
         rezultate.append(CandidateResult(
             url=url, titlu=parsed.titlu, pret=parsed.pret, suprafata=parsed.suprafata,
-            teren=extraction.profile.teren, pret_mp=pret_mp, breakdown=breakdown,
-            secundare=extraction.secundare,
+            teren=extraction.profile.teren, pret_mp=pret_mp, poza=parsed.poza,
+            breakdown=breakdown, secundare=extraction.secundare,
         ))
     rezultate.sort(key=lambda r: r.breakdown.relevanta, reverse=True)
     return rezultate
@@ -187,7 +187,7 @@ def _relevanta_teren(supr, subiect_supr) -> int:
 
 def descopera_teren(
     portal: str, judet: str, localitate: str, suprafata_subiect: Decimal | None = None,
-    fetcher: Callable[[str], str] = fetch_html, max_candidati: int = 8,
+    fetcher: Callable[[str], str] = fetch_html, max_candidati: int = 20,
 ) -> list[LandDiscoveryResult]:
     """Descopera comparabile de TEREN: cauta anunturi de teren, calculeaza EUR/mp si relevanta.
 

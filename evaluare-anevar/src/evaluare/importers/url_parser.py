@@ -43,6 +43,7 @@ class ParsedListing(BaseModel):
     stare_text: str | None = None            # stare normalizata (din construction_status)
     nr_camere: int | None = None
     etaje: str | None = None                 # ex. un nivel
+    poza: str | None = None                  # URL imagine reprezentativa (og:image) - pt carduri UI
     pagina_lista: bool = False               # pagina pare listă/căutare, nu un anunț individual
 
 
@@ -325,7 +326,15 @@ def parse_listing_html(html: str, sursa_url: str = "") -> ParsedListing:
     for prop in ("og:title", "og:description"):
         og = soup.find("meta", property=prop)
         if og and og.get("content"):
-            text_cautare += " " + og["content"]
+            text_cautare += " " + str(og["content"])
+    # imagine reprezentativa pt carduri (og:image, fallback twitter:image)
+    poza = None
+    for cheie, val in (("property", "og:image"), ("name", "twitter:image")):
+        tag = soup.find("meta", attrs={cheie: val})
+        if tag and tag.get("content"):
+            poza = str(tag["content"]).strip() or None
+            if poza:
+                break
     if suprafata is None:
         # „N mp" e suprafața TERENULUI dacă „teren" e eticheta dinainte („teren: 2000 mp")
         # sau urmează imediat după unitate („2000mp Teren") — NU o confunda cu suprafața casei
@@ -365,7 +374,7 @@ def parse_listing_html(html: str, sursa_url: str = "") -> ParsedListing:
                          an=car.get("an"), incalzire=car.get("incalzire"),
                          material=car.get("material"), tip_cladire=car.get("tip_cladire"),
                          stare_text=car.get("stare_text"), nr_camere=car.get("nr_camere"),
-                         etaje=car.get("etaje"),
+                         etaje=car.get("etaje"), poza=poza,
                          pagina_lista=_pare_pagina_lista(text_cautare))
 
 

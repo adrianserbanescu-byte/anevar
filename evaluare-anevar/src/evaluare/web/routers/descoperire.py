@@ -50,6 +50,7 @@ def build_router(d: Deps) -> APIRouter:
                 "suprafata": str(r.suprafata) if r.suprafata is not None else None,
                 "teren": str(r.teren) if r.teren is not None else None,
                 "pret_mp": str(r.pret_mp) if r.pret_mp is not None else None,
+                "poza": r.poza,                  # URL imagine (og:image) pt cardurile UI; None daca lipseste
                 "relevanta": r.breakdown.relevanta,
                 "axe": r.breakdown.axe,          # scor pe axe pt radarul D2 (None = axa fara date)
                 "incredere_scazuta": r.breakdown.incredere_scazuta,

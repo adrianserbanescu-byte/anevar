@@ -47,5 +47,6 @@ class CandidateResult(BaseModel):
     suprafata: Decimal | None = None             # suprafata casei
     teren: Decimal | None = None                 # suprafata terenului
     pret_mp: Decimal | None = None               # €/mp construit - DOAR daca terenul e comparabil
+    poza: str | None = None                       # URL imagine reprezentativa (og:image) pt carduri
     breakdown: ScoreBreakdown
     secundare: list[SecondaryAttributeResult] = Field(default_factory=list)
