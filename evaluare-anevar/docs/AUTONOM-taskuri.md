@@ -107,7 +107,9 @@
 - [ ] **Adaugă logging la modulul `engine/`** (`abordari`, `chirie`, `reconciliation`, `validation`, `venit`) —
       flux: input → coeficienți → rezultat. Critic pentru audit ANEVAR + reproducibilitate.
 - [ ] **Adaugă logging la `audit/raport_audit.py`** — ironic: modulul de audit nu emite log.
-- [ ] **Adaugă logging la `report/generator.py`** — pentru a ști ce secțiune a eșuat la generare `.docx`.
+- [x] **Adaugă logging la `report/generator.py`** — DONE pe `sesiune-b` (commit-uri ba3f14e/7a19213, Sesiunea B):
+      logger dedicat + `log.warning` la inserarea Anexa 2/3 (foto/scanuri care dispăreau TĂCUT din raport) +
+      `log.debug` pe formatări (`_fmt/_b2/_pct`) + `log.info` la generare (fără PII). +test caplog. ⏳ pending merge de A.
 - [ ] **Fix silent failures (40 except blocks fără log+raise):**
   - `importers/url_parser.py` liniile 55, 69, 98, 140, 158, 304, 396, 402 — toate `return None`/`False` la 8 except. Adaugă `log.warning("parse failed for %s: %s", url, e)`.
   - `discovery/extractor.py` liniile 48, 65, 168 — `return None` la fetch eșuat.
