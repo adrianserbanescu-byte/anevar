@@ -97,7 +97,10 @@ def build_router(d: Deps) -> APIRouter:
         try:
             meta, continut = docs.incarca(slug)
         except KeyError:
-            raise HTTPException(status_code=404, detail="Document inexistent.") from None
+            raise HTTPException(
+                status_code=404,
+                detail=f"Documentul „{slug}” nu există (cod 404). Vezi lista completă la /documente.",
+            ) from None
         return d.templates.TemplateResponse(request, "document.html",
             {"meta": meta, "continut": continut})
 
