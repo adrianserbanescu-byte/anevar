@@ -46,3 +46,32 @@ def ponderi_pentru(tip_activ: str | None = None) -> dict[str, int]:
     if not tip_activ:
         return dict(PONDERI_BAZA)
     return dict(PONDERI_PER_CATEGORIE.get(tip_activ, PONDERI_BAZA))
+
+
+# ── Axe de radar (D2) ────────────────────────────────────────────────────────────────────────
+# Maparea atribut → axă pentru radarul multi-axă al lui C. CONFIG, calibrabil de Adi (bucket B).
+# „Locație" rămâne goală (None) până la geocoding (P1.2) — n-avem încă semnal de localizare în scor.
+AXE: list[str] = ["locatie", "fizic", "calitate", "functional"]
+AXA_ATRIBUT: dict[str, str] = {
+    "suprafata_construita": "fizic", "an": "fizic", "teren": "fizic",
+    "stare": "calitate", "finisaj": "calitate",
+    "nr_camere": "functional", "etaj": "functional", "incalzire": "functional",
+}
+
+
+def fuzioneaza_override(override: dict | None) -> dict[str, dict[str, float]]:
+    """Aplică override-ul (ponderi editate de user) peste valorile default, DOAR pe categorii și
+    atribute cunoscute (ignoră restul, ca să nu injecteze chei străine). Întoarce un dict nou.
+    """
+    rezultat: dict[str, dict[str, float]] = {
+        cat: dict(p) for cat, p in PONDERI_PER_CATEGORIE.items()
+    }
+    if not isinstance(override, dict):
+        return rezultat
+    for cat, ponderi in override.items():
+        if cat not in rezultat or not isinstance(ponderi, dict):
+            continue
+        for atr, val in ponderi.items():
+            if atr in rezultat[cat] and isinstance(val, (int, float)) and not isinstance(val, bool):
+                rezultat[cat][atr] = val
+    return rezultat

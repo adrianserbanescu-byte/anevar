@@ -121,14 +121,15 @@ def descopera(
     portal: str, judet: str, localitate: str, subiect: SubjectProfile,
     atribute_secundare: list, fetcher: Callable[[str], str] = fetch_html,
     client: NarrativeClient | None = None, max_candidati: int = 8,
-    tip_activ: str | None = None,
+    tip_activ: str | None = None, ponderi: dict | None = None,
 ) -> list[CandidateResult]:
     """Pipeline complet de descoperire. Întoarce candidați rankați după relevanță.
 
     `tip_activ` selectează ponderile per categorie (config-driven). None → ponderile de bază
-    (modelul casei) → comportament identic cu varianta istorică.
+    (modelul casei) → comportament identic cu varianta istorică. `ponderi` (opțional) suprascrie
+    ponderile efective ale categoriei (ex. override-ul editat de evaluator, persistat local).
     """
-    ponderi = ponderi_pentru(tip_activ)
+    ponderi = ponderi if ponderi is not None else ponderi_pentru(tip_activ)
     urls = cauta_anunturi(portal, judet, localitate, fetcher=fetcher)[:max_candidati]
     rezultate: list[CandidateResult] = []
     for url in urls:

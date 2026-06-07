@@ -54,3 +54,5 @@ class ScoreBreakdown(BaseModel):
     atribute_cunoscute: int
     incredere_scazuta: bool
     explicatie: str                             # formula exacta cu numere (auto-continuta)
+    # Scor descompus pe axe pentru radarul D2 (Locatie/Fizic/Calitate/Functional); None = axa fara date.
+    axe: dict[str, int | None] = Field(default_factory=dict)

@@ -98,6 +98,12 @@ class DescoperaRequest(BaseModel):
     tip_activ: str | None = None        # categoria proprietatii (ex. "apartament") -> model de scoring per categorie
 
 
+class ConfigPonderiRequest(BaseModel):
+    """Ponderi editate de evaluator (D1), per categorie: {"<categorie>": {"<atribut>": <numar>}}."""
+
+    ponderi: dict[str, dict[str, float]]
+
+
 class AmlEvaluareRequest(BaseModel):
     tip_entitate: str = "PFA"            # PFA | PJ (entitatea evaluator)
     azi: str                             # data evaluarii (yyyy-mm-dd)
