@@ -16,6 +16,7 @@
   }
 </style></head>
 <body>
+{% from "_icon.html" import icon %}
 <a class="skip-link" href="#continut">Sari la conținut</a>
 {% set pagina = "aml" %}{% include "_topbar.html" %}
 {% set kicker = "Conformitate" %}{% set titlu = "Conformitate AML — Legea 129/2019" %}{% set subtitlu = "KYC · evaluare de risc · documente de raportare." %}{% include "_cartus.html" %}
@@ -24,7 +25,7 @@ beneficiar real, evaluarea de risc, indicatorii de suspiciune și pragul de nume
 Datele rămân <b>local</b>; rapoartele suspecte se păstrează separat (interdicție de divulgare, art. 38).
 Modulul propune — <b>evaluatorul decide și transmite</b> (rapoarte.onpcsb.ro).</p>
 <div class="avert-legal" role="alert">
-  <span aria-hidden="true">⚠️</span> Aplicația <b>NU verifică automat</b> listele de sancțiuni/PEP. Verifică manual pe sursele oficiale:
+  {{ icon("warn","ico-gold") }} Aplicația <b>NU verifică automat</b> listele de sancțiuni/PEP. Verifică manual pe sursele oficiale:
   <a href="https://www.opensanctions.org/" target="_blank" rel="noopener">OpenSanctions</a> ·
   <a href="https://www.sanctionsmap.eu/" target="_blank" rel="noopener">EU Sanctions Map</a> ·
   <a href="https://sanctionssearch.ofac.treas.gov/" target="_blank" rel="noopener">OFAC</a>.
@@ -93,8 +94,8 @@ Modulul propune — <b>evaluatorul decide și transmite</b> (rapoarte.onpcsb.ro)
 <fieldset>
  <legend>Documente GDPR (model)</legend>
  <p class="hint">Drafturi de validat de un jurist și de adaptat la cabinet (operatorul de date e evaluatorul).</p>
- <button type="button" class="ghost" onclick="descarca('/api/gdpr/politica.docx')"><span aria-hidden="true">📄</span> Politică de prelucrare</button>
- <button type="button" class="ghost" onclick="descarca('/api/gdpr/consimtamant.docx')"><span aria-hidden="true">📄</span> Acord consimțământ client</button>
+ <button type="button" class="ghost" onclick="descarca('/api/gdpr/politica.docx')">{{ icon("doc") }} Politică de prelucrare</button>
+ <button type="button" class="ghost" onclick="descarca('/api/gdpr/consimtamant.docx')">{{ icon("doc") }} Acord consimțământ client</button>
 </fieldset>
 </main>
 
