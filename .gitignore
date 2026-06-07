@@ -21,3 +21,6 @@ __pycache__/
 
 # Stare de lucru a uneltei memplan (nu se versionează)
 .memplan/
+
+# PDF-uri generate din .md (regenerabile: scripts/_md2pdf.py + LibreOffice)
+evaluare-anevar/docs/pdf/
