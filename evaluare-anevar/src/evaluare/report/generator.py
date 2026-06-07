@@ -762,4 +762,8 @@ def genereaza_raport(
 
     output_path = Path(output_path)
     doc.save(str(output_path))
+    # Log operațional (fără PII: doar nume fișier=uid, metodă, nr. anexe cerute) — diagnoză pe teren.
+    log.info("Raport generat: %s (metoda=%s, foto cerute=%d, scanuri cerute=%d)",
+             output_path.name, ctx.reconciled.metoda_selectata,
+             len(ctx.photos), len(ctx.documente))
     return output_path
