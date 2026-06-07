@@ -18,7 +18,7 @@
 .fl-step:hover{background:var(--paper-sunk)}
 .fl-step .k{font-family:var(--sans);text-transform:uppercase;letter-spacing:.1em;font-size:var(--text-xs);color:var(--ink-faint);font-weight:600;display:flex;align-items:center;gap:var(--space-2);flex-wrap:wrap}
 .fl-step .n{width:26px;height:26px;flex:none;border-radius:var(--radius-pill);border:1.5px solid var(--field-border);display:inline-grid;place-items:center;font-weight:700;font-size:var(--text-sm);color:var(--ink-faint);background:var(--paper-card)}
-.fl-step .t{font-family:var(--serif);font-size:1.05rem;font-weight:600;margin-top:var(--space-2);line-height:1.05;color:var(--ink);overflow-wrap:anywhere}
+.fl-step .t{font-family:var(--serif);font-size:clamp(.72rem,1.05vw,1.02rem);font-weight:600;margin-top:var(--space-2);line-height:1.15;color:var(--ink);overflow-wrap:break-word;hyphens:auto}
 .fl-step[aria-current="true"]{border-color:var(--sienna);background:var(--paper-card);box-shadow:var(--emboss)}
 .fl-step[aria-current="true"] .n{background:var(--sienna);border-color:var(--sienna);color:#fff}
 .fl-step.done .n{background:var(--green);border-color:var(--green);color:#fff;font-size:0}
