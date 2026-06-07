@@ -1,7 +1,11 @@
 <!DOCTYPE html>
 <html lang="ro">
 <head><meta charset="utf-8"><title>Dosare salvate</title>
-<style>{% include "_design.css" %}</style></head>
+<style>{% include "_design.css" %}</style>
+<style>
+  /* #5 (feedback Adi): header de tabel mai ușor pt liste scurte — fără navy greu */
+  table th{ background:var(--paper-sunk); color:var(--ink); border-bottom:2px solid var(--line-2); font-weight:600; }
+</style></head>
 <body>
 <a class="skip-link" href="#continut">Sari la conținut</a>
 {% set pagina = "dosare" %}{% include "_topbar.html" %}
