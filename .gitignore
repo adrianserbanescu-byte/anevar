@@ -29,3 +29,6 @@ evaluare-anevar/.serena/
 # PDF-uri generate din .md (regenerabile: scripts/_md2pdf.py + LibreOffice)
 evaluare-anevar/docs/pdf/
 evaluare-anevar/docs/docx/
+
+# Loguri de runtime ale aplicației (RotatingFileHandler)
+*.log
