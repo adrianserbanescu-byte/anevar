@@ -102,8 +102,12 @@
 
 <h2>Rezultate</h2>
 <div id="rezultate" role="region" aria-label="Rezultate descoperire">
-  <p class="hint" id="rezultate-gol">Niciun rezultat încă. Completează formularul de mai sus și apasă
-   <b>„Caută comparabile"</b> pentru a porni căutarea.</p>
+  <div class="empty-state" id="rezultate-gol">
+    <span class="es-icon" aria-hidden="true">🔍</span>
+    <h3>Niciun rezultat încă</h3>
+    <p>Completează criteriile proprietății subiect de mai sus și pornește căutarea de comparabile pe portaluri.</p>
+    <button type="button" class="btn" onclick="document.getElementById('judet').focus()">Completează criteriile ↑</button>
+  </div>
 </div>
 </main>
 
@@ -318,8 +322,11 @@ document.getElementById('f').addEventListener('submit', async (e)=>{
   document.getElementById('metodologie').innerHTML = randMetodologie(res.metodologie);
   if(res.candidati.length === 0){
     document.getElementById('rezultate').innerHTML =
-      '<p class="hint">Niciun comparabil găsit pentru criteriile alese. Încearcă o zonă mai largă '
-      + '(doar județul) sau verifică localitatea.</p>';
+      '<div class="empty-state"><span class="es-icon" aria-hidden="true">🗺</span>'
+      + '<h3>Niciun comparabil găsit</h3>'
+      + '<p>Pentru criteriile alese nu există anunțuri. Încearcă o zonă mai largă (doar județul) '
+      + 'sau verifică denumirea localității.</p>'
+      + '<button type="button" class="btn" onclick="document.getElementById(\'localitate\').focus()">Ajustează zona ↑</button></div>';
     return;
   }
   document.getElementById('rezultate').innerHTML =

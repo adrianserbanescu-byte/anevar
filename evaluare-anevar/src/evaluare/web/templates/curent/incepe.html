@@ -73,8 +73,12 @@
       {% endfor %}
     </table>
   {% else %}
-    <div class="callout">Niciun dosar salvat încă. Apasă „<span aria-hidden="true">➕</span> Dosar nou" ca să începi primul dosar —
-     identitatea (client, scop, tip) o completezi în pagina dosarului.</div>
+    <div class="empty-state">
+      <span class="es-icon" aria-hidden="true">🗂</span>
+      <h3>Niciun dosar salvat încă</h3>
+      <p>Începe primul dosar — identitatea (client, scop, tip) o completezi în pagina dosarului.</p>
+      <button type="button" class="btn" onclick="document.getElementById('nou').click()">➕ Dosar nou</button>
+    </div>
   {% endif %}
 
   {% if diff.disparute %}
