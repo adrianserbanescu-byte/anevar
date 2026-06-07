@@ -6,6 +6,7 @@ nu în SQLite. Vezi docs/specs/1-ui-output-first.md.
 from __future__ import annotations
 
 import tempfile
+import uuid
 import zipfile
 from pathlib import Path
 
@@ -197,14 +198,22 @@ def build_router(d: Deps) -> APIRouter:
 
     @router.post("/api/dosar/{uid}/raport.docx")
     def genereaza(uid: str, inp: EvaluationInput, adnotari: int = 0, fmt: str = "docx") -> FileResponse:
-        """Generează raportul. `fmt` ∈ {docx (implicit), pdf, ambele}. PDF necesită LibreOffice/Word local."""
+        """Generează raportul. `fmt` ∈ {docx (implicit), pdf, ambele}. PDF necesită LibreOffice/Word local.
+
+        Per decizia #14 (2026-06-07): Genereaza CERE Calcul reușit. _context() invocă
+        construieste_context() — aceeași cale ca /api/dosar/{uid}/calcul. Date insuficiente → 422
+        clar prin _context. Single source of truth: nu poți genera raport fără calcul valid.
+        """
         try:
             fs.incarca(uid)
         except KeyError:
+            log.warning("genereaza: dosar inexistent uid=%s", uid)
             raise HTTPException(404, "Dosar inexistent.") from None
-        ctx = _context(inp)
+        log.info("genereaza raport uid=%s fmt=%s adnotari=%s", uid, fmt, bool(adnotari))
+        ctx = _context(inp)  # 422 daca calcul nu poate fi facut (decizia #14)
         tmp = Path(tempfile.gettempdir())
-        out = tmp / f"raport_{uid}.docx"
+        tok = uuid.uuid4().hex[:8]          # token unic: evită coliziuni la generări concurente pe același dosar
+        out = tmp / f"raport_{uid}_{tok}.docx"
         genereaza_raport(ctx, out, adnotari=bool(adnotari))   # adnotări = note de proveniență (review)
         fs.adauga_versiune_docx(uid, out)              # versiune .docx persistentă (canonică) în folderul dosarului
         from starlette.background import BackgroundTask
@@ -228,7 +237,7 @@ def build_router(d: Deps) -> APIRouter:
         if formate == "pdf":
             return FileResponse(str(pdf), media_type="application/pdf", filename=f"{nume}.pdf",
                                 background=_sterge(out, pdf))
-        zpath = tmp / f"raport_{uid}.zip"   # „ambele" -> arhivă cu .docx + .pdf
+        zpath = tmp / f"raport_{uid}_{tok}.zip"   # „ambele" -> arhivă cu .docx + .pdf
         with zipfile.ZipFile(zpath, "w", zipfile.ZIP_DEFLATED) as z:
             z.write(out, f"{nume}.docx")
             z.write(pdf, f"{nume}.pdf")
