@@ -62,6 +62,11 @@
 31. **Goluri AML noi (jurist):** informare GDPR client înainte de relație (art. 22(2)); ștergere date la expirarea retenției
     (art. 21(4)); coborârea pragului beneficiar-real la risc sporit (Norme art. 16(4)(e)); monitorizare continuă (avem one-shot).
 32. ✅ **Închis:** pragul de „3.000 €" din auditul vechi e **INFIRMAT** — nu există în lege (toate celelalte praguri sunt corecte).
+36. **Descoperire D4 — pivot ANCPI/notariat (preț FINAL tranzacționat) — NEALINIERE de validat juridic (decizia Adi: bucket C):**
+    - **Problema (council, ridicată doar de Claude):** anunțurile de pe portaluri = preț **ASK** (cerere), umflat tipic **+10–15%** față de prețul real tranzacționat. Comparabilele construite din anunțuri moștenesc distorsiunea → supraevaluare sistematică dacă nu se ajustează.
+    - **Soluția propusă:** acces la prețurile **FINALE** din **ANCPI** (carte funciară) / **notariat (UNNPR)** ca „strat 0" mult mai exact decât anunțurile.
+    - **Nealinierea juridică (de ce e bucket C):** datele ANCPI/notariat **NU sunt public-accesibile** pentru agregare/scraping; accesul cere **temei legal** + ridică **GDPR** pe datele de tranzacție (preț + identitatea părților). De validat de jurist: *putem accesa + folosi legal aceste date într-un tool comercial?*
+    - **Mitigare curentă (dacă NU):** rămânem pe anunțuri + **ajustare ofertă→tranzacție** (GEV 520 §4.3.4) — deja în aplicație. Dacă DA → cel mai mare salt de acuratețe al „Descoperă".
 
 ## I. ADR-uri formale (din `docs/adr/`) — AVANSATE 2026-06-07 (rămân doar deciziile tale)
 - **ADR-002** (SQLite→foldere): ✅ **script de migrare implementat** (`src/evaluare/migrare.py` + CLI + teste, ne-distructiv/idempotent). Rămân: declanșatorii Fazei 2/3 (#17/#18).
