@@ -51,7 +51,10 @@ def build_router(d: Deps) -> APIRouter:
         try:
             ctx = d.storage.load(eid)
         except KeyError:
-            raise HTTPException(status_code=404, detail="Dosarul nu există sau a fost șters.") from None
+            raise HTTPException(
+                status_code=404,
+                detail="Dosarul nu există sau a fost șters (cod 404). Verifică ID-ul în lista de dosare la /dosare.",
+            ) from None
         return {
             "id": eid,
             "client_nume": ctx.meta.client_nume,
@@ -64,7 +67,10 @@ def build_router(d: Deps) -> APIRouter:
         try:
             ctx = d.storage.load(eid)
         except KeyError:
-            raise HTTPException(status_code=404, detail="Dosarul nu există sau a fost șters.") from None
+            raise HTTPException(
+                status_code=404,
+                detail="Dosarul nu există sau a fost șters (cod 404). Verifică ID-ul în lista de dosare la /dosare.",
+            ) from None
         # ?demo=1 -> raport cu note de provenienta (calculat/extras/AI/exemplu/placeholder)
         sufix = "_demo" if demo else ""
         out = Path(tempfile.gettempdir()) / f"raport_{eid}{sufix}.docx"
@@ -116,7 +122,10 @@ def build_router(d: Deps) -> APIRouter:
         try:
             ctx = d.storage.load(eid)
         except KeyError:
-            raise HTTPException(status_code=404, detail="Dosarul nu există sau a fost șters.") from None
+            raise HTTPException(
+                status_code=404,
+                detail="Dosarul nu există sau a fost șters (cod 404). Verifică ID-ul în lista de dosare la /dosare.",
+            ) from None
         j = JurnalAudit()
         j.inregistreaza("identificare", {"adresa": ctx.meta.adresa,
                                          "cadastral": ctx.meta.numar_cadastral, "scop": ctx.meta.scop})
@@ -152,7 +161,10 @@ def build_router(d: Deps) -> APIRouter:
         try:
             ctx = d.storage.load(eid)
         except KeyError:
-            raise HTTPException(status_code=404, detail="Dosarul nu există sau a fost șters.") from None
+            raise HTTPException(
+                status_code=404,
+                detail="Dosarul nu există sau a fost șters (cod 404). Verifică ID-ul în lista de dosare la /dosare.",
+            ) from None
         val = ctx.reconciled.valoare_finala
         moneda = (ctx.meta.moneda or "LEI").upper()
         curs = ctx.meta.curs_valutar

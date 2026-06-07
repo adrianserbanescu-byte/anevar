@@ -14,9 +14,11 @@
 <main id="continut">
   <div class="field-row">
     <div class="field"><label for="nume">Nume evaluator</label>
-      <input id="nume" autocomplete="name" value="{{ cont.nume if cont else '' }}"></div>
+      <input id="nume" type="text" autocomplete="name" required aria-required="true"
+             value="{{ cont.nume if cont else '' }}"></div>
     <div class="field"><label for="legitimatie">Legitimație ANEVAR</label>
-      <input id="legitimatie" value="{{ cont.legitimatie if cont else '' }}"></div>
+      <input id="legitimatie" type="text" inputmode="numeric" autocomplete="off" required aria-required="true"
+             value="{{ cont.legitimatie if cont else '' }}"></div>
   </div>
   <h3>Format nume dosar (minim 3 câmpuri, în ordine)</h3>
   <p class="hint">Toate dosarele tale vor folosi acest format. „ID client" e free-text la dosar nou,
@@ -28,8 +30,8 @@
     {% endfor %}
   </div>
   <p class="hint">Previzualizare nume: <b id="preview">—</b></p>
-  <button type="button" id="salveaza">Salvează contul</button>
-  <span id="status" class="hint" role="status"></span>
+  <button type="button" id="salveaza" aria-describedby="status">Salvează contul</button>
+  <span id="status" class="hint" role="status" aria-live="polite"></span>
 </main>
 <script>
 function alese(){ return [...document.querySelectorAll('.fmt:checked')].map(c=>c.value); }
