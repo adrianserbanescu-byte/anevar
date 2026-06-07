@@ -309,6 +309,17 @@ def test_dosar_html_arata_lock_dupa_asumare(client):
     assert "var BLOCAT = true" in html
 
 
+def test_lock_unlock_concurenta_endpoints(client):
+    # ADR-003 item 7: lock detectează altă fereastră (alt token); unlock eliberează; 404 pe inexistent.
+    _cont(client)
+    uid = client.post("/api/dosar", json={"wizard": {"nume_client": "X"}}).json()["uuid"]
+    assert client.post(f"/api/dosar/{uid}/lock", json={"token": "A"}).json()["concurent"] is False
+    assert client.post(f"/api/dosar/{uid}/lock", json={"token": "B"}).json()["concurent"] is True
+    assert client.post(f"/api/dosar/{uid}/unlock", json={"token": "B"}).json()["ok"] is True
+    assert client.post(f"/api/dosar/{uid}/lock", json={"token": "C"}).json()["concurent"] is False
+    assert client.post("/api/dosar/zzz/lock", json={"token": "A"}).status_code == 404
+
+
 def test_dosar_json_corupt_nu_crapa(client):
     # robustețe: dosar.json corupt -> 404 clar (nu 500); workspace-ul nu trebuie să crape la deschidere.
     _cont(client)

@@ -223,6 +223,65 @@ def cloneaza(uid: str) -> str:
                    dict(sursa.get("wizard", {})), sursa.get("format_dosar"))
 
 
+# ── Lock de deschidere concurentă (ADR-003 item 7) ───────────────────────────────
+LOCK_TTL_SEC = 90        # un `.lock` mai vechi de atât = orfan (instanță închisă brusc)
+
+
+def _fisier_lock(uid: str) -> Path:
+    return baza() / uid / ".lock"
+
+
+def _varsta_sec(cale: Path) -> float | None:
+    try:
+        return datetime.now().timestamp() - cale.stat().st_mtime
+    except OSError:
+        return None
+
+
+def marcheaza_lock(uid: str, token: str) -> bool:
+    """Marchează/reîmprospătează lock-ul de deschidere. Întoarce True dacă dosarul era deja deschis de
+    ALTĂ fereastră (lock proaspăt, alt token) — semnal de editare concurentă (avertisment soft)."""
+    cale = _fisier_lock(uid)
+    concurent = False
+    varsta = _varsta_sec(cale)
+    if varsta is not None and varsta < LOCK_TTL_SEC:
+        try:
+            detinut = json.loads(cale.read_text(encoding="utf-8")).get("token")
+            concurent = bool(detinut and detinut != token)
+        except (OSError, ValueError):
+            concurent = False
+    with contextlib.suppress(OSError):
+        _scrie_atomic(cale, json.dumps({"token": token, "la": _acum()}))
+    return concurent
+
+
+def elibereaza_lock(uid: str, token: str) -> None:
+    """Eliberează lock-ul dacă e deținut de acest token (la închiderea ferestrei)."""
+    cale = _fisier_lock(uid)
+    try:
+        detinut = json.loads(cale.read_text(encoding="utf-8")).get("token")
+    except (OSError, ValueError):
+        return
+    if detinut == token:
+        with contextlib.suppress(OSError):
+            cale.unlink(missing_ok=True)
+
+
+def curata_lock_uri_orfane() -> int:
+    """La pornire: șterge `.lock`-urile orfane (> TTL) rămase de la instanțe închise brusc. Întoarce nr."""
+    b = baza()
+    n = 0
+    if not b.exists():
+        return 0
+    for cale in b.glob("*/.lock"):
+        varsta = _varsta_sec(cale)
+        if varsta is not None and varsta >= LOCK_TTL_SEC:
+            with contextlib.suppress(OSError):
+                cale.unlink(missing_ok=True)
+                n += 1
+    return n
+
+
 _CAMPURI_ANTET = ("uuid", "nume", "creator_legitimatie", "creator_nume",
                   "creat_la", "modificat_la", "identitate")
 

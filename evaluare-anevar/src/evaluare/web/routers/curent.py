@@ -298,6 +298,21 @@ def build_router(d: Deps) -> APIRouter:
             raise HTTPException(404, "Dosar inexistent.") from None
         return {"uuid": fs.cloneaza(uid)}
 
+    @router.post("/api/dosar/{uid}/lock")
+    def lock_dosar(uid: str, body: dict) -> dict:
+        """ADR-003 (item 7): marchează deschiderea + detectează editarea concurentă. Întoarce {concurent}."""
+        try:
+            fs.incarca(uid)
+        except KeyError:
+            raise HTTPException(404, "Dosar inexistent.") from None
+        return {"concurent": fs.marcheaza_lock(uid, str(body.get("token", "")))}
+
+    @router.post("/api/dosar/{uid}/unlock")
+    def unlock_dosar(uid: str, body: dict) -> dict:
+        """ADR-003 (item 7): eliberează lock-ul la închiderea ferestrei (best-effort, sendBeacon)."""
+        fs.elibereaza_lock(uid, str(body.get("token", "")))
+        return {"ok": True}
+
     @router.get("/api/backup-dosare.zip")
     def backup_dosare():
         """Backup: arhivează TOATE dosarele (folderul OUTPUT_DIR/dosare) într-un .zip descărcabil."""

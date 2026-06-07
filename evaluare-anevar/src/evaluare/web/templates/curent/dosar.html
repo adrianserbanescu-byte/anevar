@@ -15,6 +15,10 @@
 <p class="hint" id="save-ind" role="status" aria-live="polite">● salvat automat în folder</p>
 
 <main id="continut">
+  <div class="avert-warn" id="concurent-banner" hidden role="alert">
+    <span aria-hidden="true">⚠</span> Acest dosar pare deschis și în <b>altă fereastră/instanță</b> —
+    modificările se pot suprascrie reciproc. Recomandat: o singură fereastră per dosar.
+  </div>
   <div class="tabs" role="tablist" aria-label="Secțiuni dosar">
     <button type="button" role="tab" id="t-raport" aria-controls="p-raport" aria-selected="true"><span aria-hidden="true">📄</span> Raport evaluare</button>
     <button type="button" role="tab" id="t-aml" aria-controls="p-aml" aria-selected="false" tabindex="-1" title="Combaterea spălării banilor (Legea 129/2019)"><span aria-hidden="true">🛡</span> AML</button>
@@ -425,6 +429,19 @@ if (BLOCAT) {
       .then(function(r){ return r.json(); })
       .then(function(d){ if(d.uuid){ window.location.href="/dosar/"+d.uuid; } else { throw 0; } })
       .catch(function(){ alert("Clonare eșuată."); bc.disabled=false; });
+  });
+})();
+(function(){   // ADR-003 item 7: lock de deschidere concurentă (avertisment soft)
+  var TOK = "t"+Date.now()+Math.random().toString(36).slice(2);
+  function ping(){
+    fetch("/api/dosar/"+UID+"/lock",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({token:TOK})})
+      .then(function(r){ return r.ok?r.json():null; })
+      .then(function(d){ if(d && d.concurent){ var b=document.getElementById("concurent-banner"); if(b) b.hidden=false; } })
+      .catch(function(){});
+  }
+  ping(); setInterval(ping, 60000);
+  window.addEventListener("beforeunload", function(){
+    try{ navigator.sendBeacon("/api/dosar/"+UID+"/unlock", new Blob([JSON.stringify({token:TOK})],{type:"application/json"})); }catch(e){}
   });
 })();
 // Maparea „!": câmp -> {v: corespondent wizard vechi, d: detaliu}. TEMPORAR (dev); se va șterge.

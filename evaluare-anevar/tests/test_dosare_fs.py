@@ -92,6 +92,24 @@ def test_cloneaza_dosar_nou_neasumat(baza):
     assert fs.este_blocat(fs.incarca(uid)) is True             # sursa rămâne asumată
 
 
+def test_lock_concurenta_si_curatare_orfane(baza):
+    # ADR-003 item 7: lock de deschidere — alt token = concurent; eliberare; curățare orfane (> TTL).
+    import os
+    import time
+
+    import evaluare.dosare_fs as fs
+    uid = fs.creeaza("L1", "Ev", _wizard())
+    assert fs.marcheaza_lock(uid, "tokA") is False        # prima deschidere: fără concurență
+    assert fs.marcheaza_lock(uid, "tokB") is True         # altă fereastră (alt token, lock proaspăt)
+    assert fs.marcheaza_lock(uid, "tokB") is False        # același token -> nu mai e concurent
+    fs.elibereaza_lock(uid, "tokB")
+    assert not (fs.baza() / uid / ".lock").exists()       # eliberat de deținător
+    lock = fs.baza() / uid / ".lock"
+    fs.marcheaza_lock(uid, "tokX")
+    os.utime(lock, (time.time() - 200, time.time() - 200))  # îl fac orfan (> 90s TTL)
+    assert fs.curata_lock_uri_orfane() == 1 and not lock.exists()
+
+
 def test_listeaza_cache_mtime(baza):
     # Cache antete pe mtime: dosar neschimbat nu se recitește; dosar nou apare; cache corupt se reconstruiește.
     import evaluare.dosare_fs as fs

@@ -94,6 +94,10 @@ def _ruleaza(baza: Path) -> None:
             log.info("Backup creat: %s", copie)
     except Exception as e:
         log.warning("Backup la pornire esuat: %s", e)
+    from evaluare import dosare_fs
+    orfane = dosare_fs.curata_lock_uri_orfane()      # ADR-003: curăță .lock-urile rămase de la închideri bruște
+    if orfane:
+        log.info("Curatate %d lock-uri orfane de dosar.", orfane)
     app = create_app(storage=storage, client=settings.narrative_client())
 
     log.info("Pornire server pe http://%s:%s (date in %s)", HOST, PORT, baza)
