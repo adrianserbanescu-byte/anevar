@@ -41,6 +41,18 @@
 @media(max-width:560px){.fl-opts{grid-template-columns:1fr}}
 .fl-opt{border:1px solid var(--line);border-radius:var(--radius-sm);padding:var(--space-3);background:var(--paper)}
 .fl-opt b{font-size:var(--text-sm);display:block}.fl-opt span{font-size:var(--text-xs);color:var(--ink-faint)}
+/* F0 v1.5: cartonașele „5 moduri" devin punți clickabile spre /incepe */
+a.fl-opt{display:block;text-decoration:none;color:inherit;transition:border-color .15s,background .15s,transform .1s}
+a.fl-opt:hover{border-color:var(--sienna);background:var(--paper-card);transform:translateY(-1px)}
+a.fl-opt:hover b{color:var(--sienna-deep)}
+a.fl-opt:focus-visible{outline:2px solid var(--sienna);outline-offset:2px}
+.fl-launch{display:flex;align-items:center;gap:var(--space-3);flex-wrap:wrap;margin:0 0 var(--space-3)}
+.fl-launch-hint{font-size:var(--text-xs);color:var(--ink-faint);font-family:var(--sans)}
+.fl-cta-wrap{margin:var(--space-3) 0 0}
+.fl-cta{display:inline-block;background:var(--sienna);color:#fdf8ef;text-decoration:none;font-family:var(--sans);
+  font-weight:600;padding:10px 18px;border-radius:var(--radius-sm);box-shadow:var(--shadow)}
+.fl-cta:hover{background:var(--sienna-deep);color:#fff;text-decoration:none}
+.fl-cta:focus-visible{outline:2px solid var(--ink);outline-offset:2px}
 .fl-fields{display:grid;grid-template-columns:1fr 1fr;gap:var(--space-3) var(--space-4);margin-top:var(--space-3)}
 @media(max-width:560px){.fl-fields{grid-template-columns:1fr}}
 .fl-f{display:flex;flex-direction:column;gap:3px}
@@ -114,6 +126,10 @@
 {% include "_cartus.html" %}
 
 <main id="continut" class="fl-wrap">
+  <p class="fl-launch">
+    <a class="fl-cta" href="/incepe"><span aria-hidden="true">➕</span> Începe un dosar →</a>
+    <span class="fl-launch-hint">Harta de mai jos arată ce produce un dosar. Apasă ca să pornești în workspace.</span>
+  </p>
   <nav class="fl-stepper" id="flStepper" aria-label="Etapele fluxului"></nav>
   <div class="fl-grid">
     <div class="fl-canvas-col" id="flCol" data-ent="PJ">
@@ -139,12 +155,13 @@
         <p class="sub">Identitatea (tip × scop → profil → ghid GEV) se fixează acum și nu se mai schimbă.</p>
         <div class="fl-role">5 moduri de a porni</div>
         <div class="fl-opts">
-          <div class="fl-opt"><b>Dosar nou</b><span>de la zero</span></div>
-          <div class="fl-opt"><b>Import .docx</b><span>raport Word → pre-completare</span></div>
-          <div class="fl-opt"><b>Extensie browser</b><span>anunțuri de pe portaluri</span></div>
-          <div class="fl-opt"><b>Ingestie PDF</b><span>CF / releveu / plan / CPE</span></div>
-          <div class="fl-opt"><b>Din dosar existent</b><span>copiezi unul similar</span></div>
+          <a class="fl-opt" href="/incepe"><b>Dosar nou</b><span>de la zero</span></a>
+          <a class="fl-opt" href="/incepe"><b>Import .docx</b><span>raport Word → pre-completare</span></a>
+          <a class="fl-opt" href="/incepe"><b>Extensie browser</b><span>anunțuri de pe portaluri</span></a>
+          <a class="fl-opt" href="/incepe"><b>Ingestie PDF</b><span>CF / releveu / plan / CPE</span></a>
+          <a class="fl-opt" href="/incepe"><b>Din dosar existent</b><span>copiezi unul similar</span></a>
         </div>
+        <p class="fl-cta-wrap"><a class="fl-cta" href="/incepe"><span aria-hidden="true">➕</span> Începe un dosar →</a></p>
       </section>
 
       <section class="fl-canvas" data-step="2" hidden>
