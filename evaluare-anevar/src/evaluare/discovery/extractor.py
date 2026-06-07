@@ -11,6 +11,9 @@ from decimal import Decimal
 from evaluare.ai.narrative import NarrativeClient
 from evaluare.discovery.profiles import CandidateProfile
 from evaluare.discovery.results import CandidateExtraction, SecondaryAttributeResult
+from evaluare.logging_setup import get_logger
+
+log = get_logger(__name__)
 
 SYSTEM_EXTRACT = (
     "Esti un extractor de date. Extragi informatii DOAR din textul anuntului primit; "
@@ -165,7 +168,8 @@ def extrage_atribute(
     try:
         raw = client.complete(SYSTEM_EXTRACT, user)
         data = json.loads(_curata_json(raw))
-    except (ValueError, TypeError):
+    except (ValueError, TypeError) as e:
+        log.warning("extract LLM esuat (degradare la fallback determinist): %s", e)
         return _fallback(atribute_secundare)
 
     profile = _build_profile(data)
