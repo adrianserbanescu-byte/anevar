@@ -3,6 +3,10 @@
 > 3 sesiuni Claude lucrează simultan. Ca să NU se suprapună, fiecare lucrează în **propriul director
 > (git worktree) pe propria ramură**, și integrăm pe `master` prin merge. Sesiunea A e **owner de deploy**.
 
+## 📌 Fapte canonice (valabile pentru TOATE sesiunile)
+- **Punctul de intrare principal = «Flux livrabile v1.5»** (badge „recomandat" pe `index.html`). E versiunea
+  curentă/principală; v1 și v0 rămân doar ca referință. Orice muncă nouă pe UI/flux țintește **v1.5**.
+
 ## Cine, unde, ce ramură
 | Sesiune | Director de lucru | Ramură | Rol |
 |---------|-------------------|--------|-----|
