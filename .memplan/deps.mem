@@ -1,9 +1,0 @@
-dep:steps.mem=plan.mem
-dep:slice.mem=steps.mem|progress
-dep:checkpoint.mem=progress|plan.mem
-dep:risk.mem=memory/failures.mem|plan.mem
-dep:budget.mem=memory/hot.mem
-dep:memory/aliases.mem=memory/entities.mem
-dep:memory/code-map.mem=plan.mem
-dep:memory/facts.mem=plan.mem
-dep:memory/questions.mem=plan.mem|checkpoint.mem
