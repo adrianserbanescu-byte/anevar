@@ -17,6 +17,9 @@ dependencies = [
     "beautifulsoup4>=4.12,<5",
     "PyMuPDF>=1.24,<2",        # fitz: extragere text PDF (ingestie/ocr.py)
     "Pillow>=11,<13",          # tranzitiv via python-docx; fixat ca sa nu sara la 13
+    # Tranzitive via requests, fixate ca prag de securitate (audit dependențe 2026-06-07):
+    "urllib3>=2.7.0,<3",       # PYSEC-2026-141/142 (header-leak la redirect + DoS decompresie)
+    "idna>=3.15",              # CVE-2026-45409 (DoS la idna.encode pe input lung)
 ]
 
 [project.optional-dependencies]
