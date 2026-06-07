@@ -32,6 +32,20 @@ Status consolidat din auditurile `/design:ux-copy`, `/design:accessibility-revie
 | N6 | `incepe`/`cont`: `<nav>` landmark, file-input `aria-label`, `th scope=col`+„Acțiuni", empty-state `.callout`, badge „comercial" vizibil, import cu status inline (nu `alert`), `autocomplete=name` | `incepe.html`, `cont.html` |
 | N7 | Nume dosar recalculat la salvare (gol nu mai rămâne „?_?_?") | `dosare_fs.py` |
 
+## ✅ Rezolvate — v1.5 „Flux livrabile" (audit a11y, 2026-06-07)
+
+Audit WCAG 2 A/AA cu **axe-core (live, Playwright)** → **0 violări** (22 reguli trecute). Fixuri aplicate în `flux_livrabile.html`:
+
+| # | Item | Severitate |
+|---|------|-----------|
+| F1 | Checkpoint asumare: `<div>` clicabil → `role=checkbox` + `tabindex` + tastatură (Space/Enter) + `aria-checked` | 🔴 blocant (2.1.1, 4.1.2) |
+| F2 | Status „condiționat"/„în așteptare": contrast sub AA (`--gold`/`--line-2`) → `--warn-ink`/`--ink-faint` | 🔴 serios (1.4.3) |
+| F3 | Switch-uri RTN/RTS: `aria-pressed` → `role=switch` + `aria-checked` + etichete descriptive | 🟡 |
+| F4 | Stepper: `aria-controls` → panouri (`role=group`, id-uri) | 🟡 |
+| F5 | Bară progres: `role=progressbar` + `aria-valuenow/min/max` (actualizat în JS) | 🟡 |
+| F6 | Contor livrabile: `aria-live=polite` (anunț la schimbare) | 🟡 |
+| F7 | Comutator PFA/PJ: `role=group` + `aria-pressed` | 🟡 |
+
 ## 📌 De planificat — sesiuni de explorare
 
 - **Modul de DESCOPERIRE — brainstorming / grill-me** (cerut de Adi, 2026-06-07).
