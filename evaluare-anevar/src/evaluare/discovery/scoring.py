@@ -7,6 +7,7 @@ from __future__ import annotations
 
 from decimal import Decimal
 
+from evaluare.discovery.ponderi import PONDERI_BAZA
 from evaluare.discovery.profiles import (
     AttributeBreakdown,
     CandidateProfile,
@@ -14,10 +15,10 @@ from evaluare.discovery.profiles import (
     SubjectProfile,
 )
 
-# Ponderi dupa prioritatea atributelor (spec 5.3). De calibrat ulterior.
-# suprafata_construita = suprafata casei (din anunt), driver major de comparabilitate.
-PONDERI = {"suprafata_construita": 5, "an": 5, "stare": 4, "finisaj": 3,
-           "incalzire": 2, "teren": 1}
+# Ponderile sunt acum CONFIG-DRIVEN per categorie (vezi `ponderi.py`). `PONDERI` rămâne alias la
+# setul de bază (modelul casei) pentru compatibilitate; `scor_candidat`/`metodologie` acceptă
+# `ponderi` explicit, cu default = baza → comportament identic dacă nu se dă altceva.
+PONDERI = PONDERI_BAZA
 
 # Ordinea de parcurgere a atributelor primare la scorare.
 ORDINE = ["suprafata_construita", "an", "stare", "finisaj", "incalzire", "teren"]
@@ -87,8 +88,14 @@ _ETICHETE = {"suprafata_construita": "Supr. construită", "an": "An", "stare": "
              "finisaj": "Finisaj", "incalzire": "Încălzire", "teren": "Teren"}
 
 
-def scor_candidat(subiect: SubjectProfile, candidat: CandidateProfile) -> ScoreBreakdown:
-    """Scoreaza un candidat fata de subiect; intoarce breakdown + explicatie."""
+def scor_candidat(subiect: SubjectProfile, candidat: CandidateProfile,
+                  ponderi: dict[str, int] | None = None) -> ScoreBreakdown:
+    """Scoreaza un candidat fata de subiect; intoarce breakdown + explicatie.
+
+    `ponderi` = setul de ponderi per atribut (config-driven, per categorie). None → baza (casa),
+    deci comportament identic cu varianta istorica daca nu se transmite nimic.
+    """
+    ponderi = ponderi if ponderi is not None else PONDERI_BAZA
     atribute: list[AttributeBreakdown] = []
     suma_contributii = 0.0
     suma_ponderi = 0
@@ -99,7 +106,7 @@ def scor_candidat(subiect: SubjectProfile, candidat: CandidateProfile) -> ScoreB
     for nume in ORDINE:
         sv = getattr(subiect, nume)
         cv = getattr(candidat, nume)
-        pondere = PONDERI[nume]
+        pondere = ponderi[nume]
         d = _d_pentru(nume, sv, cv)
         valoare_candidat = candidat.texte.get(nume) or (str(cv) if cv is not None else None)
         valoare_subiect = str(sv) if sv is not None else None
@@ -148,9 +155,12 @@ def scor_candidat(subiect: SubjectProfile, candidat: CandidateProfile) -> ScoreB
     )
 
 
-def metodologie() -> list[dict]:
-    """Descrie metodologia de scoring pentru afișare (tabel UI, înainte de rezultate)."""
-    total = sum(PONDERI.values())  # 20
+def metodologie(ponderi: dict[str, int] | None = None) -> list[dict]:
+    """Descrie metodologia de scoring pentru afișare (tabel UI, înainte de rezultate).
+
+    `ponderi` per categorie (config-driven); None → baza (casa)."""
+    ponderi = ponderi if ponderi is not None else PONDERI_BAZA
+    total = sum(ponderi.values())  # implicit 20 (modelul casei)
     randuri = [
         ("Supr. construită", "suprafata_construita",
          "min(|supr_subiect - supr_anunt| / supr_subiect, 1)"),
@@ -162,7 +172,7 @@ def metodologie() -> list[dict]:
     ]
     out = []
     for i, (eticheta, cheie, formula) in enumerate(randuri, start=1):
-        p = PONDERI[cheie]
+        p = ponderi[cheie]
         out.append({
             "nr": i, "atribut": eticheta, "pondere": p,
             "cota": f"{round(100 * p / total)}%", "formula": formula,
