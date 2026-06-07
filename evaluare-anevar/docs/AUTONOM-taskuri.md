@@ -38,8 +38,8 @@
 
 ## ☐ DE PREIAT din council (autonom, fără decizie de produs)
 - [x] **OLX downgrade scor** (suprafață lipsă → relevanță −30 + avertisment în explicație). ✅ +test
-- [ ] Hash SHA256 al folderului dosarului la asumare — **gated de declanșatorul de lock (#10, decizia ta)**.
-- [ ] Fișier `.lock` per dosar + read-only la deschidere concurentă — cuplat cu fluxul de lock.
+- [x] ✅ **Hash de integritate la asumare** — implementat per versiune `.docx` (`verifica_integritate`, tamper-evidence în audit). Declanșator #10 decis (hibrid+upload).
+- [x] ✅ **Fișier `.lock` per dosar** — concurență (token + TTL 90s, avertisment soft) + curățare orfane la pornire. **ADR-003 ÎNCHIS** (rămâne doar #12, decizia ta de produs).
 - [ ] Descoperire ca split-screen în Comparabile (caută→bifează→importă) + fallback manual — feature mai mare.
 
 <!-- arhivat (cererea verbatim a council-ului adițional, păstrată pt referință):

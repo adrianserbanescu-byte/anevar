@@ -72,9 +72,11 @@
 33. **Criptare la repaus (PII pe disc)** — SQLite + dosare + rapoarte sunt în CLAR. Decizie: (a) doar disclaimer
     „protecția discului = responsabilitatea evaluatorului/operator de date", (b) ghidaj BitLocker la instalare, sau
     (c) criptare cu parolă în app. Council: minim (a)+(b). **Bucket C (jurist) + decizie produs.**
-34. ✅ **REZOLVAT (2026-06-07): Trigger lock = HIBRID TRIPLU** — vezi #10. ADR-003 trebuie refăcut cu adăugirea trigger-ului „upload fișiere submise" (când userul re-importă `.docx` editat returnat de bancă, lock-ul se aplică retroactiv).
+34. ✅ **REZOLVAT (2026-06-07): Trigger lock = HIBRID TRIPLU** — vezi #10. **IMPLEMENTAT INTEGRAL ÎN COD (2026-06-07):**
+    hash integritate per versiune + `asumat_la` + trigger upload-submis + **identitate read-only** + **clonare „Dosar nou"**
+    + **de-lock cu motiv→Audit** + **`.lock` de concurență**. ADR-003 închis (rămâne doar #12, set identitate cod-fiscal).
 35. **Minim lansare sigură (ordinea councilului):** (1) disclaimere juridice în raport [jurist] · (2) alerte
-    metodologice trasabile [evaluator] · (3) lock identitate [#34] · (4) gardă re-încadrare anexe [evaluator].
+    metodologice trasabile [evaluator] · (3) ✅ **lock identitate [#34 — IMPLEMENTAT]** · (4) gardă re-încadrare anexe [evaluator].
 > ✅ Făcute de mine din audit+council (Bucket A): anti-SSRF, gardă Host (anti DNS-rebind), grilă→422, fix dată
 > tăcută, pierdere date localități, CNP prefix 9, limită DoS, igienă temp .docx (PII). Vezi `docs/audit-final/`.
 
