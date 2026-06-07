@@ -1,11 +1,18 @@
 # Spec refactor #36 — `assembler.py` → `abordare_X` (single source of truth)
 
+> ⚠ **CLARIFICARE BUCKET (2026-06-07, sesiune A):** acest refactor atinge **METODOLOGIA DE EVALUARE**
+> (cum se calculează valoarea finală pe abordările cost/comparație/venit). Este **bucket-B** (cere
+> evaluator senior înainte de implementare), NU autonom. Spec-ul rămâne ca **propunere documentată**;
+> implementarea trece prin validare evaluator + Adi.
+>
 > Decizia Adi #36 (2026-06-07): **opțiunea (a)** — refactor `assembler.py:130-158` să folosească
 > `abordare_cost/comparatie/venit` din `engine/abordari.py` + `engine/venit.py` în loc de
 > `evaluate_cost/evaluate_market/evalueaza_venit`. Single source of truth aliniat SEV 2025.
 >
-> Spec generat în sesiunea C (worktree `anevar-c`) pentru implementare în sesiunea B sau de loop autonom.
-> NU implementează — doar îndrumă.
+> Spec generat în sesiunea C (worktree `anevar-c`). **NU implementează — doar îndrumă.**
+> Implementare: sesiune B / loop autonom **DOAR DUPĂ** evaluator senior confirmă că refactor-ul
+> nu schimbă rezultatele numerice (toate cele 87+ teste pe `abordare_X` și `assembler.py` trebuie
+> să rămână identice — refactor pur, zero semantic change).
 
 ---
 
