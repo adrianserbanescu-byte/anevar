@@ -70,7 +70,7 @@ class DescoperaTerenRequest(BaseModel):
     judet: str
     localitate: str = ""
     suprafata_subiect: Decimal | None = None
-    max_candidati: int = 8
+    max_candidati: int = 20             # default ridicat (era 8); configurabil din request (control UI)
 
 
 class GrilaTerenRequest(BaseModel):
@@ -94,8 +94,14 @@ class DescoperaRequest(BaseModel):
     localitate: str
     subiect: SubjectProfile
     atribute_secundare: list[str] = []
-    max_candidati: int = 8
+    max_candidati: int = 20             # default ridicat (era 8); configurabil din request (control UI)
     tip_activ: str | None = None        # categoria proprietatii (ex. "apartament") -> model de scoring per categorie
+
+
+class ConfigPonderiRequest(BaseModel):
+    """Ponderi editate de evaluator (D1), per categorie: {"<categorie>": {"<atribut>": <numar>}}."""
+
+    ponderi: dict[str, dict[str, float]]
 
 
 class AmlEvaluareRequest(BaseModel):

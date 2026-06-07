@@ -40,7 +40,7 @@ class AttributeBreakdown(BaseModel):
     valoare_subiect: str | None = None
     valoare_candidat: str | None = None      # textul brut gasit in anunt
     d: float | None = None                   # dissimilaritate [0,1]; None daca necunoscut
-    pondere: int = 0
+    pondere: float = 0                        # tolereaza float (ponderi editate); afisarea ramane intreaga
     contributie: float | None = None         # pondere * d; None daca necunoscut
     cunoscut: bool = True
 
@@ -54,3 +54,5 @@ class ScoreBreakdown(BaseModel):
     atribute_cunoscute: int
     incredere_scazuta: bool
     explicatie: str                             # formula exacta cu numere (auto-continuta)
+    # Scor descompus pe axe pentru radarul D2 (Locatie/Fizic/Calitate/Functional); None = axa fara date.
+    axe: dict[str, int | None] = Field(default_factory=dict)

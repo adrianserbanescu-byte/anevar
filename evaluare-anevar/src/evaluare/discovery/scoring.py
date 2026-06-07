@@ -7,7 +7,7 @@ from __future__ import annotations
 
 from decimal import Decimal
 
-from evaluare.discovery.ponderi import PONDERI_BAZA
+from evaluare.discovery.ponderi import AXA_ATRIBUT, AXE, PONDERI_BAZA
 from evaluare.discovery.profiles import (
     AttributeBreakdown,
     CandidateProfile,
@@ -134,6 +134,8 @@ def scor_candidat(subiect: SubjectProfile, candidat: CandidateProfile,
     termeni_formula: list[str] = []
     ponderi_formula: list[str] = []
     necunoscute = 0
+    axe_contrib: dict[str, float] = dict.fromkeys(AXE, 0.0)   # pt radarul D2 (scor pe axe)
+    axe_pond: dict[str, float] = dict.fromkeys(AXE, 0.0)
 
     for nume in ponderi:        # atributele + ordinea = configul categoriei (config-driven)
         sv = getattr(subiect, nume)
@@ -153,6 +155,10 @@ def scor_candidat(subiect: SubjectProfile, candidat: CandidateProfile,
         contributie = pondere * d
         suma_contributii += contributie
         suma_ponderi += pondere
+        axa = AXA_ATRIBUT.get(nume)               # acumuleaza pe axa de radar (D2)
+        if axa in axe_contrib:
+            axe_contrib[axa] += contributie
+            axe_pond[axa] += pondere
         termeni_formula.append(f"{pondere}×{d:.2f}")
         ponderi_formula.append(str(pondere))
         atribute.append(AttributeBreakdown(
@@ -180,10 +186,14 @@ def scor_candidat(subiect: SubjectProfile, candidat: CandidateProfile,
         f"= 100 × (1 − {dissim:.3f}).{nota_excluse}"
     )
 
+    # Scor pe fiecare axă (0-100); None dacă axa n-are atribute cunoscute (ex. „locatie" pâna la geocoding).
+    axe = {ax: (round(100 * (1 - axe_contrib[ax] / axe_pond[ax])) if axe_pond[ax] > 0 else None)
+           for ax in AXE}
+
     return ScoreBreakdown(
         relevanta=relevanta, dissimilaritate=round(dissim, 4), atribute=atribute,
         atribute_cunoscute=cunoscute, incredere_scazuta=incredere_scazuta,
-        explicatie=explicatie,
+        explicatie=explicatie, axe=axe,
     )
 
 
