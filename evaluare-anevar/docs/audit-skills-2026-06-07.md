@@ -103,6 +103,13 @@ logging și fără re-raise — eșuează silent.
 | `cont.py` | 28 | `return None` la cont absent |
 | `ai/narrative.py` | 102, 110 | `return str(x)` fallback fără indicii |
 
+> ✅ **Parțial rezolvat (Sesiunea B, `sesiune-b`, 2026-06-07 — commit-uri ba3f14e/7a19213):**
+> **`report/`** (din tabelul „Module fără NICI un log") — `report/generator.py` capătă logger + `log.warning`
+> pe inserarea Anexa 2/3 (foto/scanuri care dispăreau **tăcut** din raport) + `log.info` la generare (fără PII)
+> + `log.debug` pe formatări. +test caplog care dovedește urmele. Audit pe restul codului: **zero `except:` gol**;
+> `dosare_fs.py`/`__main__.py`/`piata.py`/discovery/ingestie deja loghează sau traduc curat în HTTP.
+> **Rămas (neînceput):** logging în cele 5 routere + `engine/` + `audit/raport_audit.py` + `url_parser.py` (8 except).
+
 ---
 
 ## 4. `changelog`

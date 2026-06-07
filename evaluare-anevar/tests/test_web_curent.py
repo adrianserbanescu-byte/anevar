@@ -274,6 +274,52 @@ def test_incarca_submis_marcheaza_asumat(client):
     assert any(v["tip"] == "submis" for v in d.get("versiuni", []))
 
 
+def test_deblocheaza_si_cloneaza_endpoints(client):
+    # ADR-003: deblocheaza (motiv obligatoriu → 422 fără) + cloneaza (dosar nou); identitate read-only după asumare.
+    import base64
+    _cont(client)
+    uid = client.post("/api/dosar", json={"wizard": {"nume_client": "X", "au": "100"}}).json()["uuid"]
+    client.post(f"/api/dosar/{uid}/incarca-submis",
+                json={"nume_fisier": "r.docx", "continut": base64.b64encode(b"raport").decode()})
+    # identitate înghețată după asumare (salveaza nu schimbă nume_client)
+    client.post(f"/api/dosar/{uid}/salveaza", json={"nume_client": "ALTUL", "au": "999"})
+    assert client.get(f"/api/dosar/{uid}").json()["wizard"]["nume_client"] == "X"
+    # deblocare fără motiv → 422
+    assert client.post(f"/api/dosar/{uid}/deblocheaza", json={"motiv": " "}).status_code == 422
+    r = client.post(f"/api/dosar/{uid}/deblocheaza", json={"motiv": "typo nume"})
+    assert r.status_code == 200 and r.json()["blocat"] is False
+    # clonare → dosar nou diferit
+    rc = client.post(f"/api/dosar/{uid}/cloneaza")
+    assert rc.status_code == 200 and rc.json()["uuid"] != uid
+    assert client.post("/api/dosar/zzz/cloneaza").status_code == 404
+
+
+def test_dosar_html_arata_lock_dupa_asumare(client):
+    # ADR-003 UI: pagina dosarului arată bannerul de lock + butoanele DOAR după asumare.
+    import base64
+    _cont(client)
+    uid = client.post("/api/dosar", json={"wizard": {"nume_client": "X"}}).json()["uuid"]
+    # neasumat: fără banner (butonul de deblocare apare DOAR în blocul {% if blocat %})
+    assert 'id="btn-delock"' not in client.get(f"/dosar/{uid}").text
+    assert "var BLOCAT = false" in client.get(f"/dosar/{uid}").text
+    client.post(f"/api/dosar/{uid}/incarca-submis",
+                json={"nume_fisier": "r.docx", "continut": base64.b64encode(b"r").decode()})
+    html = client.get(f"/dosar/{uid}").text
+    assert 'id="btn-delock"' in html and 'id="btn-clone"' in html   # banner de lock prezent
+    assert "var BLOCAT = true" in html
+
+
+def test_lock_unlock_concurenta_endpoints(client):
+    # ADR-003 item 7: lock detectează altă fereastră (alt token); unlock eliberează; 404 pe inexistent.
+    _cont(client)
+    uid = client.post("/api/dosar", json={"wizard": {"nume_client": "X"}}).json()["uuid"]
+    assert client.post(f"/api/dosar/{uid}/lock", json={"token": "A"}).json()["concurent"] is False
+    assert client.post(f"/api/dosar/{uid}/lock", json={"token": "B"}).json()["concurent"] is True
+    assert client.post(f"/api/dosar/{uid}/unlock", json={"token": "B"}).json()["ok"] is True
+    assert client.post(f"/api/dosar/{uid}/lock", json={"token": "C"}).json()["concurent"] is False
+    assert client.post("/api/dosar/zzz/lock", json={"token": "A"}).status_code == 404
+
+
 def test_dosar_json_corupt_nu_crapa(client):
     # robustețe: dosar.json corupt -> 404 clar (nu 500); workspace-ul nu trebuie să crape la deschidere.
     _cont(client)

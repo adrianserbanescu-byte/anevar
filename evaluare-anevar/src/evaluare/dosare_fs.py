@@ -9,6 +9,7 @@ ultima dată", folosit DOAR pentru diff (existente / noi / dispărute). Vezi doc
 """
 from __future__ import annotations
 
+import contextlib
 import hashlib
 import json
 import os
@@ -35,6 +36,15 @@ def _acum() -> str:
 
 def _identitate(wizard: dict) -> dict:
     return {c: wizard.get(c, "") for c in CAMPURI_IDENTITATE if wizard.get(c)}
+
+
+def este_blocat(dosar: dict) -> bool:
+    """ADR-003: identitatea e read-only dacă dosarul a fost asumat și nu e momentan deblocat.
+
+    `blocat` se setează la fiecare asumare (generare/submit) și se șterge la `deblocheaza`. Pentru
+    dosarele vechi (fără câmpul `blocat`) se derivă din `asumat_la` (asumat ⇒ blocat).
+    """
+    return bool(dosar.get("blocat", bool(dosar.get("asumat_la"))))
 
 
 def creeaza(creator_legitimatie: str, creator_nume: str, wizard: dict,
@@ -89,6 +99,13 @@ def salveaza_wizard(uid: str, wizard: dict) -> dict:
     după ce userul completează identitatea) și reîmprospătează identitatea blocabilă.
     """
     dosar = incarca(uid)
+    if este_blocat(dosar):                            # ADR-003: identitate read-only după asumare
+        vechi = dosar.get("wizard", {})
+        for c in CAMPURI_IDENTITATE:                  # îngheață câmpurile de identitate la valorile asumate
+            if c in vechi:
+                wizard[c] = vechi[c]
+            else:
+                wizard.pop(c, None)
     dosar["wizard"] = wizard
     dosar["identitate"] = _identitate(wizard)
     if dosar.get("format_dosar"):
@@ -151,8 +168,9 @@ def _inregistreaza_versiune(uid: str, nume: str, tip: str) -> None:
     dosar["versiuni"] = versiuni
     # Trigger de asumare (ADR-003, decizia Adi #10 — hibrid): „generat" (prima generare .docx)
     # SAU „submis" (fișier finalizat încărcat, ex. returnat de bancă/client). „import" NU asumă.
-    if tip in ("generat", "submis") and not dosar.get("asumat_la"):
-        dosar["asumat_la"] = _acum()
+    if tip in ("generat", "submis"):
+        dosar.setdefault("asumat_la", _acum())       # prima asumare (timestamp imuabil)
+        dosar["blocat"] = True                        # (re)blochează identitatea (read-only) la fiecare asumare
     dosar["modificat_la"] = _acum()
     _scrie(uid, dosar)
 
@@ -174,20 +192,144 @@ def verifica_integritate(uid: str) -> list[dict]:
     return rez
 
 
-def listeaza() -> list[dict]:
-    """Scanează folderele cu `dosar.json`. Returnează antetele, ordonate după ultima modificare."""
-    b = baza()
-    out: list[dict] = []
-    if not b.exists():
-        return out
-    for f in b.glob("*/dosar.json"):
+def deblocheaza(uid: str, motiv: str) -> dict:
+    """ADR-003: deblochează identitatea pentru o corectură tipografică (decizia Adi: motiv → Audit).
+
+    Înregistrează `{la, motiv}` în `deblocari[]` (urmă de audit) și pune `blocat=False`. Următoarea
+    asumare (generare/submit) re-blochează automat. `motiv` e obligatoriu (altfel ValueError).
+    """
+    motiv = (motiv or "").strip()
+    if not motiv:
+        raise ValueError("Motivul deblocării e obligatoriu (intră în urma de audit).")
+    dosar = incarca(uid)
+    deblocari = list(dosar.get("deblocari", []))
+    deblocari.append({"la": _acum(), "motiv": motiv[:500]})
+    dosar["deblocari"] = deblocari
+    dosar["blocat"] = False
+    dosar["modificat_la"] = _acum()
+    _scrie(uid, dosar)
+    return dosar
+
+
+def cloneaza(uid: str) -> str:
+    """ADR-003: clonează munca tehnică într-un dosar NOU (uuid nou, neasumat, identitate editabilă).
+
+    Folosit când userul vrea altă identitate după asumare („modifici identitatea = DOSAR NOU"):
+    copiază wizardul-sursă (comparabile, calcule, descriere) într-un dosar proaspăt — fără `asumat_la`,
+    `blocat`, `versiuni` — unde identitatea poate fi schimbată. Dosarul-sursă rămâne intact + asumat.
+    """
+    sursa = incarca(uid)
+    return creeaza(sursa.get("creator_legitimatie", ""), sursa.get("creator_nume", ""),
+                   dict(sursa.get("wizard", {})), sursa.get("format_dosar"))
+
+
+# ── Lock de deschidere concurentă (ADR-003 item 7) ───────────────────────────────
+LOCK_TTL_SEC = 90        # un `.lock` mai vechi de atât = orfan (instanță închisă brusc)
+
+
+def _fisier_lock(uid: str) -> Path:
+    return baza() / uid / ".lock"
+
+
+def _varsta_sec(cale: Path) -> float | None:
+    try:
+        return datetime.now().timestamp() - cale.stat().st_mtime
+    except OSError:
+        return None
+
+
+def marcheaza_lock(uid: str, token: str) -> bool:
+    """Marchează/reîmprospătează lock-ul de deschidere. Întoarce True dacă dosarul era deja deschis de
+    ALTĂ fereastră (lock proaspăt, alt token) — semnal de editare concurentă (avertisment soft)."""
+    cale = _fisier_lock(uid)
+    concurent = False
+    varsta = _varsta_sec(cale)
+    if varsta is not None and varsta < LOCK_TTL_SEC:
         try:
-            d = json.loads(f.read_text(encoding="utf-8"))
+            detinut = json.loads(cale.read_text(encoding="utf-8")).get("token")
+            concurent = bool(detinut and detinut != token)
         except (OSError, ValueError):
+            concurent = False
+    with contextlib.suppress(OSError):
+        _scrie_atomic(cale, json.dumps({"token": token, "la": _acum()}))
+    return concurent
+
+
+def elibereaza_lock(uid: str, token: str) -> None:
+    """Eliberează lock-ul dacă e deținut de acest token (la închiderea ferestrei)."""
+    cale = _fisier_lock(uid)
+    try:
+        detinut = json.loads(cale.read_text(encoding="utf-8")).get("token")
+    except (OSError, ValueError):
+        return
+    if detinut == token:
+        with contextlib.suppress(OSError):
+            cale.unlink(missing_ok=True)
+
+
+def curata_lock_uri_orfane() -> int:
+    """La pornire: șterge `.lock`-urile orfane (> TTL) rămase de la instanțe închise brusc. Întoarce nr."""
+    b = baza()
+    n = 0
+    if not b.exists():
+        return 0
+    for cale in b.glob("*/.lock"):
+        varsta = _varsta_sec(cale)
+        if varsta is not None and varsta >= LOCK_TTL_SEC:
+            with contextlib.suppress(OSError):
+                cale.unlink(missing_ok=True)
+                n += 1
+    return n
+
+
+_CAMPURI_ANTET = ("uuid", "nume", "creator_legitimatie", "creator_nume",
+                  "creat_la", "modificat_la", "identitate")
+
+
+def _fisier_cache() -> Path:
+    return baza() / "_cache_antete.json"
+
+
+def listeaza() -> list[dict]:
+    """Scanează folderele cu `dosar.json`. Returnează antetele, ordonate după ultima modificare.
+
+    Cache pe `mtime_ns` (`_cache_antete.json`): un `dosar.json` neschimbat NU se recitește/reparsează
+    la fiecare apel (ex. la fiecare `/incepe`). Cache-ul e derivat — coruperea/lipsa lui = reconstruire.
+    """
+    b = baza()
+    if not b.exists():
+        return []
+    cache: dict = {}
+    cf = _fisier_cache()
+    if cf.exists():
+        try:
+            cache = json.loads(cf.read_text(encoding="utf-8"))
+        except (OSError, ValueError):
+            cache = {}
+    out: list[dict] = []
+    cache_nou: dict = {}
+    schimbat = False
+    for f in b.glob("*/dosar.json"):
+        uid = f.parent.name
+        try:
+            mtime = f.stat().st_mtime_ns
+        except OSError:
             continue
-        out.append({k: d.get(k) for k in
-                    ("uuid", "nume", "creator_legitimatie", "creator_nume",
-                     "creat_la", "modificat_la", "identitate")})
+        intrare = cache.get(uid)
+        if intrare and intrare.get("mtime") == mtime:
+            antet = intrare["antet"]                 # cache hit: niciun read/parse
+        else:
+            try:
+                d = json.loads(f.read_text(encoding="utf-8"))
+            except (OSError, ValueError):
+                continue
+            antet = {k: d.get(k) for k in _CAMPURI_ANTET}
+            schimbat = True
+        cache_nou[uid] = {"mtime": mtime, "antet": antet}
+        out.append(antet)
+    if schimbat or len(cache_nou) != len(cache):     # scrie doar când s-a schimbat ceva (sau s-a șters un dosar)
+        with contextlib.suppress(OSError):
+            _scrie_atomic(cf, json.dumps(cache_nou, ensure_ascii=False))
     out.sort(key=lambda d: d.get("modificat_la") or "", reverse=True)
     return out
 

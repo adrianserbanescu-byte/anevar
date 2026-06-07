@@ -2,9 +2,10 @@
 
 **Status:** Acceptat (2026-06-07) — **declanșator DECIS de Adi (`BLOCAT-pe-Adi.md` #10): HIBRID TRIPLU** =
 (1) checkpoint de asumare (om-în-buclă) + (2) prima generare `.docx` + (3) **upload fișier submis**
-(ex. raport editat returnat de bancă/client). **Fundația e implementată** (amprentă de integritate per
-versiune + `asumat_la` + trigger upload-submis); rămâne de construit enforcement-ul read-only + clonarea +
-de-lock + `.lock` (vezi Action Items).
+(ex. raport editat returnat de bancă/client). **IMPLEMENTAT integral** (2026-06-07): amprentă de integritate
+per versiune + `asumat_la` + trigger upload-submis + **enforcement read-only al identității** + **clonare
+„Dosar nou"** + **de-lock cu motiv→Audit** + **`.lock` de concurență**. Rămâne DOAR decizia de produs #12
+(setul de identitate cod-fiscal CNP/CUI vs. `nume_client`).
 **Date:** 2026-06-06 (revizuit 2026-06-07 cu decizia #10)
 **Deciders:** proprietarul proiectului (Adrian)
 
@@ -129,10 +130,10 @@ deschidere** e mecanismul minim și standard. → **`.lock`.**
 1. [x] ✅ **Declanșator DECIS (Adi #10):** HIBRID TRIPLU = asumare + prima generare `.docx` + upload submis.
 2. [x] ✅ **Implementat:** `asumat_la` + **amprentă SHA256 per versiune** în `dosar.json`; `verifica_integritate` în urma de audit (tamper-evidence). (`dosare_fs.py`, `web/routers/curent.py` audit.txt, `tests/test_dosare_fs.py`)
 3. [x] ✅ **Implementat (trigger #3):** `POST /api/dosar/{uid}/incarca-submis` + buton UI „Înregistrează fișierul submis" (tab Generează).
-4. [ ] **Enforcement read-only** pe câmpurile de identitate după asumare + dialog „Modifici identitatea = DOSAR NOU" + clonare date tehnice (uuid nou). *(UX — următorul pas, cuplat cu #5)*
-5. [ ] Aliniază `CAMPURI_IDENTITATE` (scoate `nume_client` din identitatea tare; `id_client` = cod fiscal CNP/CUI). *(decizie de produs — atinge numele folderelor + dosarele existente)*
-6. [ ] Buton „Deblochează corectură tipografică" → motiv + intrare în Audit.
-7. [ ] Fișier `.lock` per dosar la deschidere + read-only la deschidere concurentă; curățare `.lock` orfane la pornire.
+4. [x] ✅ **Implementat (decizia Adi):** enforcement read-only după asumare (`salveaza_wizard` îngheață `CAMPURI_IDENTITATE` când `blocat`) + buton „Dosar nou" → `cloneaza()` (uuid nou, neasumat, munca tehnică copiată; sursa rămâne asumată). UI: banner lock + câmpuri dezactivate.
+5. [ ] Aliniază `CAMPURI_IDENTITATE` (scoate `nume_client` din identitatea tare; `id_client` = cod fiscal CNP/CUI). *(decizie de produs #12 — atinge numele folderelor + dosarele existente; momentan se blochează setul existent)*
+6. [x] ✅ **Implementat (decizia Adi):** buton „Deblochează corectură" → motiv **obligatoriu** → `deblocheaza()` (în `deblocari[]` + în `audit.txt` ca `deblocare_identitate`); re-generarea re-blochează.
+7. [x] ✅ **Implementat:** `.lock` per dosar (token + TTL 90s) — `marcheaza_lock`/`elibereaza_lock`/`curata_lock_uri_orfane` + endpoints `lock`/`unlock` + JS (ping la deschidere + `sendBeacon` la închidere) → banner „deschis în altă fereastră"; curățare orfane la pornire. *(avertisment soft, nu read-only dur — evită false-pozitivele dintr-un tab uitat)*
 
 > **Stare:** declanșatorul e DECIS (#10) și **fundația de audit-inalterabil (hash per versiune + asumat_la +
 > trigger upload-submis) e implementată și testată.** Rămâne de construit **enforcement-ul read-only +

@@ -44,6 +44,85 @@ def test_verifica_integritate_detecteaza_alterarea(baza):
     assert rez[0]["exista"] is True and rez[0]["ok"] is False
 
 
+def test_lock_identitate_dupa_asumare(baza):
+    # ADR-003: după asumare, identitatea e read-only; câmpurile tehnice rămân editabile.
+    import evaluare.dosare_fs as fs
+    uid = fs.creeaza("L1", "Ev", _wizard())
+    assert fs.este_blocat(fs.incarca(uid)) is False            # neasumat -> editabil
+    src = baza / "r.docx"
+    src.write_bytes(b"raport")
+    fs.adauga_versiune_docx(uid, src, tip="generat")           # asumare
+    assert fs.este_blocat(fs.incarca(uid)) is True
+    fs.salveaza_wizard(uid, dict(_wizard(), nume_client="ALTUL", au="999"))
+    d = fs.incarca(uid)
+    assert d["wizard"]["nume_client"] == "Pop"                 # identitate ÎNGHEȚATĂ
+    assert d["wizard"]["au"] == "999"                          # tehnicul s-a actualizat
+
+
+def test_deblocheaza_cere_motiv_si_logheaza(baza):
+    # ADR-003: de-lock typo necesită motiv + intră în audit; re-generarea re-blochează.
+    import evaluare.dosare_fs as fs
+    uid = fs.creeaza("L1", "Ev", _wizard())
+    src = baza / "r.docx"
+    src.write_bytes(b"raport")
+    fs.adauga_versiune_docx(uid, src, tip="generat")
+    with pytest.raises(ValueError):
+        fs.deblocheaza(uid, "   ")                             # motiv gol -> refuzat
+    fs.deblocheaza(uid, "typo în nume: Ppop -> Pop")
+    d = fs.incarca(uid)
+    assert fs.este_blocat(d) is False and d["deblocari"][0]["motiv"].startswith("typo")
+    fs.salveaza_wizard(uid, dict(_wizard(), nume_client="Popa"))
+    assert fs.incarca(uid)["wizard"]["nume_client"] == "Popa"  # editabil după de-lock
+    fs.adauga_versiune_docx(uid, src, tip="generat")           # re-asumare -> re-blochează
+    assert fs.este_blocat(fs.incarca(uid)) is True
+
+
+def test_cloneaza_dosar_nou_neasumat(baza):
+    # ADR-003: clonarea face un dosar NOU neasumat cu munca tehnică; sursa rămâne asumată.
+    import evaluare.dosare_fs as fs
+    uid = fs.creeaza("L1", "Ev", _wizard(au="120"))
+    src = baza / "r.docx"
+    src.write_bytes(b"raport")
+    fs.adauga_versiune_docx(uid, src, tip="generat")
+    nou = fs.cloneaza(uid)
+    dnou = fs.incarca(nou)
+    assert nou != uid and dnou["wizard"]["au"] == "120"        # munca tehnică copiată
+    assert fs.este_blocat(dnou) is False                       # noul dosar e editabil
+    assert "asumat_la" not in dnou and not dnou.get("versiuni")
+    assert fs.este_blocat(fs.incarca(uid)) is True             # sursa rămâne asumată
+
+
+def test_lock_concurenta_si_curatare_orfane(baza):
+    # ADR-003 item 7: lock de deschidere — alt token = concurent; eliberare; curățare orfane (> TTL).
+    import os
+    import time
+
+    import evaluare.dosare_fs as fs
+    uid = fs.creeaza("L1", "Ev", _wizard())
+    assert fs.marcheaza_lock(uid, "tokA") is False        # prima deschidere: fără concurență
+    assert fs.marcheaza_lock(uid, "tokB") is True         # altă fereastră (alt token, lock proaspăt)
+    assert fs.marcheaza_lock(uid, "tokB") is False        # același token -> nu mai e concurent
+    fs.elibereaza_lock(uid, "tokB")
+    assert not (fs.baza() / uid / ".lock").exists()       # eliberat de deținător
+    lock = fs.baza() / uid / ".lock"
+    fs.marcheaza_lock(uid, "tokX")
+    os.utime(lock, (time.time() - 200, time.time() - 200))  # îl fac orfan (> 90s TTL)
+    assert fs.curata_lock_uri_orfane() == 1 and not lock.exists()
+
+
+def test_listeaza_cache_mtime(baza):
+    # Cache antete pe mtime: dosar neschimbat nu se recitește; dosar nou apare; cache corupt se reconstruiește.
+    import evaluare.dosare_fs as fs
+    u1 = fs.creeaza("L1", "Ev", _wizard())
+    assert [d["uuid"] for d in fs.listeaza()] == [u1]
+    assert (fs.baza() / "_cache_antete.json").exists()
+    assert [d["uuid"] for d in fs.listeaza()] == [u1]          # cache hit, același rezultat
+    u2 = fs.creeaza("L1", "Ev", _wizard(id_client="D2"))       # dosar nou NU e ascuns de cache
+    assert {d["uuid"] for d in fs.listeaza()} == {u1, u2}
+    (fs.baza() / "_cache_antete.json").unlink()                # cache șters -> reconstruire transparentă
+    assert len({d["uuid"] for d in fs.listeaza()}) == 2
+
+
 def test_cont_creare_si_incarcare(baza):
     from evaluare import cont
     assert cont.incarca_cont() is None
