@@ -337,8 +337,15 @@ with sync_playwright() as pw:
     # flux COMPLET cap-coadă: completează minim valid + generează + DESCARCĂ .docx (gol acoperire cov #2)
     p.fill("#acd", "120")
     p.fill("#an_referinta", "2025")
-    p.fill("#elemente", "Structura;X;mp;120;2000;2015")
-    p.fill("#depreciere", "5;0.05")              # cost are nevoie de puncte de depreciere
+    # #elemente + #depreciere sunt acum grid-uri editabile (textarea CSV ascuns) -> umplem celulele după aria-label
+    p.fill("input[aria-label='Element']", "Structura")
+    p.fill("input[aria-label='Cod']", "X")
+    p.fill("input[aria-label='U.M.']", "mp")
+    p.fill("input[aria-label='Cant.']", "120")
+    p.fill("input[aria-label='Cost unitar']", "2000")
+    p.fill("input[aria-label='An PIF']", "2015")
+    p.fill("input[aria-label^='Vârstă']", "5")   # grid depreciere (textarea ascuns)
+    p.fill("input[aria-label^='Fracție']", "0.05")
     p.fill("#suprafata_teren", "500")
     p.fill("#valoare_teren", "100000")
     p.fill("#data_evaluarii", "2026-01-16")     # setate ca să NU apară confirm-ul de dată lipsă
