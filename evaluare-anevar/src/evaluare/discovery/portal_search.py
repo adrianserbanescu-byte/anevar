@@ -5,6 +5,7 @@ AVERTISMENT: scraping direct - poate incalca ToS si se poate strica la schimbari
 from __future__ import annotations
 
 import re
+import unicodedata
 from collections.abc import Callable
 from urllib.parse import urljoin
 
@@ -18,23 +19,39 @@ log = get_logger(__name__)
 BAZE = {
     "imobiliare": "https://www.imobiliare.ro",
     "storia": "https://www.storia.ro",
+    "imoradar": "https://www.imoradar24.ro",
 }
 
 
 # Segmentul de URL per portal si categorie (casa vs teren)
+# Imoradar24 (P1.1): agregator cu slug curat /{cat}-de-vanzare/judetul-{j}/{localitate} si anunturi
+# /oferta/...; paginile de anunt sunt self-hosted (parserul generic extrage pret/supr/poza din JSON-LD+og).
 _SEGMENT = {
     ("imobiliare", "casa"): "vanzare-case-vile/judetul-{j}",
     ("imobiliare", "teren"): "vanzare-terenuri/judetul-{j}",
     ("storia", "casa"): "ro/rezultate/vanzare/casa/{j}",
     ("storia", "teren"): "ro/rezultate/vanzare/teren/{j}",
+    ("imoradar", "casa"): "case-de-vanzare/judetul-{j}",
+    ("imoradar", "teren"): "terenuri-de-vanzare/judetul-{j}",
 }
+
+
+def _slug(text: str) -> str:
+    """Normalizeaza pentru URL: pliaza diacriticele (ă->a, ț->t, ...), lowercase, spatii -> '-'.
+
+    Esential pentru județele/localitatile cu diacritice (Bistrița-Năsăud, Brăila, Timiș, Argeș...):
+    fara asta URL-ul de cautare contine diacritice brute si portalul da 404 -> zero comparabile.
+    """
+    text = unicodedata.normalize("NFKD", text or "").encode("ascii", "ignore").decode()
+    text = text.strip().lower()
+    return re.sub(r"\s+", "-", text)
 
 
 def build_search_url(portal: str, judet: str, localitate: str = "",
                      categorie: str = "casa") -> str:
     """Construieste URL-ul paginii de cautare (casa sau teren). Fara localitate -> pe judet."""
-    judet = judet.strip().lower()
-    localitate = (localitate or "").strip().lower()
+    judet = _slug(judet)
+    localitate = _slug(localitate)
     if portal not in BAZE:
         raise ValueError(f"Portal necunoscut: {portal}")
     seg = _SEGMENT.get((portal, categorie))
