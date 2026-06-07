@@ -121,7 +121,34 @@ Pipeline-ul nostru = **scraping HTTP direct** (`fetch_html`) + parsare HTML/`__N
 | **Scraperul nostru** (storia) | **8**, rankate (80/65/65/58/51/48%…) | **4/4 = 200 OK** |
 | **Perplexity** | **0** (refuză) | — |
 
-**Concluzie:** pentru **găsirea + citirea comparabilelor**, scraping-ul nostru funcționează deja end-to-end; un API de search **NU îl poate înlocui**. Singurul rol util al unui API de search = **descoperirea de SURSE noi**. Un LLM e sigur la **extracția din textul pe care i-l dăm noi**, nu la regăsirea/citirea anunțurilor.
+**Concluzie (Perplexity):** Perplexity Sonar **NU** poate găsi/citi anunțuri (fabrică sau refuză). DAR — vezi mai jos — asta NU se generalizează la toate API-urile de search.
+
+### Panel OpenRouter (12 modele) — 2 axe testate (2026-06-07)
+
+**① Extracție (din textul scrapuit de noi)** — anunț storia 220mp + imobiliare 215mp, scor /12, preț real din API:
+| Model | scor | $/M in · out |
+|---|---|---|
+| meta-llama/llama-3.3-70b | **12/12** | **0.10 · 0.32** |
+| openai/gpt-4o-mini | **12/12** | 0.15 · 0.60 |
+| deepseek/deepseek-chat | 12/12 | 0.20 · 0.80 |
+| qwen-2.5-72b | 12/12 | 0.36 · 0.40 |
+| google/gemini-2.5-flash | 12/12 | 0.30 · 2.50 |
+| anthropic/claude-3.5-haiku *(ce folosim)* | 12/12 | **0.80 · 4.00** |
+| openai/gpt-4o · gemini-2.5-pro | 12/12 | scump (10.00 out) |
+| deepseek-r1 | 11/12 | 0.70 · 2.50 |
+
+→ **Extracția e commodity**: chiar și modele open ieftine (llama-3.3-70b, ~12× mai ieftin la output decât Claude Haiku) o fac perfect. **Putem ieftini extracția cu ~85% fără pierdere de calitate.**
+
+**② Discovery web (`:online` = search Exa pe OpenRouter)** — „găsește anunțuri reale cu URL":
+| Model | URL-uri anunț | reale (200) |
+|---|---|---|
+| perplexity/sonar | 1 (pagină listă) | ❌ 0/1 |
+| **openai/gpt-4o-mini:online** | 6 | ✅ **6/6** |
+| **google/gemini-2.5-flash:online** | 4 | ✅ **4/4** |
+
+→ **CORECȚIE importantă:** un search-API **POATE** găsi anunțuri reale — `:online` (Exa) a returnat anunțuri individuale verificate (200), **inclusiv de pe `imoradar24.ro`, sursă pe care nu o scrapuim**. Doar **Perplexity Sonar** e slab. Deci un strat de discovery via `:online` e o opțiune reală (hibrid: `:online` găsește candidați larg → parserul nostru extrage datele de pe portalurile suportate).
+
+**Concluzie generală:** moat-ul rămâne **parsarea structurată** (storia `__NEXT_DATA__` etc.); extracția = ieftină/interschimbabilă (orice model decent); **descoperirea** poate fi extinsă cu un search-API bun (Exa `:online`, NU Sonar) ca să prindem surse pe care nu le avem.
 
 ---
 
