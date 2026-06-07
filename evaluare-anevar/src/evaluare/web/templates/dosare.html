@@ -7,6 +7,7 @@
   table th{ background:var(--paper-sunk); color:var(--ink); border-bottom:2px solid var(--line-2); font-weight:600; }
 </style></head>
 <body>
+{% from "_icon.html" import icon %}
 <a class="skip-link" href="#continut">Sari la conținut</a>
 {% set pagina = "dosare" %}{% include "_topbar.html" %}
 {% set kicker = "Registru de evaluare" %}{% set titlu = "Dosare salvate" %}
@@ -15,7 +16,7 @@
 <main id="continut">
   {% if not dosare %}
     <div class="empty-state">
-      <span class="es-icon" aria-hidden="true">📂</span>
+      <span class="es-icon">{{ icon("folder") }}</span>
       <h3>Niciun dosar salvat încă</h3>
       <p>Dosarele generate prin wizard se salvează automat aici și pot fi redeschise, redenumite sau descărcate ca raport.</p>
       <a class="btn" href="/wizard">Deschide wizardul →</a>
@@ -33,9 +34,9 @@
       <td>{{ d.creat_la or '—' }}</td>
       <td>
         <button type="button" class="open" data-id="{{ d.id }}"><span aria-hidden="true">↗</span> Deschide</button>
-        <button type="button" class="ghost ren" data-id="{{ d.id }}"><span aria-hidden="true">✎</span> Redenumește</button>
-        <a class="btn ghost" href="/api/evaluare/{{ d.id }}/raport.docx"><span aria-hidden="true">⬇</span> .docx</a>
-        <button type="button" class="ghost del" data-id="{{ d.id }}"><span aria-hidden="true">🗑</span> Șterge</button>
+        <button type="button" class="ghost ren" data-id="{{ d.id }}">{{ icon("edit") }} Redenumește</button>
+        <a class="btn ghost" href="/api/evaluare/{{ d.id }}/raport.docx">{{ icon("download") }} .docx</a>
+        <button type="button" class="ghost del" data-id="{{ d.id }}">{{ icon("delete","ico-danger") }} Șterge</button>
       </td>
     </tr>
     {% endfor %}
