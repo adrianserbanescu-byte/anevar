@@ -209,7 +209,7 @@
         <div id="ext-lista"></div>
       </details>
       <hr class="brass-rule">
-      <label for="comparabile">Comparabile construcție/proprietate <span class="hint">(preț;suprafață, una pe linie)</span></label>
+      <label for="comparabile">Comparabile construcție/proprietate</label>
       <textarea id="comparabile" rows="4" placeholder="250000;120"></textarea>
       <details class="grila-det">
         <summary>📐 Grilă de ajustări — casă (pe etape + alerte prudențiale)</summary>
@@ -223,7 +223,7 @@
         </div>
         <div id="g-rezultat" role="status" aria-live="polite"></div>
       </details>
-      <label for="comparabile_teren">Comparabile teren <span class="hint">(preț/mp;suprafață — opțional; dacă există, valoarea terenului se calculează din grilă, nu manual)</span></label>
+      <label for="comparabile_teren">Comparabile teren <span class="hint">(opțional; dacă există, valoarea terenului se calculează din grilă, nu manual)</span></label>
       <textarea id="comparabile_teren" rows="3" placeholder="50;700"></textarea>
       <details class="grila-det">
         <summary>📐 Grilă de ajustări — teren (pe etape + alerte prudențiale)</summary>
@@ -716,6 +716,9 @@ function gridEditabil(id, cols, addLabel){
   ],"adaugă element");
   gridEditabil("depreciere",[{label:"Vârstă (ani)",ph:"5",num:1},{label:"Fracție (0–1)",ph:"0.05",num:1}],"adaugă punct");
   gridEditabil("fluxuri",[{label:"Flux anual (venit net)",ph:"10000",num:1}],"adaugă an");
+  // comparabile/comparabile_teren au importatori (URL/extensie/grilă) -> ei apelează refresh() după append.
+  gridEditabil("comparabile",[{label:"Preț",ph:"250000",num:1},{label:"Suprafață (mp)",ph:"120",num:1}],"adaugă comparabil");
+  gridEditabil("comparabile_teren",[{label:"Preț/mp",ph:"50",num:1},{label:"Suprafață teren (mp)",ph:"700",num:1}],"adaugă comparabil");
 })();
 
 // Anexe: foto (Anexa 2) + documente/scanuri (Anexa 3) → data-URL base64, incluse în raport.
@@ -772,7 +775,7 @@ if($("ing-fisier")) $("ing-fisier").addEventListener("change", function(){
     $("d-importa").addEventListener("click", function(){
       var linii=[]; document.querySelectorAll(".d-bif:checked").forEach(function(b){ if(b.dataset.pret&&b.dataset.supr) linii.push(b.dataset.pret+";"+b.dataset.supr); });
       if(!linii.length){ $("d-status").textContent="Bifează cel puțin un candidat."; return; }
-      var ta=$(teren?"comparabile_teren":"comparabile"); ta.value=(ta.value.trim()?ta.value.trim()+"\n":"")+linii.join("\n"); salveaza();
+      var ta=$(teren?"comparabile_teren":"comparabile"); ta.value=(ta.value.trim()?ta.value.trim()+"\n":"")+linii.join("\n"); salveaza(); if(ta._grid)ta._grid.refresh();
       $("d-status").textContent="✓ "+linii.length+" importate în "+(teren?"Comparabile teren":"grilă")+".";
     });
   }
@@ -809,7 +812,7 @@ if($("ing-fisier")) $("ing-fisier").addEventListener("change", function(){
     fetch("/api/import-url",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({url:url})})
       .then(function(r){ return r.ok?r.json():r.json().then(function(e){ return Promise.reject(e.detail||"eroare"); }); })
       .then(function(d){ if(!d.pret||!d.suprafata){ $("d-url-status").textContent="Anunțul nu are preț+suprafață structurate — completează manual."; return; }
-        var ta=$("comparabile"); ta.value=(ta.value.trim()?ta.value.trim()+"\n":"")+d.pret+";"+d.suprafata; salveaza();
+        var ta=$("comparabile"); ta.value=(ta.value.trim()?ta.value.trim()+"\n":"")+d.pret+";"+d.suprafata; salveaza(); if(ta._grid)ta._grid.refresh();
         $("d-url-status").textContent="✓ importat: "+(d.titlu||url); $("d-url").value=""; })
       .catch(function(e){ $("d-url-status").textContent="Import eșuat — "+(typeof e==="string"?e:"verifică linkul/internetul"); })
       .finally(function(){ b.disabled=false; });
@@ -826,7 +829,7 @@ if($("ing-fisier")) $("ing-fisier").addEventListener("change", function(){
     var imp=$("ext-importa"); if(imp) imp.addEventListener("click", function(){
       var linii=[]; document.querySelectorAll(".ext-bif:checked").forEach(function(b){ if(b.dataset.pret&&b.dataset.supr) linii.push(b.dataset.pret+";"+b.dataset.supr); });
       if(!linii.length) return;
-      var ta=$("comparabile"); ta.value=(ta.value.trim()?ta.value.trim()+"\n":"")+linii.join("\n"); salveaza();
+      var ta=$("comparabile"); ta.value=(ta.value.trim()?ta.value.trim()+"\n":"")+linii.join("\n"); salveaza(); if(ta._grid)ta._grid.refresh();
       $("d-status").textContent="✓ "+linii.length+" importate din extensie."; });
   }
   function incarcaCoada(){ fetch("/api/anunturi-importate").then(function(r){return r.ok?r.json():{anunturi:[]};})
@@ -1003,7 +1006,7 @@ function asambleaza(){
   });
   if($("g-import")) $("g-import").addEventListener("click", function(){
     var comps=compForm(); if(!comps.length){ $("g-rezultat").textContent="Nimic de trimis."; return; }
-    var ta=$("comparabile"); ta.value=(ta.value.trim()?ta.value.trim()+"\n":"")+comps.map(function(c){return c.pret+";"+c.suprafata;}).join("\n"); salveaza();
+    var ta=$("comparabile"); ta.value=(ta.value.trim()?ta.value.trim()+"\n":"")+comps.map(function(c){return c.pret+";"+c.suprafata;}).join("\n"); salveaza(); if(ta._grid)ta._grid.refresh();
     $("g-rezultat").textContent="✓ "+comps.length+" prețuri trimise în Comparabile.";
   });
 })();
@@ -1056,7 +1059,7 @@ function asambleaza(){
   });
   if($("gt-import")) $("gt-import").addEventListener("click", function(){
     var comps=compForm(); if(!comps.length){ $("gt-rezultat").textContent="Nimic de trimis."; return; }
-    var ta=$("comparabile_teren"); ta.value=(ta.value.trim()?ta.value.trim()+"\n":"")+comps.map(function(c){return c.pret_mp+";"+c.suprafata;}).join("\n"); salveaza();
+    var ta=$("comparabile_teren"); ta.value=(ta.value.trim()?ta.value.trim()+"\n":"")+comps.map(function(c){return c.pret_mp+";"+c.suprafata;}).join("\n"); salveaza(); if(ta._grid)ta._grid.refresh();
     $("gt-rezultat").textContent="✓ "+comps.length+" comparabile trimise în Comparabile teren.";
   });
 })();
