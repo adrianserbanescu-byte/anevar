@@ -396,6 +396,45 @@ small.hint{ font-style:normal; }
   padding:10px 16px; margin:6px 0 16px; border-radius:0 6px 6px 0;
 }
 
+/* ===================================================================== *
+ * STĂRI (audit Rams #8 — thoroughness): empty / validare câmp / loading  *
+ * Adăugate de A (sistem). Paginile (C) le aplică: .empty-state, .is-invalid + .field-error, .is-loading.
+ * ===================================================================== */
+
+/* Empty-state coerent: pictogramă opțională + titlu + mesaj + CTA (nu mai trimite prin link text simplu). */
+.empty-state{
+  text-align:center; padding:34px 24px; margin:14px 0;
+  background:var(--paper-sunk); border:1px dashed var(--line-2);
+  border-radius:var(--radius); color:var(--ink-2);
+}
+.empty-state .es-icon{ font-size:2rem; opacity:.5; display:block; margin-bottom:8px; }
+.empty-state h3{ margin:0 0 6px; font-family:var(--serif); color:var(--ink); }
+.empty-state p{ margin:0 auto 14px; max-width:46ch; font-size:.92rem; }
+
+/* Validare la nivel de câmp: input invalid + mesaj inline (lipsea — doar `.err` text exista). */
+input.is-invalid, select.is-invalid, textarea.is-invalid{
+  border-color:var(--danger); background:var(--danger-soft);
+}
+input.is-invalid:focus, select.is-invalid:focus, textarea.is-invalid:focus{ outline-color:var(--danger); }
+.field-error{ display:block; margin-top:4px; color:var(--danger-ink); font-size:.82rem; font-weight:600; }
+.field-error::before{ content:"\26A0  "; }   /* ⚠ */
+
+/* Loading: spinner reutilizabil + stare „ocupat" pe buton/secțiune. */
+.spinner{
+  display:inline-block; width:1em; height:1em; vertical-align:-.15em;
+  border:2px solid var(--line-2); border-top-color:var(--sienna);
+  border-radius:50%; animation:spin .7s linear infinite;
+}
+@keyframes spin{ to{ transform:rotate(360deg); } }
+.is-loading{ opacity:.7; pointer-events:none; }
+button.is-loading{ position:relative; color:transparent; }
+button.is-loading::after{
+  content:""; position:absolute; inset:0; margin:auto; width:1em; height:1em;
+  border:2px solid rgba(255,255,255,.5); border-top-color:#fff; border-radius:50%;
+  animation:spin .7s linear infinite;
+}
+@media (prefers-reduced-motion:reduce){ .spinner, button.is-loading::after{ animation:none; } }
+
 /* ----------------------------------------------------- Wizard: pași */
 main{ display:block; }
 .pas{
