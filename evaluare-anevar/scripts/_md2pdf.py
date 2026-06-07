@@ -1,7 +1,11 @@
-"""Convertește documentele de livrat din .md în HTML stilizat (apoi LibreOffice → PDF).
+"""Convertește documentele de livrat din .md în HTML stilizat (apoi LibreOffice → PDF + DOCX).
 
-Rulează: python scripts/_md2pdf.py   → scrie HTML în docs/pdf/_html/
-Apoi:    soffice --headless --convert-to pdf --outdir docs/pdf docs/pdf/_html/*.html
+REGULĂ DE PROIECT: orice livrabil exportat ca PDF primește și o variantă .docx editabilă.
+
+Rulează: python scripts/_md2pdf.py            → scrie HTML în docs/pdf/_html/
+Apoi (per fișier .html, ambele formate):
+  soffice --headless --convert-to pdf  --outdir docs/pdf  <fisier>.html
+  soffice --headless --convert-to docx --outdir docs/docx <fisier>.html
 """
 from pathlib import Path
 

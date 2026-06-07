@@ -24,3 +24,4 @@ __pycache__/
 
 # PDF-uri generate din .md (regenerabile: scripts/_md2pdf.py + LibreOffice)
 evaluare-anevar/docs/pdf/
+evaluare-anevar/docs/docx/
