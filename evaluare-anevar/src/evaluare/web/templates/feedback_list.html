@@ -11,7 +11,12 @@
 <main id="continut">
   <p class="hint">{{ feedback|length }} mesaj(e). <a href="/api/feedback.csv"><span aria-hidden="true">⬇</span> Descarcă CSV</a></p>
   {% if not feedback %}
-    <p class="hint">Niciun feedback încă. Apasă butonul „<span aria-hidden="true">✎</span> Feedback" (jos-dreapta) pe orice pagină.</p>
+    <div class="empty-state">
+      <span class="es-icon" aria-hidden="true">✎</span>
+      <h3>Niciun feedback încă</h3>
+      <p>Mesajele de la testeri apar aici. Apasă butonul „Feedback" (jos-dreapta) pe orice pagină ca să trimiți primul.</p>
+      <a class="btn" href="/incepe">Deschide aplicația →</a>
+    </div>
   {% else %}
   <table>
     <caption class="sr-only">Mesaje de feedback de la testeri, cu data, pagina sursă, reacția, textul mesajului și numele testerului.</caption>

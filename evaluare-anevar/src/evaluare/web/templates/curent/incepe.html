@@ -108,14 +108,15 @@ if(creeazaBtn) creeazaBtn.addEventListener('click', async ()=>{
     if(!v) lipsa.push(c.dataset.camp); });
   var st=document.getElementById('nou-status');
   if(lipsa.length){ st.textContent='Completează toate câmpurile de identitate.'; return; }
-  st.textContent='Se creează…';
+  st.textContent='Se creează…'; creeazaBtn.classList.add('is-loading'); creeazaBtn.disabled=true;
+  var gata=function(){ creeazaBtn.classList.remove('is-loading'); creeazaBtn.disabled=false; };
   try{
     const r=await fetch('/api/dosar',{method:'POST',headers:{'Content-Type':'application/json'},
       body:JSON.stringify({wizard:wizard})});
-    if(!r.ok){ st.textContent='Eroare la creare (cod '+r.status+'). Verifică contul și reîncearcă.'; return; }
+    if(!r.ok){ st.textContent='Eroare la creare (cod '+r.status+'). Verifică contul și reîncearcă.'; gata(); return; }
     const d=await r.json();
-    if(d.uuid) window.location.href='/dosar/'+d.uuid; else st.textContent='Eroare la creare.';
-  }catch(e){ st.textContent='Crearea a eșuat — verifică aplicația și reîncearcă.'; }
+    if(d.uuid) window.location.href='/dosar/'+d.uuid; else { st.textContent='Eroare la creare.'; gata(); }
+  }catch(e){ st.textContent='Crearea a eșuat — verifică aplicația și reîncearcă.'; gata(); }
 });
 // Câmpurile-dată din formularul de creare: blochează datele viitoare (max=azi) + format românesc (zz.ll.aaaa).
 (function(){

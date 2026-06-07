@@ -42,14 +42,16 @@
 <script>
 document.querySelectorAll(".open").forEach(b => b.addEventListener("click", async () => {
   const id = b.dataset.id;
+  b.classList.add("is-loading"); b.disabled = true;
+  const gata = () => { b.classList.remove("is-loading"); b.disabled = false; };
   try {
     const r = await fetch("/api/evaluare/" + id + "/dosar");
     const d = await r.json();
     if (!d.wizard) { document.getElementById("dosare-status").textContent =
-      "Dosar mai vechi — nu are snapshot de re-deschidere. Doar descărcarea .docx e disponibilă."; return; }
+      "Dosar mai vechi — nu are snapshot de re-deschidere. Doar descărcarea .docx e disponibilă."; gata(); return; }
     localStorage.setItem("wizard", JSON.stringify(d.wizard));
     window.location.href = "/wizard";
-  } catch(e) { document.getElementById("dosare-status").textContent = "Nu am putut deschide dosarul."; }
+  } catch(e) { document.getElementById("dosare-status").textContent = "Nu am putut deschide dosarul."; gata(); }
 }));
 document.querySelectorAll(".ren").forEach(b => b.addEventListener("click", async () => {
   const id = b.dataset.id;
