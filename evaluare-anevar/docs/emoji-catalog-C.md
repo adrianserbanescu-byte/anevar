@@ -235,3 +235,53 @@
 | `search` | 1 | descoperire.html:139 |
 | `refresh` | 1 | grila.html:16 |
 | `flag` | 1 | grila.html:299 |
+
+
+---
+## E. Mapare rol → macro `_icon.html` (substituție mecanică la GO)
+
+Macro confirmat pe master (22 nume). Folosire: `{% from "_icon.html" import icon %}` + `{{ icon("name","cls") }}`.
+
+### Roluri ACTIVE → icon (toate se mapează; 3 ajustări marcate *)
+| rol catalog | `{{ icon(...) }}` | clasă culoare |
+|---|---|---|
+| add | `icon("add")` | — (currentColor) |
+| audit-receipt * | `icon("audit")` | — (currentColor) |
+| back | `icon("back")` | — (currentColor) |
+| calendar | `icon("calendar")` | — (currentColor) |
+| check | `icon("check")` | — (currentColor) |
+| check-filled * | `icon("check")` | — (currentColor) |
+| close | `icon("close")` | — (currentColor) |
+| delete | `icon("delete")` | ico-danger |
+| doc | `icon("doc")` | — (currentColor) |
+| download | `icon("download")` | — (currentColor) |
+| edit | `icon("edit")` | — (currentColor) |
+| flag | `icon("flag")` | ico-gold |
+| folder | `icon("folder")` | — (currentColor) |
+| folder-open * | `icon("folder")` | — (currentColor) |
+| help | `icon("help")` | — (currentColor) |
+| import | `icon("import")` | — (currentColor) |
+| info | `icon("info")` | — (currentColor) |
+| map | `icon("map")` | — (currentColor) |
+| refresh | `icon("refresh")` | — (currentColor) |
+| save | `icon("save")` | — (currentColor) |
+| search | `icon("search")` | — (currentColor) |
+| swap | `icon("swap")` | — (currentColor) |
+| view | `icon("view")` | — (currentColor) |
+| warn | `icon("warn")` | ico-gold |
+
+*`folder-open`→`folder`, `check-filled`→`check`, `audit-receipt`→`audit` (macro nu are variante separate).
+
+### 1-off — decizie la GO (nu blochează rollout-ul celor active)
+- `thumb-up`: nu e in macro (feedback 👍) — ramane emoji SAU A adauga thumb
+- `thumb-down`: nu e in macro (feedback 👎) — ramane emoji SAU A adauga thumb
+- `demo`: nu e in macro (🧪) — case-by-case; poate ramane
+- `import-similar`: 🔁 — foloseste icon("import") sau ramane; intreb A
+- `arrow-send`: ➜ trimite — nu e in macro; poate icon("swap") sau glyph; intreb A
+- `doc-edit`: 📝 raport cu note — icon("edit") sau icon("doc"); doar result.html:34 (wizard skip)
+- `compass-wizard`: 🧭 — A: ramane ornament _compas.svg, NU converti
+
+### Clase culoare (din _design.css)
+- default = `currentColor` (preia navy/alb din context)
+- `ico-gold` = accent (warn, flag)
+- `ico-danger` = roșu (delete)
