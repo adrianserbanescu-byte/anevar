@@ -15,6 +15,7 @@
   {% else %}
   <p class="hint">{{ dosare|length }} dosar(e). Fiecare se salvează automat la calcul.</p>
   <table>
+    <caption class="sr-only">Lista dosarelor salvate, cu nume, client, valoare estimată, data creării și acțiuni (deschide, redenumește, descarcă raport, șterge).</caption>
     <tr><th scope="col">Nume</th><th scope="col">Client</th><th scope="col">Valoare</th><th scope="col">Creat</th><th scope="col">Acțiuni</th></tr>
     {% for d in dosare %}
     <tr data-id="{{ d.id }}">

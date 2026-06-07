@@ -14,6 +14,7 @@
     <p class="hint">Niciun feedback încă. Apasă butonul „<span aria-hidden="true">✎</span> Feedback" (jos-dreapta) pe orice pagină.</p>
   {% else %}
   <table>
+    <caption class="sr-only">Mesaje de feedback de la testeri, cu data, pagina sursă, reacția, textul mesajului și numele testerului.</caption>
     <tr><th scope="col">Data</th><th scope="col">Pagină</th><th scope="col">Reacție</th><th scope="col">Mesaj</th><th scope="col">Tester</th></tr>
     {% for f in feedback %}
     <tr>
