@@ -94,7 +94,10 @@ def build_router(d: Deps) -> APIRouter:
         try:
             return d.storage.get_dosar(eid)
         except KeyError:
-            raise HTTPException(status_code=404, detail="Dosarul nu există.") from None
+            raise HTTPException(
+                status_code=404,
+                detail="Dosarul nu există (cod 404). Verifică ID-ul în lista de dosare la /dosare.",
+            ) from None
 
     @router.post("/api/evaluare/{eid}/sterge")
     def sterge_dosar(eid: int) -> dict:
@@ -138,7 +141,10 @@ def build_router(d: Deps) -> APIRouter:
     def descarca_backup() -> FileResponse:
         copie = d.storage.backup(Path(tempfile.gettempdir()) / "anevar_backup", keep=3)
         if copie is None:
-            raise HTTPException(status_code=404, detail="Nu există încă dosare de salvat.")
+            raise HTTPException(
+                status_code=404,
+                detail="Nu există încă dosare de salvat (cod 404). Creează unul la /incepe înainte de backup.",
+            )
         return FileResponse(str(copie), media_type="application/octet-stream", filename=copie.name)
 
     @router.get("/evaluare/{eid}", response_class=HTMLResponse)
