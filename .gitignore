@@ -38,3 +38,6 @@ evaluare-anevar/live/
 
 # Screenshot-uri audit design (regenerabile cu scripts/_audit_screenshots.py)
 evaluare-anevar/docs/design-audit/screens/
+
+# preview-uri design (binare, regenerabile)
+evaluare-anevar/docs/design-audit/*.png

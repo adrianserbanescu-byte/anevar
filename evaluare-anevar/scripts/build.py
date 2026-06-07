@@ -32,16 +32,20 @@ def curata() -> None:
         p = RADACINA / d
         if p.exists():
             shutil.rmtree(p, ignore_errors=True)
-    # foldere temporare _MEI* rămase (corup arhiva la pornirea exe-ului)
+    # foldere temporare _MEI* rămase (corup arhiva la pornirea exe-ului).
+    # Sărim peste cele ÎN FOLOSINȚĂ (ex. serverul live care rulează): pe Windows un folder cu fișiere
+    # deschise nu poate fi redenumit -> testăm cu un rename. Așa build-ul NU mai ucide instanța live.
     temp = Path(tempfile.gettempdir())
     n = 0
     for mei in temp.glob("_MEI*"):
+        liber = mei.with_name(mei.name + ".rm")
         try:
-            shutil.rmtree(mei, ignore_errors=True)
-            n += 1
+            mei.rename(liber)            # reușește DOAR dacă nimeni nu-l ține deschis
         except OSError:
-            pass
-    print(f"Curățat: build/, dist/, {n} folder(e) _MEI temporare.")
+            continue                     # în uz -> îl lăsăm intact (nu corupem exe-ul care rulează)
+        shutil.rmtree(liber, ignore_errors=True)
+        n += 1
+    print(f"Curățat: build/, dist/, {n} folder(e) _MEI temporare libere.")
 
 
 def build() -> int:

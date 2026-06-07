@@ -15,6 +15,18 @@ from evaluare.web.deps import Deps
 from evaluare.web.routers import aml, curent, descoperire, evaluare, grile, pagini, piata
 
 
+def _build_data() -> str:
+    """Data buildului = mtime-ul exe-ului PyInstaller (`sys.executable`). În dev (nefreezat): 'dev'."""
+    import sys
+    if getattr(sys, "frozen", False):
+        from datetime import datetime
+        try:
+            return datetime.fromtimestamp(Path(sys.executable).stat().st_mtime).strftime("%d.%m.%Y %H:%M")
+        except OSError:
+            return ""
+    return "dev"
+
+
 def create_app(storage: Storage, client: NarrativeClient | None,
                fetcher: Callable[[str], str] = fetch_html,
                pdf_converter: Callable[[Path], Path] = docx_to_pdf) -> FastAPI:
@@ -47,6 +59,7 @@ def create_app(storage: Storage, client: NarrativeClient | None,
     )
     templates = Jinja2Templates(directory=str(Path(__file__).parent / "templates"))
     templates.env.globals["versiune"] = __version__
+    templates.env.globals["build_data"] = _build_data()
     deps = Deps(storage=storage, client=client, fetcher=fetcher, templates=templates,
                 pdf_converter=pdf_converter)
 
