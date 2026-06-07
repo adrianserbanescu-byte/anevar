@@ -129,10 +129,10 @@ deschidere** e mecanismul minim și standard. → **`.lock`.**
 1. [x] ✅ **Declanșator DECIS (Adi #10):** HIBRID TRIPLU = asumare + prima generare `.docx` + upload submis.
 2. [x] ✅ **Implementat:** `asumat_la` + **amprentă SHA256 per versiune** în `dosar.json`; `verifica_integritate` în urma de audit (tamper-evidence). (`dosare_fs.py`, `web/routers/curent.py` audit.txt, `tests/test_dosare_fs.py`)
 3. [x] ✅ **Implementat (trigger #3):** `POST /api/dosar/{uid}/incarca-submis` + buton UI „Înregistrează fișierul submis" (tab Generează).
-4. [ ] **Enforcement read-only** pe câmpurile de identitate după asumare + dialog „Modifici identitatea = DOSAR NOU" + clonare date tehnice (uuid nou). *(UX — următorul pas, cuplat cu #5)*
-5. [ ] Aliniază `CAMPURI_IDENTITATE` (scoate `nume_client` din identitatea tare; `id_client` = cod fiscal CNP/CUI). *(decizie de produs — atinge numele folderelor + dosarele existente)*
-6. [ ] Buton „Deblochează corectură tipografică" → motiv + intrare în Audit.
-7. [ ] Fișier `.lock` per dosar la deschidere + read-only la deschidere concurentă; curățare `.lock` orfane la pornire.
+4. [x] ✅ **Implementat (decizia Adi):** enforcement read-only după asumare (`salveaza_wizard` îngheață `CAMPURI_IDENTITATE` când `blocat`) + buton „Dosar nou" → `cloneaza()` (uuid nou, neasumat, munca tehnică copiată; sursa rămâne asumată). UI: banner lock + câmpuri dezactivate.
+5. [ ] Aliniază `CAMPURI_IDENTITATE` (scoate `nume_client` din identitatea tare; `id_client` = cod fiscal CNP/CUI). *(decizie de produs #12 — atinge numele folderelor + dosarele existente; momentan se blochează setul existent)*
+6. [x] ✅ **Implementat (decizia Adi):** buton „Deblochează corectură" → motiv **obligatoriu** → `deblocheaza()` (în `deblocari[]` + în `audit.txt` ca `deblocare_identitate`); re-generarea re-blochează.
+7. [ ] Fișier `.lock` per dosar la deschidere + read-only la deschidere concurentă. *(concurență — separat de lock-ul de identitate)*
 
 > **Stare:** declanșatorul e DECIS (#10) și **fundația de audit-inalterabil (hash per versiune + asumat_la +
 > trigger upload-submis) e implementată și testată.** Rămâne de construit **enforcement-ul read-only +
