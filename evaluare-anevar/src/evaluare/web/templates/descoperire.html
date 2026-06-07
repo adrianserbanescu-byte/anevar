@@ -35,6 +35,8 @@
   .cand-meta{ font-size:.85rem; color:var(--ink-faint); margin:6px 0 0; }
   .cand-meta .alerta{ color:var(--danger-ink); font-weight:600; }
   .cand-body{ display:flex; gap:14px; align-items:flex-start; margin:10px 0 0; }
+  .cand-poza{ flex:0 0 auto; width:110px; height:82px; object-fit:cover; border-radius:var(--radius-sm);
+    border:1px solid var(--line); background:var(--paper-sunk); }
   .cand-attr{ flex:1 1 auto; min-width:0; }
   .cand-radar-wrap{ flex:0 0 auto; }
   .cand-radar{ display:block; }
@@ -96,7 +98,7 @@
    <label for="incalzire">Incalzire</label> <input id="incalzire" name="incalzire" value="centrala_gaz" size="14">
    <label for="teren">Teren mp</label> <input id="teren" name="teren" value="500" size="6">
    <label for="max_candidati">Câte comparabile</label>
-   <input id="max_candidati" name="max_candidati" type="number" min="1" max="50" value="15" size="4"
+   <input id="max_candidati" name="max_candidati" type="number" min="1" max="50" value="20" size="4"
      title="Numărul maxim de comparabile returnate (1–50)"><br>
   <label for="secundare">Atribute secundare (unul pe linie, „nume: valoare"):</label><br>
   <textarea id="secundare" name="secundare" rows="3" cols="40" placeholder="tamplarie: termopan"></textarea><br>
@@ -307,6 +309,7 @@ function randCandidat(c){
     </div>
     <div class="cand-meta">${meta}${avert?' · '+avert:''}</div>
     <div class="cand-body">
+      ${c.poza ? '<img class="cand-poza" src="'+c.poza+'" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.remove()">' : ''}
       <div class="cand-attr">${chipsAtribute(c)}</div>
       ${c.axe ? '<div class="cand-radar-wrap">'+randRadar(c.axe)+'</div>' : ''}
     </div>
@@ -377,7 +380,7 @@ document.getElementById('f').addEventListener('submit', async (e)=>{
     subiect:{an:parseInt(d.an)||null, stare:parseInt(d.stare)||null,
       finisaj:parseInt(d.finisaj)||null, incalzire:d.incalzire||null, teren:d.teren||null},
     atribute_secundare:(d.secundare||'').split('\n').filter(Boolean),
-    max_candidati: Math.min(50, Math.max(1, parseInt(d.max_candidati,10) || 15))};
+    max_candidati: Math.min(50, Math.max(1, parseInt(d.max_candidati,10) || 20))};
   let res;
   try {
     const r = await fetch('/api/descopera',{method:'POST',
