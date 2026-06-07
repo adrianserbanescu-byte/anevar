@@ -32,6 +32,15 @@ Status consolidat din auditurile `/design:ux-copy`, `/design:accessibility-revie
 | N6 | `incepe`/`cont`: `<nav>` landmark, file-input `aria-label`, `th scope=col`+„Acțiuni", empty-state `.callout`, badge „comercial" vizibil, import cu status inline (nu `alert`), `autocomplete=name` | `incepe.html`, `cont.html` |
 | N7 | Nume dosar recalculat la salvare (gol nu mai rămâne „?_?_?") | `dosare_fs.py` |
 
+## 📌 De planificat — sesiuni de explorare
+
+- **Modul de DESCOPERIRE — brainstorming / grill-me** (cerut de Adi, 2026-06-07).
+  Sesiune dedicată (`superpowers:brainstorming` sau `grill-me`) pe modulul de descoperire de
+  comparabile (scraping portaluri imobiliare/storia/olx, extracție atribute, scor de relevanță,
+  coadă din extensia de browser). De clarificat: scop/UX-ul ideal, ce surse, cum se prezintă
+  candidații, cum se leagă de grile/calcul, limitări legale de scraping. **Nu s-a făcut încă** —
+  de programat cu Adi (nu autonom).
+
 ## 🟡 Deschise — decizii de produs din auditul UI nou (vezi `plan-maine-2026-06-06.md` §B)
 - Ordine creare dosar (gol-apoi-completezi vs. modal de identitate) — **B1**.
 - Blocare identitate după prima generare (read-only + override) — **B2**.
