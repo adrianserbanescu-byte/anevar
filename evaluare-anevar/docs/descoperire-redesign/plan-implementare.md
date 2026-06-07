@@ -20,6 +20,14 @@ Council-ul e în consens pe STRUCTURĂ, dar diverge pe valori. De decis:
 
 > Restul planului (structura) NU e blocat de astea — pot construi „țeava", cu ponderile ca **config** ce le setezi tu.
 
+### D5 — detaliere localizare/distanță (decizia Adi, 2026-06-07)
+**Zona/cartierul = semnal categoric PRIMAR; distanța-în-metri = tie-breaker SECUNDAR, doar în aceeași zonă.**
+- **Match localizare:** aceeași stradă > stradă vecină/același cartier ≫ cartier diferit. Cartier diferit, chiar la ~2 km = **„obiect economic diferit"** (ex. *Primăverii ≠ Pantelimon*) → decide ZONA, nu km.
+- **Granularitate după mărimea localității:** sate/comune = **localitatea** (distanța între străzi irelevantă); orașe < 50k = **cartier**; orașe mari = **sub-zonă/rază** (aici distanța-între-străzi devine tie-breaker util).
+- **Calcul:** **haversine** (linie dreaptă, offline ieftin — proxy acceptabil la scară de cartier; **NU routing** încă). Precizie limitată de adresa din anunț: stradă+nr → punct exact; doar stradă → centroid stradă; doar cartier → folosești zona **categoric**, nu km.
+- **Afișare (per D5):** **text**, ex. „Același cartier (Ultracentral) · 400m" / „Cartier diferit (Pantelimon)" — NU km brut băgat în scorul %.
+- **Bucket-B (Adi calibrează):** cât cântărește fiecare prag de zonă. Inginerie (B): structura — zonă categoric + distanță tie-breaker în zonă.
+
 ---
 
 ## P0 — fundație (1–2 sprinturi; consens 4/4)
@@ -53,10 +61,16 @@ Council-ul e în consens pe STRUCTURĂ, dar diverge pe valori. De decis:
 - Imoradar24 = agregator → strategie: discovery pe el → urmează redirect spre sursa originală → scrape acolo (sau parser direct). **Necesită dedup.**
 - Fișiere: `importers/url_parser.py` (parsere noi), `discovery/portal_search.py` (segmente noi).
 
-### P1.2 — Geocodare offline → distanța ca tie-breaker *(inginerie + D5)*
-- OSM România (Geofabrik) + SIRUTA + index spațial (PostGIS/Nominatim local) → distanță haversine, offline, cost ulterior zero (~2–3 zile).
-- Distanța = **badge/penalizare separată** afișată („90% (−15% distanță 3km)"), NU în scorul %. La industrial/agricol = distanță față de infrastructură.
-- Rezolvă și problema de precizie „Breaza → Gura Beliei/Nistorești".
+### P1.2 — Geocodare prin SERVICIU ONLINE → distanța ca tie-breaker *(inginerie + D5)* — REVIZUIT (decizia Adi, 2026-06-07)
+- **NU self-host PostGIS/OSM.** Motiv: e un `.exe` **distribuit** per evaluator — nu poți livra un dump OSM de GB + PostGIS la fiecare; iar **descoperirea e ORICUM online** (scrapează portaluri), deci geocoding online NU strică offline-first-ul (offline = evaluarea/raportul, nu descoperirea).
+- **Geocoding:** **Nominatim public** (gratuit, ~1 req/s) la volum mic; la comercial → **LocationIQ / Geoapify** (free tier + SLA clar, API Nominatim-style → migrare banală). **CACHE obligatoriu** (evită rate-limit + repetiții). Distanță = **haversine** între coordonate.
+- **Privacy (PII):** geocodează la nivel **stradă/localitate, NU număr exact** al subiectului (proprietatea clientului); comparabilele sunt publice.
+- Distanța = **badge/penalizare separată** („90% (−15% distanță 3km, alt cartier)"), NU în scorul %. La industrial/agricol = distanță față de infrastructură. Atribuire „© OpenStreetMap contributors".
+- **Termen lung:** când există gateway-ul (server, ADR-004) → self-host Nominatim ACOLO (cost per-cerere zero la scară). Rezolvă și „Breaza → Gura Beliei/Nistorești".
+
+### P1.3 — Hartă comparabile *(feature nou, online; decizia Adi: DA)*
+- **MapLibre GL JS + OpenFreeMap** (gratuit, fără API key) — afișează **subiectul + candidații ca pini** pe hartă, colorați după zonă/relevanță; evaluatorul vede vizual dacă-s în zona bună (se leagă de D5).
+- Online (tile-uri) — consistent cu descoperirea (deja online). Alternativă branding: MapTiler (free 100k/lună). Atribuire OSM obligatorie.
 
 ---
 
@@ -80,4 +94,4 @@ Council-ul e în consens pe STRUCTURĂ, dar diverge pe valori. De decis:
 - **Coordonare:** codul P0–P2 ar merge pe `sesiune-b` → A integrează pe master.
 
 ## Ordine recomandată (consens council)
-**P0.2 (Apartament) → P0.4 (model ieftin) → P0.3 (risc LLM) → P0.1 (decuplare) → P1.1 (acoperire) → P1.2 (geocoding) → P2 (export ANEVAR).**
+**P0.2 (Apartament) → P0.4 (model ieftin) → P0.3 (risc LLM) → P0.1 (decuplare) → P1.1 (acoperire) → P1.2 (geocoding ONLINE) → P1.3 (hartă) → P2 (export ANEVAR).**

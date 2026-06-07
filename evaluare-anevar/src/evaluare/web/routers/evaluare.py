@@ -51,7 +51,10 @@ def build_router(d: Deps) -> APIRouter:
         try:
             ctx = d.storage.load(eid)
         except KeyError:
-            raise HTTPException(status_code=404, detail="Dosarul nu există sau a fost șters.") from None
+            raise HTTPException(
+                status_code=404,
+                detail="Dosarul nu există sau a fost șters (cod 404). Verifică ID-ul în lista de dosare la /dosare.",
+            ) from None
         return {
             "id": eid,
             "client_nume": ctx.meta.client_nume,
@@ -64,7 +67,10 @@ def build_router(d: Deps) -> APIRouter:
         try:
             ctx = d.storage.load(eid)
         except KeyError:
-            raise HTTPException(status_code=404, detail="Dosarul nu există sau a fost șters.") from None
+            raise HTTPException(
+                status_code=404,
+                detail="Dosarul nu există sau a fost șters (cod 404). Verifică ID-ul în lista de dosare la /dosare.",
+            ) from None
         # ?demo=1 -> raport cu note de provenienta (calculat/extras/AI/exemplu/placeholder)
         sufix = "_demo" if demo else ""
         out = Path(tempfile.gettempdir()) / f"raport_{eid}{sufix}.docx"
@@ -94,7 +100,10 @@ def build_router(d: Deps) -> APIRouter:
         try:
             return d.storage.get_dosar(eid)
         except KeyError:
-            raise HTTPException(status_code=404, detail="Dosarul nu există.") from None
+            raise HTTPException(
+                status_code=404,
+                detail="Dosarul nu există (cod 404). Verifică ID-ul în lista de dosare la /dosare.",
+            ) from None
 
     @router.post("/api/evaluare/{eid}/sterge")
     def sterge_dosar(eid: int) -> dict:
@@ -113,7 +122,10 @@ def build_router(d: Deps) -> APIRouter:
         try:
             ctx = d.storage.load(eid)
         except KeyError:
-            raise HTTPException(status_code=404, detail="Dosarul nu există sau a fost șters.") from None
+            raise HTTPException(
+                status_code=404,
+                detail="Dosarul nu există sau a fost șters (cod 404). Verifică ID-ul în lista de dosare la /dosare.",
+            ) from None
         j = JurnalAudit()
         j.inregistreaza("identificare", {"adresa": ctx.meta.adresa,
                                          "cadastral": ctx.meta.numar_cadastral, "scop": ctx.meta.scop})
@@ -138,7 +150,10 @@ def build_router(d: Deps) -> APIRouter:
     def descarca_backup() -> FileResponse:
         copie = d.storage.backup(Path(tempfile.gettempdir()) / "anevar_backup", keep=3)
         if copie is None:
-            raise HTTPException(status_code=404, detail="Nu există încă dosare de salvat.")
+            raise HTTPException(
+                status_code=404,
+                detail="Nu există încă dosare de salvat (cod 404). Creează unul la /incepe înainte de backup.",
+            )
         return FileResponse(str(copie), media_type="application/octet-stream", filename=copie.name)
 
     @router.get("/evaluare/{eid}", response_class=HTMLResponse)
@@ -146,7 +161,10 @@ def build_router(d: Deps) -> APIRouter:
         try:
             ctx = d.storage.load(eid)
         except KeyError:
-            raise HTTPException(status_code=404, detail="Dosarul nu există sau a fost șters.") from None
+            raise HTTPException(
+                status_code=404,
+                detail="Dosarul nu există sau a fost șters (cod 404). Verifică ID-ul în lista de dosare la /dosare.",
+            ) from None
         val = ctx.reconciled.valoare_finala
         moneda = (ctx.meta.moneda or "LEI").upper()
         curs = ctx.meta.curs_valutar

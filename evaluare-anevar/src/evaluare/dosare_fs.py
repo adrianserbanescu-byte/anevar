@@ -38,6 +38,15 @@ def _identitate(wizard: dict) -> dict:
     return {c: wizard.get(c, "") for c in CAMPURI_IDENTITATE if wizard.get(c)}
 
 
+def este_blocat(dosar: dict) -> bool:
+    """ADR-003: identitatea e read-only dacă dosarul a fost asumat și nu e momentan deblocat.
+
+    `blocat` se setează la fiecare asumare (generare/submit) și se șterge la `deblocheaza`. Pentru
+    dosarele vechi (fără câmpul `blocat`) se derivă din `asumat_la` (asumat ⇒ blocat).
+    """
+    return bool(dosar.get("blocat", bool(dosar.get("asumat_la"))))
+
+
 def creeaza(creator_legitimatie: str, creator_nume: str, wizard: dict,
             format_dosar: list[str] | None = None) -> str:
     """Creează un dosar nou (folder + dosar.json). Returnează uuid-ul."""
@@ -90,6 +99,13 @@ def salveaza_wizard(uid: str, wizard: dict) -> dict:
     după ce userul completează identitatea) și reîmprospătează identitatea blocabilă.
     """
     dosar = incarca(uid)
+    if este_blocat(dosar):                            # ADR-003: identitate read-only după asumare
+        vechi = dosar.get("wizard", {})
+        for c in CAMPURI_IDENTITATE:                  # îngheață câmpurile de identitate la valorile asumate
+            if c in vechi:
+                wizard[c] = vechi[c]
+            else:
+                wizard.pop(c, None)
     dosar["wizard"] = wizard
     dosar["identitate"] = _identitate(wizard)
     if dosar.get("format_dosar"):
@@ -152,8 +168,9 @@ def _inregistreaza_versiune(uid: str, nume: str, tip: str) -> None:
     dosar["versiuni"] = versiuni
     # Trigger de asumare (ADR-003, decizia Adi #10 — hibrid): „generat" (prima generare .docx)
     # SAU „submis" (fișier finalizat încărcat, ex. returnat de bancă/client). „import" NU asumă.
-    if tip in ("generat", "submis") and not dosar.get("asumat_la"):
-        dosar["asumat_la"] = _acum()
+    if tip in ("generat", "submis"):
+        dosar.setdefault("asumat_la", _acum())       # prima asumare (timestamp imuabil)
+        dosar["blocat"] = True                        # (re)blochează identitatea (read-only) la fiecare asumare
     dosar["modificat_la"] = _acum()
     _scrie(uid, dosar)
 
@@ -173,6 +190,96 @@ def verifica_integritate(uid: str) -> list[dict]:
         rez.append({"fisier": v.get("fisier"), "la": v.get("la"), "tip": v.get("tip"),
                     "exista": exista, "ok": exista and _hash_fisier(f) == v.get("hash")})
     return rez
+
+
+def deblocheaza(uid: str, motiv: str) -> dict:
+    """ADR-003: deblochează identitatea pentru o corectură tipografică (decizia Adi: motiv → Audit).
+
+    Înregistrează `{la, motiv}` în `deblocari[]` (urmă de audit) și pune `blocat=False`. Următoarea
+    asumare (generare/submit) re-blochează automat. `motiv` e obligatoriu (altfel ValueError).
+    """
+    motiv = (motiv or "").strip()
+    if not motiv:
+        raise ValueError("Motivul deblocării e obligatoriu (intră în urma de audit).")
+    dosar = incarca(uid)
+    deblocari = list(dosar.get("deblocari", []))
+    deblocari.append({"la": _acum(), "motiv": motiv[:500]})
+    dosar["deblocari"] = deblocari
+    dosar["blocat"] = False
+    dosar["modificat_la"] = _acum()
+    _scrie(uid, dosar)
+    return dosar
+
+
+def cloneaza(uid: str) -> str:
+    """ADR-003: clonează munca tehnică într-un dosar NOU (uuid nou, neasumat, identitate editabilă).
+
+    Folosit când userul vrea altă identitate după asumare („modifici identitatea = DOSAR NOU"):
+    copiază wizardul-sursă (comparabile, calcule, descriere) într-un dosar proaspăt — fără `asumat_la`,
+    `blocat`, `versiuni` — unde identitatea poate fi schimbată. Dosarul-sursă rămâne intact + asumat.
+    """
+    sursa = incarca(uid)
+    return creeaza(sursa.get("creator_legitimatie", ""), sursa.get("creator_nume", ""),
+                   dict(sursa.get("wizard", {})), sursa.get("format_dosar"))
+
+
+# ── Lock de deschidere concurentă (ADR-003 item 7) ───────────────────────────────
+LOCK_TTL_SEC = 90        # un `.lock` mai vechi de atât = orfan (instanță închisă brusc)
+
+
+def _fisier_lock(uid: str) -> Path:
+    return baza() / uid / ".lock"
+
+
+def _varsta_sec(cale: Path) -> float | None:
+    try:
+        return datetime.now().timestamp() - cale.stat().st_mtime
+    except OSError:
+        return None
+
+
+def marcheaza_lock(uid: str, token: str) -> bool:
+    """Marchează/reîmprospătează lock-ul de deschidere. Întoarce True dacă dosarul era deja deschis de
+    ALTĂ fereastră (lock proaspăt, alt token) — semnal de editare concurentă (avertisment soft)."""
+    cale = _fisier_lock(uid)
+    concurent = False
+    varsta = _varsta_sec(cale)
+    if varsta is not None and varsta < LOCK_TTL_SEC:
+        try:
+            detinut = json.loads(cale.read_text(encoding="utf-8")).get("token")
+            concurent = bool(detinut and detinut != token)
+        except (OSError, ValueError):
+            concurent = False
+    with contextlib.suppress(OSError):
+        _scrie_atomic(cale, json.dumps({"token": token, "la": _acum()}))
+    return concurent
+
+
+def elibereaza_lock(uid: str, token: str) -> None:
+    """Eliberează lock-ul dacă e deținut de acest token (la închiderea ferestrei)."""
+    cale = _fisier_lock(uid)
+    try:
+        detinut = json.loads(cale.read_text(encoding="utf-8")).get("token")
+    except (OSError, ValueError):
+        return
+    if detinut == token:
+        with contextlib.suppress(OSError):
+            cale.unlink(missing_ok=True)
+
+
+def curata_lock_uri_orfane() -> int:
+    """La pornire: șterge `.lock`-urile orfane (> TTL) rămase de la instanțe închise brusc. Întoarce nr."""
+    b = baza()
+    n = 0
+    if not b.exists():
+        return 0
+    for cale in b.glob("*/.lock"):
+        varsta = _varsta_sec(cale)
+        if varsta is not None and varsta >= LOCK_TTL_SEC:
+            with contextlib.suppress(OSError):
+                cale.unlink(missing_ok=True)
+                n += 1
+    return n
 
 
 _CAMPURI_ANTET = ("uuid", "nume", "creator_legitimatie", "creator_nume",

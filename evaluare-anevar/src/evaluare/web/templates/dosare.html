@@ -15,7 +15,8 @@
   {% else %}
   <p class="hint">{{ dosare|length }} dosar(e). Fiecare se salvează automat la calcul.</p>
   <table>
-    <tr><th>Nume</th><th>Client</th><th>Valoare</th><th>Creat</th><th>Acțiuni</th></tr>
+    <caption class="sr-only">Lista dosarelor salvate, cu nume, client, valoare estimată, data creării și acțiuni (deschide, redenumește, descarcă raport, șterge).</caption>
+    <tr><th scope="col">Nume</th><th scope="col">Client</th><th scope="col">Valoare</th><th scope="col">Creat</th><th scope="col">Acțiuni</th></tr>
     {% for d in dosare %}
     <tr data-id="{{ d.id }}">
       <td class="nume">{{ d.nume or ('#' ~ d.id) }}</td>
@@ -23,10 +24,10 @@
       <td class="num">{{ d.valoare_finala }}</td>
       <td>{{ d.creat_la or '—' }}</td>
       <td>
-        <button type="button" class="open" data-id="{{ d.id }}">↗ Deschide</button>
-        <button type="button" class="ghost ren" data-id="{{ d.id }}">✎ Redenumește</button>
-        <a class="btn ghost" href="/api/evaluare/{{ d.id }}/raport.docx">⬇ .docx</a>
-        <button type="button" class="ghost del" data-id="{{ d.id }}">🗑 Șterge</button>
+        <button type="button" class="open" data-id="{{ d.id }}"><span aria-hidden="true">↗</span> Deschide</button>
+        <button type="button" class="ghost ren" data-id="{{ d.id }}"><span aria-hidden="true">✎</span> Redenumește</button>
+        <a class="btn ghost" href="/api/evaluare/{{ d.id }}/raport.docx"><span aria-hidden="true">⬇</span> .docx</a>
+        <button type="button" class="ghost del" data-id="{{ d.id }}"><span aria-hidden="true">🗑</span> Șterge</button>
       </td>
     </tr>
     {% endfor %}

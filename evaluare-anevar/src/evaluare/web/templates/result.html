@@ -5,8 +5,8 @@
 <a class="skip-link" href="#continut">Sari la conținut</a>
 {% include "_topbar.html" %}
 <nav class="nav" aria-label="Alte pagini ale aplicației"><a href="/">← evaluare nouă</a></nav>
-<h1>Rezultat evaluare</h1>
 <main id="continut">
+<h1>Rezultat evaluare</h1>
 <div class="rez certificat">
   <svg class="sigiliu seal-stamp" viewBox="0 0 140 140" width="120" height="120" aria-hidden="true" focusable="false">
     <defs>
@@ -30,8 +30,8 @@
     <dt>Metodă</dt><dd>{{ metoda }}</dd>
   </dl>
   <p class="actiuni">
-    <a class="btn" href="/api/evaluare/{{ eid }}/raport.docx">📄 Descarcă raportul .docx</a>
-    <a class="btn ghost" href="/api/evaluare/{{ eid }}/raport.docx?demo=1">📝 Raport cu note</a>
+    <a class="btn" href="/api/evaluare/{{ eid }}/raport.docx"><span aria-hidden="true">📄</span> Descarcă raportul .docx</a>
+    <a class="btn ghost" href="/api/evaluare/{{ eid }}/raport.docx?demo=1"><span aria-hidden="true">📝</span> Raport cu note</a>
   </p>
 </div>
 <p class="hint">Raportul este un <code>.docx</code> editabil în Word (pentru PDF: „Salvează ca → PDF").

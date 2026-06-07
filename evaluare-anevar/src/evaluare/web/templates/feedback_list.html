@@ -9,12 +9,13 @@
 {% set subtitlu = "Mesajele trimise din aplicație (salvate local). Export: /api/feedback.csv" %}
 {% include "_cartus.html" %}
 <main id="continut">
-  <p class="hint">{{ feedback|length }} mesaj(e). <a href="/api/feedback.csv">⬇ Descarcă CSV</a></p>
+  <p class="hint">{{ feedback|length }} mesaj(e). <a href="/api/feedback.csv"><span aria-hidden="true">⬇</span> Descarcă CSV</a></p>
   {% if not feedback %}
-    <p class="hint">Niciun feedback încă. Apasă butonul „✎ Feedback" (jos-dreapta) pe orice pagină.</p>
+    <p class="hint">Niciun feedback încă. Apasă butonul „<span aria-hidden="true">✎</span> Feedback" (jos-dreapta) pe orice pagină.</p>
   {% else %}
   <table>
-    <tr><th>Data</th><th>Pagină</th><th>Reacție</th><th>Mesaj</th><th>Tester</th></tr>
+    <caption class="sr-only">Mesaje de feedback de la testeri, cu data, pagina sursă, reacția, textul mesajului și numele testerului.</caption>
+    <tr><th scope="col">Data</th><th scope="col">Pagină</th><th scope="col">Reacție</th><th scope="col">Mesaj</th><th scope="col">Tester</th></tr>
     {% for f in feedback %}
     <tr>
       <td>{{ f.creat_la }}</td>
