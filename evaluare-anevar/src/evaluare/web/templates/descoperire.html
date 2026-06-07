@@ -121,6 +121,13 @@ function badgeClass(c){
   if(c.relevanta>=60) return 'b-mid';
   return 'b-low';
 }
+// D3 (cererea Adi): scorul se exprimă PRIMAR ca text calitativ; numărul rămâne disponibil, secundar.
+function relevantaText(c){
+  if(c.incredere_scazuta) return 'Date insuficiente';
+  if(c.relevanta>=80) return 'Foarte relevant';
+  if(c.relevanta>=60) return 'Relevant';
+  return 'Slab relevant';
+}
 const STARE_LBL={'1':'Degradată','2':'Necesită renovare','3':'Medie / bună','4':'Foarte bună / renovată','5':'Nouă'};
 const FINISAJ_LBL={'1':'Modest','2':'Standard','3':'Superior','4':'Lux'};
 function eticheta(nume,v){
@@ -145,7 +152,7 @@ function randCandidat(c){
   let avert = c.incredere_scazuta ? ' <span class="alerta">(date insuficiente — verifică manual)</span>' : '';
   return `<div class="candidat">
     <h3><label><input type="checkbox" class="bif" data-pret="${c.pret||''}" data-supr="${c.suprafata||''}">
-      <span class="badge ${badgeClass(c)}">${c.relevanta}%</span>
+      <span class="badge ${badgeClass(c)}" title="Scor de relevanță: ${c.relevanta}%">${relevantaText(c)} <span style="opacity:.7;font-weight:400">· ${c.relevanta}%</span></span>
       <span class="pret">${c.pret?c.pret+' '+(c.moneda||'EUR'):'preț ?'}</span>
       · ${c.suprafata||'?'} mp construiți · teren ${c.teren||'?'} mp${c.pret_mp?' · <b>'+c.pret_mp+' €/mp</b> (teren comparabil)':''}${avert}</label></h3>
     <a class="vezi" href="${c.url}" target="_blank" rel="noopener">▶ Vezi anunțul${c.titlu?': '+c.titlu:''}</a>
