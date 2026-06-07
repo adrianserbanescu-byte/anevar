@@ -83,8 +83,13 @@ niciodată către AI.
    bifezi (om-în-buclă; semnătura îți aparține).
 2. Dacă lipsesc datele evaluării/raportului, aplicația cere confirmare (o dată greșită afectează
    valabilitatea juridică la garantare).
-3. Se descarcă raportul **`.docx`** (editabil). Fiecare generare = o **versiune persistentă** în folderul
-   dosarului (istoric). În raport: toate valorile sunt deterministe; textul narativ e draft, de revizuit.
+3. **Alegi formatul** din secțiunea „Format": **Word (.docx)** — editabil (implicit; recomandat pentru
+   lucru) · **PDF** — pentru versiunea finală/de trimis · **Amândouă** (`.zip`). *PDF-ul necesită
+   LibreOffice (gratuit) sau Microsoft Word instalat pe calculator; dacă lipsesc, aplicația îți spune și
+   generează `.docx`-ul.*
+4. Se descarcă raportul în formatul ales. **`.docx`-ul se salvează MEREU ca versiune** în folderul
+   dosarului (istoric), indiferent de format. În raport: toate valorile sunt deterministe; textul narativ
+   e draft, de revizuit.
 
 ## 5. Versiuni, backup, dosare
 Fiecare dosar = un **folder** cu `dosar.json` + versiunile `raport-*.docx` (se păstrează ultimele 10).
