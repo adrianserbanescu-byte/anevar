@@ -92,10 +92,10 @@ def test_descoperire_page_has_methodology_before_results(tmp_path):
 def test_descoperire_eticheta_calitativa_d3(tmp_path):
     # D3 (decizie Adi): eticheta CALITATIVA = semnal primar; numarul ramane afisat dar SECUNDAR.
     body = TestClient(_app(tmp_path)).get("/descoperire").text
-    assert "etichetaRelevanta" in body
-    for label in ("Foarte relevant", "Relevant", "Slab relevant", "Relevanță incertă"):
+    assert "relevantaText" in body            # implementarea canonica (C); D3-ul lui B a fost descartat la merge
+    for label in ("Foarte relevant", "Relevant", "Slab relevant", "Date insuficiente"):
         assert label in body, f"lipseste eticheta calitativa: {label}"
-    assert "scor-num" in body                 # numarul ramane afisat, dar marcat secundar
+    assert "opacity:.7" in body               # numarul ramane afisat, dar marcat secundar (estompat)
 
 
 def test_pret_mp_afisat_doar_cand_teren_comparabil(tmp_path):
