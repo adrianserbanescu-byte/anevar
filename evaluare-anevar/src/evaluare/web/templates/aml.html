@@ -1,7 +1,13 @@
 <!DOCTYPE html>
 <html lang="ro">
 <head><meta charset="utf-8"><title>Conformitate AML (Legea 129/2019)</title>
-<style>{% include "_design.css" %}</style></head>
+<style>{% include "_design.css" %}</style>
+<style>
+  /* Tier-B: densitate redusa — checkbox-urile lungi de risc/indicatori pe 2 coloane.
+     DOAR layout (CSS); textul checkbox-urilor = continut de conformitate, neatins. */
+  fieldset.chk-cols .chk{ break-inside:avoid; }
+  @media(min-width:560px){ fieldset.chk-cols{ column-count:2; column-gap:28px; } }
+</style></head>
 <body>
 <a class="skip-link" href="#continut">Sari la conținut</a>
 {% set pagina = "aml" %}{% include "_topbar.html" %}
@@ -60,7 +66,7 @@ Modulul propune — <b>evaluatorul decide și transmite</b> (rapoarte.onpcsb.ro)
  </div>
 </fieldset>
 
-<fieldset>
+<fieldset class="chk-cols">
  <legend>Indicatori de suspiciune (HCD 58 art. 6(10))</legend>
  <label class="chk"><input type="checkbox" class="ind" value="graba_excesiva"> Grabă excesivă</label>
  <label class="chk"><input type="checkbox" class="ind" value="presiune_documente_insuficiente"> Presiune — documente insuficiente</label>
@@ -74,7 +80,7 @@ Modulul propune — <b>evaluatorul decide și transmite</b> (rapoarte.onpcsb.ro)
  <label class="chk"><input type="checkbox" class="ind" value="antecedente_penale"> Antecedente penale</label>
 </fieldset>
 
-<button type="button" onclick="evalueaza()" aria-describedby="rez">Evaluează relația</button>
+<button type="button" id="eval-btn" onclick="evalueaza()" aria-describedby="rez">Evaluează relația</button>
 <div id="rez" role="status" aria-live="polite"></div>
 
 <fieldset>
@@ -99,6 +105,9 @@ function semnaleRisc(){const s={};['tara_risc_inalt','pe_lista_sanctiuni','tranz
    .forEach(k=>{if(document.getElementById(k).checked)s[k]=true;});return s;}
 function semnaleInd(){const s={};document.querySelectorAll('.ind:checked').forEach(c=>s[c.value]=true);return s;}
 async function evalueaza(){
+  const btn=document.getElementById('eval-btn');
+  btn.classList.add('is-loading'); btn.disabled=true;
+  try{
   const body=Object.assign({tip_entitate:val('tip_entitate'),azi:val('azi'),
      semnale_risc:semnaleRisc(),semnale_indicatori:semnaleInd()},_client());
   const r=await fetch('/api/aml/evalueaza',{method:'POST',headers:{'Content-Type':'application/json'},
@@ -119,6 +128,7 @@ async function evalueaza(){
      return `<li><button onclick='descarca("${map[doc]}")'>${doc}</button></li>`;}).join('')+`</ul></div>`;
   document.getElementById('rez').innerHTML=h;
   window._amlBody=body;
+  }finally{ btn.classList.remove('is-loading'); btn.disabled=false; }
 }
 async function descarca(url){
   // Confirmare suplimentară pentru rapoartele de tranzacție (RTS/RTN) — risc legal Art. 33.
