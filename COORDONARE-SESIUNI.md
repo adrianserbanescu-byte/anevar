@@ -1,33 +1,38 @@
-# 🔀 Coordonare între sesiuni Claude paralele
+# 🔀 Coordonare între sesiuni Claude paralele — model WORKTREE (robust)
 
-> Sunt mai multe sesiuni Claude care lucrează simultan pe acest repo. Ca să NU ne suprapunem,
-> fiecare sesiune respectă regulile de mai jos și își declară banda în tabel. Citește ÎNTÂI acest
-> fișier la fiecare reluare; actualizează-ți rândul când schimbi ce lucrezi.
+> 3 sesiuni Claude lucrează simultan. Ca să NU se suprapună, fiecare lucrează în **propriul director
+> (git worktree) pe propria ramură**, și integrăm pe `master` prin merge. Sesiunea A e **owner de deploy**.
 
-## Reguli de aur
-1. **Editezi DOAR fișierele din banda ta** (vezi tabelul). Dacă ai nevoie de un fișier din altă bandă,
-   notează în tabel și anunță (sau cere owner-ului benzii respective).
-2. **UN SINGUR owner de „deploy"** face: `scripts/build.py` (PyInstaller), serverul **live pe 8000**,
-   și **`git push` pe master**. Celelalte sesiuni NU buildează și NU pornesc exe pe 8000 (3 build-uri
-   simultane corup `build/`+`dist/`; 2 exe pe 8000 se ciocnesc). Owner deploy curent: **vezi tabel**.
-3. **Înainte de orice smoke test:** eliberează portul 8000 (`Stop-Process evaluare-anevar`) — altfel
-   testezi instanța veche. (Lecție din 2026-06-07.)
-4. **Commit mic + des, scoped** (`git add <fișierele tale>`, NU `git add -A`) ca să nu iei munca
-   necommisă a altei sesiuni. Dacă `push` e respins (non-fast-forward): `git pull --rebase` apoi push.
-5. **Ideal:** lucrează pe **branch/worktree** propriu și fă merge pe master prin PR (zero curse).
+## Cine, unde, ce ramură
+| Sesiune | Director de lucru | Ramură | Rol |
+|---------|-------------------|--------|-----|
+| **A** | `C:\Users\adyse\anevar` (principal) | `master` | **owner deploy**: integrare (merge), build, server live, push master |
+| **B** | `C:\Users\adyse\anevar-b` | `sesiune-b` | feature/logging etc. |
+| **C** | `C:\Users\adyse\anevar-c` | `sesiune-c` | feature/docs etc. |
 
-## Benzi (cine ce atinge) — actualizați-vă rândul
-| Sesiune | Bandă (foldere/fișiere) | Lucrează acum la | Owner deploy? |
-|---------|--------------------------|------------------|---------------|
-| **A (ADR/build/live)** | `docs/adr/`, `dosare_fs.py`, `migrare.py`, `report/pdf.py`, build + server live | ADR-002/003/004 (gata); ține serverul live pe 8000 | **DA** (build + push + live) |
-| B | *(declară-ți banda)* | *(ex. logging/observability — `logging_setup.py` + `log.*` în routere)* | nu |
-| C | *(declară-ți banda)* | *(ex. docs/deliverables / UI templates)* | nu |
+**Sesiunea B:** `cd C:\Users\adyse\anevar-b` și lucrează acolo (ești deja pe `sesiune-b`).
+**Sesiunea C:** `cd C:\Users\adyse\anevar-c` și lucrează acolo (ești deja pe `sesiune-c`).
+Worktree-urile sunt directoare SEPARATE — editările tale nu se mai văd în directorul altei sesiuni. 🎉
 
-## Stare „deploy" partajată
-- **Server live:** `http://127.0.0.1:8000` — pornit din `evaluare-anevar/live/evaluare-anevar.exe` (detașat),
-  date în `evaluare-anevar/date/`. **Doar owner-ul deploy îl oprește/repornește** (hot-swap la build validat).
-- **Build:** `dist/` + `build/` — doar owner-ul deploy rulează `build.py`.
-- **Teste:** suita pytest + e2e (server de test pe **8765**) — oricine poate rula (folosesc directoare temporare),
-  dar NU porni un al doilea server pe 8765 simultan.
+## Reguli
+1. **Lucrezi DOAR în directorul tău.** Niciun fișier nu mai e partajat → zero editări care se suprascriu.
+2. **Commit pe ramura ta** (`git add <fișiere> && git commit`), apoi **`git push origin sesiune-b`** (sau `-c`).
+3. **Integrare pe master = doar sesiunea A.** Când ai o bucată gata: anunță / push ramura → A face
+   `git merge sesiune-b` pe master, rezolvă conflictele (vizibile, nu pierdute), testează, buildează, deploy.
+4. **Build (PyInstaller) + server live (port 8000) = DOAR sesiunea A**, din `master`. (3 build-uri simultane
+   corup `build/`+`dist/`; 2 exe pe 8000 se ciocnesc.)
+5. **Teste:** oricine, în worktree-ul lui (folosesc directoare temporare). Serverul de test e pe **8765** —
+   nu porni un al doilea simultan. **Eliberează 8000 înainte de orice smoke pe exe** (altfel testezi instanța veche).
 
-> Dacă vrei, schimbă owner-ul de deploy sau benzile — doar actualizează tabelul și anunță sesiunile.
+## Procedura de DEPLOY (sesiunea A, pe `master`)
+1. `git merge sesiune-b` / `sesiune-c` (sau cherry-pick) → rezolvă conflicte → `git push origin master`.
+2. Rulează suita + e2e (sanity).
+3. `python evaluare-anevar/scripts/build.py` → `dist/evaluare-anevar.exe`.
+4. **Validează** (smoke pe o copie temp; întâi eliberează 8000).
+5. **Hot-swap live:** oprește instanța veche → copiază exe-ul nou în `evaluare-anevar/live/` → pornește.
+   Server live: `http://127.0.0.1:8000`, date în `evaluare-anevar/date/`. Downtime ~secunde.
+
+## De ce worktree și nu doar branch
+Cele 3 sesiuni rulau în ACELAȘI director → branch-urile NU le izolau (lucrau pe aceleași fișiere de pe disc).
+Worktree = director fizic separat per ramură → izolare reală. Comenzi:
+`git worktree list` · `git worktree remove <dir>` (când o sesiune termină).
