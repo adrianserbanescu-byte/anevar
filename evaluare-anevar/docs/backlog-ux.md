@@ -46,6 +46,14 @@ Audit WCAG 2 A/AA cu **axe-core (live, Playwright)** → **0 violări** (22 regu
 | F6 | Contor livrabile: `aria-live=polite` (anunț la schimbare) | 🟡 |
 | F7 | Comutator PFA/PJ: `role=group` + `aria-pressed` | 🟡 |
 
+**Sweep a11y pe TOATĂ aplicația (axe-core live, 2026-06-07):** `/`, `/incepe`, `/wizard`, `/grila`,
+`/aml`, `/descoperire`, `/dosar/{uid}` (workspace + tab-urile AML/GDPR/Audit/Raport), `/flux-livrabile`
+(7 pași + PFA + RTN/RTS + asumat + responsive 360/414/768px) → **0 violări** peste tot. Singurele
+probleme erau pe v1.5 (reparate, F1–F7). Restul aplicației era deja curat.
+
+> Rămas (NU făcut — risc pe build-ul de feedback / efort): ținte tactile 44×44px (AAA, doar `@media
+> (pointer:coarse)`); `listeaza()` cache pe mtime (caching = risc de stale). De reluat post-feedback.
+
 ## 📌 De planificat — sesiuni de explorare
 
 - **Modul de DESCOPERIRE — brainstorming / grill-me** (cerut de Adi, 2026-06-07).
