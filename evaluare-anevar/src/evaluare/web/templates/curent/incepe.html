@@ -1,7 +1,15 @@
 <!DOCTYPE html>
 <html lang="ro">
 <head><meta charset="utf-8"><title>ÎNCEPE — Evaluare ANEVAR</title>
-<style>{% include "_design.css" %}</style></head>
+<style>{% include "_design.css" %}</style>
+<style>
+  /* UX polish (feedback Adi): grup de acțiuni cu lățimi egale + ritm consistent */
+  .actiuni-incepe{ display:flex; gap:10px; flex-wrap:wrap; margin:14px 0 18px; }
+  .actiuni-incepe > button, .actiuni-incepe > a.btn{
+    flex:1 1 0; min-width:170px; display:inline-flex; align-items:center; justify-content:center;
+    gap:6px; margin:0; text-align:center; }
+  @media(max-width:520px){ .actiuni-incepe > button, .actiuni-incepe > a.btn{ flex-basis:100%; } }
+</style></head>
 <body>
 <a class="skip-link" href="#continut">Sari la conținut</a>
 {% include "_nav_cross.html" %}
@@ -15,9 +23,9 @@
     <div class="avert-warn">Nu ai cont încă. <a href="/cont">Creează cont</a> pentru a începe.</div>
   {% else %}
   <p class="hint">Conectat: <b>{{ cont.nume }}</b> (legitimație {{ cont.legitimatie }}) ·
-   format dosar: <code>{{ cont.format_dosar|join('_') }}</code> · <a href="/cont">editează cont</a></p>
+   format dosar: <b>{{ cont.format_dosar | map('replace','_',' ') | map('capitalize') | join(' · ') }}</b> · <a href="/cont">editează cont</a></p>
 
-  <div class="row">
+  <div class="row actiuni-incepe">
     <button type="button" id="nou"><span aria-hidden="true">➕</span> Dosar nou</button>
     <a class="btn ghost" href="#salvate"><span aria-hidden="true">📂</span> Încarcă dosar salvat</a>
     <button type="button" class="ghost" id="importa"><span aria-hidden="true">📥</span> Importă dosarul tău</button>

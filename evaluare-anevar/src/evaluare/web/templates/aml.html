@@ -7,6 +7,13 @@
      DOAR layout (CSS); textul checkbox-urilor = continut de conformitate, neatins. */
   fieldset.chk-cols .chk{ break-inside:avoid; }
   @media(min-width:560px){ fieldset.chk-cols{ column-count:2; column-gap:28px; } }
+  /* UX polish (feedback Adi): fluid la <430px — fără scroll lateral pe pagină */
+  @media(max-width:430px){
+    fieldset input:not([type=checkbox]):not([type=radio]), fieldset select, fieldset textarea{
+      max-width:100%; box-sizing:border-box; }
+    .row{ flex-wrap:wrap; }
+    table{ display:block; overflow-x:auto; }
+  }
 </style></head>
 <body>
 <a class="skip-link" href="#continut">Sari la conținut</a>
