@@ -62,7 +62,7 @@
 - [x] Listă autonomă creată (acest fișier) + checkpoint durabil la restart.
 
 ## ☐ Datorie tehnică autonomă (din auditul tehnic; le pot face fără decizie de produs)
-- [ ] `listeaza()` — cache pe mtime via `_index.json` (evită rescanarea N fișiere la fiecare /incepe).
+- [x] `listeaza()` — **cache pe `mtime_ns`** (`_cache_antete.json`) — dosar neschimbat nu se recitește/reparsează la fiecare /incepe; cache derivat, reconstruire transparentă. ✅ +test (commit 18bbe16).
 - [x] Îngustez `except Exception` prea largi + logging — VERIFICAT (2026-06-07): `dosare_fs.py` deja
       înguste (ValueError/OSError/KeyError), `docx_dosar.py` fără except; cele din `curent.py` traduc curat
       în HTTP 4xx (nu eșec silențios). N/A — deja rezolvat. ✅
