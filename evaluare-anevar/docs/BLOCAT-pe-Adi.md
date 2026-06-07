@@ -37,9 +37,10 @@
 19. **Paritate UI nou:** adaug în UI nou grila de teren + chirii/venit/DCF + anexă foto/documente? (datorie de paritate — vezi `audit/2026-06-06-SINTEZA-audituri.md`).
 
 ## E. Comercial / preț (din strategie-comercializare-intrebari.md)
-20. **Model de preț:** recomand pe valoare, mai sus (Pro ~299-399 lei/lună), o singură treaptă la lansare.
-21. **Ordinea comercială:** validezi cu 5 evaluatori reali ÎNAINTE de a construi gateway/Stripe? (recomand: DA).
-22. **Master-admin:** Supabase Studio + view-uri SQL (recomandat) vs. panou custom.
+20. ✅ **REZOLVAT (2026-06-07): Pro 299-399 lei/lună, o singură treaptă la lansare.** Pe valoare, mai sus; 1 tier simplu; ajustez după primii useri.
+21. ✅ **REZOLVAT (2026-06-07): DA — validez cu 5 evaluatori reali ÎNAINTE de Stripe/gateway.** Confirmă premisa produsului înainte de investiția în infra (1-2 săptămâni outreach).
+22. ✅ **REZOLVAT (2026-06-07): Supabase Studio + SQL views.** Zero cost build, views pe nevoi, scalabil cu Postgres.
+22bis. ✅ **REZOLVAT (2026-06-07): Anexă foto — 10 poze gratis, peste = plată** (cuplat cu #24). Acoperitor pentru evaluare medie; gating clar; recomandare council.
 
 ## F. Decizii minore de design (impact mic)
 23. `.cross-ui` în antet+subsol (cerut de tine) — păstrăm complet sau simplificăm antetul la „⇄ Schimbă interfața"?
