@@ -7,7 +7,7 @@ from pydantic import BaseModel, Field
 
 
 class SubjectProfile(BaseModel):
-    """Atributele primare ale casei evaluate (normalizate pentru scoring)."""
+    """Atributele primare ale proprietatii evaluate (normalizate pentru scoring)."""
 
     suprafata_construita: Decimal | None = None   # mp (suprafata casei, ex. Acd)
     an: int | None = None                # an constructie
@@ -15,6 +15,8 @@ class SubjectProfile(BaseModel):
     finisaj: int | None = None           # treapta 1-4 (1=modest .. 4=lux)
     incalzire: str | None = None         # categorie normalizata (ex. "centrala_gaz")
     teren: Decimal | None = None         # mp (suprafata teren)
+    nr_camere: int | None = None         # numar de camere (driver major la apartament)
+    etaj: int | None = None              # etajul (apartament); 0 = parter. Extractie pending la apartament.
 
 
 class CandidateProfile(BaseModel):
@@ -26,6 +28,8 @@ class CandidateProfile(BaseModel):
     finisaj: int | None = None
     incalzire: str | None = None
     teren: Decimal | None = None
+    nr_camere: int | None = None
+    etaj: int | None = None
     texte: dict[str, str] = Field(default_factory=dict)   # ex {"an": "2008"}
 
 

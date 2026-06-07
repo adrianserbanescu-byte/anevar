@@ -9,6 +9,7 @@ from bs4 import BeautifulSoup
 
 from evaluare.ai.narrative import NarrativeClient
 from evaluare.discovery.extractor import extrage_atribute
+from evaluare.discovery.ponderi import ponderi_pentru
 from evaluare.discovery.portal_search import cauta_anunturi
 from evaluare.discovery.profiles import SubjectProfile
 from evaluare.discovery.results import CandidateResult, LandDiscoveryResult
@@ -107,12 +108,27 @@ def _pret_mp_daca_teren_comparabil(parsed, subiect, teren_candidat):
     return round(parsed.pret / parsed.suprafata)
 
 
+def _apartament_exclus(tip_activ: str | None, subiect_camere, candidat_camere) -> bool:
+    """Filtru de eligibilitate la APARTAMENT: candidatul cu >1 cameră diferență față de subiect NU
+    e comparabil (council, abordare in 2 pasi: filtru + scor). Doar la `tip_activ == "apartament"`
+    si doar cand ambele numere de camere sunt cunoscute (altfel nu filtram, ca sa nu pierdem candidati).
+    """
+    return (tip_activ == "apartament" and subiect_camere is not None
+            and candidat_camere is not None and abs(candidat_camere - subiect_camere) > 1)
+
+
 def descopera(
     portal: str, judet: str, localitate: str, subiect: SubjectProfile,
     atribute_secundare: list, fetcher: Callable[[str], str] = fetch_html,
     client: NarrativeClient | None = None, max_candidati: int = 8,
+    tip_activ: str | None = None,
 ) -> list[CandidateResult]:
-    """Pipeline complet de descoperire. Întoarce candidați rankați după relevanță."""
+    """Pipeline complet de descoperire. Întoarce candidați rankați după relevanță.
+
+    `tip_activ` selectează ponderile per categorie (config-driven). None → ponderile de bază
+    (modelul casei) → comportament identic cu varianta istorică.
+    """
+    ponderi = ponderi_pentru(tip_activ)
     urls = cauta_anunturi(portal, judet, localitate, fetcher=fetcher)[:max_candidati]
     rezultate: list[CandidateResult] = []
     for url in urls:
@@ -135,7 +151,15 @@ def descopera(
         if parsed.suprafata_teren is not None:
             extraction.profile.teren = parsed.suprafata_teren
             extraction.profile.texte.setdefault("teren", str(parsed.suprafata_teren))
-        breakdown = scor_candidat(subiect, extraction.profile)
+        # numarul de camere din date structurate (driver major la apartament — P0.2)
+        if parsed.nr_camere is not None:
+            extraction.profile.nr_camere = parsed.nr_camere
+            extraction.profile.texte.setdefault("nr_camere", str(parsed.nr_camere))
+        if _apartament_exclus(tip_activ, subiect.nr_camere, parsed.nr_camere):
+            log.debug("Apartament sarit (camere %s vs subiect %s, dif >1) %s",
+                      parsed.nr_camere, subiect.nr_camere, url)
+            continue
+        breakdown = scor_candidat(subiect, extraction.profile, ponderi)
         # OLX (și alte anunțuri cu text liber) dau adesea prețul fără suprafață structurată →
         # declasăm scorul + marcăm „completează manual" (council 2026-06-06, Topic 8).
         if not parsed.suprafata:
