@@ -46,6 +46,18 @@
   .cand-detalii summary{ cursor:pointer; font-size:.8rem; color:var(--sienna); font-family:var(--sans); }
   .cand-detalii[open] summary{ margin-bottom:8px; }
   .cand-detalii .detalii{ font-size:.8rem; }
+  /* D1: ponderi editabile */
+  .ponderi-box{ background:var(--paper-card); border:1px solid var(--line); border-radius:var(--radius);
+    padding:12px 16px; margin:14px 0; }
+  .ponderi-box summary{ cursor:pointer; font-family:var(--sans); font-weight:600; color:var(--ink); }
+  .pond-rand{ display:flex; align-items:center; gap:12px; margin:8px 0; flex-wrap:wrap; }
+  .pond-rand label{ flex:0 0 170px; font-size:.86rem; color:var(--ink); }
+  .pond-rand input[type=range]{ flex:1 1 140px; accent-color:var(--sienna); }
+  .pond-rand input[type=number]{ flex:0 0 64px; }
+  .pond-pct{ flex:0 0 56px; text-align:right; font-variant-numeric:tabular-nums; color:var(--ink-faint);
+    font-size:.84rem; }
+  .ponderi-actiuni{ display:flex; align-items:center; gap:10px; flex-wrap:wrap; margin-top:10px;
+    padding-top:10px; border-top:1px solid var(--line); }
 </style></head>
 <body>
 <a class="skip-link" href="#continut">Sari la conținut</a>
@@ -86,6 +98,20 @@
   <button type="submit">Caută comparabile</button>
   <span id="desc-status" class="hint" role="status" aria-live="polite"></span>
 </form>
+
+<!-- D1: ponderi de scoring editabile (apare doar dacă endpoint-ul config-ponderi e disponibil) -->
+<details id="ponderi-wrap" class="ponderi-box" style="display:none">
+  <summary>Ponderi de relevanță (avansat) — pentru categoria <b id="pond-cat">casă</b></summary>
+  <p class="hint">Ponderile (numere întregi) stabilesc cât contează fiecare atribut la scorul de relevanță.
+   Procentul afișat e normalizat din total. <i>Compromis temporar:</i> editarea e per-categorie; un UI
+   de configurare complet (toate categoriile + axe) urmează.</p>
+  <div id="ponderi-grila"></div>
+  <div class="ponderi-actiuni">
+    <button type="button" id="salveaza-ponderi">Salvează ponderile</button>
+    <button type="button" id="reseteaza-ponderi" class="ghost">Anulează modificările</button>
+    <span id="ponderi-status" class="hint" role="status" aria-live="polite"></span>
+  </div>
+</details>
 
 <!-- Tabelul de metodologie: ÎNAINTE de rezultate -->
 <div id="metodologie"></div>
@@ -350,6 +376,80 @@ document.getElementById('f').addEventListener('submit', async (e)=>{
     window.location.href = '/grila';
   });
 });
+
+// ── D1: ponderi de scoring editabile (consumă /api/descopera/config-ponderi) ────
+(function(){
+  var CAT = 'casa';                       // formularul curent e pentru casă
+  var cfg = null;                         // config server (ponderi + sume)
+  var wrap = document.getElementById('ponderi-wrap');
+  var grila = document.getElementById('ponderi-grila');
+  if(!wrap || !grila) return;
+
+  function pondCurente(){
+    var o = {};
+    grila.querySelectorAll('input[type=number]').forEach(function(i){
+      o[i.dataset.attr] = Math.max(0, parseInt(i.value,10) || 0);
+    });
+    return o;
+  }
+  function actualizeazaProcente(){
+    var p = pondCurente();
+    var suma = Object.values(p).reduce(function(a,b){ return a+b; }, 0) || 1;
+    grila.querySelectorAll('.pond-pct').forEach(function(el){
+      var v = p[el.dataset.attr] || 0;
+      el.textContent = Math.round(v / suma * 100) + '%';
+    });
+  }
+  function randAtribut(attr, val){
+    var rand = document.createElement('div'); rand.className = 'pond-rand';
+    var lbl = document.createElement('label'); lbl.textContent = attr.replace(/_/g,' ');
+    lbl.setAttribute('for', 'pond-'+attr);
+    var rng = document.createElement('input'); rng.type='range'; rng.min='0'; rng.max='10'; rng.value=val;
+    rng.setAttribute('aria-label', 'Pondere '+attr.replace(/_/g,' '));
+    var num = document.createElement('input'); num.type='number'; num.id='pond-'+attr; num.min='0'; num.max='20';
+    num.value=val; num.dataset.attr=attr;
+    var pct = document.createElement('span'); pct.className='pond-pct'; pct.dataset.attr=attr;
+    rng.addEventListener('input', function(){ num.value=rng.value; actualizeazaProcente(); });
+    num.addEventListener('input', function(){ rng.value=Math.min(10, num.value); actualizeazaProcente(); });
+    rand.appendChild(lbl); rand.appendChild(rng); rand.appendChild(num); rand.appendChild(pct);
+    return rand;
+  }
+  function popule(){
+    grila.textContent = '';
+    var pond = (cfg.ponderi && cfg.ponderi[CAT]) || {};
+    Object.keys(pond).forEach(function(attr){ grila.appendChild(randAtribut(attr, pond[attr])); });
+    actualizeazaProcente();
+    var catEl = document.getElementById('pond-cat');
+    if(catEl) catEl.textContent = CAT;
+  }
+  fetch('/api/descopera/config-ponderi').then(function(r){
+    if(!r.ok) throw new Error('indisponibil'); return r.json();
+  }).then(function(d){
+    cfg = d; if(!cfg.editabil) return;     // endpoint prezent + editabil
+    wrap.style.display = ''; popule();
+  }).catch(function(){ /* endpoint încă neintegrat — secțiunea rămâne ascunsă */ });
+
+  var btnS = document.getElementById('salveaza-ponderi');
+  if(btnS) btnS.addEventListener('click', function(){
+    var st = document.getElementById('ponderi-status');
+    var body = {}; body[CAT] = pondCurente();
+    var sumaEf = Object.values(body[CAT]).reduce(function(a,b){ return a+b; }, 0);
+    if(sumaEf <= 0){ st.textContent = 'Suma ponderilor trebuie să fie > 0.'; return; }
+    btnS.classList.add('is-loading'); btnS.disabled = true;
+    fetch('/api/descopera/config-ponderi', {method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ponderi: body})}).then(function(r){
+        return r.json().then(function(d){ return {ok:r.ok, d:d}; });
+    }).then(function(res){
+      if(res.ok){ cfg = res.d; popule(); st.textContent = '✓ Ponderi salvate.'; }
+      else { st.textContent = 'Salvare eșuată: ' + ((res.d && res.d.detail) || 'valori invalide'); }
+      btnS.classList.remove('is-loading'); btnS.disabled = false;
+    }).catch(function(){ st.textContent = 'Salvare eșuată (rețea).'; btnS.classList.remove('is-loading'); btnS.disabled = false; });
+  });
+  var btnR = document.getElementById('reseteaza-ponderi');
+  if(btnR) btnR.addEventListener('click', function(){
+    if(cfg){ popule(); document.getElementById('ponderi-status').textContent = 'Modificări anulate.'; }
+  });
+})();
 </script>
 {% include "_footer.html" %}
 </body></html>
