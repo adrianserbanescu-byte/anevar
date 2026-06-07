@@ -97,6 +97,11 @@ def build_router(d: Deps) -> APIRouter:
     def pagina_wizard(request: Request) -> HTMLResponse:
         return d.templates.TemplateResponse(request, "wizard.html", {})
 
+    @router.get("/flux-livrabile", response_class=HTMLResponse)
+    def pagina_flux_livrabile(request: Request) -> HTMLResponse:
+        """Hartă de proces: ce livrabile produce un dosar, pe 3 niveluri legale (firmă/client/eveniment)."""
+        return d.templates.TemplateResponse(request, "flux_livrabile.html", {})
+
     @router.get("/dosare", response_class=HTMLResponse)
     def pagina_dosare(request: Request) -> HTMLResponse:
         return d.templates.TemplateResponse(request, "dosare.html",

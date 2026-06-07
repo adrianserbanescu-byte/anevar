@@ -25,6 +25,22 @@ def test_wizard_inca_la_ruta_proprie(tmp_path):
     assert resp.status_code == 200 and 'id="pas-1"' in resp.text
 
 
+def test_flux_livrabile_pagina(tmp_path):
+    # harta de proces a livrabilelor: rută proprie + elementele cheie + cele 7 panouri
+    resp = _client(tmp_path).get("/flux-livrabile")
+    assert resp.status_code == 200
+    html = resp.text
+    assert "Fluxul livrabilelor" in html
+    assert 'class="fl-stepper"' in html and 'class="fl-dock"' in html
+    assert "Nivel 1 · Firmă" in html and "Notă de informare GDPR" in html
+    assert 'data-step="6"' in html                          # panourile 0..6 randate server-side
+
+
+def test_flux_livrabile_in_nav(tmp_path):
+    # link-ul „Flux livrabile" apare în cross-nav pe paginile aplicației
+    assert 'href="/flux-livrabile"' in _client(tmp_path).get("/wizard").text
+
+
 def test_cross_nav_pe_pagini(tmp_path):
     # link-urile UI nou / UI vechi / Documente apar în antet/subsol pe paginile vechi și noi
     client = _client(tmp_path)
