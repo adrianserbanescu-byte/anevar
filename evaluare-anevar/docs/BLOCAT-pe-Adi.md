@@ -18,24 +18,18 @@
 
 ## C. Decizii de produs — UI nou / dosar (din plan-maine §B; le tranșăm la brainstorm #1)
 9. **Ordine creare dosar:** gol-apoi-completezi (acum) vs. modal de identitate înainte de folder.
-10. **Blocare identitate după prima generare** (read-only + cale „dosar nou + credit") — declanșator?
+10. ✅ **REZOLVAT (2026-06-07):** **Blocare identitate — trigger HIBRID TRIPLU:** (1) checkpoint asumare (om-în-buclă) + (2) prima generare `.docx` + (3) **upload fișiere submise** (ex. `.docx` editat returnat de bancă/client) — trigger NOU. ADR-003 trebuie refăcut cu varianta hibrid+upload. Cuplat cu #34.
 11. **„Importă dosarul tău" =** raport `.docx` (acum) vs. folder (`importa_folder`, adoptă/clonează).
 12. **Format-nume vs. câmpuri-identitate** (`CAMPURI_NUME_DOSAR` ⊃ `CAMPURI_IDENTITATE`?).
-13. **Monedă implicită** EUR la scop „garantare" (acum LEI).
-14. **Calcul→Generează:** o singură sursă de adevăr (Generează cere Calcul reușit?).
-15. **Home cu 5 opțiuni, 2 dezactivate** (comercial) — teasere vs. ascunse pe build offline.
-16. **Popover „!" temporar** — confirmi că-l ștergem după validarea mapării vechi→nou?
+13. ✅ **REZOLVAT (2026-06-07):** **Monedă implicită = EUR la scop „garantare"** (LEI rămâne pentru alte scopuri). Băncile RO cer EUR pe garanție.
+14. ✅ **REZOLVAT (2026-06-07):** **Generează cere Calcul reușit (DA).** Single source of truth — dacă calcul eșuat, raportul nu se generează (422 sau buton dezactivat).
+15. ✅ **REZOLVAT (2026-06-07):** **Home — opțiunile comerciale ASCUNSE complet pe build offline.** Pur tehnic, fără teasere.
+16. ✅ **REZOLVAT (2026-06-07):** **Popover „!" — DA, șterg** (era patch tranzitiv, mapping vechi→nou validat).
 
 ## C2. Decizii din council-ul pe feature-uri (2026-06-06) — vezi `9-topicuri-decizie.md` + `council-plan-UI-nou.md`
-24. 🔴 **Anexa foto/scanuri = cerință de CONFORMITATE SEV 2025 (CONFIRMAT în standard, nu doar de council).**
-    Bază: **GEV 630** listează „Anexele raportului (Fișe clădiri, **fotografii** etc.)" + cere inspecție cu „fotografii
-    din exterior" (l.5645/4079); SEV 230 §120 + SEV 106 §30.6. (Google cita „SEV 102" = numerotare veche; substanța e corectă.)
-    Gating-ul TOTAL ca feature comercial face raportul incomplet/neconform pt bancă/ANAF/instanță. **Decizie: re-încadrăm
-    atașarea anexelor ca P0 de conformitate (gating doar pe VOLUM, ex. 10-20 poze gratis)?** Detalii: [`validare-SEV2025-anexe-si-council.md`](validare-SEV2025-anexe-si-council.md).
-25. 🟡 **Regenerare AI (feature B):** confirmă conceptul — implicit **TEMPLATE** (păstrează vocea, actualizează valori)
-    + diff per capitol + override. Apoi îl construiesc.
-26. 🟡 **Import asemănător (feature D):** confirmă matricea implicită (Zonă/Piață=GHIDARE, Descriere=DIFERIT) +
-    detecția PII la import. Apoi îl construiesc.
+24. ✅ **REZOLVAT (2026-06-07): P0 conformitate SEV 2025 — gating DOAR pe volum** (vezi runda decizii comerciale pentru exact câte poze gratis, recomandare council: 10-20). Cuplat cu modelul comercial #20.
+25. 🟡 **AMÂNAT — revizităm după runda decizii comerciale.** **Regenerare AI (feature B):** confirmă conceptul — implicit **TEMPLATE** (păstrează vocea, actualizează valori) + diff per capitol + override. Apoi îl construiesc.
+26. ✅ **REZOLVAT (2026-06-07): Confirmă matricea implicită** (Zonă/Piață=GHIDARE, Descriere=DIFERIT) + detecția PII la import.
 
 ## D. Decizii arhitecturale (din auditul tehnic)
 17. **Migrare SQLite-vechi → foldere:** dosarele din `/dosare` (SQLite) și `/incepe` (foldere) sunt mulțimi disjuncte. Le punți, le lași separate, sau retragi stocarea veche?
@@ -77,9 +71,7 @@
 33. **Criptare la repaus (PII pe disc)** — SQLite + dosare + rapoarte sunt în CLAR. Decizie: (a) doar disclaimer
     „protecția discului = responsabilitatea evaluatorului/operator de date", (b) ghidaj BitLocker la instalare, sau
     (c) criptare cu parolă în app. Council: minim (a)+(b). **Bucket C (jurist) + decizie produs.**
-34. **Lock identitate la finalizare** (= #10, reconfirmat de council ca BLOCANT de lansare): modificarea PII/preț DUPĂ
-    generarea .docx fără urmă = risc de fraudă la control ANEVAR/BNR. Motorul de jurnal hash există; lipsește lock-ul.
-    Confirmă declanșatorul → îl implementez (ADR-003).
+34. ✅ **REZOLVAT (2026-06-07): Trigger lock = HIBRID TRIPLU** — vezi #10. ADR-003 trebuie refăcut cu adăugirea trigger-ului „upload fișiere submise" (când userul re-importă `.docx` editat returnat de bancă, lock-ul se aplică retroactiv).
 35. **Minim lansare sigură (ordinea councilului):** (1) disclaimere juridice în raport [jurist] · (2) alerte
     metodologice trasabile [evaluator] · (3) lock identitate [#34] · (4) gardă re-încadrare anexe [evaluator].
 > ✅ Făcute de mine din audit+council (Bucket A): anti-SSRF, gardă Host (anti DNS-rebind), grilă→422, fix dată
@@ -89,26 +81,9 @@
 > Restul recomandărilor de la cele 6 skill-uri sunt autonome și sunt deja în `AUTONOM-taskuri.md`
 > secțiunea „🔧 Audit skill-uri (2026-06-07)". Aici rămân doar deciziile.
 
-36. **Funcțiile `engine/abordari.py:{abordare_cost, abordare_comparatie}` + `engine/venit.py:abordare_venit` apar ca dead code.**
-    **EVIDENȚĂ NOUĂ (cross-reference 2026-06-07 6:14am, via serena-style analiză):** sunt **zero runtime calls în `src/`** și
-    `assembler.py:130-158` (orchestrul real de raport) folosește funcții cu nume DIFERITE care duplică logica:
-    `evaluate_cost`, `evaluate_market`, `evalueaza_venit`. Adică ai DOUĂ surse de adevăr — riscul: divergență silențioasă.
-    Test-coverage există pe `abordare_X` dar testează cale neutilizată în runtime.
+36. ✅ **REZOLVAT (2026-06-07): Opțiunea (a) — refactorizez `assembler.py:130-158`** să cheme `abordare_cost/comparatie/venit` în loc de `evaluate_cost/evaluate_market/evalueaza_venit`. O singură sursă de adevăr aliniată SEV 2025.
 
-    Decide:
-    (a) **Păstrează + refactorizează `assembler.py`** să folosească `abordare_cost/comparatie/venit` în loc de
-        `evaluate_cost/evaluate_market/evalueaza_venit` (recomandat — o singură sursă de adevăr, aliniat cu SEV 2025).
-    (b) **Șterge** funcțiile + testele lor (30-50 linii duplicat); acceptă că assembler.py e calea oficială.
-
-    Recomandare **revizuită: (a)** — refactorizarea elimină duplicarea fără să compromiți API-ul SEV 2025.
-
-37. **Retragere endpoint-uri vechi `/api/evaluare/...`** (cuplat cu §D.18 — retragerea UI vechi).
-    Acum coexistă cu `/api/dosar/...` (UI nou) — zero breaking changes în 100 commits, dar duplicarea
-    crește costul de mentenanță. Decide:
-    (a) **Marchez deprecat acum** (header `Deprecation: true` + `Sunset: <data>`, RFC 8594) + log fiecare hit,
-    sau (b) **Aștept până retragi UI-ul vechi** (§D.18).
-    Recomandare: (a) — telemetria ușoară îți arată dacă sunt încă folosite la livrare; dacă da, când deprecăm UI vechi
-    avem date concrete despre cine îl folosește.
+37. ✅ **REZOLVAT (2026-06-07): Opțiunea (a) — marchez deprecat ACUM** + log fiecare hit pe `/api/evaluare/*`. Telemetrie ușoară: când deprecăm UI vechi (§D.18) avem date concrete cine îl folosește.
 
 > **Regula de aur (respectată peste tot):** aplicația **avertizează**, nu decide. Metodologia și
 > pragurile legale **nu se ating** fără semnătura unui evaluator senior / jurist.
