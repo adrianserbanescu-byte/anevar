@@ -37,10 +37,11 @@ Pentru ajustarea <b>„Condițiile pieței (timp)"</b> poți folosi <b>Indicele 
    similaritatea de suprafață cu terenul subiect.</small><br>
   <label for="t-portal">Portal:</label> <select id="t-portal"><option value="imobiliare">imobiliare.ro</option>
     <option value="storia">storia.ro</option></select>
-  <label for="t-judet">Județ:</label> <input id="t-judet" size="12" placeholder="prahova">
+  <label for="t-judet">Județ:</label> <input id="t-judet" size="12" placeholder="prahova" aria-required="true">
   <label for="t-loc">Localitate:</label> <input id="t-loc" size="12" placeholder="breaza">
-  <button onclick="descoperaTeren()">Caută terenuri</button>
-  <span id="t-status" class="hint" role="status"></span>
+  <button id="t-cauta" type="button" onclick="descoperaTeren()">Caută terenuri</button>
+  <span id="t-status" class="hint" role="status" aria-live="polite"></span>
+  <span id="t-judet-err" class="field-error"></span>
   <div id="t-rez" role="region" aria-label="Terenuri găsite"></div>
 </div>
 
@@ -225,18 +226,31 @@ function inGrilaTeren(pretMp){
   return false;
 }
 
+function emptyState(el, icon, titlu, msg){
+  el.textContent='';
+  const es=document.createElement('div'); es.className='empty-state';
+  const ic=document.createElement('span'); ic.className='es-icon'; ic.setAttribute('aria-hidden','true'); ic.textContent=icon;
+  const h=document.createElement('h3'); h.textContent=titlu;
+  const p=document.createElement('p'); p.textContent=msg;
+  es.appendChild(ic); es.appendChild(h); es.appendChild(p); el.appendChild(es);
+}
 async function descoperaTeren(){
-  const judet=$("t-judet").value.trim(), loc=$("t-loc").value.trim();
-  if(!judet){ $("t-status").textContent="Completează județul."; return; }
-  $("t-status").textContent="Se caută…"; $("t-rez").innerHTML="";
+  const judetEl=$("t-judet"), errEl=$("t-judet-err"), btn=$("t-cauta");
+  const judet=judetEl.value.trim(), loc=$("t-loc").value.trim();
+  judetEl.classList.remove("is-invalid"); errEl.textContent="";
+  if(!judet){ judetEl.classList.add("is-invalid"); judetEl.setAttribute("aria-invalid","true");
+    errEl.textContent="Județul e obligatoriu pentru căutare."; judetEl.focus(); return; }
+  judetEl.removeAttribute("aria-invalid");
+  $("t-status").textContent="Se caută…"; $("t-rez").textContent=""; btn.classList.add("is-loading"); btn.disabled=true;
   const supr=num($("supr-teren").value);
-  const body={portal:$("t-portal").value, judet, localitate:loc, suprafata_subiect:supr?String(supr):null, max_candidati:8};
+  const body={portal:$("t-portal").value, judet, localitate:loc, suprafata_subiect:supr?String(supr):null, max_candidati:20};
+  const gata=()=>{ btn.classList.remove("is-loading"); btn.disabled=false; };
   try{
     const r=await fetch("/api/descopera-teren",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(body)});
-    if(!r.ok){ $("t-status").textContent="Căutarea a eșuat (cod "+r.status+") — verifică datele și reîncearcă."; return; }
+    if(!r.ok){ $("t-status").textContent="Căutarea a eșuat (cod "+r.status+") — verifică datele și reîncearcă."; gata(); return; }
     const d=await r.json();
-    $("t-status").textContent=d.candidati.length+" terenuri";
-    if(!d.candidati.length){ $("t-rez").innerHTML='<p class="hint">Niciun rezultat. Încearcă doar județul.</p>'; return; }
+    $("t-status").textContent=d.candidati.length+" terenuri"; gata();
+    if(!d.candidati.length){ emptyState($("t-rez"),'🗺','Niciun teren găsit','Pentru zona aleasă nu există anunțuri. Încearcă doar județul, fără localitate.'); return; }
     let h='<table><tr><th>Rel.</th><th>Preț</th><th>Supr.</th><th>€/mp</th><th>Anunț</th><th></th></tr>';
     d.candidati.forEach(c=>{
       const add = c.pret_mp ? `<button class="t-add" data-mp="${c.pret_mp}">➕ grilă</button>` : '';
@@ -250,7 +264,7 @@ async function descoperaTeren(){
       if(!inGrilaTeren(b.dataset.mp)) b.textContent="grilă plină";
       else b.textContent="✓ adăugat";
     }));
-  }catch(e){ $("t-status").textContent="Căutarea a eșuat — verifică internetul și reîncearcă."; }
+  }catch(e){ $("t-status").textContent="Căutarea a eșuat — verifică internetul și reîncearcă."; gata(); }
 }
 
 async function calcul(grid){
