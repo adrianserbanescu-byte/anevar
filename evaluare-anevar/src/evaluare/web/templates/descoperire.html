@@ -25,6 +25,46 @@
   .harta-legenda span::before{ content:"●"; margin-right:4px; }
   .lg-subiect::before{ color:var(--ink); } .lg-high::before{ color:var(--green); }
   .lg-mid::before{ color:var(--gold); } .lg-low::before{ color:var(--danger); }
+  /* Redesign rezultate: carduri scanabile (înlocuiește tabelul Criteriu×atribute ca format primar) */
+  .cand-card{ background:var(--paper-card); border:1px solid var(--line); border-radius:var(--radius);
+    box-shadow:var(--shadow); padding:14px 16px; margin:0 0 12px; }
+  .cand-head{ display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap; }
+  .cand-sel{ display:flex; align-items:center; gap:8px; cursor:pointer; }
+  .cand-pret{ font-family:var(--serif); font-size:1.05rem; font-weight:600; color:var(--ink); white-space:nowrap; }
+  .scor-sec{ opacity:.7; font-weight:400; }
+  .cand-meta{ font-size:.85rem; color:var(--ink-faint); margin:6px 0 0; }
+  .cand-meta .alerta{ color:var(--danger-ink); font-weight:600; }
+  .cand-body{ display:flex; gap:14px; align-items:flex-start; margin:10px 0 0; }
+  .cand-poza{ flex:0 0 auto; width:110px; height:82px; object-fit:cover; border-radius:var(--radius-sm);
+    border:1px solid var(--line); background:var(--paper-sunk); }
+  .cand-attr{ flex:1 1 auto; min-width:0; }
+  .cand-radar-wrap{ flex:0 0 auto; }
+  .cand-radar{ display:block; }
+  @media(max-width:520px){ .cand-body{ flex-direction:column; } .cand-radar-wrap{ align-self:center; } }
+  .cand-chips{ display:flex; flex-wrap:wrap; gap:6px; }
+  .chip-attr{ font-family:var(--sans); font-size:.78rem; background:var(--paper-sunk);
+    border:1px solid var(--line); border-radius:var(--radius-pill); padding:2px 10px; color:var(--ink-2); }
+  .chip-attr b{ color:var(--ink); }
+  .chip-attr.chip-na{ opacity:.55; font-style:italic; }
+  .cand-sec{ font-size:.82rem; color:var(--ink-faint); margin:8px 0 0; }
+  .cand-expl{ font-size:.85rem; color:var(--ink-faint); margin:8px 0 0; }
+  .cand-foot{ display:flex; align-items:center; justify-content:space-between; gap:12px;
+    flex-wrap:wrap; margin:10px 0 0; padding-top:10px; border-top:1px solid var(--line); }
+  .cand-detalii summary{ cursor:pointer; font-size:.8rem; color:var(--sienna); font-family:var(--sans); }
+  .cand-detalii[open] summary{ margin-bottom:8px; }
+  .cand-detalii .detalii{ font-size:.8rem; }
+  /* D1: ponderi editabile */
+  .ponderi-box{ background:var(--paper-card); border:1px solid var(--line); border-radius:var(--radius);
+    padding:12px 16px; margin:14px 0; }
+  .ponderi-box summary{ cursor:pointer; font-family:var(--sans); font-weight:600; color:var(--ink); }
+  .pond-rand{ display:flex; align-items:center; gap:12px; margin:8px 0; flex-wrap:wrap; }
+  .pond-rand label{ flex:0 0 170px; font-size:.86rem; color:var(--ink); }
+  .pond-rand input[type=range]{ flex:1 1 140px; accent-color:var(--sienna); }
+  .pond-rand input[type=number]{ flex:0 0 64px; }
+  .pond-pct{ flex:0 0 56px; text-align:right; font-variant-numeric:tabular-nums; color:var(--ink-faint);
+    font-size:.84rem; }
+  .ponderi-actiuni{ display:flex; align-items:center; gap:10px; flex-wrap:wrap; margin-top:10px;
+    padding-top:10px; border-top:1px solid var(--line); }
 </style></head>
 <body>
 <a class="skip-link" href="#continut">Sari la conținut</a>
@@ -56,12 +96,29 @@
    <label for="stare">Stare(1-5)</label> <input id="stare" name="stare" value="3" size="3">
    <label for="finisaj">Finisaj(1-4)</label> <input id="finisaj" name="finisaj" value="4" size="3">
    <label for="incalzire">Incalzire</label> <input id="incalzire" name="incalzire" value="centrala_gaz" size="14">
-   <label for="teren">Teren mp</label> <input id="teren" name="teren" value="500" size="6"><br>
+   <label for="teren">Teren mp</label> <input id="teren" name="teren" value="500" size="6">
+   <label for="max_candidati">Câte comparabile</label>
+   <input id="max_candidati" name="max_candidati" type="number" min="1" max="50" value="20" size="4"
+     title="Numărul maxim de comparabile returnate (1–50)"><br>
   <label for="secundare">Atribute secundare (unul pe linie, „nume: valoare"):</label><br>
   <textarea id="secundare" name="secundare" rows="3" cols="40" placeholder="tamplarie: termopan"></textarea><br>
   <button type="submit">Caută comparabile</button>
   <span id="desc-status" class="hint" role="status" aria-live="polite"></span>
 </form>
+
+<!-- D1: ponderi de scoring editabile (apare doar dacă endpoint-ul config-ponderi e disponibil) -->
+<details id="ponderi-wrap" class="ponderi-box" style="display:none">
+  <summary>Ponderi de relevanță (avansat) — pentru categoria <b id="pond-cat">casă</b></summary>
+  <p class="hint">Ponderile (numere întregi) stabilesc cât contează fiecare atribut la scorul de relevanță.
+   Procentul afișat e normalizat din total. <i>Compromis temporar:</i> editarea e per-categorie; un UI
+   de configurare complet (toate categoriile + axe) urmează.</p>
+  <div id="ponderi-grila"></div>
+  <div class="ponderi-actiuni">
+    <button type="button" id="salveaza-ponderi">Salvează ponderile</button>
+    <button type="button" id="reseteaza-ponderi" class="ghost">Anulează modificările</button>
+    <span id="ponderi-status" class="hint" role="status" aria-live="polite"></span>
+  </div>
+</details>
 
 <!-- Tabelul de metodologie: ÎNAINTE de rezultate -->
 <div id="metodologie"></div>
@@ -78,8 +135,12 @@
 
 <h2>Rezultate</h2>
 <div id="rezultate" role="region" aria-label="Rezultate descoperire">
-  <p class="hint" id="rezultate-gol">Niciun rezultat încă. Completează formularul de mai sus și apasă
-   <b>„Caută comparabile"</b> pentru a porni căutarea.</p>
+  <div class="empty-state" id="rezultate-gol">
+    <span class="es-icon" aria-hidden="true">🔍</span>
+    <h3>Niciun rezultat încă</h3>
+    <p>Completează criteriile proprietății subiect de mai sus și pornește căutarea de comparabile pe portaluri.</p>
+    <button type="button" class="btn" onclick="document.getElementById('judet').focus()">Completează criteriile ↑</button>
+  </div>
 </div>
 </main>
 
@@ -165,6 +226,45 @@ function relevantaText(c){
   if(c.relevanta>=60) return 'Relevant';
   return 'Slab relevant';
 }
+// D2: mini-radar pe 4 axe (Locație/Fizic/Calitate/Funcțional) din c.axe. null (ex. locație
+// fără geocoding) = punct la centru + marcaj n/a. SVG inline, fără dependențe.
+// anchor per axă: etichetele laterale ies în afară pe orizontală (altfel se taie la
+// marginea viewBox-ului) → dreapta=start, stânga=end, sus/jos=middle.
+const AXE_D2 = [
+  {k:'locatie',   lbl:'Locație',    ang:-90, anchor:'middle'},
+  {k:'fizic',     lbl:'Fizic',      ang:0,   anchor:'start'},
+  {k:'calitate',  lbl:'Calitate',   ang:90,  anchor:'middle'},
+  {k:'functional',lbl:'Funcțional', ang:180, anchor:'end'},
+];
+function randRadar(axe){
+  if(!axe) return '';
+  const cx=52, cy=52, R=38;
+  const pt=(ang,r)=>{ const a=ang*Math.PI/180; return [cx+r*Math.cos(a), cy+r*Math.sin(a)]; };
+  // grilă (100% + 50%) + axe
+  let g='';
+  [R, R/2].forEach(rr=>{
+    const poly=AXE_D2.map(x=>pt(x.ang,rr).map(n=>n.toFixed(1)).join(',')).join(' ');
+    g+=`<polygon points="${poly}" fill="none" stroke="var(--line)" stroke-width="1"/>`;
+  });
+  AXE_D2.forEach(x=>{ const [px,py]=pt(x.ang,R); g+=`<line x1="${cx}" y1="${cy}" x2="${px.toFixed(1)}" y2="${py.toFixed(1)}" stroke="var(--line)" stroke-width="1"/>`; });
+  // poligon de date
+  let naAxe=[];
+  const dpts=AXE_D2.map(x=>{
+    let v=axe[x.k];
+    if(v===null||v===undefined){ naAxe.push(x.lbl); v=0; }
+    const r=R*Math.max(0,Math.min(100,v))/100;
+    return pt(x.ang,r).map(n=>n.toFixed(1)).join(',');
+  }).join(' ');
+  const fill=`<polygon points="${dpts}" fill="rgba(157,74,37,.18)" stroke="var(--sienna)" stroke-width="1.5"/>`;
+  // etichete axe (offset mic + anchor adaptat; viewBox lărgit lateral ca să încapă „Funcțional")
+  let labels='';
+  AXE_D2.forEach(x=>{ const [lx,ly]=pt(x.ang,R+6);
+    labels+=`<text x="${lx.toFixed(1)}" y="${ly.toFixed(1)}" font-size="6.5" fill="var(--ink-faint)" text-anchor="${x.anchor}" dominant-baseline="middle">${x.lbl}</text>`; });
+  const naTxt = naAxe.length ? ` (${naAxe.join('/')}: n/a)` : '';
+  // viewBox extins stânga/dreapta (−30 … 134 = lățime 164) ca etichetele orizontale să nu fie tăiate.
+  return `<svg class="cand-radar" viewBox="-30 0 164 108" width="120" height="79" role="img" `
+    + `aria-label="Profil relevanță pe axe${naTxt}">${g}${fill}${labels}</svg>`;
+}
 const STARE_LBL={'1':'Degradată','2':'Necesită renovare','3':'Medie / bună','4':'Foarte bună / renovată','5':'Nouă'};
 const FINISAJ_LBL={'1':'Modest','2':'Standard','3':'Superior','4':'Lux'};
 function eticheta(nume,v){
@@ -182,20 +282,46 @@ function tabelAtribute(c){
   const pon ='<tr><td>Pondere</td>'+A.map(a=>`<td>${a.pondere}</td>`).join('')+'</tr>';
   return '<table class="detalii">'+head+ref+gas+dd+pon+'</table>';
 }
+// Atribute cheie ca CHIPS scanabile (valoarea găsită în anunț; subiectul + ponderea în tooltip).
+function chipsAtribute(c){
+  const A = c.atribute||[];
+  if(!A.length) return '';
+  return '<div class="cand-chips">' + A.map(a=>{
+    const val = eticheta(a.nume, a.valoare_candidat);
+    const ref = eticheta(a.nume, a.valoare_subiect);
+    const na = a.cunoscut ? '' : ' chip-na';
+    return `<span class="chip-attr${na}" title="Subiect: ${ref} · pondere ${a.pondere}">`
+      + `${a.nume}: <b>${val}</b></span>`;
+  }).join('') + '</div>';
+}
 function randCandidat(c){
   const secId = (c.secundare||[]).filter(s=>s.stare!=='nementionat');
   const sec = secId.map(s => `${s.nume}: ${s.stare}`
      + (s.valoare_gasita ? ` („${s.valoare_gasita}")` : '')).join(' · ');
-  let avert = c.incredere_scazuta ? ' <span class="alerta">(date insuficiente — verifică manual)</span>' : '';
-  return `<div class="candidat">
-    <h3><label><input type="checkbox" class="bif" data-pret="${c.pret||''}" data-supr="${c.suprafata||''}">
-      <span class="badge ${badgeClass(c)}" title="Scor de relevanță: ${c.relevanta}%">${relevantaText(c)} <span style="opacity:.7;font-weight:400">· ${c.relevanta}%</span></span>
-      <span class="pret">${c.pret?c.pret+' '+(c.moneda||'EUR'):'preț ?'}</span>
-      · ${c.suprafata||'?'} mp construiți · teren ${c.teren||'?'} mp${c.pret_mp?' · <b>'+c.pret_mp+' €/mp</b> (teren comparabil)':''}${avert}</label></h3>
-    <a class="vezi" href="${c.url}" target="_blank" rel="noopener"><span aria-hidden="true">▶</span> Vezi anunțul${c.titlu?': '+c.titlu:''}</a>
-    ${tabelAtribute(c)}
-    <p class="hint">${c.explicatie}</p>
-    ${sec ? '<p class="hint"><b>Secundare:</b> '+sec+'</p>' : ''}
+  const avert = c.incredere_scazuta ? '<span class="alerta">⚠ date insuficiente — verifică manual</span>' : '';
+  const meta = [
+    `${c.suprafata||'?'} mp construiți`,
+    `teren ${c.teren||'?'} mp`,
+    c.pret_mp ? `<b>${c.pret_mp} €/mp</b> teren comparabil` : null,
+  ].filter(Boolean).join(' · ');
+  return `<div class="candidat cand-card">
+    <div class="cand-head">
+      <label class="cand-sel"><input type="checkbox" class="bif" data-pret="${c.pret||''}" data-supr="${c.suprafata||''}">
+        <span class="badge ${badgeClass(c)}" title="Scor de relevanță: ${c.relevanta}%">${relevantaText(c)} <span class="scor-sec">· ${c.relevanta}%</span></span></label>
+      <span class="cand-pret">${c.pret?c.pret+' '+(c.moneda||'EUR'):'preț ?'}</span>
+    </div>
+    <div class="cand-meta">${meta}${avert?' · '+avert:''}</div>
+    <div class="cand-body">
+      ${c.poza ? '<img class="cand-poza" src="'+c.poza+'" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.remove()">' : ''}
+      <div class="cand-attr">${chipsAtribute(c)}</div>
+      ${c.axe ? '<div class="cand-radar-wrap">'+randRadar(c.axe)+'</div>' : ''}
+    </div>
+    ${sec ? '<p class="cand-sec"><b>Secundare:</b> '+sec+'</p>' : ''}
+    <p class="cand-expl">${c.explicatie}</p>
+    <div class="cand-foot">
+      <a class="vezi" href="${c.url}" target="_blank" rel="noopener"><span aria-hidden="true">▶</span> Vezi anunțul${c.titlu?': '+c.titlu:''}</a>
+      <details class="cand-detalii"><summary>Calculul complet (atribute × ponderi)</summary>${tabelAtribute(c)}</details>
+    </div>
   </div>`;
 }
 // ── P1.3 Hartă: pini colorați după relevanță; subiectul = pin negru ────────────
@@ -256,7 +382,8 @@ document.getElementById('f').addEventListener('submit', async (e)=>{
   const payload = {portal:d.portal, judet:d.judet, localitate:d.localitate,
     subiect:{an:parseInt(d.an)||null, stare:parseInt(d.stare)||null,
       finisaj:parseInt(d.finisaj)||null, incalzire:d.incalzire||null, teren:d.teren||null},
-    atribute_secundare:(d.secundare||'').split('\n').filter(Boolean), max_candidati:8};
+    atribute_secundare:(d.secundare||'').split('\n').filter(Boolean),
+    max_candidati: Math.min(50, Math.max(1, parseInt(d.max_candidati,10) || 20))};
   let res;
   try {
     const r = await fetch('/api/descopera',{method:'POST',
@@ -271,8 +398,11 @@ document.getElementById('f').addEventListener('submit', async (e)=>{
   document.getElementById('metodologie').innerHTML = randMetodologie(res.metodologie);
   if(res.candidati.length === 0){
     document.getElementById('rezultate').innerHTML =
-      '<p class="hint">Niciun comparabil găsit pentru criteriile alese. Încearcă o zonă mai largă '
-      + '(doar județul) sau verifică localitatea.</p>';
+      '<div class="empty-state"><span class="es-icon" aria-hidden="true">🗺</span>'
+      + '<h3>Niciun comparabil găsit</h3>'
+      + '<p>Pentru criteriile alese nu există anunțuri. Încearcă o zonă mai largă (doar județul) '
+      + 'sau verifică denumirea localității.</p>'
+      + '<button type="button" class="btn" onclick="document.getElementById(\'localitate\').focus()">Ajustează zona ↑</button></div>';
     return;
   }
   document.getElementById('rezultate').innerHTML =
@@ -296,6 +426,80 @@ document.getElementById('f').addEventListener('submit', async (e)=>{
     window.location.href = '/grila';
   });
 });
+
+// ── D1: ponderi de scoring editabile (consumă /api/descopera/config-ponderi) ────
+(function(){
+  var CAT = 'casa';                       // formularul curent e pentru casă
+  var cfg = null;                         // config server (ponderi + sume)
+  var wrap = document.getElementById('ponderi-wrap');
+  var grila = document.getElementById('ponderi-grila');
+  if(!wrap || !grila) return;
+
+  function pondCurente(){
+    var o = {};
+    grila.querySelectorAll('input[type=number]').forEach(function(i){
+      o[i.dataset.attr] = Math.max(0, parseInt(i.value,10) || 0);
+    });
+    return o;
+  }
+  function actualizeazaProcente(){
+    var p = pondCurente();
+    var suma = Object.values(p).reduce(function(a,b){ return a+b; }, 0) || 1;
+    grila.querySelectorAll('.pond-pct').forEach(function(el){
+      var v = p[el.dataset.attr] || 0;
+      el.textContent = Math.round(v / suma * 100) + '%';
+    });
+  }
+  function randAtribut(attr, val){
+    var rand = document.createElement('div'); rand.className = 'pond-rand';
+    var lbl = document.createElement('label'); lbl.textContent = attr.replace(/_/g,' ');
+    lbl.setAttribute('for', 'pond-'+attr);
+    var rng = document.createElement('input'); rng.type='range'; rng.min='0'; rng.max='10'; rng.value=val;
+    rng.setAttribute('aria-label', 'Pondere '+attr.replace(/_/g,' '));
+    var num = document.createElement('input'); num.type='number'; num.id='pond-'+attr; num.min='0'; num.max='20';
+    num.value=val; num.dataset.attr=attr;
+    var pct = document.createElement('span'); pct.className='pond-pct'; pct.dataset.attr=attr;
+    rng.addEventListener('input', function(){ num.value=rng.value; actualizeazaProcente(); });
+    num.addEventListener('input', function(){ rng.value=Math.min(10, num.value); actualizeazaProcente(); });
+    rand.appendChild(lbl); rand.appendChild(rng); rand.appendChild(num); rand.appendChild(pct);
+    return rand;
+  }
+  function popule(){
+    grila.textContent = '';
+    var pond = (cfg.ponderi && cfg.ponderi[CAT]) || {};
+    Object.keys(pond).forEach(function(attr){ grila.appendChild(randAtribut(attr, pond[attr])); });
+    actualizeazaProcente();
+    var catEl = document.getElementById('pond-cat');
+    if(catEl) catEl.textContent = CAT;
+  }
+  fetch('/api/descopera/config-ponderi').then(function(r){
+    if(!r.ok) throw new Error('indisponibil'); return r.json();
+  }).then(function(d){
+    cfg = d; if(!cfg.editabil) return;     // endpoint prezent + editabil
+    wrap.style.display = ''; popule();
+  }).catch(function(){ /* endpoint încă neintegrat — secțiunea rămâne ascunsă */ });
+
+  var btnS = document.getElementById('salveaza-ponderi');
+  if(btnS) btnS.addEventListener('click', function(){
+    var st = document.getElementById('ponderi-status');
+    var body = {}; body[CAT] = pondCurente();
+    var sumaEf = Object.values(body[CAT]).reduce(function(a,b){ return a+b; }, 0);
+    if(sumaEf <= 0){ st.textContent = 'Suma ponderilor trebuie să fie > 0.'; return; }
+    btnS.classList.add('is-loading'); btnS.disabled = true;
+    fetch('/api/descopera/config-ponderi', {method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ponderi: body})}).then(function(r){
+        return r.json().then(function(d){ return {ok:r.ok, d:d}; });
+    }).then(function(res){
+      if(res.ok){ cfg = res.d; popule(); st.textContent = '✓ Ponderi salvate.'; }
+      else { st.textContent = 'Salvare eșuată: ' + ((res.d && res.d.detail) || 'valori invalide'); }
+      btnS.classList.remove('is-loading'); btnS.disabled = false;
+    }).catch(function(){ st.textContent = 'Salvare eșuată (rețea).'; btnS.classList.remove('is-loading'); btnS.disabled = false; });
+  });
+  var btnR = document.getElementById('reseteaza-ponderi');
+  if(btnR) btnR.addEventListener('click', function(){
+    if(cfg){ popule(); document.getElementById('ponderi-status').textContent = 'Modificări anulate.'; }
+  });
+})();
 </script>
 {% include "_footer.html" %}
 </body></html>

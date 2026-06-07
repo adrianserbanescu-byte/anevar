@@ -38,17 +38,39 @@ function alese(){ return [...document.querySelectorAll('.fmt:checked')].map(c=>c
 function refresh(){ const a=alese();
   document.getElementById('preview').textContent = a.length ? a.join('_') : '—'; }
 document.querySelectorAll('.fmt').forEach(c=>c.addEventListener('change', refresh)); refresh();
+function marcheaza(el, mesaj){
+  el.classList.add('is-invalid'); el.setAttribute('aria-invalid','true');
+  var err=el.parentNode.querySelector('.field-error');
+  if(!err){ err=document.createElement('span'); err.className='field-error'; el.parentNode.appendChild(err); }
+  err.textContent=mesaj;
+}
+function curata(el){
+  el.classList.remove('is-invalid'); el.removeAttribute('aria-invalid');
+  var err=el.parentNode.querySelector('.field-error'); if(err) err.remove();
+}
+['nume','legitimatie'].forEach(function(id){
+  var el=document.getElementById(id); if(el) el.addEventListener('input', ()=>curata(el));
+});
 document.getElementById('salveaza').addEventListener('click', async ()=>{
-  const nume=document.getElementById('nume').value.trim();
-  const legitimatie=document.getElementById('legitimatie').value.trim();
+  var numeEl=document.getElementById('nume'), legEl=document.getElementById('legitimatie');
+  const nume=numeEl.value.trim();
+  const legitimatie=legEl.value.trim();
   const format_dosar=alese();
-  if(!nume||!legitimatie){ document.getElementById('status').textContent='Nume + legitimație obligatorii.'; return; }
-  if(format_dosar.length<3){ document.getElementById('status').textContent='Alege minim 3 câmpuri.'; return; }
-  const r=await fetch('/api/cont',{method:'POST',headers:{'Content-Type':'application/json'},
-    body:JSON.stringify({nume,legitimatie,format_dosar})});
-  if(r.ok){ document.getElementById('status').textContent='✓ Cont salvat. Se deschide ÎNCEPE…';
-    setTimeout(()=>window.location.href='/incepe',800); }
-  else { document.getElementById('status').textContent='Eroare la salvare.'; }
+  curata(numeEl); curata(legEl);
+  var ok=true;
+  if(!nume){ marcheaza(numeEl,'Numele evaluatorului e obligatoriu.'); ok=false; }
+  if(!legitimatie){ marcheaza(legEl,'Legitimația ANEVAR e obligatorie.'); ok=false; }
+  if(!ok){ document.getElementById('status').textContent=''; return; }
+  if(format_dosar.length<3){ document.getElementById('status').textContent='Alege minim 3 câmpuri pentru formatul numelui de dosar.'; return; }
+  const btn=document.getElementById('salveaza'); btn.classList.add('is-loading'); btn.disabled=true;
+  try{
+    const r=await fetch('/api/cont',{method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({nume,legitimatie,format_dosar})});
+    if(r.ok){ document.getElementById('status').textContent='✓ Cont salvat. Se deschide ÎNCEPE…';
+      setTimeout(()=>window.location.href='/incepe',800); return; }
+    document.getElementById('status').textContent='Salvarea a eșuat (cod '+r.status+'). Reîncearcă.';
+  }catch(e){ document.getElementById('status').textContent='Salvarea a eșuat (eroare de rețea). Reîncearcă.'; }
+  btn.classList.remove('is-loading'); btn.disabled=false;
 });
 </script>
 {% include "_footer.html" %}

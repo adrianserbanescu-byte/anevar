@@ -10,8 +10,12 @@
 {% include "_cartus.html" %}
 <main id="continut">
   {% if not dosare %}
-    <p class="hint">Niciun dosar salvat încă. Generează o evaluare în <a href="/wizard">wizard</a> —
-     se salvează automat aici.</p>
+    <div class="empty-state">
+      <span class="es-icon" aria-hidden="true">📂</span>
+      <h3>Niciun dosar salvat încă</h3>
+      <p>Dosarele generate prin wizard se salvează automat aici și pot fi redeschise, redenumite sau descărcate ca raport.</p>
+      <a class="btn" href="/wizard">Deschide wizardul →</a>
+    </div>
   {% else %}
   <p class="hint">{{ dosare|length }} dosar(e). Fiecare se salvează automat la calcul.</p>
   <table>
