@@ -28,8 +28,13 @@ from evaluare.web.app import create_app
 
 log = get_logger(__name__)
 
-HOST = "127.0.0.1"
-PORT = 8000
+# HOST/PORT configurabile prin env (implicit local 127.0.0.1:8000). Permit owner-ului de deploy
+# să testeze un build nou pe alt port FĂRĂ să oprească serverul live (hot-swap fără downtime).
+HOST = os.environ.get("ANEVAR_HOST", "127.0.0.1")
+try:
+    PORT = int(os.environ.get("ANEVAR_PORT", "8000"))
+except ValueError:
+    PORT = 8000
 
 
 def _baza_scriere() -> Path:
@@ -92,7 +97,8 @@ def _ruleaza(baza: Path) -> None:
     app = create_app(storage=storage, client=settings.narrative_client())
 
     log.info("Pornire server pe http://%s:%s (date in %s)", HOST, PORT, baza)
-    threading.Thread(target=_deschide_browser_cand_e_gata, daemon=True).start()
+    if os.environ.get("ANEVAR_NO_BROWSER") != "1":   # instanța gestionată (hot-swap) nu redeschide browserul
+        threading.Thread(target=_deschide_browser_cand_e_gata, daemon=True).start()
     uvicorn.run(app, host=HOST, port=PORT)
 
 

@@ -9,6 +9,7 @@ ultima dată", folosit DOAR pentru diff (existente / noi / dispărute). Vezi doc
 """
 from __future__ import annotations
 
+import contextlib
 import hashlib
 import json
 import os
@@ -174,20 +175,54 @@ def verifica_integritate(uid: str) -> list[dict]:
     return rez
 
 
+_CAMPURI_ANTET = ("uuid", "nume", "creator_legitimatie", "creator_nume",
+                  "creat_la", "modificat_la", "identitate")
+
+
+def _fisier_cache() -> Path:
+    return baza() / "_cache_antete.json"
+
+
 def listeaza() -> list[dict]:
-    """Scanează folderele cu `dosar.json`. Returnează antetele, ordonate după ultima modificare."""
+    """Scanează folderele cu `dosar.json`. Returnează antetele, ordonate după ultima modificare.
+
+    Cache pe `mtime_ns` (`_cache_antete.json`): un `dosar.json` neschimbat NU se recitește/reparsează
+    la fiecare apel (ex. la fiecare `/incepe`). Cache-ul e derivat — coruperea/lipsa lui = reconstruire.
+    """
     b = baza()
-    out: list[dict] = []
     if not b.exists():
-        return out
-    for f in b.glob("*/dosar.json"):
+        return []
+    cache: dict = {}
+    cf = _fisier_cache()
+    if cf.exists():
         try:
-            d = json.loads(f.read_text(encoding="utf-8"))
+            cache = json.loads(cf.read_text(encoding="utf-8"))
         except (OSError, ValueError):
+            cache = {}
+    out: list[dict] = []
+    cache_nou: dict = {}
+    schimbat = False
+    for f in b.glob("*/dosar.json"):
+        uid = f.parent.name
+        try:
+            mtime = f.stat().st_mtime_ns
+        except OSError:
             continue
-        out.append({k: d.get(k) for k in
-                    ("uuid", "nume", "creator_legitimatie", "creator_nume",
-                     "creat_la", "modificat_la", "identitate")})
+        intrare = cache.get(uid)
+        if intrare and intrare.get("mtime") == mtime:
+            antet = intrare["antet"]                 # cache hit: niciun read/parse
+        else:
+            try:
+                d = json.loads(f.read_text(encoding="utf-8"))
+            except (OSError, ValueError):
+                continue
+            antet = {k: d.get(k) for k in _CAMPURI_ANTET}
+            schimbat = True
+        cache_nou[uid] = {"mtime": mtime, "antet": antet}
+        out.append(antet)
+    if schimbat or len(cache_nou) != len(cache):     # scrie doar când s-a schimbat ceva (sau s-a șters un dosar)
+        with contextlib.suppress(OSError):
+            _scrie_atomic(cf, json.dumps(cache_nou, ensure_ascii=False))
     out.sort(key=lambda d: d.get("modificat_la") or "", reverse=True)
     return out
 
