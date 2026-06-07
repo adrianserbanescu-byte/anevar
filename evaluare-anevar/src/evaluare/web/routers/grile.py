@@ -7,8 +7,11 @@ from fastapi.responses import HTMLResponse
 from evaluare.engine.chirie import evalueaza_chirie
 from evaluare.engine.land import evaluate_land
 from evaluare.engine.market import evaluate_market
+from evaluare.logging_setup import get_logger
 from evaluare.web.deps import Deps
 from evaluare.web.schemas import GrilaCasaRequest, GrilaChiriiRequest, GrilaTerenRequest
+
+log = get_logger(__name__)
 
 
 def build_router(d: Deps) -> APIRouter:

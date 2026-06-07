@@ -8,6 +8,7 @@ from fastapi.responses import HTMLResponse
 from evaluare.discovery.orchestrator import descopera
 from evaluare.discovery.scoring import metodologie
 from evaluare.importers.url_parser import parse_listing_html
+from evaluare.logging_setup import get_logger
 from evaluare.web.deps import Deps
 from evaluare.web.schemas import (
     DescoperaRequest,
@@ -15,6 +16,8 @@ from evaluare.web.schemas import (
     ImportAnuntRequest,
     StergeAnuntRequest,
 )
+
+log = get_logger(__name__)
 
 
 def build_router(d: Deps) -> APIRouter:

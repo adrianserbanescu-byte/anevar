@@ -6,6 +6,9 @@ import re
 import unicodedata
 
 from evaluare.ai.narrative import NarrativeClient
+from evaluare.logging_setup import get_logger
+
+log = get_logger(__name__)
 
 SYSTEM_ZONA = (
     "Extragi judetul si localitatea dintr-o adresa din Romania. Raspunzi EXCLUSIV cu JSON "
@@ -44,6 +47,6 @@ def extrage_zona(
             localitate = _normalizeaza(data.get("localitate"))
             if localitate or judet:
                 return judet, localitate
-        except (ValueError, TypeError, AttributeError):
-            pass
+        except (ValueError, TypeError, AttributeError) as e:
+            log.debug("zona parse esuata (LLM raspuns ne-JSON sau camp lipsa): %s", e)
     return _fallback(adresa)

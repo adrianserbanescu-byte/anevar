@@ -13,6 +13,9 @@ from fastapi import APIRouter, HTTPException, Request
 from fastapi.responses import FileResponse, HTMLResponse
 
 from evaluare import cont as cont_mod
+from evaluare.logging_setup import get_logger
+
+log = get_logger(__name__)
 from evaluare import dosare_fs as fs
 from evaluare.assembler import EvaluationInput, construieste_context, valideaza
 from evaluare.report.generator import genereaza_raport
@@ -63,9 +66,11 @@ def build_router(d: Deps) -> APIRouter:
     def creeaza_dosar(req: DosarNouRequest) -> dict:
         cont = cont_mod.incarca_cont()
         if cont is None:
+            log.warning("creeaza_dosar: cont absent")
             raise HTTPException(403, "Creează întâi un cont.")
         uid = fs.creeaza(cont["legitimatie"], cont["nume"], req.wizard,
                          format_dosar=cont.get("format_dosar"))
+        log.info("dosar creat uid=%s creator=%s", uid, cont.get("nume", "?"))
         return {"uuid": uid}
 
     @router.post("/api/dosar/import-docx")
@@ -128,6 +133,7 @@ def build_router(d: Deps) -> APIRouter:
     @router.post("/api/dosar/{uid}/sterge")
     def sterge_dosar(uid: str) -> dict:
         fs.sterge(uid)
+        log.info("dosar sters uid=%s", uid)
         return {"ok": True}
 
     @router.post("/api/dosar/{uid}/scoate-din-index")
@@ -256,10 +262,6 @@ def build_router(d: Deps) -> APIRouter:
         finally:
             shutil.rmtree(tmpdir, ignore_errors=True)
         return {"versiune": versiune, "asumat_la": fs.incarca(uid).get("asumat_la")}
-
-    @router.get("/api/__sentinel_build__")
-    def _sentinel_build() -> dict:
-        return {"v": "adr-build-2026-06-07"}
 
     @router.get("/api/backup-dosare.zip")
     def backup_dosare():

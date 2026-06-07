@@ -11,10 +11,13 @@ from fastapi import APIRouter, HTTPException, Request
 from fastapi.responses import FileResponse, HTMLResponse
 
 from evaluare.assembler import EvaluationInput, construieste_context, valideaza
+from evaluare.logging_setup import get_logger
 from evaluare.report.generator import genereaza_raport
 from evaluare.web.deps import DOCX_MIME, Deps
 from evaluare.web.format import fmt_numar
 from evaluare.web.schemas import RedenumesteRequest
+
+log = get_logger(__name__)
 
 
 def _folder_dosar(eid: int) -> Path:
