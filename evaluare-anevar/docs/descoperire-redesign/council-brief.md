@@ -121,7 +121,7 @@ căutare pe portal → scrape HTML (fetch_html, HTTP direct) → parsare anunț 
 
 ---
 
-## 5. Întrebările pentru council (Q1–Q9)
+## 5. Întrebările pentru council (Q1–Q10)
 
 **Q1 — Criterii principale per categorie.** Pentru fiecare dintre cele 5 categorii (atenție la #5 catch-all): ce criterii principale ați pune în ranking, cu ce ponderi și ce formule de similaritate? Pentru #5 — set minimal comun + criterii pe sub-tip, sau altă strategie?
 Sub-întrebări:
@@ -151,6 +151,8 @@ Notă pe căutare vs. extracție: stradă/număr **APAR în textul anunțului** 
 **Q8 — Riscuri, dependențe, prioritizare.** Care sunt riscurile, dependențele și **ordinea de prioritate** recomandată pentru tot ce e mai sus: modelare per categorie, acoperire căutare (inclusiv surse noi pentru #3/#5), locație granulară, eventuala distanță în scor, dependența de LLM pentru stare/finisaj, încredere per sursă, și eventualul consiliu de API-uri?
 
 **Q9 — Altceva (catch-all).** Ce **NU** v-am întrebat, dar ar trebui? Orice abordare alternativă, oportunitate, risc, sau idee din afara cadrului de mai sus — inclusiv contestarea unei premise de bază (ex. „modelul de similaritate ponderată e abordarea greșită; ar trebui altceva"). Aici căutăm exact ce ne scapă nouă: dacă ați proiecta „Descoperă" de la zero, ce ați face diferit?
+
+**Q10 — Cea mai inovatoare idee.** Dacă ați avea **o singură mișcare îndrăzneață** pentru „Descoperă" — cea mai inovatoare/neconvențională idee pe care merită să o încercăm, chiar dacă e riscantă — care ar fi? Nu căutăm incremental aici; căutăm **saltul**: ce ar transforma modulul dintr-un „căutător de comparabile" în ceva cu un avantaj clar. Descrieți ideea + de ce credeți că ar funcționa + cel mai mare risc al ei.
 
 ---
 
