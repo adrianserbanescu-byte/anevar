@@ -35,3 +35,6 @@ evaluare-anevar/docs/docx/
 
 # Deploy local „live" (exe + date de runtime — nu în git)
 evaluare-anevar/live/
+
+# Screenshot-uri audit design (regenerabile cu scripts/_audit_screenshots.py)
+evaluare-anevar/docs/design-audit/screens/
