@@ -199,3 +199,39 @@
 - L683 `⛔` [block/icon] — «=='blocheaza'?'§':'⚠️'} ${a.mesaj}</div>`).join(»
 - L683 `⚠` [warn/icon] — «locheaza'?'⛔':'§️'} ${a.mesaj}</div>`).join('');»
 - L755 `✓` [check/icon] — «p class="hint">§ Venit brut potențial preluat di»
+
+
+---
+## D. Decizii A (2026-06-07) — plan de rollout
+
+- **Q1 set:** macro pe ~18-20 roluri COMUNE (nu reduc catalogul). 1-off rare = case-by-case.
+- **Q2 legacy:** `wizard.html` + `formular.html` = tier-D (retragere #18) -> **SKIP** (15 iconuri nu se convertesc).
+- **Q3 glife-text:** săgeți →←↗↑↔ + buline ● rămân tipografie (NU SVG).
+
+### Volum REAL de rollout (după skip legacy)
+- **55 iconuri ACTIVE** (roluri comune, pagini ne-legacy) — rollout instant când vine macro-ul.
+- **8 iconuri 1-off** (case-by-case): arrow-send, compass-wizard, demo, doc-edit, import-similar, thumb-down, thumb-up.
+- **15 iconuri SKIP** (wizard/formular legacy).
+
+### Active pe rol (ținta rollout)
+| rol | nr | locații |
+|---|---|---|
+| `check` | 10 | _feedback.html:163, _feedback.html:164, cont.html:69, descoperire.html:493, flux_livrabile.html:25, flux_livrabile.html:215, grila.html:175, grila.html:265, grila.html:300, grila.html:330 |
+| `add` | 7 | incepe.html:21, incepe.html:80, flux_livrabile.html:130, flux_livrabile.html:164, grila.html:256, grila.html:262, grila.html:318 |
+| `doc` | 5 | _nav_cross.html:7, aml.html:89, aml.html:90, index.html:35, result.html:33 |
+| `warn` | 5 | aml.html:20, incepe.html:85, descoperire.html:75, descoperire.html:301, grila.html:308 |
+| `map` | 4 | _nav_cross.html:6, descoperire.html:401, grila.html:253, index.html:13 |
+| `import` | 4 | incepe.html:23, incepe.html:142, incepe.html:151, descoperire.html:81 |
+| `edit` | 3 | _feedback.html:15, dosare.html:32, feedback_list.html:15 |
+| `delete` | 3 | descoperire.html:86, descoperire.html:171, dosare.html:34 |
+| `folder-open` | 2 | incepe.html:22, dosare.html:14 |
+| `view` | 2 | descoperire.html:172, descoperire.html:322 |
+| `download` | 2 | dosare.html:33, feedback_list.html:12 |
+| `close` | 1 | _feedback.html:22 |
+| `swap` | 1 | _nav_cross.html:3 |
+| `help` | 1 | _nav_cross.html:8 |
+| `folder` | 1 | incepe.html:77 |
+| `calendar` | 1 | incepe.html:128 |
+| `search` | 1 | descoperire.html:139 |
+| `refresh` | 1 | grila.html:16 |
+| `flag` | 1 | grila.html:299 |
