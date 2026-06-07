@@ -23,6 +23,9 @@ Worktree-urile sunt directoare SEPARATE — editările tale nu se mai văd în d
    corup `build/`+`dist/`; 2 exe pe 8000 se ciocnesc.)
 5. **Teste:** oricine, în worktree-ul lui (folosesc directoare temporare). Serverul de test e pe **8765** —
    nu porni un al doilea simultan. **Eliberează 8000 înainte de orice smoke pe exe** (altfel testezi instanța veche).
+6. **Dacă atingi UI** (`templates/*.html`): rulează ȘI actualizează e2e (`scripts/_pw_smoke.py`), nu doar `pytest` —
+   un selector stale după ce ștergi un element rupe validarea la deploy (s-a întâmplat: b03decc a scos popover-ul
+   `!` din `dosar.html` fără să scoată verificarea din e2e; A a prins-o la integrare).
 
 ## Procedura de DEPLOY (sesiunea A, pe `master`)
 1. `git merge sesiune-b` / `sesiune-c` (sau cherry-pick) → rezolvă conflicte → `git push origin master`.
