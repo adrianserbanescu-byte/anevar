@@ -22,6 +22,10 @@ __pycache__/
 # Stare de lucru a uneltei memplan (nu se versionează)
 .memplan/
 
+# Serena MCP — index LSP local, configurări per-mașină
+.serena/
+evaluare-anevar/.serena/
+
 # PDF-uri generate din .md (regenerabile: scripts/_md2pdf.py + LibreOffice)
 evaluare-anevar/docs/pdf/
 evaluare-anevar/docs/docx/

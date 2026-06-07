@@ -49,13 +49,21 @@ dispatch framework).
 - `web/app.py:31` — `doar_host_local` (atenție: e middleware aplicat dinamic)
 - `audit/raport_audit.py:19` — `scrie_audit` (verifică, modul recent)
 
-### Posibil intentional (decizie Adi → §J BLOCAT)
+### Cross-reference finding (update 2026-06-07 6:14am — analiză serena-style)
 
 - `engine/abordari.py:25,34` — `abordare_cost`, `abordare_comparatie`
 - `engine/venit.py:51` — `abordare_venit`
 
-  Sunt API public pentru cele 4 abordări ANEVAR. Fluxul curent (`web/routers/evaluare.py`)
-  nu pare să le cheme direct — verifică dacă sunt expuse sau dead.
+  **Confirmat dead la runtime + duplicare de logică.** `vulture` raportase doar „unused function",
+  dar cross-reference-ul a relevat patternul real:
+  - **Zero runtime calls în `src/`** pe cele 3 funcții (doar definițiile și referințe în teste).
+  - `assembler.py:130-158` (orchestrul de raport) folosește funcții cu nume **DIFERITE** care duplică logica:
+    `evaluate_cost`, `evaluate_market`, `evalueaza_venit` — calculează valorile, apoi le împachetează manual în `RezultatAbordare(abordare="cost", valoare=...)`.
+  - `report/sectiuni.py` folosește string-uri (`"abordare_cost"`) doar ca **ID-uri de secțiune**, NU apelează funcțiile.
+  - Testele (`test_abordari.py`, `test_venit.py`) acoperă funcțiile orphan — risc de fals sentiment de coverage.
+
+  **Decizie #36 în BLOCAT-pe-Adi.md §K** — recomandare revizuită: refactorizează `assembler.py` să folosească
+  `abordare_X` (opțiunea a) ca o singură sursă de adevăr, sau șterge funcțiile + testele lor (opțiunea b).
 
 ### Excluse (motiv)
 

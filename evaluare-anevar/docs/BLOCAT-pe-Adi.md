@@ -90,12 +90,17 @@
 > secțiunea „🔧 Audit skill-uri (2026-06-07)". Aici rămân doar deciziile.
 
 36. **Funcțiile `engine/abordari.py:{abordare_cost, abordare_comparatie}` + `engine/venit.py:abordare_venit` apar ca dead code.**
-    Sunt API public pentru cele 4 abordări ANEVAR (cost, comparație, venit-capitalizare, DCF), dar fluxul curent
-    (`web/routers/evaluare.py`) nu pare să le cheme direct. Decide:
-    (a) **Păstrează** ca API formal (documentează intenția cu docstring + test contract), sau
-    (b) **Șterge** ca dead code (acceptă că abordările sunt expuse doar prin endpoint-uri compozite, nu individual).
-    Recomandare: (a) — sunt suprafața conceptuală conform SEV 2025; un consumator extern (ex. test peer-review) ar putea
-    avea nevoie să le cheme separat.
+    **EVIDENȚĂ NOUĂ (cross-reference 2026-06-07 6:14am, via serena-style analiză):** sunt **zero runtime calls în `src/`** și
+    `assembler.py:130-158` (orchestrul real de raport) folosește funcții cu nume DIFERITE care duplică logica:
+    `evaluate_cost`, `evaluate_market`, `evalueaza_venit`. Adică ai DOUĂ surse de adevăr — riscul: divergență silențioasă.
+    Test-coverage există pe `abordare_X` dar testează cale neutilizată în runtime.
+
+    Decide:
+    (a) **Păstrează + refactorizează `assembler.py`** să folosească `abordare_cost/comparatie/venit` în loc de
+        `evaluate_cost/evaluate_market/evalueaza_venit` (recomandat — o singură sursă de adevăr, aliniat cu SEV 2025).
+    (b) **Șterge** funcțiile + testele lor (30-50 linii duplicat); acceptă că assembler.py e calea oficială.
+
+    Recomandare **revizuită: (a)** — refactorizarea elimină duplicarea fără să compromiți API-ul SEV 2025.
 
 37. **Retragere endpoint-uri vechi `/api/evaluare/...`** (cuplat cu §D.18 — retragerea UI vechi).
     Acum coexistă cu `/api/dosar/...` (UI nou) — zero breaking changes în 100 commits, dar duplicarea
