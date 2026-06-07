@@ -141,7 +141,7 @@
     msg.value="";
     document.querySelectorAll(".fb-thumb").forEach(function(x){ x.setAttribute("aria-pressed","false"); });
     sentiment="";
-    send.disabled = false;
+    send.disabled = false; send.classList.remove("is-loading");
     setTimeout(close, 1400);
   }
 
@@ -150,7 +150,7 @@
       status.textContent = "Scrie un mesaj sau alege o reacție.";
       return;
     }
-    send.disabled = true; status.textContent = "Se trimite…";
+    send.disabled = true; send.classList.add("is-loading"); status.textContent = "Se trimite…";
     try{ localStorage.setItem("fb-tester", name.value.trim()); }catch(e){}
 
     var payload = { mesaj: msg.value.trim(), sentiment: sentiment || "",
