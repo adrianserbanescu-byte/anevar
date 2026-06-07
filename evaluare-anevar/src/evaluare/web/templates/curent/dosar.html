@@ -245,7 +245,7 @@
             <option value="ponderata">Ponderată</option><option value="venit">Venit (capitalizare)</option>
             <option value="dcf">DCF</option></select></div>
         <div class="field"><label for="moneda">Monedă</label>
-          <select id="moneda"><option value="LEI" selected>LEI</option><option value="EUR">EUR</option></select></div>
+          <select id="moneda"><option value="EUR" selected>EUR</option><option value="LEI">LEI</option></select></div>
         <div class="field"><label for="curs_valutar">Curs EUR→LEI (BNR)</label>
           <input id="curs_valutar" placeholder="ex. 4,9750">
           <small id="curs-info" class="hint" role="status" aria-live="polite"></small></div>
@@ -518,8 +518,7 @@ function injecteazaPopover(lbl, glyph, cls, ariaLabel, html){
 document.querySelectorAll("main label[for]").forEach(function(lbl){
   var id = lbl.getAttribute("for");
   if(AJUTOR[id]) injecteazaPopover(lbl, "?", "", "Detalii câmp", AJUTOR[id]);     // ajutor contextual
-  var m = MAPARE[id];
-  if(m) injecteazaPopover(lbl, "!", "is-map", "Corespondent în UI-ul vechi", "<b>Vechi:</b> "+m.v+"<br>"+m.d);
+  // popover „!" (mapping vechi→nou) eliminat 2026-06-07 — mapping-ul a fost validat, era patch tranzitiv.
 });
 function inchideMap(){ document.querySelectorAll(".hint-pop.hint-open").forEach(function(o){ o.classList.remove("hint-open");
   var t=o.parentNode.querySelector(".hint-toggle"); if(t) t.setAttribute("aria-expanded","false"); }); }

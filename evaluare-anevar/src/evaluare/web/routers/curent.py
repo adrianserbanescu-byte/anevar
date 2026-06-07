@@ -47,11 +47,16 @@ def build_router(d: Deps) -> APIRouter:
     # ── ÎNCEPE (homepage) ────────────────────────────────────────────────────────
     @router.get("/incepe", response_class=HTMLResponse)
     def pagina_incepe(request: Request) -> HTMLResponse:
+        import os
         from evaluare.master_config import CAMPURI_NUME_DOSAR
         cont = cont_mod.incarca_cont()
         diff = fs.diff() if cont else {"existente": [], "noi": [], "disparute": []}
+        # Flag commercial: pe build offline = False (ascunde teasere comerciale per decizia #15).
+        # Setezi env var ANEVAR_COMMERCIAL_BUILD=1 când construiești varianta cu gateway online (§B.7).
+        commercial_build = os.environ.get("ANEVAR_COMMERCIAL_BUILD") == "1"
         return d.templates.TemplateResponse(request, "curent/incepe.html",
-            {"cont": cont, "diff": diff, "campuri": CAMPURI_NUME_DOSAR})
+            {"cont": cont, "diff": diff, "campuri": CAMPURI_NUME_DOSAR,
+             "commercial_build": commercial_build})
 
     # ── Dosar (workspace) ────────────────────────────────────────────────────────
     @router.post("/api/dosar")
@@ -251,6 +256,10 @@ def build_router(d: Deps) -> APIRouter:
         finally:
             shutil.rmtree(tmpdir, ignore_errors=True)
         return {"versiune": versiune, "asumat_la": fs.incarca(uid).get("asumat_la")}
+
+    @router.get("/api/__sentinel_build__")
+    def _sentinel_build() -> dict:
+        return {"v": "adr-build-2026-06-07"}
 
     @router.get("/api/backup-dosare.zip")
     def backup_dosare():

@@ -22,8 +22,12 @@
     <a class="btn ghost" href="#salvate"><span aria-hidden="true">📂</span> Încarcă dosar salvat</a>
     <button type="button" class="ghost" id="importa"><span aria-hidden="true">📥</span> Importă dosarul tău</button>
     <input type="file" id="fisier-import" accept=".docx" aria-label="Alege fișierul .docx de importat" hidden>
+    {# Build offline: opțiunile comerciale sunt ASCUNSE complet (decizie #15 din 2026-06-07).
+       Pe build comercial (gateway online), se afișează — decizie cuplată cu §B.7 conturi externe. #}
+    {% if commercial_build %}
     <button type="button" class="ghost" aria-disabled="true" disabled><span aria-hidden="true">🔁</span> Import asemănător <span class="badge b-mid">comercial</span></button>
     <button type="button" class="ghost" aria-disabled="true" disabled><span aria-hidden="true">🧪</span> Demo <span class="badge b-mid">comercial</span></button>
+    {% endif %}
   </div>
   <form id="form-nou" hidden style="margin:14px 0">
     <h3>Date de identitate <span class="hint">(definesc numele dosarului; obligatorii)</span></h3>
