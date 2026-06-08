@@ -3,15 +3,21 @@
 <head><meta charset="utf-8"><title>Feedback testeri</title>
 <style>{% include "_design.css" %}</style></head>
 <body>
+{% from "_icon.html" import icon %}
 <a class="skip-link" href="#continut">Sari la conținut</a>
 {% set pagina = "feedback" %}{% include "_topbar.html" %}
 {% set kicker = "Registru de evaluare" %}{% set titlu = "Feedback de la testeri" %}
 {% set subtitlu = "Mesajele trimise din aplicație (salvate local). Export: /api/feedback.csv" %}
 {% include "_cartus.html" %}
 <main id="continut">
-  <p class="hint">{{ feedback|length }} mesaj(e). <a href="/api/feedback.csv"><span aria-hidden="true">⬇</span> Descarcă CSV</a></p>
+  <p class="hint">{{ feedback|length }} mesaj(e). <a href="/api/feedback.csv">{{ icon("download") }} Descarcă CSV</a></p>
   {% if not feedback %}
-    <p class="hint">Niciun feedback încă. Apasă butonul „<span aria-hidden="true">✎</span> Feedback" (jos-dreapta) pe orice pagină.</p>
+    <div class="empty-state">
+      <span class="es-icon">{{ icon("edit") }}</span>
+      <h3>Niciun feedback încă</h3>
+      <p>Mesajele de la testeri apar aici. Apasă butonul „Feedback" (jos-dreapta) pe orice pagină ca să trimiți primul.</p>
+      <a class="btn" href="/incepe">Deschide aplicația →</a>
+    </div>
   {% else %}
   <table>
     <caption class="sr-only">Mesaje de feedback de la testeri, cu data, pagina sursă, reacția, textul mesajului și numele testerului.</caption>

@@ -35,8 +35,9 @@
 </main>
 <script>
 function alese(){ return [...document.querySelectorAll('.fmt:checked')].map(c=>c.value); }
+function prietenos(k){ return k.replace(/_/g,' ').replace(/^./, c=>c.toUpperCase()); }
 function refresh(){ const a=alese();
-  document.getElementById('preview').textContent = a.length ? a.join('_') : '—'; }
+  document.getElementById('preview').textContent = a.length ? a.map(prietenos).join(' · ') : '—'; }
 document.querySelectorAll('.fmt').forEach(c=>c.addEventListener('change', refresh)); refresh();
 function marcheaza(el, mesaj){
   el.classList.add('is-invalid'); el.setAttribute('aria-invalid','true');

@@ -2,6 +2,7 @@
 <html lang="ro">
 <head><meta charset="utf-8"><title>Rezultat evaluare</title><style>{% include "_design.css" %}</style></head>
 <body>
+{% from "_icon.html" import icon %}
 <a class="skip-link" href="#continut">Sari la conținut</a>
 {% include "_topbar.html" %}
 <nav class="nav" aria-label="Alte pagini ale aplicației"><a href="/">← evaluare nouă</a></nav>
@@ -30,8 +31,8 @@
     <dt>Metodă</dt><dd>{{ metoda }}</dd>
   </dl>
   <p class="actiuni">
-    <a class="btn" href="/api/evaluare/{{ eid }}/raport.docx"><span aria-hidden="true">📄</span> Descarcă raportul .docx</a>
-    <a class="btn ghost" href="/api/evaluare/{{ eid }}/raport.docx?demo=1"><span aria-hidden="true">📝</span> Raport cu note</a>
+    <a class="btn" href="/api/evaluare/{{ eid }}/raport.docx">{{ icon("doc") }} Descarcă raportul .docx</a>
+    <a class="btn ghost" href="/api/evaluare/{{ eid }}/raport.docx?demo=1">{{ icon("edit") }} Raport cu note</a>
   </p>
 </div>
 <p class="hint">Raportul este un <code>.docx</code> editabil în Word (pentru PDF: „Salvează ca → PDF").

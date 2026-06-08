@@ -1,8 +1,20 @@
 <!DOCTYPE html>
 <html lang="ro">
 <head><meta charset="utf-8"><title>ÎNCEPE — Evaluare ANEVAR</title>
-<style>{% include "_design.css" %}</style></head>
+<style>{% include "_design.css" %}</style>
+<style>
+  /* UX polish (feedback Adi): grup de acțiuni cu lățimi egale + ritm consistent */
+  .actiuni-incepe{ display:flex; gap:10px; flex-wrap:wrap; margin:14px 0 18px; }
+  .actiuni-incepe > button, .actiuni-incepe > a.btn{
+    flex:1 1 0; min-width:170px; display:inline-flex; align-items:center; justify-content:center;
+    gap:6px; margin:0; text-align:center; }
+  @media(max-width:520px){ .actiuni-incepe > button, .actiuni-incepe > a.btn{ flex-basis:100%; } }
+  /* #5 (feedback Adi): header de tabel mai ușor pt liste scurte — fără navy greu */
+  table th{ background:var(--paper-sunk); color:var(--ink); border-bottom:2px solid var(--line-2);
+    font-weight:600; }
+</style></head>
 <body>
+{% from "_icon.html" import icon %}
 <a class="skip-link" href="#continut">Sari la conținut</a>
 {% include "_nav_cross.html" %}
 <nav class="topbar" aria-label="Navigare principală"><a class="brand" href="/incepe"><span class="brand-seal">EA</span>
@@ -15,17 +27,17 @@
     <div class="avert-warn">Nu ai cont încă. <a href="/cont">Creează cont</a> pentru a începe.</div>
   {% else %}
   <p class="hint">Conectat: <b>{{ cont.nume }}</b> (legitimație {{ cont.legitimatie }}) ·
-   format dosar: <code>{{ cont.format_dosar|join('_') }}</code> · <a href="/cont">editează cont</a></p>
+   format dosar: <b>{{ cont.format_dosar | map('replace','_',' ') | map('capitalize') | join(' · ') }}</b> · <a href="/cont">editează cont</a></p>
 
-  <div class="row">
-    <button type="button" id="nou"><span aria-hidden="true">➕</span> Dosar nou</button>
-    <a class="btn ghost" href="#salvate"><span aria-hidden="true">📂</span> Încarcă dosar salvat</a>
-    <button type="button" class="ghost" id="importa"><span aria-hidden="true">📥</span> Importă dosarul tău</button>
+  <div class="row actiuni-incepe">
+    <button type="button" id="nou">{{ icon("add") }} Dosar nou</button>
+    <a class="btn ghost" href="#salvate">{{ icon("folder") }} Încarcă dosar salvat</a>
+    <button type="button" class="ghost" id="importa">{{ icon("import") }} Importă dosarul tău</button>
     <input type="file" id="fisier-import" accept=".docx" aria-label="Alege fișierul .docx de importat" hidden>
     {# Build offline: opțiunile comerciale sunt ASCUNSE complet (decizie #15 din 2026-06-07).
        Pe build comercial (gateway online), se afișează — decizie cuplată cu §B.7 conturi externe. #}
     {% if commercial_build %}
-    <button type="button" class="ghost" aria-disabled="true" disabled><span aria-hidden="true">🔁</span> Import asemănător <span class="badge b-mid">comercial</span></button>
+    <button type="button" class="ghost" aria-disabled="true" disabled>{{ icon("refresh") }} Import asemănător <span class="badge b-mid">comercial</span></button>
     <button type="button" class="ghost" aria-disabled="true" disabled><span aria-hidden="true">🧪</span> Demo <span class="badge b-mid">comercial</span></button>
     {% endif %}
   </div>
@@ -74,15 +86,15 @@
     </table>
   {% else %}
     <div class="empty-state">
-      <span class="es-icon" aria-hidden="true">🗂</span>
+      <span class="es-icon">{{ icon("folder") }}</span>
       <h3>Niciun dosar salvat încă</h3>
       <p>Începe primul dosar — identitatea (client, scop, tip) o completezi în pagina dosarului.</p>
-      <button type="button" class="btn" onclick="document.getElementById('nou').click()">➕ Dosar nou</button>
+      <button type="button" class="btn" onclick="document.getElementById('nou').click()">{{ icon("add") }} Dosar nou</button>
     </div>
   {% endif %}
 
   {% if diff.disparute %}
-    <h3><span aria-hidden="true">⚠</span> Dosare dispărute (folder șters de pe disc)</h3>
+    <h3>{{ icon("warn","ico-gold") }} Dosare dispărute (folder șters de pe disc)</h3>
     <ul class="hint">{% for x in diff.disparute %}
       <li>{{ x.nume }} ({{ x.uuid[:8] }})
         <button type="button" class="ghost btn-scoate" data-uid="{{ x.uuid }}"
@@ -108,14 +120,15 @@ if(creeazaBtn) creeazaBtn.addEventListener('click', async ()=>{
     if(!v) lipsa.push(c.dataset.camp); });
   var st=document.getElementById('nou-status');
   if(lipsa.length){ st.textContent='Completează toate câmpurile de identitate.'; return; }
-  st.textContent='Se creează…';
+  st.textContent='Se creează…'; creeazaBtn.classList.add('is-loading'); creeazaBtn.disabled=true;
+  var gata=function(){ creeazaBtn.classList.remove('is-loading'); creeazaBtn.disabled=false; };
   try{
     const r=await fetch('/api/dosar',{method:'POST',headers:{'Content-Type':'application/json'},
       body:JSON.stringify({wizard:wizard})});
-    if(!r.ok){ st.textContent='Eroare la creare (cod '+r.status+'). Verifică contul și reîncearcă.'; return; }
+    if(!r.ok){ st.textContent='Eroare la creare (cod '+r.status+'). Verifică contul și reîncearcă.'; gata(); return; }
     const d=await r.json();
-    if(d.uuid) window.location.href='/dosar/'+d.uuid; else st.textContent='Eroare la creare.';
-  }catch(e){ st.textContent='Crearea a eșuat — verifică aplicația și reîncearcă.'; }
+    if(d.uuid) window.location.href='/dosar/'+d.uuid; else { st.textContent='Eroare la creare.'; gata(); }
+  }catch(e){ st.textContent='Crearea a eșuat — verifică aplicația și reîncearcă.'; gata(); }
 });
 // Câmpurile-dată din formularul de creare: blochează datele viitoare (max=azi) + format românesc (zz.ll.aaaa).
 (function(){
@@ -123,6 +136,8 @@ if(creeazaBtn) creeazaBtn.addEventListener('click', async ()=>{
   function roData(iso){ if(!iso) return ""; var p=iso.split("-"); return p.length===3 ? p[2]+"."+p[1]+"."+p[0] : iso; }
   document.querySelectorAll('#form-nou input[type=date]').forEach(function(d){
     d.max=azi;
+    d.style.cursor='pointer';                                   // calendar la click pe tot field-ul
+    d.addEventListener('click', function(){ try{ d.showPicker(); }catch(e){} });
     var ech=document.createElement('small'); ech.className='hint'; ech.style.marginLeft='6px'; d.parentNode.appendChild(ech);
     function upd(){ if(d.value && d.value>azi) d.value=azi; ech.textContent = d.value ? '📅 '+roData(d.value) : ''; }
     d.addEventListener('change', upd); upd();
@@ -147,7 +162,7 @@ if(fisierImp) fisierImp.addEventListener('change', async ()=>{
     if(resp.ok && d.uuid){ window.location.href='/dosar/'+d.uuid; return; }
     impStatus.textContent='Import eșuat: '+((d && d.detail) || 'fișier .docx invalid sau lipsă cont.');
   }catch(e){ impStatus.textContent='Import eșuat (eroare de rețea).'; }
-  impBtn.disabled=false; impBtn.innerHTML='<span aria-hidden="true">📥</span> Importă dosarul tău';
+  impBtn.disabled=false; impBtn.innerHTML='{{ icon("import") }} Importă dosarul tău';
 });
 // F1: cartonașele din /flux-livrabile pre-selectează acțiunea via hash (#nou / #importa / #salvate).
 (function(){

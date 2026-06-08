@@ -1,8 +1,13 @@
 <!DOCTYPE html>
 <html lang="ro">
 <head><meta charset="utf-8"><title>Dosare salvate</title>
-<style>{% include "_design.css" %}</style></head>
+<style>{% include "_design.css" %}</style>
+<style>
+  /* #5 (feedback Adi): header de tabel mai ușor pt liste scurte — fără navy greu */
+  table th{ background:var(--paper-sunk); color:var(--ink); border-bottom:2px solid var(--line-2); font-weight:600; }
+</style></head>
 <body>
+{% from "_icon.html" import icon %}
 <a class="skip-link" href="#continut">Sari la conținut</a>
 {% set pagina = "dosare" %}{% include "_topbar.html" %}
 {% set kicker = "Registru de evaluare" %}{% set titlu = "Dosare salvate" %}
@@ -11,7 +16,7 @@
 <main id="continut">
   {% if not dosare %}
     <div class="empty-state">
-      <span class="es-icon" aria-hidden="true">📂</span>
+      <span class="es-icon">{{ icon("folder") }}</span>
       <h3>Niciun dosar salvat încă</h3>
       <p>Dosarele generate prin wizard se salvează automat aici și pot fi redeschise, redenumite sau descărcate ca raport.</p>
       <a class="btn" href="/wizard">Deschide wizardul →</a>
@@ -29,9 +34,9 @@
       <td>{{ d.creat_la or '—' }}</td>
       <td>
         <button type="button" class="open" data-id="{{ d.id }}"><span aria-hidden="true">↗</span> Deschide</button>
-        <button type="button" class="ghost ren" data-id="{{ d.id }}"><span aria-hidden="true">✎</span> Redenumește</button>
-        <a class="btn ghost" href="/api/evaluare/{{ d.id }}/raport.docx"><span aria-hidden="true">⬇</span> .docx</a>
-        <button type="button" class="ghost del" data-id="{{ d.id }}"><span aria-hidden="true">🗑</span> Șterge</button>
+        <button type="button" class="ghost ren" data-id="{{ d.id }}">{{ icon("edit") }} Redenumește</button>
+        <a class="btn ghost" href="/api/evaluare/{{ d.id }}/raport.docx">{{ icon("download") }} .docx</a>
+        <button type="button" class="ghost del" data-id="{{ d.id }}">{{ icon("delete","ico-danger") }} Șterge</button>
       </td>
     </tr>
     {% endfor %}
@@ -42,14 +47,16 @@
 <script>
 document.querySelectorAll(".open").forEach(b => b.addEventListener("click", async () => {
   const id = b.dataset.id;
+  b.classList.add("is-loading"); b.disabled = true;
+  const gata = () => { b.classList.remove("is-loading"); b.disabled = false; };
   try {
     const r = await fetch("/api/evaluare/" + id + "/dosar");
     const d = await r.json();
     if (!d.wizard) { document.getElementById("dosare-status").textContent =
-      "Dosar mai vechi — nu are snapshot de re-deschidere. Doar descărcarea .docx e disponibilă."; return; }
+      "Dosar mai vechi — nu are snapshot de re-deschidere. Doar descărcarea .docx e disponibilă."; gata(); return; }
     localStorage.setItem("wizard", JSON.stringify(d.wizard));
     window.location.href = "/wizard";
-  } catch(e) { document.getElementById("dosare-status").textContent = "Nu am putut deschide dosarul."; }
+  } catch(e) { document.getElementById("dosare-status").textContent = "Nu am putut deschide dosarul."; gata(); }
 }));
 document.querySelectorAll(".ren").forEach(b => b.addEventListener("click", async () => {
   const id = b.dataset.id;

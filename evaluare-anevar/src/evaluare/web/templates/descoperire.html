@@ -67,23 +67,24 @@
     padding-top:10px; border-top:1px solid var(--line); }
 </style></head>
 <body>
+{% from "_icon.html" import icon %}
 <a class="skip-link" href="#continut">Sari la conținut</a>
 {% set pagina = "descoperire" %}{% include "_topbar.html" %}
 {% set kicker = "Registru de evaluare" %}{% set titlu = "Descoperire comparabile" %}{% set subtitlu = "Căutare de comparabile pe portaluri, cu scor de relevanță." %}{% include "_cartus.html" %}
 <main id="continut">
 <div class="avert-warn" role="note">
-  <span aria-hidden="true">⚠️</span> Prețurile extrase sunt din <b>anunțuri (oferte)</b>, nu tranzacții confirmate. Conform GEV 520
+  {{ icon("warn","ico-gold") }} Prețurile extrase sunt din <b>anunțuri (oferte)</b>, nu tranzacții confirmate. Conform GEV 520
   §4.3.4, aplică o ajustare ofertă→tranzacție (tipic −5% … −15%) sau confirmă prețurile prin surse
   independente (notar/agent). Sursă auxiliară, best-effort — verifică datele înainte de folosire.
 </div>
 
 <section id="sectiune-importate" style="display:none">
-  <h2><span aria-hidden="true">📥</span> Anunțuri importate din extensia de browser</h2>
+  <h2>{{ icon("import") }} Anunțuri importate din extensia de browser</h2>
   <p class="hint">Anunțuri trimise din browser (storia.ro / imobiliare.ro) cu extensia
    <b>Import → Evaluare ANEVAR</b>. Prețuri din <b>oferte</b> — aplică ajustarea ofertă→tranzacție.</p>
   <div id="lista-importate" role="region" aria-label="Anunțuri importate"></div>
   <button type="button" id="laGrilaImport"><span aria-hidden="true">➜</span> Trimite bifatele la grila casă</button>
-  <button type="button" id="goleseImport" class="ghost"><span aria-hidden="true">🗑</span> Golește coada</button>
+  <button type="button" id="goleseImport" class="ghost">{{ icon("delete","ico-danger") }} Golește coada</button>
   <span id="import-status" class="hint" role="status" aria-live="polite"></span>
 </section>
 
@@ -136,7 +137,7 @@
 <h2>Rezultate</h2>
 <div id="rezultate" role="region" aria-label="Rezultate descoperire">
   <div class="empty-state" id="rezultate-gol">
-    <span class="es-icon" aria-hidden="true">🔍</span>
+    <span class="es-icon">{{ icon("search") }}</span>
     <h3>Niciun rezultat încă</h3>
     <p>Completează criteriile proprietății subiect de mai sus și pornește căutarea de comparabile pe portaluri.</p>
     <button type="button" class="btn" onclick="document.getElementById('judet').focus()">Completează criteriile ↑</button>
@@ -145,6 +146,12 @@
 </main>
 
 <script>
+// SEC-2: conținutul scrape-uit de pe portaluri (titlu, url, valori) e NECONTROLAT.
+// escapeHtml() neutralizează HTML în text injectat via innerHTML; urlSafe() permite doar http/https
+// în href (blochează javascript:/data:). Aplicate pe toate valorile externe înainte de randare.
+function escapeHtml(s){ return String(s==null?'':s).replace(/[&<>"']/g, c=>(
+  {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+function urlSafe(u){ try{ var x=new URL(u, location.origin); return (x.protocol==='http:'||x.protocol==='https:')?x.href:'#'; }catch(e){ return '#'; } }
 // ── Anunțuri importate din extensia de browser ───────────────────────────────
 async function incarcaImportate(){
   let res;
@@ -169,7 +176,7 @@ async function incarcaImportate(){
         ${pm?' · <b>'+pm+'</b>':''}</label>
         <button type="button" class="ghost sterge-unul" data-url="${url}"
           title="Scoate din coadă" aria-label="Scoate anunțul din coadă"><span aria-hidden="true">🗑</span></button></h3>
-      <a class="vezi" href="${a.sursa_url||'#'}" target="_blank" rel="noopener"><span aria-hidden="true">▶</span> ${a.titlu||'anunț'}</a>
+      <a class="vezi" href="${urlSafe(a.sursa_url||'#')}" target="_blank" rel="noopener"><span aria-hidden="true">▶</span> ${escapeHtml(a.titlu||'anunț')}</a>
       ${a.an||a.material||a.incalzire?'<p class="hint">'
         +[a.an?'an '+a.an:'',a.material||'',a.incalzire||''].filter(Boolean).join(' · ')+'</p>':''}
     </div>`;
@@ -287,17 +294,17 @@ function chipsAtribute(c){
   const A = c.atribute||[];
   if(!A.length) return '';
   return '<div class="cand-chips">' + A.map(a=>{
-    const val = eticheta(a.nume, a.valoare_candidat);
-    const ref = eticheta(a.nume, a.valoare_subiect);
+    const val = escapeHtml(eticheta(a.nume, a.valoare_candidat));   // SEC-2: valoare din anunț scrape
+    const ref = escapeHtml(eticheta(a.nume, a.valoare_subiect));
     const na = a.cunoscut ? '' : ' chip-na';
     return `<span class="chip-attr${na}" title="Subiect: ${ref} · pondere ${a.pondere}">`
-      + `${a.nume}: <b>${val}</b></span>`;
+      + `${escapeHtml(a.nume)}: <b>${val}</b></span>`;
   }).join('') + '</div>';
 }
 function randCandidat(c){
   const secId = (c.secundare||[]).filter(s=>s.stare!=='nementionat');
-  const sec = secId.map(s => `${s.nume}: ${s.stare}`
-     + (s.valoare_gasita ? ` („${s.valoare_gasita}")` : '')).join(' · ');
+  const sec = secId.map(s => `${escapeHtml(s.nume)}: ${escapeHtml(s.stare)}`     // SEC-2: secundare din anunț
+     + (s.valoare_gasita ? ` („${escapeHtml(s.valoare_gasita)}")` : '')).join(' · ');
   const avert = c.incredere_scazuta ? '<span class="alerta">⚠ date insuficiente — verifică manual</span>' : '';
   const meta = [
     `${c.suprafata||'?'} mp construiți`,
@@ -319,7 +326,7 @@ function randCandidat(c){
     ${sec ? '<p class="cand-sec"><b>Secundare:</b> '+sec+'</p>' : ''}
     <p class="cand-expl">${c.explicatie}</p>
     <div class="cand-foot">
-      <a class="vezi" href="${c.url}" target="_blank" rel="noopener"><span aria-hidden="true">▶</span> Vezi anunțul${c.titlu?': '+c.titlu:''}</a>
+      <a class="vezi" href="${urlSafe(c.url)}" target="_blank" rel="noopener"><span aria-hidden="true">▶</span> Vezi anunțul${c.titlu?': '+escapeHtml(c.titlu):''}</a>
       <details class="cand-detalii"><summary>Calculul complet (atribute × ponderi)</summary>${tabelAtribute(c)}</details>
     </div>
   </div>`;
