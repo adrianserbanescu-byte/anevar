@@ -307,24 +307,18 @@
           Confirm că am verificat datele și <b>îmi asum profesional</b> valoarea și conținutul raportului,
           ca evaluator autorizat ANEVAR (semnătura îmi aparține; aplicația doar asistă).</label>
       </div>
-      <fieldset id="gen-format" style="border:1px solid #d8dce3;border-radius:8px;padding:8px 12px;margin:8px 0;">
-        <legend style="font-weight:600;padding:0 4px;">Format</legend>
-        <label class="chk"><input type="radio" name="gen-fmt" value="docx" checked> Word (.docx) — editabil</label>
-        <label class="chk"><input type="radio" name="gen-fmt" value="pdf"> PDF</label>
-        <label class="chk"><input type="radio" name="gen-fmt" value="ambele"> Amândouă (.zip)</label>
-        <span class="hint">PDF necesită LibreOffice (gratuit) sau Microsoft Word instalat pe calculator.</span>
-      </fieldset>
       <div class="btn-bar">
-        <button type="button" id="genereaza" aria-describedby="asumare-info" disabled>{{ icon("doc") }} Generează și descarcă raportul</button>
+        <button type="button" id="genereaza" aria-describedby="asumare-info" disabled>{{ icon("doc") }} Generează și descarcă raportul (.docx)</button>
         <button type="button" class="ghost" id="genereaza-demo">{{ icon("edit") }} Raport cu note (demo)</button>
         <button type="button" class="ghost" id="gen-audit">{{ icon("audit") }} Urmă de audit (.txt)</button>
       </div>
+      <p class="hint" style="margin:4px 0 0;">Raportul se generează în format <b>Word (.docx)</b> editabil. Verifică documentul și salvează-l ca PDF local (din Word/LibreOffice: <i>Salvează ca / Exportă în PDF</i>).</p>
       <span id="gen-status" class="hint" role="status" aria-live="polite"></span>
       <details style="margin-top:10px;">
         <summary>Încarcă raport <b>submis</b> (returnat de bancă/client)</summary>
-        <p class="hint">Atașează versiunea finală/returnată a raportului (.docx). Se înregistrează cu
+        <p class="hint">Atașează versiunea finală/returnată a raportului (.docx sau .pdf). Se înregistrează cu
          <b>amprentă de integritate</b> (hash) și marchează identitatea dosarului ca <b>asumată</b> (ADR-003).</p>
-        <input type="file" id="submis-fisier" aria-label="Încarcă fișier .docx" accept=".docx">
+        <input type="file" id="submis-fisier" aria-label="Încarcă fișier (.docx sau .pdf)" accept=".docx,.pdf">
         <button type="button" class="ghost" id="submis-incarca">{{ icon("attach") }} Înregistrează fișierul submis</button>
         <span id="submis-status" class="hint" role="status" aria-live="polite"></span>
       </details>
@@ -387,7 +381,7 @@
   </section>
   <section role="tabpanel" id="p-gdpr" aria-labelledby="t-gdpr" tabindex="0" hidden>
     <h2 class="sr-only">Documente GDPR</h2>
-    <p class="hint">Generează documentele GDPR (model) direct de aici:</p>
+    <p class="hint">Generează documentele GDPR (model) direct de aici. Sunt fișiere <b>Word (.docx)</b> editabile — verifică-le și salvează-le ca PDF local la nevoie.</p>
     <button type="button" id="gdpr-politica">{{ icon("doc") }} Politică de prelucrare (.docx)</button>
     <button type="button" id="gdpr-consimtamant">{{ icon("doc") }} Acord de consimțământ (.docx)</button>
     <span id="gdpr-status" class="hint" role="status" aria-live="polite"></span>
@@ -850,7 +844,7 @@ function descarcaDoc(url, nume, btn){
   fetch(url,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({})})
     .then(function(r){ return r.ok?r.blob():Promise.reject(); })
     .then(function(b){ var u=URL.createObjectURL(b); var a=document.createElement("a"); a.href=u; a.download=nume; a.click(); URL.revokeObjectURL(u);
-      if($("gdpr-status")) $("gdpr-status").textContent="✓ generat"; })
+      if($("gdpr-status")) $("gdpr-status").textContent="✓ .docx generat. Verifică-l și salvează-l ca PDF local."; })
     .catch(function(){ if($("gdpr-status")) $("gdpr-status").textContent="generarea a eșuat"; })
     .finally(function(){ btn.disabled=false; });
 }
@@ -888,7 +882,8 @@ if($("audit-gen")) $("audit-gen").addEventListener("click", function(){
     if(url.indexOf("rts")>=0) body.rts={motiv:"indicatori de suspiciune bifați",data_inregistrare:$("aml_azi").value,indicatori:Object.keys(amlInd())};
     fetch(url,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(body)})
       .then(function(r){ return r.ok?r.blob():Promise.reject(); })
-      .then(function(b){ var a=document.createElement("a"); a.href=URL.createObjectURL(b); a.download=url.split("/").pop(); a.click(); })
+      .then(function(b){ var a=document.createElement("a"); a.href=URL.createObjectURL(b); a.download=url.split("/").pop(); a.click();
+        var st=document.getElementById("aml-doc-status"); if(st) st.textContent="✓ "+url.split("/").pop()+" generat. Verifică-l și salvează-l ca PDF local."; })
       .catch(function(){ alert("Documentul nu a putut fi generat."); });
   }
   ev.addEventListener("click", function(){
@@ -901,7 +896,7 @@ if($("audit-gen")) $("audit-gen").addEventListener("click", function(){
         if(d.indicatori&&d.indicatori.length) h+="<p>Indicatori activi"+(d.propune_rts?" → <b>se propune RTS</b>":"")+"</p><ul>"+d.indicatori.map(function(i){return "<li>"+i.text+"</li>";}).join("")+"</ul>";
         if(d.screening&&d.screening.length) h+="<p>Posibile potriviri (demonstrative — verifică manual):</p><ul>"+d.screening.map(function(s){return "<li>"+s.lista+": "+s.intrare+" ("+s.scor+")</li>";}).join("")+"</ul>";
         var map={norme_interne:"/api/aml/norme-interne.docx",evaluare_risc:"/api/aml/evaluare-risc.docx",fisa_kyc:"/api/aml/fisa-kyc.docx",decizie_desemnare:"/api/aml/decizie.docx",rts:"/api/aml/rts.docx"};
-        h+="<p>Documente:</p><div>"+(d.documente_necesare||[]).map(function(doc){ return "<button type='button' class='ghost' data-url='"+map[doc]+"'>"+doc+"</button> "; }).join("")+"</div></div>";
+        h+="<p>Documente <span class='hint'>(.docx — verifică-le și salvează-le ca PDF local)</span>:</p><div>"+(d.documente_necesare||[]).map(function(doc){ return "<button type='button' class='ghost' data-url='"+map[doc]+"'>"+doc+"</button> "; }).join("")+"</div><p id='aml-doc-status' class='hint' role='status' aria-live='polite'></p></div>";
         $("aml-rez").innerHTML=h; window._amlBody=body;
         document.querySelectorAll("#aml-rez button[data-url]").forEach(function(b){ b.addEventListener("click", function(){ amlDescarca(b.dataset.url); }); });
       })
@@ -1138,27 +1133,24 @@ $("calc").addEventListener("click", async function(){
     var lg=$("la-gen"); if(lg) lg.addEventListener("click",function(){ subtab("s-genereaza"); });
   }catch(e){ $("rezultat").textContent="Calculul a eșuat — verifică valorile (suprafețe, elemente, comparabile)."; }
 });
-function genereazaRaport(adnotari, btn, formatForce){
+function genereazaRaport(adnotari, btn){
   // Nu mai injectăm tăcut o dată: dacă lipsesc datele, avertizăm explicit (risc juridic la garantare).
   if(!$("data_evaluarii").value || !$("data_raportului").value){
     if(!confirm("Data evaluării și/sau data raportului nu sunt completate.\n\nRaportul va folosi DATA DE AZI — verifică, fiindcă o dată greșită afectează valabilitatea juridică a evaluării pentru garantare.\n\nContinui cu data de azi?")) {
       $("gen-status").textContent="Completează datele (evaluare/raport) înainte de generare."; return; }
   }
-  var sel=document.querySelector('input[name="gen-fmt"]:checked');
-  var fmt=formatForce||(sel?sel.value:"docx");
-  var ext=fmt==="pdf"?"pdf":(fmt==="ambele"?"zip":"docx");
-  var nume=(adnotari?"raport-demo":"raport")+"."+ext;
+  var nume=(adnotari?"raport-demo":"raport")+".docx";   // PDF→DOCX: raportul e mereu .docx (verificat + exportat manual ca PDF)
   btn.disabled=true; btn.setAttribute("aria-busy","true");
-  $("gen-status").textContent="Se generează"+(fmt!=="docx"?" ("+fmt.toUpperCase()+", poate dura câteva secunde)":"")+"…";
-  fetch("/api/dosar/"+UID+"/raport.docx?fmt="+fmt+(adnotari?"&adnotari=1":""),{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(asambleaza())})
+  $("gen-status").textContent="Se generează…";
+  fetch("/api/dosar/"+UID+"/raport.docx"+(adnotari?"?adnotari=1":""),{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(asambleaza())})
     .then(function(r){ if(r.ok) return r.blob(); return r.json().catch(function(){return{};}).then(function(j){ throw (j.detail||("Generarea a eșuat (cod "+r.status+").")); }); })
     .then(function(b){ var u=URL.createObjectURL(b); var a=document.createElement("a"); a.href=u; a.download=nume; a.click(); URL.revokeObjectURL(u);
-      $("gen-status").textContent="✓ "+nume+" — .docx salvat ca versiune în folder."; })
+      $("gen-status").textContent="✓ "+nume+" generat (salvat ca versiune în folder). Verifică-l și salvează-l ca PDF local."; })
     .catch(function(e){ $("gen-status").textContent=(typeof e==="string"?e:"Generarea a eșuat."); })
     .finally(function(){ btn.disabled=false; btn.removeAttribute("aria-busy"); });
 }
 $("genereaza").addEventListener("click", function(){ genereazaRaport(false, this); });
-if($("genereaza-demo")) $("genereaza-demo").addEventListener("click", function(){ genereazaRaport(true, this, "docx"); });
+if($("genereaza-demo")) $("genereaza-demo").addEventListener("click", function(){ genereazaRaport(true, this); });
 if($("submis-incarca")) $("submis-incarca").addEventListener("click", function(){   // ADR-003 trigger #3
   var f=$("submis-fisier").files[0]; if(!f){ $("submis-status").textContent="Alege un fișier .docx."; return; }
   this.disabled=true; $("submis-status").textContent="Se înregistrează…";
