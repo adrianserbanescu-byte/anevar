@@ -56,3 +56,15 @@ input user; SQLite nu accepta bind params la PRAGMA. Sigur. Notat pentru complet
 - SEC-1 (uid UUID): C sau B (atinge dosare_fs = shell ADR-003 al lui A -> coordonez cu A)
 - SEC-2 (XSS scrape): C (lane UI; cuplat cu rollout step-2 JS)
 - SEC-3 (CSRF): A (sistem/middleware)
+
+---
+## Status remediere (actualizat 12:49)
+- **SEC-1** path traversal uid — ✅ **REZOLVAT** (B, commit 864c839): validare UUID `_cale(uid)` pe toate
+  operațiile dosar + 404 pe uid invalid; verificare adversarială GO (0 bypass, 0 regresie); teste dedicate.
+- **SEC-2** XSS scrape — ✅ **REZOLVAT**: descoperire.html + wizard.html (C, escapeHtml+urlSafe);
+  dosar.html (A, commit 0ec2c3e, esc()+urlSig() pe randCand+randCoada + check Playwright cu payload malițios).
+- **SEC-3** CSRF — la A (arhitectural, non-blocant pt MVP local).
+- **SEC-4** PRAGMA — non-issue (notat).
+- **Deps CVE / secrete** — 0.
+
+**Concluzie:** ambele findings actabile (SEC-1, SEC-2) închise. Rămâne doar SEC-3 (CSRF, A, non-blocant).
