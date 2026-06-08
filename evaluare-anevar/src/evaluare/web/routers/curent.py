@@ -71,7 +71,8 @@ def build_router(d: Deps) -> APIRouter:
             raise HTTPException(403, "Creează întâi un cont.")
         uid = fs.creeaza(cont["legitimatie"], cont["nume"], req.wizard,
                          format_dosar=cont.get("format_dosar"))
-        log.info("dosar creat uid=%s creator=%s", uid, cont.get("nume", "?"))
+        # igiena PII (audit #9): logam legitimatia (ID profesional), nu numele evaluatorului
+        log.info("dosar creat uid=%s creator_leg=%s", uid, cont.get("legitimatie", "?"))
         return {"uuid": uid}
 
     @router.post("/api/dosar/import-docx")
