@@ -93,7 +93,8 @@ Modulul propune — <b>evaluatorul decide și transmite</b> (rapoarte.onpcsb.ro)
 
 <fieldset>
  <legend>Documente GDPR (model)</legend>
- <p class="hint">Drafturi de validat de un jurist și de adaptat la cabinet (operatorul de date e evaluatorul).</p>
+ <p class="hint">Drafturi de validat de un jurist și de adaptat la cabinet (operatorul de date e evaluatorul).
+  Fișiere <b>Word (.docx)</b> editabile — verifică-le și salvează-le ca PDF local la nevoie.</p>
  <button type="button" class="ghost" onclick="descarca('/api/gdpr/politica.docx')">{{ icon("doc") }} Politică de prelucrare</button>
  <button type="button" class="ghost" onclick="descarca('/api/gdpr/consimtamant.docx')">{{ icon("doc") }} Acord consimțământ client</button>
 </fieldset>
@@ -130,10 +131,10 @@ async function evalueaza(){
      d.indicatori.map(i=>`<li>${i.text}</li>`).join('')+`</ul>`;
   if(d.screening.length) h+=`<p class="warn">Posibile potriviri pe liste <b>demonstrative</b> (NU sunt liste oficiale live — verifică manual pe sursele oficiale):</p><ul>`+
      d.screening.map(s=>`<li>${s.lista}: ${s.intrare} (${s.scor})</li>`).join('')+`</ul>`;
-  h+=`<p>Documente de generat:</p><ul>`+d.documente_necesare.map(doc=>{
+  h+=`<p>Documente de generat <span class="hint">(.docx — verifică-le și salvează-le ca PDF local)</span>:</p><ul>`+d.documente_necesare.map(doc=>{
      const map={norme_interne:'/api/aml/norme-interne.docx',evaluare_risc:'/api/aml/evaluare-risc.docx',
        fisa_kyc:'/api/aml/fisa-kyc.docx',decizie_desemnare:'/api/aml/decizie.docx',rts:'/api/aml/rts.docx'};
-     return `<li><button onclick='descarca("${map[doc]}")'>${doc}</button></li>`;}).join('')+`</ul></div>`;
+     return `<li><button onclick='descarca("${map[doc]}")'>${doc}</button></li>`;}).join('')+`</ul><p id="aml-doc-status" class="hint" role="status" aria-live="polite"></p></div>`;
   document.getElementById('rez').innerHTML=h;
   window._amlBody=body;
   }finally{ btn.classList.remove('is-loading'); btn.disabled=false; }
@@ -154,6 +155,7 @@ async function descarca(url){
   if(!r.ok){alert('Documentul nu a putut fi generat (verifică datele).');return;}
   const blob=await r.blob();const a=document.createElement('a');
   a.href=URL.createObjectURL(blob);a.download=url.split('/').pop();a.click();
+  const st=document.getElementById('aml-doc-status'); if(st) st.textContent='✓ '+url.split('/').pop()+' generat. Verifică-l și salvează-l ca PDF local.';
 }
 // Date-picker: calendar la click pe tot field-ul (aml NU include _helpers.js).
 document.querySelectorAll("input[type=date]").forEach(function(d){
