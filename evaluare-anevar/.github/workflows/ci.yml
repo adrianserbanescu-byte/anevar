@@ -26,5 +26,7 @@ jobs:
       - name: Verifica lockfile la zi
         run: python scripts/lock.py --check
 
-      - name: Teste (pytest + acoperire)
-        run: pytest -q --cov=evaluare --cov-report=term-missing
+      - name: Teste (pytest paralel + acoperire)
+        # -n auto: ruleaza suita pe toate nucleele (pytest-xdist). pytest-cov combina
+        # automat acoperirea per-worker, deci gate-ul de 90% ramane valid. ~2x mai rapid.
+        run: pytest -n auto -q --cov=evaluare --cov-report=term-missing

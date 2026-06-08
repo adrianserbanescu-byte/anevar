@@ -1,7 +1,12 @@
 # Strategie de testare — Evaluare ANEVAR
 
 Document viu. Se actualizează la fiecare dezvoltare nouă (vezi §8 „Mentenanță").
-Ultima actualizare: 2026-06-06 (UI nou „curent" + import `.docx` + gardă pagină-listă portaluri).
+Ultima actualizare: 2026-06-08 (paralelizare suită `-n auto` + §10 optimizarea execuției).
+
+> **Proprietate (Rol owner testare = sesiunea D):** framework-ul de testare, strategia,
+> optimizarea execuției (viteză suită, e2e harness, coverage-gates) și actualizarea acestui
+> document. **Excepție:** testele per-feature scrise de fiecare sesiune pentru codul ei rămân
+> ale autorului — owner-ul deține structura din jur, nu conținutul lor de business.
 
 ## 0. Principii
 
@@ -113,10 +118,12 @@ fiecare cheie localStorage are ambele capete (scriere+citire).
 ## 7. Cum rulezi
 
 ```bash
-# Unit + integrare (rapid, în CI):
+# Unit + integrare (serial — pentru debugging clar, -x, pdb):
 python -m pytest -q
-# Cu acoperire + linii lipsă:
-python -m pytest --cov=evaluare --cov-report=term-missing
+# PARALEL (toata suita, ~2x mai rapid: ~131s -> ~61s pe 8 nuclee) — recomandat local + CI:
+python -m pytest -n auto -q
+# Cu acoperire + linii lipsă (paralel; pytest-cov combina worker-ii):
+python -m pytest -n auto --cov=evaluare --cov-report=term-missing
 # Lint:
 python -m ruff check src/ tests/
 # End-to-end Playwright (manual, cere chromium + server pe 8765):
@@ -155,3 +162,36 @@ diff <(grep -rhoE "fetch\(['\"\`][^'\"\`]+" *.html | sed -E "s/fetch\(['\"\`]//"
 
 > Nu urmărim 100% global cu orice preț — urmărim 100% pe **motor** și pe **căile critice**,
 > ≥90% în rest. Codul de rețea pură și framework-ul sunt excepții documentate.
+
+## 10. Optimizarea execuției (framework — owner: sesiunea D)
+
+**Țintă:** suită rapidă (sub ~3 min), determinism păstrat, coverage-gate intact. Bucla de
+feedback scurtă = teste rulate des = regresii prinse devreme.
+
+### 10.1 Paralelizare (`pytest-xdist`)
+- `pytest -n auto` distribuie testele pe toate nucleele. Măsurat: **~131s → ~61s** (8 nuclee,
+  579 teste) — ~2.1×. Testele sunt deja izolate (fiecare cu `tmp_path` / fixturi proprii,
+  zero rețea), deci paralelizarea e sigură — **549+ → 579 passed identic pe `-n auto`**.
+- **NU** punem `-n auto` în `addopts` implicit: rularea serială rămâne default-ul pentru
+  debugging clar (`-x`, `pdb`, output ne-întrețesut). Paralel = explicit (CI + rulări full locale).
+- CI (`.github/workflows/ci.yml`) rulează `pytest -n auto --cov` — `pytest-cov` combină automat
+  acoperirea per-worker, deci gate-ul `fail_under=90` rămâne valid (verificat: 93.6% pe `-n auto`).
+
+### 10.2 Coverage-gate
+- Prag `fail_under = 90` în `[tool.coverage.report]` (pyproject). Scădere sub prag = CI roșu.
+- `--cov-report=term-missing` arată liniile lipsă; `omit`-uri documentate: `__main__.py`, `vlm.py`.
+
+### 10.3 Teste lente (candidați de izolat dacă suita crește)
+Cele mai lente (din `--durations`): `test_docx_to_pdf_real_cu_libreoffice` (~4s, pornește
+LibreOffice), `test_settings_with_key_builds_client` (~4s, import `anthropic`), setup-urile
+`TestClient` din `test_web_curent` (~1s/test). Dacă devin un cost real, se pot marca pentru
+rulare opțională (marker `slow`) **fără** a le modifica logica (sunt teste per-feature ale altor sesiuni).
+
+### 10.4 e2e (Playwright)
+`scripts/_pw_smoke.py` (30 verificări) rămâne manual (cere browser + server pe 8765); de rulat
+înainte de fiecare release `.exe`. Vezi §6. Plan: harness reproductibil + integrare opțională în CI.
+
+### 10.5 Procedură owner la re-sync cu master
+La fiecare schimbare de framework: `test-optim` trage din `origin/master`, rulează `pytest -n auto`
+(verde) + `lock.py --check` + `ruff`, actualizează acest document. NU se modifică testele de
+business ale altor sesiuni; se optimizează doar structura/execuția din jur.

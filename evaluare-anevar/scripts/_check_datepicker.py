@@ -15,10 +15,12 @@ with sync_playwright() as p:
     pg = b.new_page()
     pg.on("console", lambda m: errs.append(m.text) if m.type == "error" else None)
     pg.on("pageerror", lambda e: errs.append(str(e)))
-    pg.goto(f"{BASE}/dosar/{uid}", wait_until="networkidle"); pg.wait_for_timeout(600)
+    pg.goto(f"{BASE}/dosar/{uid}", wait_until="networkidle")
+    pg.wait_for_timeout(600)
     bound = pg.eval_on_selector("input[type=date]", "e=>!!e._pick")
     print("date-picker handler legat pe dosar:", bound)
-    pg.goto(f"{BASE}/grila", wait_until="networkidle"); pg.wait_for_timeout(400)  # _helpers.js fara date -> nu crapa
+    pg.goto(f"{BASE}/grila", wait_until="networkidle")
+    pg.wait_for_timeout(400)  # _helpers.js fara date -> nu crapa
     b.close()
 print("erori consola:", errs[:5] or "NICIUNA")
 assert bound is True, "handler-ul nu s-a legat"
