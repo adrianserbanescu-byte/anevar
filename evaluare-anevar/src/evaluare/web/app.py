@@ -48,6 +48,15 @@ def create_app(storage: Storage, client: NarrativeClient | None,
         if host not in _HOSTURI_LOCALE:
             return PlainTextResponse("Acces respins: aplicația acceptă doar conexiuni locale.",
                                      status_code=403)
+        # CSRF (audit SEC-3): la metode mutante, un site străin din browser trimite Origin: evil.com.
+        # Origin local sau extensie de browser = ok; lipsa Origin (ne-browser / same-origin) = ok.
+        if request.method in {"POST", "PUT", "PATCH", "DELETE"}:
+            origin = request.headers.get("origin")
+            if origin and not origin.startswith(("chrome-extension://", "moz-extension://")):
+                from urllib.parse import urlsplit
+                if urlsplit(origin).hostname not in _HOSTURI_LOCALE:
+                    return PlainTextResponse("Acces respins: cerere cross-site blocată (CSRF).",
+                                             status_code=403)
         return await call_next(request)
 
     # Permite extensiei de browser sa POST-eze pe /api/import-anunt (aplicatie locala).
