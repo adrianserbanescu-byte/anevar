@@ -5,6 +5,7 @@ nu în SQLite. Vezi docs/specs/1-ui-output-first.md.
 """
 from __future__ import annotations
 
+import contextlib
 import tempfile
 import uuid
 import zipfile
@@ -135,7 +136,10 @@ def build_router(d: Deps) -> APIRouter:
 
     @router.post("/api/dosar/{uid}/sterge")
     def sterge_dosar(uid: str) -> dict:
-        fs.sterge(uid)
+        try:
+            fs.sterge(uid)                      # _cale() refuza uid non-UUID (anti path-traversal)
+        except KeyError:
+            raise HTTPException(404, "Dosar inexistent.") from None
         log.info("dosar sters uid=%s", uid)
         return {"ok": True}
 
@@ -310,7 +314,8 @@ def build_router(d: Deps) -> APIRouter:
     @router.post("/api/dosar/{uid}/unlock")
     def unlock_dosar(uid: str, body: dict) -> dict:
         """ADR-003 (item 7): eliberează lock-ul la închiderea ferestrei (best-effort, sendBeacon)."""
-        fs.elibereaza_lock(uid, str(body.get("token", "")))
+        with contextlib.suppress(KeyError):     # uid invalid/inexistent -> nimic de eliberat (best-effort)
+            fs.elibereaza_lock(uid, str(body.get("token", "")))
         return {"ok": True}
 
     @router.get("/api/backup-dosare.zip")

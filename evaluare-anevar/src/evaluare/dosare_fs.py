@@ -30,6 +30,21 @@ def baza() -> Path:
     return Path(out) / "dosare"
 
 
+def _cale(uid: str) -> Path:
+    """Calea folderului unui dosar, cu `uid` VALIDAT ca UUID (anti path-traversal — SEC-1).
+
+    `uid` vine din path-ul user (`/api/dosar/{uid}/...`) și e folosit la incarca/salveaza/STERGE
+    (sterge → `shutil.rmtree`). Fără validare, un `uid` cu „.." poate ieși din `baza()` și, la
+    ștergere, poate face `rmtree` pe `date/` (pierderea tuturor dosarelor + DB). Orice `uid` care nu
+    e UUID valid → `KeyError` (rutele îl transformă în 404). Folosit ÎN LOC DE `_cale(uid)`.
+    """
+    try:
+        canonic = str(_uuid.UUID(str(uid)))     # forma canonica -> componenta de path FARA separatori
+    except (ValueError, AttributeError, TypeError):
+        raise KeyError(f"Dosar inexistent (uid invalid): {uid!r}") from None
+    return baza() / canonic
+
+
 def _acum() -> str:
     return datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
@@ -51,7 +66,7 @@ def creeaza(creator_legitimatie: str, creator_nume: str, wizard: dict,
             format_dosar: list[str] | None = None) -> str:
     """Creează un dosar nou (folder + dosar.json). Returnează uuid-ul."""
     uid = str(_uuid.uuid4())
-    folder = baza() / uid
+    folder = _cale(uid)
     folder.mkdir(parents=True, exist_ok=True)
     ident = _identitate(wizard)
     dosar = {
@@ -77,12 +92,12 @@ def _scrie_atomic(cale: Path, text: str) -> None:
 
 
 def _scrie(uid: str, dosar: dict) -> None:
-    _scrie_atomic(baza() / uid / "dosar.json",
+    _scrie_atomic(_cale(uid) / "dosar.json",
                   json.dumps(dosar, ensure_ascii=False, indent=2))
 
 
 def incarca(uid: str) -> dict:
-    f = baza() / uid / "dosar.json"
+    f = _cale(uid) / "dosar.json"
     if not f.exists():
         raise KeyError(f"Dosar inexistent: {uid}")
     try:
@@ -122,7 +137,7 @@ def redenumeste(uid: str, nume: str) -> None:
 
 
 def sterge(uid: str) -> None:
-    shutil.rmtree(baza() / uid, ignore_errors=True)
+    shutil.rmtree(_cale(uid), ignore_errors=True)
 
 
 PASTREAZA_VERSIUNI = 10   # câte versiuni .docx păstrăm per dosar (retenție)
@@ -135,7 +150,7 @@ def adauga_versiune_docx(uid: str, sursa: Path, tip: str = "generat") -> str:
     Numele include microsecunde → unic chiar la generări rapide succesive.
     `tip`: „generat" (raport asumat la «Generează») sau „import" (raport-sursă atașat la import).
     """
-    folder = baza() / uid
+    folder = _cale(uid)
     folder.mkdir(parents=True, exist_ok=True)
     nume = f"raport-{datetime.now():%Y%m%d-%H%M%S-%f}.docx"
     shutil.copy(sursa, folder / nume)
@@ -157,7 +172,7 @@ def _inregistreaza_versiune(uid: str, nume: str, tip: str) -> None:
     O versiune „generat" (asumată la «Generează») setează `asumat_la` la prima generare. Permite
     verificarea ulterioară că fișierul `.docx` asumat NU a fost alterat (vezi `verifica_integritate`).
     """
-    folder = baza() / uid
+    folder = _cale(uid)
     try:
         dosar = incarca(uid)
     except (KeyError, ValueError):
@@ -181,7 +196,7 @@ def verifica_integritate(uid: str) -> list[dict]:
     Întoarce, per versiune: `{fisier, la, tip, exista, ok}` — `ok=False` = fișierul a fost
     modificat/alterat după asumare (sau lipsește). Tamper-evidence aliniat SEV 2025 / GEV 520.
     """
-    folder = baza() / uid
+    folder = _cale(uid)
     dosar = incarca(uid)
     rez = []
     for v in dosar.get("versiuni", []):
@@ -228,7 +243,7 @@ LOCK_TTL_SEC = 90        # un `.lock` mai vechi de atât = orfan (instanță în
 
 
 def _fisier_lock(uid: str) -> Path:
-    return baza() / uid / ".lock"
+    return _cale(uid) / ".lock"
 
 
 def _varsta_sec(cale: Path) -> float | None:
@@ -402,7 +417,7 @@ def importa_folder(src: Path, legitimatie_curenta: str, creator_nume: str) -> di
         dosar["creator_nume"] = creator_nume
         dosar["creat_la"] = _acum()
         e_nou = True
-    dest = baza() / uid
+    dest = _cale(uid)
     dest.mkdir(parents=True, exist_ok=True)
     # copiază toate fișierele din folderul sursă (docx etc.)
     for item in Path(src).iterdir():
