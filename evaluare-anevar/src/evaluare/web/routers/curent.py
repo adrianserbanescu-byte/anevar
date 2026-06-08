@@ -39,7 +39,7 @@ def build_router(d: Deps) -> APIRouter:
         """Construiește contextul; erorile de date (ex. depreciere goală la cost) → 422 clar, nu 500."""
         try:
             return construieste_context(inp, client=d.client, cfg=_metodologie_cfg())
-        except ValueError as e:
+        except (ValueError, ArithmeticError) as e:   # ArithmeticError: ex. rotunjire degenerata -> 422, nu 500
             raise HTTPException(422, f"Date insuficiente sau invalide pentru calcul: {e}") from e
 
     # ── Cont ─────────────────────────────────────────────────────────────────────

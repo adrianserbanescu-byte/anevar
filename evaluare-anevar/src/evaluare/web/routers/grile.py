@@ -4,6 +4,7 @@ from __future__ import annotations
 from fastapi import APIRouter, HTTPException, Request
 from fastapi.responses import HTMLResponse
 
+from evaluare.engine import metodologie_store
 from evaluare.engine.chirie import evalueaza_chirie
 from evaluare.engine.land import evaluate_land
 from evaluare.engine.market import evaluate_market
@@ -19,8 +20,9 @@ def build_router(d: Deps) -> APIRouter:
 
     @router.post("/api/grila-teren")
     def grila_teren(req: GrilaTerenRequest) -> dict:
+        cfg = metodologie_store.config_efectiv(d.storage.db_path.parent)   # acelasi config ca /calcul
         try:
-            r = evaluate_land(req.comparabile, req.suprafata_subiect)
+            r = evaluate_land(req.comparabile, req.suprafata_subiect, cfg)
         except ValueError as e:
             raise HTTPException(status_code=422, detail=str(e)) from e
         return {

@@ -47,11 +47,30 @@ CAMPURI = {
 }
 
 
-def din_override(override: dict | None) -> MetodologieConfig:
-    """Construiește un config din override-ul user (doar câmpuri cunoscute, tipuri validate).
+# Limite acceptabile per câmp — în afara lor valoarea e RESPINSĂ (cade pe default). Apără contra
+# valorilor degenerate care ar brick-ui calculul (verificare adversarială #3): `rotunjire_valoare`
+# extrem → `quantize` InvalidOperation (500) sau rotunjire la 0 (garanție ZERO); `min_comparabile=0`
+# → `median([])` (500); `pondere_piata` > 1 → pondere negativă / valoare nonsens.
+_LIMITE: dict[str, tuple] = {
+    "pondere_piata_default": (Decimal("0"), Decimal("1")),           # [0, 1]
+    "limita_ajustare_bruta": (Decimal("0.0001"), Decimal("100")),    # (0, 100]
+    "prag_outlier": (Decimal("0.0001"), Decimal("100")),
+    "rotunjire_valoare": (Decimal("0.0001"), Decimal("1000000")),    # pas de rotunjire sanatos
+    "min_comparabile": (1, 100),
+}
 
-    Câmpurile lipsă/invalide cad pe default. Decimal acceptă int/float/str numeric; bool acceptă bool;
-    int acceptă int. Astfel un fișier/parțial corupt nu crapă — degradează la default.
+
+def _in_limite(camp: str, v) -> bool:
+    lim = _LIMITE.get(camp)
+    return lim is None or lim[0] <= v <= lim[1]
+
+
+def din_override(override: dict | None) -> MetodologieConfig:
+    """Construiește un config din override-ul user (doar câmpuri cunoscute, tipuri + LIMITE validate).
+
+    Câmpurile lipsă/invalide/în afara limitelor cad pe default. Decimal acceptă int/float/str numeric
+    FINIT și în interval; bool acceptă bool; int acceptă int în interval. Astfel un fișier corupt sau o
+    valoare degenerată NU crapă calculul — degradează grațios la default.
     """
     if not isinstance(override, dict):
         return IMPLICIT
@@ -65,14 +84,14 @@ def din_override(override: dict | None) -> MetodologieConfig:
                 if isinstance(v, bool):
                     valori[camp] = v
             elif tip is int:
-                if isinstance(v, int) and not isinstance(v, bool):
+                if isinstance(v, int) and not isinstance(v, bool) and _in_limite(camp, v):
                     valori[camp] = v
             elif tip is Decimal:
                 if isinstance(v, bool):
                     continue
                 if isinstance(v, (int, float, str)):
                     d = Decimal(str(v))
-                    if d.is_finite():
+                    if d.is_finite() and _in_limite(camp, d):
                         valori[camp] = d
         except (ValueError, ArithmeticError):
             continue

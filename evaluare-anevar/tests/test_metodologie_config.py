@@ -33,6 +33,52 @@ def test_M1_selectie_teren_include_eur_schimba_alegerea():
 
 
 # ── override / config ─────────────────────────────────────────────────────────────────────────
+def test_din_override_limite_resping_valori_degenerate():
+    # din verificarea adversariala: valori degenerate ar brick-ui calculul -> respinse, cad pe default
+    cfg = din_override({"rotunjire_valoare": "1E-999", "min_comparabile": 0,
+                        "pondere_piata_default": "1.5", "prag_outlier": "0"})
+    assert cfg.rotunjire_valoare == IMPLICIT.rotunjire_valoare      # 1E-999 (quantize crash) respins
+    assert cfg.min_comparabile == IMPLICIT.min_comparabile          # 0 (median([])) respins
+    assert cfg.pondere_piata_default == IMPLICIT.pondere_piata_default  # 1.5 (pondere <0) respins
+    assert cfg.prag_outlier == IMPLICIT.prag_outlier                # 0 respins
+    assert din_override({"rotunjire_valoare": "1E+999"}).rotunjire_valoare == IMPLICIT.rotunjire_valoare
+    # valori valide in interval = acceptate
+    ok = din_override({"rotunjire_valoare": "1", "min_comparabile": 5, "pondere_piata_default": "0.7"})
+    assert ok.rotunjire_valoare == Decimal("1") and ok.min_comparabile == 5
+    assert ok.pondere_piata_default == Decimal("0.7")
+
+
+def test_M1_ajustare_bruta_eur_abs_fiecare_nu_se_anuleaza():
+    from evaluare.engine.land import ajustare_bruta
+    # doua ajustari EUR de SEMN OPUS pe baza 100: bruta = (|30|+|-30|)/100 = 0.60, NU 0 (anulare)
+    c = LandComparable(pret_mp=Decimal("100"), suprafata=Decimal("500"),
+                       adjustments=[_adj("a", 30, tip="valorica"), _adj("b", -30, tip="valorica")])
+    assert ajustare_bruta(c, True) == Decimal("0.60")
+    # selectia: comparabilul cu EUR-anulare NU trebuie ales peste unul real mai usor (0.10)
+    usor = LandComparable(pret_mp=Decimal("100"), suprafata=Decimal("500"), adjustments=[_adj("p", 0.10)])
+    assert evaluate_land([c, usor], Decimal("500")).index_selectat == 1
+
+
+def test_grila_teren_respecta_override_persistat(tmp_path):
+    # Fix: /api/grila-teren foloseste acelasi config persistat ca /calcul (M1)
+    storage = Storage(tmp_path / "t.db")
+    storage.init()
+    client = TestClient(create_app(storage=storage, client=None, fetcher=lambda u: ""))
+    comps = [
+        {"pret_mp": "100", "suprafata": "500",
+         "adjustments": [{"element": "a", "tip": "valorica", "valoare": "30", "etapa": "proprietate"},
+                         {"element": "b", "tip": "valorica", "valoare": "-30", "etapa": "proprietate"}]},
+        {"pret_mp": "100", "suprafata": "500",
+         "adjustments": [{"element": "p", "tip": "procentuala", "valoare": "0.10", "etapa": "proprietate"}]},
+    ]
+    payload = {"comparabile": comps, "suprafata_subiect": "500"}
+    # default (include_eur=True): comp 0 are bruta 0.60 -> comp 1 (0.10) selectat
+    assert client.post("/api/grila-teren", json=payload).json()["index_selectat"] == 1
+    # override include_eur=False -> comp 0 are bruta 0 (doar EUR, ignorat) -> comp 0 selectat
+    salveaza_override(storage.db_path.parent, {"teren_selectie_include_eur": False})
+    assert client.post("/api/grila-teren", json=payload).json()["index_selectat"] == 0
+
+
 def test_din_override_valid_invalid_necunoscut():
     cfg = din_override({"teren_selectie_include_eur": False, "min_comparabile": 5,
                         "limita_ajustare_bruta": "0.30", "prag_outlier": "abc", "necunoscut": 1})

@@ -47,23 +47,36 @@ def pret_mp_corectat(comp: LandComparable) -> Decimal:
 
 
 def _eur_ca_fractie(comp: LandComparable) -> Decimal:
-    """Ajustarile valorice (EUR) de proprietate, ca fractie din pretul de baza (sumate algebric)."""
+    """Ajustarile valorice (EUR) de proprietate, SUMATE ALGEBRIC (cu semn), ca fractie din baza.
+    Pentru ajustarea NETA (suma cu semn)."""
     baza = _pret_baza_tranzactie(comp)
     suma_eur = sum((a.valoare for a in comp.adjustments
                     if a.etapa == "proprietate" and a.tip == "valorica"), _ZERO)
     return suma_eur / baza if baza != 0 else _ZERO
 
 
+def _eur_brut_fractie(comp: LandComparable) -> Decimal:
+    """Ajustarile valorice (EUR) de proprietate, ABS-FIECARE-APOI-SUMA, ca fractie din baza.
+
+    Pentru ajustarea BRUTA (criteriul de selectie) — la fel ca `market.ajustare_bruta`: ajustarile de
+    semn opus NU se anuleaza (altfel un comparabil greu ajustat ar parea „cel mai usor" si ar fi ales gresit).
+    """
+    baza = _pret_baza_tranzactie(comp)
+    suma = sum((abs(a.valoare) for a in comp.adjustments
+                if a.etapa == "proprietate" and a.tip == "valorica"), _ZERO)
+    return suma / baza if baza != 0 else _ZERO
+
+
 def ajustare_bruta(comp: LandComparable, include_eur: bool = True) -> Decimal:
     """Ajustarea bruta de proprietate (criteriul de selectie): suma valorilor ABSOLUTE.
 
-    Procentualele direct; cele VALORICE (EUR) raportate la pretul de baza DOAR daca `include_eur`
-    (M1, default True = consistent cu abordarea prin piata; False = doar procentuale, varianta veche).
+    Procentualele direct; cele VALORICE (EUR) abs-fiecare-apoi-suma / baza DOAR daca `include_eur`
+    (M1, default True = CONSISTENT cu abordarea prin piata; False = doar procentuale, varianta veche).
     """
     g = sum((abs(a.valoare) for a in comp.adjustments
              if a.etapa == "proprietate" and a.tip == "procentuala"), _ZERO)
     if include_eur:
-        g += abs(_eur_ca_fractie(comp))
+        g += _eur_brut_fractie(comp)
     return g
 
 
