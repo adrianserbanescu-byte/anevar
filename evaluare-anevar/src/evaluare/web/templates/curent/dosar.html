@@ -759,6 +759,9 @@ if($("ing-fisier")) $("ing-fisier").addEventListener("change", function(){
   var cauta=$("d-cauta"); if(!cauta) return;
   if($("d-judet")&&!$("d-judet").value&&$("judet")) $("d-judet").value=$("judet").value;
   if($("d-localitate")&&!$("d-localitate").value&&$("localitate")) $("d-localitate").value=$("localitate").value;
+  // SEC-2 (audit): date scrape-uite (titlu/url/explicatie) -> escapate inainte de innerHTML/href (anti-XSS).
+  function esc(x){ return String(x==null?"":x).replace(/[&<>"']/g,function(m){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m];}); }
+  function urlSig(u){ u=String(u==null?"":u); return /^https?:\/\//i.test(u)?u:""; }
   function badge(r){ return r>=80?"b-high":"b-mid"; }
   var PORTALURI=["imobiliare","storia"];
   function randCand(cand, teren){
@@ -766,12 +769,12 @@ if($("ing-fisier")) $("ing-fisier").addEventListener("change", function(){
     $("d-rezultate").innerHTML="<p class='hint'>"+cand.length+" anunțuri găsite (sortate după scor de relevanță):</p>"+
       cand.map(function(c){ var val=teren?(c.pret_mp||""):(c.pret||"");
         return "<div class='callout' style='margin:6px 0'>"+
-        "<label class='chk'><input type='checkbox' class='d-bif' data-pret='"+val+"' data-supr='"+(c.suprafata||"")+"'> "+
-        "<span class='badge "+badge(c.relevanta)+"'>scor "+c.relevanta+"%</span> <b>"+
-        (teren?(c.pret_mp?fmtRo(c.pret_mp)+" EUR/mp":"preț/mp ?"):(c.pret?fmtRo(c.pret)+" "+(c.moneda||"EUR"):"preț ?"))+"</b> · "+
-        (c.suprafata||"?")+" mp"+(!teren&&c.teren?" · teren "+c.teren+" mp":"")+(c._portal?" · <small class='hint'>"+c._portal+"</small>":"")+"</label> "+
-        "<a href='"+c.url+"' target='_blank' rel='noopener'>vezi ↗</a>"+
-        ((c.explicatie||c.nota)?"<br><small class='hint'>"+(c.explicatie||c.nota)+"</small>":"")+"</div>"; }).join("")+
+        "<label class='chk'><input type='checkbox' class='d-bif' data-pret='"+esc(val)+"' data-supr='"+esc(c.suprafata||"")+"'> "+
+        "<span class='badge "+badge(c.relevanta)+"'>scor "+esc(c.relevanta)+"%</span> <b>"+
+        (teren?(c.pret_mp?esc(fmtRo(c.pret_mp))+" EUR/mp":"preț/mp ?"):(c.pret?esc(fmtRo(c.pret))+" "+esc(c.moneda||"EUR"):"preț ?"))+"</b> · "+
+        esc(c.suprafata||"?")+" mp"+(!teren&&c.teren?" · teren "+esc(c.teren)+" mp":"")+(c._portal?" · <small class='hint'>"+esc(c._portal)+"</small>":"")+"</label> "+
+        "<a href='"+esc(urlSig(c.url))+"' target='_blank' rel='noopener'>vezi ↗</a>"+
+        ((c.explicatie||c.nota)?"<br><small class='hint'>"+esc(c.explicatie||c.nota)+"</small>":"")+"</div>"; }).join("")+
       "<button type='button' id='d-importa'>Importă bifate</button>";
     $("d-importa").addEventListener("click", function(){
       var linii=[]; document.querySelectorAll(".d-bif:checked").forEach(function(b){ if(b.dataset.pret&&b.dataset.supr) linii.push(b.dataset.pret+";"+b.dataset.supr); });
@@ -823,9 +826,9 @@ if($("ing-fisier")) $("ing-fisier").addEventListener("change", function(){
     if($("ext-nr")) $("ext-nr").textContent=lst.length;
     if(!$("ext-lista")) return;
     $("ext-lista").innerHTML = lst.length ? (lst.map(function(a){ return "<div class='callout' style='margin:6px 0'>"+
-      "<label class='chk'><input type='checkbox' class='ext-bif' data-pret='"+(a.pret||"")+"' data-supr='"+(a.suprafata||"")+"'> "+
-      "<b>"+(a.pret?fmtRo(a.pret)+" "+(a.moneda||"EUR"):"preț ?")+"</b> · "+(a.suprafata||"?")+" mp"+(a.suprafata_teren?" · teren "+a.suprafata_teren+" mp":"")+"</label> "+
-      (a.url?"<a href='"+a.url+"' target='_blank' rel='noopener'>vezi ↗</a>":"")+"</div>"; }).join("")+
+      "<label class='chk'><input type='checkbox' class='ext-bif' data-pret='"+esc(a.pret||"")+"' data-supr='"+esc(a.suprafata||"")+"'> "+
+      "<b>"+(a.pret?esc(fmtRo(a.pret))+" "+esc(a.moneda||"EUR"):"preț ?")+"</b> · "+esc(a.suprafata||"?")+" mp"+(a.suprafata_teren?" · teren "+esc(a.suprafata_teren)+" mp":"")+"</label> "+
+      (a.url?"<a href='"+esc(urlSig(a.url))+"' target='_blank' rel='noopener'>vezi ↗</a>":"")+"</div>"; }).join("")+
       "<button type='button' id='ext-importa'>Importă bifate în grilă</button>") : "<p class='hint'>Coada e goală. Instalează extensia și navighează pe un anunț.</p>";
     var imp=$("ext-importa"); if(imp) imp.addEventListener("click", function(){
       var linii=[]; document.querySelectorAll(".ext-bif:checked").forEach(function(b){ if(b.dataset.pret&&b.dataset.supr) linii.push(b.dataset.pret+";"+b.dataset.supr); });
