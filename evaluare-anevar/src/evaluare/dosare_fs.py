@@ -408,7 +408,13 @@ def importa_folder(src: Path, legitimatie_curenta: str, creator_nume: str) -> di
         raise ValueError("dosar.json invalid.") from e
     acelasi = str(dosar.get("creator_legitimatie")) == str(legitimatie_curenta)
     if acelasi:
-        uid = dosar.get("uuid") or str(_uuid.uuid4())
+        # canonicalizeaza uuid-ul importat -> numele folderului (via _cale) == dosar["uuid"];
+        # uuid lipsa/invalid in fisier -> aloca unul nou (nu adopta un identificator stricat)
+        try:
+            uid = str(_uuid.UUID(str(dosar.get("uuid"))))
+        except (ValueError, AttributeError, TypeError):
+            uid = str(_uuid.uuid4())
+        dosar["uuid"] = uid
         e_nou = False
     else:
         uid = str(_uuid.uuid4())                       # dosar nou pentru userul curent

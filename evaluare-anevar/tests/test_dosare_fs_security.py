@@ -57,3 +57,19 @@ def test_rute_dosar_uid_invalid_dau_404_nu_500(tmp_path, monkeypatch):
     assert client.post("/api/dosar/not-a-uuid/cloneaza").status_code == 404
     # unlock = best-effort (sendBeacon la inchiderea ferestrei) -> 200, NU 500, pe uid invalid
     assert client.post("/api/dosar/not-a-uuid/unlock", json={"token": "x"}).status_code == 200
+
+
+def test_importa_folder_canonicalizeaza_uuid(tmp_path, monkeypatch):
+    # coerenta uuid<->folder dupa canonicalizare (finding minor din verificarea SEC-1)
+    import json
+    monkeypatch.setenv("OUTPUT_DIR", str(tmp_path / "out"))
+    canonic = str(uuid.uuid4())
+    src = tmp_path / "import_src"
+    src.mkdir()
+    (src / "dosar.json").write_text(json.dumps({          # uuid NE-canonic (majuscule) + acelasi creator
+        "uuid": canonic.upper(), "creator_legitimatie": "L1",
+        "creator_nume": "Eval", "wizard": {"scop": "x"}}), encoding="utf-8")
+    rez = fs.importa_folder(src, "L1", "Eval")            # acelasi creator -> adopta
+    uid = rez["uuid"]
+    scris = json.loads((fs.baza() / uid / "dosar.json").read_text(encoding="utf-8"))
+    assert scris["uuid"] == uid == canonic               # canonicalizat + coerent cu numele folderului
