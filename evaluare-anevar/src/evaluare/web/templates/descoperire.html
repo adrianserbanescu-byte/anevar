@@ -146,6 +146,12 @@
 </main>
 
 <script>
+// SEC-2: conținutul scrape-uit de pe portaluri (titlu, url, valori) e NECONTROLAT.
+// escapeHtml() neutralizează HTML în text injectat via innerHTML; urlSafe() permite doar http/https
+// în href (blochează javascript:/data:). Aplicate pe toate valorile externe înainte de randare.
+function escapeHtml(s){ return String(s==null?'':s).replace(/[&<>"']/g, c=>(
+  {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+function urlSafe(u){ try{ var x=new URL(u, location.origin); return (x.protocol==='http:'||x.protocol==='https:')?x.href:'#'; }catch(e){ return '#'; } }
 // ── Anunțuri importate din extensia de browser ───────────────────────────────
 async function incarcaImportate(){
   let res;
@@ -170,7 +176,7 @@ async function incarcaImportate(){
         ${pm?' · <b>'+pm+'</b>':''}</label>
         <button type="button" class="ghost sterge-unul" data-url="${url}"
           title="Scoate din coadă" aria-label="Scoate anunțul din coadă"><span aria-hidden="true">🗑</span></button></h3>
-      <a class="vezi" href="${a.sursa_url||'#'}" target="_blank" rel="noopener"><span aria-hidden="true">▶</span> ${a.titlu||'anunț'}</a>
+      <a class="vezi" href="${urlSafe(a.sursa_url||'#')}" target="_blank" rel="noopener"><span aria-hidden="true">▶</span> ${escapeHtml(a.titlu||'anunț')}</a>
       ${a.an||a.material||a.incalzire?'<p class="hint">'
         +[a.an?'an '+a.an:'',a.material||'',a.incalzire||''].filter(Boolean).join(' · ')+'</p>':''}
     </div>`;
@@ -288,17 +294,17 @@ function chipsAtribute(c){
   const A = c.atribute||[];
   if(!A.length) return '';
   return '<div class="cand-chips">' + A.map(a=>{
-    const val = eticheta(a.nume, a.valoare_candidat);
-    const ref = eticheta(a.nume, a.valoare_subiect);
+    const val = escapeHtml(eticheta(a.nume, a.valoare_candidat));   // SEC-2: valoare din anunț scrape
+    const ref = escapeHtml(eticheta(a.nume, a.valoare_subiect));
     const na = a.cunoscut ? '' : ' chip-na';
     return `<span class="chip-attr${na}" title="Subiect: ${ref} · pondere ${a.pondere}">`
-      + `${a.nume}: <b>${val}</b></span>`;
+      + `${escapeHtml(a.nume)}: <b>${val}</b></span>`;
   }).join('') + '</div>';
 }
 function randCandidat(c){
   const secId = (c.secundare||[]).filter(s=>s.stare!=='nementionat');
-  const sec = secId.map(s => `${s.nume}: ${s.stare}`
-     + (s.valoare_gasita ? ` („${s.valoare_gasita}")` : '')).join(' · ');
+  const sec = secId.map(s => `${escapeHtml(s.nume)}: ${escapeHtml(s.stare)}`     // SEC-2: secundare din anunț
+     + (s.valoare_gasita ? ` („${escapeHtml(s.valoare_gasita)}")` : '')).join(' · ');
   const avert = c.incredere_scazuta ? '<span class="alerta">⚠ date insuficiente — verifică manual</span>' : '';
   const meta = [
     `${c.suprafata||'?'} mp construiți`,
@@ -320,7 +326,7 @@ function randCandidat(c){
     ${sec ? '<p class="cand-sec"><b>Secundare:</b> '+sec+'</p>' : ''}
     <p class="cand-expl">${c.explicatie}</p>
     <div class="cand-foot">
-      <a class="vezi" href="${c.url}" target="_blank" rel="noopener"><span aria-hidden="true">▶</span> Vezi anunțul${c.titlu?': '+c.titlu:''}</a>
+      <a class="vezi" href="${urlSafe(c.url)}" target="_blank" rel="noopener"><span aria-hidden="true">▶</span> Vezi anunțul${c.titlu?': '+escapeHtml(c.titlu):''}</a>
       <details class="cand-detalii"><summary>Calculul complet (atribute × ponderi)</summary>${tabelAtribute(c)}</details>
     </div>
   </div>`;

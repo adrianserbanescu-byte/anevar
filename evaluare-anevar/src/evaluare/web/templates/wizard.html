@@ -396,6 +396,10 @@
 
 <script>{% include "_helpers.js" %}</script>
 <script>
+// SEC-2: conținut scrape-uit de pe portaluri e necontrolat — escapeHtml() în text, urlSafe() în href.
+function escapeHtml(s){ return String(s==null?'':s).replace(/[&<>"']/g, c=>(
+  {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+function urlSafe(u){ try{ var x=new URL(u, location.origin); return (x.protocol==='http:'||x.protocol==='https:')?x.href:'#'; }catch(e){ return '#'; } }
 const PASI = 5; let pas = 1; let evaluareId = null;
 const CAMPURI = ["judet","localitate","localitate_alt","adresa_strada","client_nume",
  "numar_cadastral","carte_funciara","beneficiar","scop","proprietar","evaluator_nume",
@@ -497,14 +501,14 @@ $("btn-descopera").addEventListener("click", async ()=>{
     const res=await r.json(); $("desc_status").textContent=res.candidati.length+" candidați";
     $("candidati").innerHTML=res.candidati.map((c,i)=>{
       const secId=(c.secundare||[]).filter(s=>s.stare!=='nementionat');
-      const sec=secId.map(s=>s.nume+': '+s.stare+(s.valoare_gasita?' („'+s.valoare_gasita+'")':'')).join(' · ');
+      const sec=secId.map(s=>escapeHtml(s.nume)+': '+escapeHtml(s.stare)+(s.valoare_gasita?' („'+escapeHtml(s.valoare_gasita)+'")':'')).join(' · ');
       return `<div class="candidat"><label><input type="checkbox" class="bif" data-pret="${c.pret||''}"
        data-supr="${c.suprafata||''}"> <b>${c.relevanta}%</b> — ${c.pret||'?'} EUR / ${c.suprafata||'?'} mp
        · teren ${c.teren||'?'} mp
        ${c.pret_mp?'<b>('+c.pret_mp+' €/mp construit · teren comparabil)</b>':''}
-       <a href="${c.url}" target="_blank" rel="noopener">Vezi anunțul ↗</a></label>
+       <a href="${urlSafe(c.url)}" target="_blank" rel="noopener">Vezi anunțul ↗</a></label>
        ${tabelAtribute(c)}
-       <div class="hint">${c.explicatie}</div>
+       <div class="hint">${escapeHtml(c.explicatie)}</div>
        ${sec?'<div class="hint"><b>Secundare:</b> '+sec+'</div>':''}
        </div>`;}).join("");
     document.querySelectorAll(".bif").forEach(b=>b.addEventListener("change",aduna)); }
