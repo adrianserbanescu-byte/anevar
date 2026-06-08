@@ -506,7 +506,7 @@ $("btn-descopera").addEventListener("click", async ()=>{
        data-supr="${c.suprafata||''}"> <b>${c.relevanta}%</b> — ${c.pret||'?'} EUR / ${c.suprafata||'?'} mp
        · teren ${c.teren||'?'} mp
        ${c.pret_mp?'<b>('+c.pret_mp+' €/mp construit · teren comparabil)</b>':''}
-       <a href="${urlSafe(c.url)}" target="_blank" rel="noopener">Vezi anunțul ↗</a></label>
+       <a href="${urlSafe(c.url)}" target="_blank" rel="noopener">Vezi anunțul <span aria-hidden="true">↗</span></a></label>
        ${tabelAtribute(c)}
        <div class="hint">${escapeHtml(c.explicatie)}</div>
        ${sec?'<div class="hint"><b>Secundare:</b> '+sec+'</div>':''}
