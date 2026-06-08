@@ -327,8 +327,10 @@ with sync_playwright() as pw:
     check("dosar: Generează blocat fără asumare", p.eval_on_selector("#genereaza", "e=>e.disabled"))
     p.check("#asumare")
     check("dosar: Generează activ după asumare", not p.eval_on_selector("#genereaza", "e=>e.disabled"))
-    check("dosar: selector format raport (docx/pdf/ambele)",
-          p.eval_on_selector_all("input[name='gen-fmt']", "e=>e.length") == 3)
+    # PDF→DOCX: selectorul de format a fost SCOS — raportul e mereu .docx; verific absența + nota de export PDF
+    check("dosar: fără selector format (PDF→DOCX) + notă „salvează ca PDF local”",
+          p.eval_on_selector_all("input[name='gen-fmt']", "e=>e.length") == 0
+          and "salvează-l ca PDF local" in p.inner_text("body"))
     p.click("#s-proprietate")
     p.fill("#au", "111")
     p.dispatch_event("#au", "input")
