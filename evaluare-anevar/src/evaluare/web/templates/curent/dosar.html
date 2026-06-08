@@ -1,3 +1,4 @@
+{% from "_icon.html" import icon %}
 <!DOCTYPE html>
 <html lang="ro">
 <head><meta charset="utf-8"><title>Dosar — {{ dosar.nume }}</title>
@@ -16,14 +17,14 @@
 
 <main id="continut">
   <div class="avert-warn" id="concurent-banner" hidden role="alert">
-    <span aria-hidden="true">⚠</span> Acest dosar pare deschis și în <b>altă fereastră/instanță</b> —
+    {{ icon("warn") }} Acest dosar pare deschis și în <b>altă fereastră/instanță</b> —
     modificările se pot suprascrie reciproc. Recomandat: o singură fereastră per dosar.
   </div>
   <div class="tabs" role="tablist" aria-label="Secțiuni dosar">
-    <button type="button" role="tab" id="t-raport" aria-controls="p-raport" aria-selected="true"><span aria-hidden="true">📄</span> Raport evaluare</button>
-    <button type="button" role="tab" id="t-aml" aria-controls="p-aml" aria-selected="false" tabindex="-1" title="Combaterea spălării banilor (Legea 129/2019)"><span aria-hidden="true">🛡</span> AML</button>
-    <button type="button" role="tab" id="t-gdpr" aria-controls="p-gdpr" aria-selected="false" tabindex="-1" title="Protecția datelor cu caracter personal (GDPR)"><span aria-hidden="true">🔒</span> GDPR</button>
-    <button type="button" role="tab" id="t-audit" aria-controls="p-audit" aria-selected="false" tabindex="-1"><span aria-hidden="true">🧾</span> Audit</button>
+    <button type="button" role="tab" id="t-raport" aria-controls="p-raport" aria-selected="true">{{ icon("doc") }} Raport evaluare</button>
+    <button type="button" role="tab" id="t-aml" aria-controls="p-aml" aria-selected="false" tabindex="-1" title="Combaterea spălării banilor (Legea 129/2019)">{{ icon("shield") }} AML</button>
+    <button type="button" role="tab" id="t-gdpr" aria-controls="p-gdpr" aria-selected="false" tabindex="-1" title="Protecția datelor cu caracter personal (GDPR)">{{ icon("lock") }} GDPR</button>
+    <button type="button" role="tab" id="t-audit" aria-controls="p-audit" aria-selected="false" tabindex="-1">{{ icon("audit") }} Audit</button>
   </div>
 
   <!-- ============ RAPORT ============ -->
@@ -39,7 +40,7 @@
 
     <section role="tabpanel" id="sp-proprietate" aria-labelledby="s-proprietate" tabindex="0">
       <details class="grila-det">
-        <summary>📄 Pre-completare din documente (extras CF / releveu / plan)</summary>
+        <summary>{{ icon("doc") }} Pre-completare din documente (extras CF / releveu / plan)</summary>
         <p class="hint">Încarcă un PDF și extragem automat câmpurile (nr. cadastral, CF, suprafețe, proprietar…). Verifică-le după.</p>
         <div class="field-row">
           <div class="field"><label for="ing-tip">Tip document</label>
@@ -52,10 +53,10 @@
       <h3>Identificare <span class="hint">(definesc identitatea + numele dosarului)</span></h3>
       {% if blocat %}
       <div class="avert-warn" style="display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:6px 0">
-        <span><span aria-hidden="true">🔒</span> <b>Identitate asumată</b>{% if asumat_la %} la {{ asumat_la }}{% endif %} —
+        <span>{{ icon("lock") }} <b>Identitate asumată</b>{% if asumat_la %} la {{ asumat_la }}{% endif %} —
          câmpurile de identitate sunt <b>read-only</b> (inalterabilitate ADR-003).</span>
-        <button type="button" class="ghost" id="btn-delock" style="margin-left:auto"><span aria-hidden="true">🔓</span> Deblochează corectură</button>
-        <button type="button" class="ghost" id="btn-clone"><span aria-hidden="true">➕</span> Dosar nou (altă identitate)</button>
+        <button type="button" class="ghost" id="btn-delock" style="margin-left:auto">{{ icon("unlock") }} Deblochează corectură</button>
+        <button type="button" class="ghost" id="btn-clone">{{ icon("add") }} Dosar nou (altă identitate)</button>
       </div>
       {% endif %}
       <div class="field-row">
@@ -164,7 +165,7 @@
     </section>
 
     <section role="tabpanel" id="sp-comparabile" aria-labelledby="s-comparabile" tabindex="0" hidden>
-      <h3>🔎 Descoperă comparabile</h3>
+      <h3>{{ icon("search") }} Descoperă comparabile</h3>
       <div class="field-row">
         <div class="field"><label for="d-tip">Caut</label>
           <select id="d-tip"><option value="case">Construcții (casă/ap.)</option><option value="terenuri">Terenuri</option></select></div>
@@ -189,21 +190,21 @@
       <label for="d-secundare">Atribute secundare de potrivire <span class="hint">(opțional, una pe linie)</span></label>
       <textarea id="d-secundare" rows="2" placeholder="garaj&#10;piscină&#10;termopan"></textarea>
       <div class="btn-bar">
-        <button type="button" id="d-cauta">🔎 Caută comparabile</button>
+        <button type="button" id="d-cauta">{{ icon("search") }} Caută comparabile</button>
       </div>
       <span id="d-status" class="hint" role="status" aria-live="polite"></span>
       <div id="d-rezultate"></div>
       <h3>Import dintr-un anunț (URL)</h3>
       <div class="field-row">
         <div class="field" style="flex:3"><label for="d-url">Link imobiliare.ro / storia.ro</label><input id="d-url" placeholder="https://www.imobiliare.ro/..."></div>
-        <div class="field"><label for="d-url-btn-l">&nbsp;</label><button type="button" id="d-url-btn">📥 Importă din URL</button></div>
+        <div class="field"><label for="d-url-btn-l">&nbsp;</label><button type="button" id="d-url-btn">{{ icon("import") }} Importă din URL</button></div>
       </div>
       <span id="d-url-status" class="hint" role="status" aria-live="polite"></span>
       <details class="grila-det" id="coada-ext">
-        <summary>🧩 Anunțuri din extensia de browser (<span id="ext-nr">0</span>)</summary>
+        <summary>{{ icon("grid") }} Anunțuri din extensia de browser (<span id="ext-nr">0</span>)</summary>
         <p class="hint">Navighezi tu pe portal, extensia trimite anunțul aici. Bifează + importă în grilă.</p>
         <div class="btn-bar">
-          <button type="button" id="ext-reload"><span aria-hidden="true">↻</span> Reîmprospătează</button>
+          <button type="button" id="ext-reload">{{ icon("refresh") }} Reîmprospătează</button>
           <button type="button" class="ghost" id="ext-goleste">Golește coada</button>
         </div>
         <div id="ext-lista"></div>
@@ -212,38 +213,38 @@
       <label for="comparabile">Comparabile construcție/proprietate</label>
       <textarea id="comparabile" rows="4" placeholder="250000;120"></textarea>
       <details class="grila-det">
-        <summary>📐 Grilă de ajustări — casă (pe etape + alerte prudențiale)</summary>
+        <summary>{{ icon("grid") }} Grilă de ajustări — casă (pe etape + alerte prudențiale)</summary>
         <p class="hint">Completează prețul + suprafața fiecărui comparabil și ajustările. „Tranzacție" = compus (ofertă→tranzacție);
           „proprietate" = aditiv (caracteristici). Procentual: fracție (0,05 = +5%). Valoric: lei.</p>
         <div class="field" style="max-width:220px"><label for="g-supr">Suprafață subiect (mp)</label><input id="g-supr" placeholder="ex. 120"></div>
         <div id="grila-casa-tabel" class="grila-scroll"></div>
         <div class="btn-bar">
           <button type="button" id="g-calc">Calculează grila</button>
-          <button type="button" class="ghost" id="g-import"><span aria-hidden="true">↑</span> Trimite prețurile în Comparabile</button>
+          <button type="button" class="ghost" id="g-import">{{ icon("upload") }} Trimite prețurile în Comparabile</button>
         </div>
         <div id="g-rezultat" role="status" aria-live="polite"></div>
       </details>
       <label for="comparabile_teren">Comparabile teren <span class="hint">(opțional; dacă există, valoarea terenului se calculează din grilă, nu manual)</span></label>
       <textarea id="comparabile_teren" rows="3" placeholder="50;700"></textarea>
       <details class="grila-det">
-        <summary>📐 Grilă de ajustări — teren (pe etape + alerte prudențiale)</summary>
+        <summary>{{ icon("grid") }} Grilă de ajustări — teren (pe etape + alerte prudențiale)</summary>
         <p class="hint">Preț/mp + suprafața fiecărui comparabil + ajustările (procentuale, fracție 0,05 = +5%).</p>
         <div class="field" style="max-width:220px"><label for="gt-supr">Suprafață teren subiect (mp)</label><input id="gt-supr" placeholder="ex. 500"></div>
         <div id="grila-teren-tabel" class="grila-scroll"></div>
         <div class="btn-bar">
           <button type="button" id="gt-calc">Calculează grila teren</button>
-          <button type="button" class="ghost" id="gt-import"><span aria-hidden="true">↑</span> Trimite în Comparabile teren</button>
+          <button type="button" class="ghost" id="gt-import">{{ icon("upload") }} Trimite în Comparabile teren</button>
         </div>
         <div id="gt-rezultat" role="status" aria-live="polite"></div>
       </details>
       <details class="grila-det">
-        <summary>📐 Grilă de chirii — pentru abordarea prin venit (chirie/mp + ajustări → VBP)</summary>
+        <summary>{{ icon("grid") }} Grilă de chirii — pentru abordarea prin venit (chirie/mp + ajustări → VBP)</summary>
         <p class="hint">Chiria lunară/mp + suprafața fiecărui comparabil + ajustările. Rezultă venitul brut potențial anual (VBP).</p>
         <div class="field" style="max-width:220px"><label for="gc-supr">Suprafață închiriabilă subiect (mp)</label><input id="gc-supr" placeholder="ex. 100"></div>
         <div id="grila-chirii-tabel" class="grila-scroll"></div>
         <div class="btn-bar">
           <button type="button" id="gc-calc">Calculează grila chirii</button>
-          <button type="button" class="ghost" id="gc-vbp"><span aria-hidden="true">↑</span> Preia VBP la metoda Venit</button>
+          <button type="button" class="ghost" id="gc-vbp">{{ icon("upload") }} Preia VBP la metoda Venit</button>
         </div>
         <div id="gc-rezultat" role="status" aria-live="polite"></div>
       </details>
@@ -314,9 +315,9 @@
         <span class="hint">PDF necesită LibreOffice (gratuit) sau Microsoft Word instalat pe calculator.</span>
       </fieldset>
       <div class="btn-bar">
-        <button type="button" id="genereaza" aria-describedby="asumare-info" disabled><span aria-hidden="true">📄</span> Generează și descarcă raportul</button>
-        <button type="button" class="ghost" id="genereaza-demo"><span aria-hidden="true">📝</span> Raport cu note (demo)</button>
-        <button type="button" class="ghost" id="gen-audit"><span aria-hidden="true">🧾</span> Urmă de audit (.txt)</button>
+        <button type="button" id="genereaza" aria-describedby="asumare-info" disabled>{{ icon("doc") }} Generează și descarcă raportul</button>
+        <button type="button" class="ghost" id="genereaza-demo">{{ icon("edit") }} Raport cu note (demo)</button>
+        <button type="button" class="ghost" id="gen-audit">{{ icon("audit") }} Urmă de audit (.txt)</button>
       </div>
       <span id="gen-status" class="hint" role="status" aria-live="polite"></span>
       <details style="margin-top:10px;">
@@ -324,22 +325,22 @@
         <p class="hint">Atașează versiunea finală/returnată a raportului (.docx). Se înregistrează cu
          <b>amprentă de integritate</b> (hash) și marchează identitatea dosarului ca <b>asumată</b> (ADR-003).</p>
         <input type="file" id="submis-fisier" aria-label="Încarcă fișier .docx" accept=".docx">
-        <button type="button" class="ghost" id="submis-incarca"><span aria-hidden="true">📎</span> Înregistrează fișierul submis</button>
+        <button type="button" class="ghost" id="submis-incarca">{{ icon("attach") }} Înregistrează fișierul submis</button>
         <span id="submis-status" class="hint" role="status" aria-live="polite"></span>
       </details>
     </section>
     <div class="btn-bar btn-bar-jos">
       <button type="button" class="ghost" id="nav-inapoi"><span aria-hidden="true">◀</span> Înapoi</button>
       <button type="button" id="nav-inainte">Înainte <span aria-hidden="true">▶</span></button>
-      <button type="button" class="ghost" id="reset-dosar">🔄 Reset dosar</button>
-      <a class="btn ghost" href="/documente" title="Toate documentele livrate">📄 Documente</a>
-      <a class="btn ghost" href="/api/backup-dosare.zip" title="Arhivează toate dosarele (.zip)">💾 Backup dosare</a>
+      <button type="button" class="ghost" id="reset-dosar">{{ icon("refresh") }} Reset dosar</button>
+      <a class="btn ghost" href="/documente" title="Toate documentele livrate">{{ icon("doc") }} Documente</a>
+      <a class="btn ghost" href="/api/backup-dosare.zip" title="Arhivează toate dosarele (.zip)">{{ icon("save") }} Backup dosare</a>
     </div>
   </section>
 
   <section role="tabpanel" id="p-aml" aria-labelledby="t-aml" tabindex="0" hidden>
     <h2 class="sr-only">Conformitate AML</h2>
-    <div class="avert-warn" role="note">⚠️ Aplicația <b>NU verifică automat</b> sancțiuni/PEP — verifică manual pe
+    <div class="avert-warn" role="note">{{ icon("warn") }} Aplicația <b>NU verifică automat</b> sancțiuni/PEP — verifică manual pe
       <a href="https://www.opensanctions.org/" target="_blank" rel="noopener">OpenSanctions</a> /
       <a href="https://www.sanctionsmap.eu/" target="_blank" rel="noopener">EU Sanctions Map</a>. Documentele = drafturi (validează cu jurist, Legea 129 art. 43/44/49).</div>
     <fieldset><legend>Entitate evaluator</legend>
@@ -387,15 +388,15 @@
   <section role="tabpanel" id="p-gdpr" aria-labelledby="t-gdpr" tabindex="0" hidden>
     <h2 class="sr-only">Documente GDPR</h2>
     <p class="hint">Generează documentele GDPR (model) direct de aici:</p>
-    <button type="button" id="gdpr-politica">📄 Politică de prelucrare (.docx)</button>
-    <button type="button" id="gdpr-consimtamant">📄 Acord de consimțământ (.docx)</button>
+    <button type="button" id="gdpr-politica">{{ icon("doc") }} Politică de prelucrare (.docx)</button>
+    <button type="button" id="gdpr-consimtamant">{{ icon("doc") }} Acord de consimțământ (.docx)</button>
     <span id="gdpr-status" class="hint" role="status" aria-live="polite"></span>
     <p class="hint">Referință: <a href="/documente/politica-confidentialitate" target="_blank" rel="noopener">Politica de confidențialitate ↗</a> ·
       <a href="/documente/disclaimer-profesional" target="_blank" rel="noopener">Disclaimer profesional ↗</a></p></section>
   <section role="tabpanel" id="p-audit" aria-labelledby="t-audit" tabindex="0" hidden>
     <h2 class="sr-only">Urmă de audit</h2>
     <p class="hint">Urma de audit (jurnal hash-înlănțuit + validare încrucișată) pentru valorile curente:</p>
-    <button type="button" id="audit-gen">🧾 Generează urma de audit</button>
+    <button type="button" id="audit-gen">{{ icon("audit") }} Generează urma de audit</button>
     <span id="audit-status" class="hint" role="status" aria-live="polite"></span>
     <pre id="audit-out" class="document" style="display:none"></pre></section>
 </main>
