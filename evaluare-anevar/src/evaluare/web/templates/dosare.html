@@ -5,6 +5,9 @@
 <style>
   /* #5 (feedback Adi): header de tabel mai ușor pt liste scurte — fără navy greu */
   table th{ background:var(--paper-sunk); color:var(--ink); border-bottom:2px solid var(--line-2); font-weight:600; }
+  /* QA a11y: empty-state e singura secțiune sub h1 -> heading h2 (1.3.1, fără salt h1→h3);
+     păstrez aspectul de empty-state (oglindă a regulii .empty-state h3 din _design.css). */
+  .empty-state h2{ margin:0 0 6px; font-family:var(--serif); color:var(--ink); font-size:1.15rem; font-weight:600; }
 </style></head>
 <body>
 {% from "_icon.html" import icon %}
@@ -17,7 +20,7 @@
   {% if not dosare %}
     <div class="empty-state">
       <span class="es-icon">{{ icon("folder") }}</span>
-      <h3>Niciun dosar salvat încă</h3>
+      <h2>Niciun dosar salvat încă</h2>
       <p>Dosarele generate prin wizard se salvează automat aici și pot fi redeschise, redenumite sau descărcate ca raport.</p>
       <a class="btn" href="/wizard">Deschide wizardul →</a>
     </div>
