@@ -95,7 +95,7 @@
         <div class="field"><label for="numar_cadastral">Nr. cadastral</label><input id="numar_cadastral"></div>
         <div class="field"><label for="carte_funciara">Carte funciară</label><input id="carte_funciara"></div>
         <div class="field"><label for="proprietar">Proprietar <span class="hint">(dacă diferă de client)</span></label><input id="proprietar"></div>
-        <div class="field"><label for="beneficiar">Beneficiar (bancă)</label><input id="beneficiar"></div>
+        <div class="field"><label for="beneficiar">Beneficiar <span class="hint" id="beneficiar-hint">(banca finanțatoare)</span></label><input id="beneficiar"></div>
       </div>
       <div class="field-row">
         <div class="field"><label for="tip_drept">Dreptul evaluat</label>
@@ -144,7 +144,7 @@
           <div class="field"><label for="suprafata_teren">Suprafață teren (mp)</label><input id="suprafata_teren" placeholder="ex. 500"></div>
           <div class="field"><label for="categorie_teren">Regim</label>
             <select id="categorie_teren"><option value="intravilan">Intravilan</option><option value="extravilan">Extravilan</option></select></div>
-          <div class="field"><label for="valoare_teren">Valoare teren (lei)</label><input id="valoare_teren" placeholder="ex. 100000"></div>
+          <div class="field"><label for="valoare_teren">Valoare teren (lei) <span class="hint">(opțional — manual; sau din grila de teren dacă ai comparabile)</span></label><input id="valoare_teren" placeholder="ex. 100000"></div>
         </div>
         <fieldset><legend>Utilități (GEV 630)</legend>
           {# fiecare checkbox are id => snapshot()/restore le persistă (bug pierdere date: fără id erau sărite) #}
@@ -156,7 +156,7 @@
         </fieldset>
         <div class="field"><label for="acces">Cale de acces <span class="hint">(afectează valoarea)</span></label>
           <input id="acces" placeholder="ex. drum asfaltat / pietruit / servitute de trecere"></div>
-        <label for="restrictii_urbanism">Regim urbanistic / restricții <span class="hint">(din certificatul de urbanism: POT/CUT, servituți, interdicții)</span></label>
+        <label for="restrictii_urbanism">Regim urbanistic / restricții <span class="hint">(opțional, din certificatul de urbanism: POT/CUT, servituți, interdicții)</span></label>
         <input id="restrictii_urbanism" placeholder="ex. POT 40%, CUT 1.2, fără restricții">
       </div>
       <div id="grup-constructie">
@@ -652,6 +652,16 @@ function aplicaTip(v){
   }
 }
 if($("tip_proprietate")){ $("tip_proprietate").addEventListener("change", function(){ aplicaTip(); }); aplicaTip(); }
+// #5 (Adi): beneficiarul se adaptează la SCOP — hint dinamic + auto-fill la impozitare (proprietarul = clientul).
+var BENEF_HINT = {garantare:"(banca finanțatoare)", impozitare:"(proprietarul)", asigurare:"(asiguratul)",
+  raportare_financiara:"(entitatea raportoare)", litigii:"(instanța / părțile)"};
+function aplicaScopBeneficiar(){
+  var sc = $("scop") ? $("scop").value : "garantare";
+  if($("beneficiar-hint")) $("beneficiar-hint").textContent = BENEF_HINT[sc] || "";
+  if(sc === "impozitare" && $("beneficiar") && !$("beneficiar").value && $("nume_client") && $("nume_client").value)
+    $("beneficiar").value = $("nume_client").value;   // proprietarul = clientul; auto-completez dacă e gol
+}
+if($("scop")){ $("scop").addEventListener("change", aplicaScopBeneficiar); aplicaScopBeneficiar(); }
 // Data evaluării (Identificare) ↔ Data evaluării (AML): același câmp, sincronizat.
 if($("data_evaluarii")) $("data_evaluarii").addEventListener("change", function(){ if($("aml_azi")) $("aml_azi").value=this.value; });
 // Toate câmpurile-dată: blochează datele VIITOARE (max=azi) + afișează formatul românesc (zz.ll.aaaa).
