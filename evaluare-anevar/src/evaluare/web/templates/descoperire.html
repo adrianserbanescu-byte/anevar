@@ -92,7 +92,10 @@
   <label for="portal">Portal:</label> <select id="portal" name="portal"><option value="imobiliare">imobiliare.ro</option>
     <option value="storia">storia.ro</option></select>
   <label for="judet">Judet:</label> <input id="judet" name="judet" value="ilfov">
-  <label for="localitate">Localitate:</label> <input id="localitate" name="localitate" value="otopeni"><br>
+  <label for="localitate">Localități:</label> <input id="localitate" name="localitate" value="otopeni"
+    size="30" placeholder="otopeni, tunari, ..."
+    title="Una sau mai multe localități din județ, separate prin virgulă. Adaugă vecinele pe care le vrei — căutarea le combină și aduce DOAR din localitățile alese (nu tot județul).">
+  <span class="hint">mai multe, separate prin virgulă (adaugă vecine)</span><br>
   <b>Casa subiect:</b> <label for="an">An</label> <input id="an" name="an" value="2013" size="5">
    <label for="stare">Stare(1-5)</label> <input id="stare" name="stare" value="3" size="3">
    <label for="finisaj">Finisaj(1-4)</label> <input id="finisaj" name="finisaj" value="4" size="3">
@@ -407,8 +410,8 @@ document.getElementById('f').addEventListener('submit', async (e)=>{
     document.getElementById('rezultate').innerHTML =
       '<div class="empty-state"><span class="es-icon" aria-hidden="true">🗺</span>'
       + '<h3>Niciun comparabil găsit</h3>'
-      + '<p>Pentru criteriile alese nu există anunțuri. Încearcă o zonă mai largă (doar județul) '
-      + 'sau verifică denumirea localității.</p>'
+      + '<p>Niciun anunț în localitățile alese. Adaugă localități vecine (separate prin virgulă) '
+      + 'pentru mai multe comparabile, lasă doar județul, sau verifică denumirea.</p>'
       + '<button type="button" class="btn" onclick="document.getElementById(\'localitate\').focus()">Ajustează zona ↑</button></div>';
     return;
   }
