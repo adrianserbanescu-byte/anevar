@@ -64,6 +64,29 @@ def _nota(doc: DocxDocument, cheie: str, adnotari: bool) -> None:
     run.font.color.rgb = RGBColor(0xB0, 0x6A, 0x00)
 
 
+# Disclaimer al APLICATIEI catre evaluator — apare in fruntea ORICARUI document generat (cerinta Adi):
+# documentul e un DRAFT, verificarea + raspunderea revin evaluatorului ANEVAR semnatar, iar aplicatia
+# nu raspunde de datele introduse / rezultate. Constanta e refolosibila si de alte generatoare.
+DISCLAIMER_APLICATIE = (
+    "Acest document este un DRAFT generat automat, ca instrument de asistență. Verificarea integrală "
+    "(date, conținut, valori) și răspunderea profesională pentru raportul final revin evaluatorului "
+    "autorizat ANEVAR care îl semnează. Aplicația nu poartă nicio răspundere pentru datele introduse "
+    "sau pentru rezultatele prezentate."
+)
+
+
+def _disclaimer_aplicatie(doc: DocxDocument) -> None:
+    """Disclaimer-ul aplicatiei catre evaluator, in fruntea documentului (mereu, nu doar in demo)."""
+    p = doc.add_paragraph()
+    t = p.add_run("⚠ NOTĂ A APLICAȚIEI CĂTRE EVALUATOR")
+    t.bold = True
+    t.font.size = Pt(10)
+    t.font.color.rgb = RGBColor(0xB0, 0x6A, 0x00)
+    r = doc.add_paragraph().add_run(DISCLAIMER_APLICATIE)
+    r.italic = True
+    r.font.size = Pt(9)
+
+
 def _narativ(ctx: ReportContext, capitol: str) -> str | None:
     """Returneaza textul narativ pentru un capitol, daca exista."""
     for sectiune in ctx.narrative:
@@ -634,6 +657,9 @@ def genereaza_raport(
     """
     doc = Document()
     meta = ctx.meta
+
+    # Disclaimer al aplicatiei catre evaluator — in fruntea ORICARUI raport generat (cerinta Adi).
+    _disclaimer_aplicatie(doc)
 
     # --- Shell GBF (front matter) ---
     _coperta(doc, ctx, adnotari)

@@ -20,10 +20,11 @@ with sync_playwright() as p:
     b = p.chromium.launch()
     pg = b.new_page()
     erori = []
-    # 422 „Failed to load resource” e log-ul benign al browserului pt răspunsul de eroare al calcului
-    # (așteptat când calculul eșuează legitim), NU o eroare JS reală → îl ignorăm.
+    # 422 „Failed to load resource” + log-ul nostru „Eroare calcul:” (console.error din catch-ul de
+    # calcul) sunt AȘTEPTATE când calculul eșuează legitim — NU erori JS reale → le ignorăm.
     pg.on("console", lambda m: erori.append(m.text)
-          if (m.type == "error" and "Failed to load resource" not in m.text) else None)
+          if (m.type == "error" and "Failed to load resource" not in m.text
+              and "Eroare calcul" not in m.text) else None)
     pg.on("pageerror", lambda e: erori.append(str(e)))
     pg.goto(BASE + f"/dosar/{uid}", wait_until="networkidle", timeout=15000)
     # Calcul pe un dosar gol (fără comparabile/suprafețe) → server-ul întoarce 422 cu detaliu.

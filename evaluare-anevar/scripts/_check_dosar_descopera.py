@@ -7,6 +7,7 @@ Verifică (mock pe /api/descopera, capturează payload-ul):
 - zero erori în consolă.
 Rulează pe un server de test (PYTHONPATH=src scripts/_serve_test.py), implicit 8765.
 """
+import contextlib
 import json
 import sys
 
@@ -33,10 +34,8 @@ with sync_playwright() as p:
     pg.on("pageerror", lambda e: erori.append(str(e)))
 
     def mock(r):
-        try:
+        with contextlib.suppress(Exception):
             payloads.append(json.loads(r.request.post_data or "{}"))
-        except Exception:
-            pass
         r.fulfill(json=MOCK)
     pg.route("**/api/descopera", mock)
     pg.goto(BASE + f"/dosar/{uid}", wait_until="networkidle", timeout=15000)

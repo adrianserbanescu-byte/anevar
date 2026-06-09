@@ -6,10 +6,19 @@ from pathlib import Path
 from evaluare.audit.jurnal import JurnalAudit
 
 
+# Disclaimer al aplicatiei catre evaluator — pe ORICE document generat (cerinta Adi).
+_DISCLAIMER = (
+    "NOTĂ — Document generat de aplicație ca instrument de asistență (DRAFT). Verificarea și "
+    "răspunderea revin evaluatorului autorizat ANEVAR; aplicația nu poartă răspundere pentru "
+    "datele introduse sau pentru rezultate."
+)
+
+
 def text_audit(jurnal: JurnalAudit) -> str:
     """Reprezentare text a urmei de audit, cu verdictul de integritate."""
     integritate = "OK" if jurnal.verifica() else "ALTERATA"
-    linii = [f"URMA DE AUDIT — integritate lant: {integritate}",
+    linii = [_DISCLAIMER, "",
+             f"URMA DE AUDIT — integritate lant: {integritate}",
              f"Numar evenimente: {len(jurnal.evenimente)}", ""]
     for ev in jurnal.evenimente:
         linii.append(f"#{ev.index} [{ev.timestamp}] {ev.tip}: {ev.detalii}  (hash {ev.hash[:12]}…)")

@@ -118,6 +118,7 @@ def test_raport_audit_text_si_fisier(tmp_path):
     j.inregistreaza("generare_raport", clock=clk)
     txt = text_audit(j)
     assert "URMA DE AUDIT" in txt and "integritate lant: OK" in txt
+    assert "DRAFT" in txt and "răspundere" in txt        # disclaimer aplicatie -> evaluator (cerinta Adi)
     assert "intrare" in txt and "generare_raport" in txt
     out = scrie_audit(j, tmp_path / "audit.txt")
     assert out.exists() and "URMA DE AUDIT" in out.read_text(encoding="utf-8")
