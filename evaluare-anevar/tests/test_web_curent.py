@@ -58,6 +58,19 @@ def test_creeaza_cont_si_reincarca(client):
     assert "Adi S" in r.text and "8717" in r.text
 
 
+def test_creare_dosar_nu_logheaza_numele_evaluatorului(client, caplog):
+    """Igiena PII (audit #9, gap testare flag-at de D): la crearea unui dosar logam DOAR
+    legitimatia (ID profesional), NICIODATA numele evaluatorului. Aserțiune POZITIVĂ + NEGATIVĂ."""
+    import logging
+    _cont(client)
+    caplog.clear()                                   # ignoram logurile de la crearea contului
+    with caplog.at_level(logging.INFO):
+        uid = client.post("/api/dosar", json={"wizard": {"id_client": "D1"}}).json()["uuid"]
+    assert uid                                       # dosar creat
+    assert "8717" in caplog.text                     # POZITIV: legitimatia (ID prof) E logata
+    assert "Adi S" not in caplog.text                # NEGATIV: numele evaluatorului NU apare in log
+
+
 def test_cont_invalid_422(client):
     assert client.post("/api/cont", json={"nume": "", "legitimatie": "x"}).status_code == 422
 
