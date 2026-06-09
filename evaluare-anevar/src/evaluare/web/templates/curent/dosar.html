@@ -1163,7 +1163,7 @@ $("calc").addEventListener("click", async function(){
     h+="<button type='button' id='la-gen'>Continuă la Generează →</button>";
     $("rezultat").innerHTML=h;
     var lg=$("la-gen"); if(lg) lg.addEventListener("click",function(){ subtab("s-genereaza"); });
-  }catch(e){ $("rezultat").textContent=(e&&e.message)?("Calculul a eșuat — "+e.message):"Calculul a eșuat — verifică valorile (suprafețe, elemente, comparabile)."; }
+  }catch(e){ console.error("Eroare calcul:", e); var m=(e&&e.message)||(e&&(""+e))||"verifică valorile (suprafețe, elemente, comparabile)."; $("rezultat").textContent="Calculul a eșuat — "+m; }
 });
 function genereazaRaport(adnotari, btn){
   // Nu mai injectăm tăcut o dată: dacă lipsesc datele, avertizăm explicit (risc juridic la garantare).
