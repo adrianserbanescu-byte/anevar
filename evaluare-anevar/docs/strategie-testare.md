@@ -216,12 +216,20 @@ Comenzi:
 ```bash
 python scripts/_e2e.py                 # toată suita e2e (boot server, run, stop server)
 python scripts/_e2e.py xss grid        # doar scripturile al căror nume conține „xss" sau „grid"
-python scripts/_e2e.py --no-server http://127.0.0.1:8000   # rulează contra unui server existent
+python scripts/_e2e.py --no-server URL # rulează contra unui server existent (ex. http://127.0.0.1:8000)
+python scripts/_e2e.py --fail-fast     # oprește la primul fail (util pentru iterare locală)
+python scripts/_e2e.py --quiet         # output minimal (o linie sumar — pentru scripturi de gate)
+python scripts/_e2e.py --json          # raport JSON pe stdout (consum machine; pentru CI viitor)
 python scripts/_e2e.py --list          # listează scripturile descoperite
 ```
-Baseline (2026-06-09): **6/6 OK în 67s** (wall-clock, include boot server + Chromium); `_pw_smoke.py`
-domină (~26s). Rulează încă LOCAL (nu în CI): cere `chromium` instalat (`python -m playwright install
+Baseline (2026-06-09): **6/6 OK în ~67-90s wall-clock** (include boot server + Chromium); `_pw_smoke.py`
+domină (~26s). Rulează LOCAL (nu în CI): cere `chromium` instalat (`python -m playwright install
 chromium`), care e prea greu pentru CI-ul curent. **A rula înainte de fiecare release `.exe`.**
+
+> **Decizie luată: NU paralelizăm scripturile e2e între ele.** Toate fac `POST /api/cont` +
+> `POST /api/dosar` pe ACELAȘI server izolat — paralelizarea naivă ar produce race-uri pe starea
+> partajată (overwrite cont, conflicte UID, dosare amestecate). Un server-per-script ar costa
+> 6× boot. Verdictul: serialul cu izolare prin server e cel mai bun raport risc/câștig.
 
 > NU am atins logica scripturilor individuale (sunt teste per-feature, rămân ale autorilor); doar
 > le-am consolidat într-un runner reproductibil.
