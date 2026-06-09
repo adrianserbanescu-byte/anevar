@@ -1,19 +1,6 @@
-{# Bara de brand + navigare. Setează {% set pagina %} pentru evidențierea paginii curente. #}
+{# NAVIGATIE UNICA = _nav_cross (consolidat 2026-06-09, cerere Adi: un singur UI + un singur nav vizibil).
+   Scos: topbar-ul vechi (al 2-lea nav: Evaluare/Dosare/Grile/Descoperire/AML) + brand-ul ->/wizard.
+   Paginile inca seteaza {% set pagina %} inainte de include (neutilizat acum, pastrat compat).
+   Toate paginile au _cartus pt header propriu, deci nu raman fara antet. #}
 {% include "_nav_cross.html" %}
-<div class="topbar">
-  <a class="brand" href="/wizard" aria-label="Acasă — Registru de evaluare">
-    <span class="brand-seal" aria-hidden="true">EA</span>
-    <span class="brand-text">
-      <span class="kicker">Registru de evaluare</span>
-      <span class="brand-title">ANEVAR · Cabinet de evaluare imobiliară</span>
-    </span>
-  </a>
-  <nav class="topnav" aria-label="Navigare principală">
-    <a href="/wizard"      {% if pagina == 'wizard' %}aria-current="page"{% endif %}>Evaluare</a>
-    <a href="/dosare"      {% if pagina == 'dosare' %}aria-current="page"{% endif %}>Dosare</a>
-    <a href="/grila"       {% if pagina == 'grila' %}aria-current="page"{% endif %}>Grile</a>
-    <a href="/descoperire" {% if pagina == 'descoperire' %}aria-current="page"{% endif %}>Descoperire</a>
-    <a href="/aml"         {% if pagina == 'aml' %}aria-current="page"{% endif %}>AML</a>
-  </nav>
-</div>
-{# widget-ul de feedback s-a mutat în _footer.html (apare pe TOATE paginile, vechi + nou) #}
+{# widget-ul de feedback e in _footer.html (toate paginile). #}

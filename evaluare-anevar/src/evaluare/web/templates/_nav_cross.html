@@ -1,8 +1,8 @@
-{# Comutator UI nou / UI vechi + Documente. Inclus în antetul fiecărei pagini (ambele UI-uri). #}
+{# Navigatia UNICA a aplicatiei (consolidat 2026-06-09, cerere Adi: un singur UI + un singur nav vizibil).
+   Inclusa in antetul fiecarei pagini (prin _topbar sau direct) + in subsol. #}
 {% from "_icon.html" import icon %}
-<nav class="cross-ui" aria-label="{{ cross_label|default('Comută interfața') }}">
-  <a href="/alege">{{ icon("swap") }} Alege interfața</a>
-  <a href="/incepe">Homepage nou</a>
+<nav class="cross-ui" aria-label="{{ cross_label|default('Navigare') }}">
+  <a href="/incepe">Acasă</a>
   <a href="/flux-livrabile">{{ icon("map") }} Flux livrabile</a>
   <a href="/documente">{{ icon("doc") }} Documente</a>
   <a href="/documente/ghid-start">{{ icon("help") }} Ajutor</a>
