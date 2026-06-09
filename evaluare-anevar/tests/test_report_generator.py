@@ -68,6 +68,18 @@ def test_raportul_contine_datele_cheie(tmp_path):
     assert "Cea mai buna utilizare" in text        # narativ inserat
 
 
+def test_raportul_contine_disclaimer_aplicatie(tmp_path):
+    # Cerinta Adi: ORICE document generat poarta disclaimer-ul aplicatiei catre evaluator (draft +
+    # raspunderea revine evaluatorului semnatar + aplicatia fara raspundere) — mereu, nu doar in demo.
+    from evaluare.report.generator import DISCLAIMER_APLICATIE
+    out = tmp_path / "raport.docx"
+    genereaza_raport(_ctx(), out)              # adnotari=False -> raport normal, nu demo
+    text = _all_text(out)
+    assert "NOTĂ A APLICAȚIEI CĂTRE EVALUATOR" in text
+    assert DISCLAIMER_APLICATIE in text
+    assert "DRAFT" in text and "nicio răspundere" in text
+
+
 def test_raport_offline_fara_ai_e_complet(tmp_path):
     # ADR-004 (offline-first): fără narativ AI (offline / fără client), raportul iese COMPLET
     # cu text-șablon (fallback), fără să eșueze — dependența online e DOAR pentru lustruirea AI.
