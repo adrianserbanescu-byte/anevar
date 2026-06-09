@@ -56,7 +56,36 @@ complet (fastapi + pydantic + fitz + anthropic + pyinstaller) fără nicio conex
 artefact de release (ex. `packaging/evaluare-anevar-wheels.zip`) lângă exe. Decizie de luat cu
 owner-ul de release: commit în repo (self-contained, +50 MB) **sau** artefact extern (repo curat).
 
-## 3. Prerechizite & note
+## 3. Release checklist (înainte de a publica un `.exe` ca artefact)
+
+Gate pre-distribuție — toate trebuie ✓ înainte de a da exe-ul evaluatorilor:
+
+```powershell
+# 1) suita pytest verde (gate de unitate + integrare)
+.\.venv312\Scripts\python.exe -m compileall -q src tests
+.\.venv312\Scripts\python.exe -m pytest -n auto --dist loadscope --max-worker-restart=4 -q --cov=evaluare
+
+# 2) harness e2e verde (Playwright; verifică fluxurile UI reale)
+.\.venv312\Scripts\python.exe scripts\_e2e.py
+#   sau pe CI/wrapper: ... scripts\_e2e.py --quiet   (o linie sumar, exit code = nr eșuate)
+
+# 3) build canonic (vezi §1; venv curat, --clean --upx)
+.\.venv312\Scripts\python.exe scripts\build.py --clean --upx
+
+# 4) smoke pe exe-ul produs (PORT DIFERIT de live = 8000; ex. 8155)
+$env:ANEVAR_PORT="8155"; $env:ANEVAR_NO_BROWSER="1"
+.\dist\evaluare-anevar.exe   # apoi GET /api/status -> 200, plus câteva pagini
+```
+
+Criterii de oprire a release-ului (orice = STOP):
+- Pytest: ≥1 fail sau coverage <90% (gate-ul `fail_under=90`).
+- e2e: orice script `_check_*` sau `_pw_smoke.py` cu exit ≠ 0 (`_e2e.py` întoarce nr eșuate).
+- Build: `BUILD EȘUAT.` sau exe lipsă în `dist/`.
+- Smoke: `/api/status` ≠ 200 în 20s; sau una dintre paginile cheie ≠ 200.
+
+Detalii și ce acoperă fiecare nivel: `docs/strategie-testare.md` (master test plan).
+
+## 4. Prerechizite & note
 
 - **Python 3.12** (build-ul de producție). Pentru Windows 7 vezi `docs/win7-build.md` (parcat).
 - **UPX** (opțional, pentru `--upx`): binar portabil; pus pe PATH sau în `.upx/` (gitignored).
