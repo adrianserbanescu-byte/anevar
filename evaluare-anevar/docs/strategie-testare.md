@@ -127,9 +127,11 @@ python -m pytest -n auto -q
 python -m pytest -n auto --cov=evaluare --cov-report=term-missing
 # Lint:
 python -m ruff check src/ tests/
-# End-to-end Playwright (manual, cere chromium + server pe 8765):
-PYTHONPATH=src python scripts/_serve_test.py &   # terminal 1
-PYTHONIOENCODING=utf-8 PYTHONPATH=src python scripts/_pw_smoke.py   # terminal 2
+# End-to-end Playwright — runner unic (auto-pornește serverul izolat pe :8765, rulează tot):
+python scripts/_e2e.py             # pw_smoke + toate _check_*.py (6/6 OK ~67s pe baseline)
+python scripts/_e2e.py xss grid    # doar potrivirile pe nume
+python scripts/_e2e.py --list      # listează scripturile descoperite
+# Prerechizite: `python -m playwright install chromium` (o dată).
 ```
 
 CI (`.github/workflows`): rulează pytest + ruff la fiecare push. E2E Playwright e manual
@@ -172,13 +174,22 @@ diff <(grep -rhoE "fetch\(['\"\`][^'\"\`]+" *.html | sed -E "s/fetch\(['\"\`]//"
 feedback scurtă = teste rulate des = regresii prinse devreme.
 
 ### 10.1 Paralelizare (`pytest-xdist`)
-- `pytest -n auto` distribuie testele pe toate nucleele. Măsurat: **~117s serial → ~54s paralel**
-  (8 nuclee, **583 teste** la 2026-06-09) — ~2.1×. Testele sunt deja izolate (fiecare cu `tmp_path`
-  / fixturi proprii, zero rețea), deci paralelizarea e sigură — **583 passed identic pe `-n auto`**.
+- `pytest -n auto` distribuie testele pe toate nucleele. Măsurat: **~117s serial → ~46-54s paralel**
+  (8 nuclee, **586 teste** la 2026-06-09) — ~2.1×. Testele sunt izolate (fiecare cu `tmp_path` /
+  fixturi proprii, zero rețea), deci paralelizarea e sigură — **586 passed identic pe `-n auto`**.
 - **NU** punem `-n auto` în `addopts` implicit: rularea serială rămâne default-ul pentru
   debugging clar (`-x`, `pdb`, output ne-întrețesut). Paralel = explicit (CI + rulări full locale).
-- CI (`.github/workflows/ci.yml`) rulează `pytest -n auto --cov` — `pytest-cov` combină automat
-  acoperirea per-worker, deci gate-ul `fail_under=90` rămâne valid (verificat: 93.6% pe `-n auto`).
+- CI rulează **`pytest -n auto --dist loadscope --max-worker-restart=4 --cov`**, precedat de
+  `python -m compileall -q src tests`. `pytest-cov` combină acoperirea per-worker → gate
+  `fail_under=90` valid (93.6%).
+
+> **⚠️ Flakiness xdist sub LOAD (2026-06-09):** pe o mașină **supraîncărcată** (mai multe sesiuni
+> rulând simultan), `-n auto` poate pica TRANZITORIU la colectare (`ImportError` pe module, ex.
+> `test_zona`) — workeri care mor sub presiune CPU/RAM. **Nu e bug de cod** (serial e mereu verde).
+> Mitigări aplicate în CI: `compileall` (elimină race-ul `.pyc` între workeri), `--max-worker-restart=4`
+> (repornește workerii morți în loc să pice run-ul), `--dist loadscope` (mai puțin re-setup).
+> **Pe CI dedicat (GitHub, 2-4 nuclee, low-load) e robust.** **Local, sub load greu (sesiuni paralele):
+> folosește `pytest` serial sau `pytest -n 2`** — serialul rămâne gate-ul determinist de referință.
 
 ### 10.2 Coverage-gate
 - Prag `fail_under = 90` în `[tool.coverage.report]` (pyproject). Scădere sub prag = CI roșu.
@@ -190,9 +201,30 @@ LibreOffice), `test_settings_with_key_builds_client` (~4s, import `anthropic`), 
 `TestClient` din `test_web_curent` (~1s/test). Dacă devin un cost real, se pot marca pentru
 rulare opțională (marker `slow`) **fără** a le modifica logica (sunt teste per-feature ale altor sesiuni).
 
-### 10.4 e2e (Playwright)
-`scripts/_pw_smoke.py` (30 verificări) rămâne manual (cere browser + server pe 8765); de rulat
-înainte de fiecare release `.exe`. Vezi §6. Plan: harness reproductibil + integrare opțională în CI.
+### 10.4 e2e (Playwright) — harness consolidat
+Înainte: rulare manuală a 6 scripturi independente (`_pw_smoke.py` + 5 × `_check_*.py`), fiecare
+cu propriul boilerplate, plus server pornit separat (`_serve_test.py`) într-un alt terminal.
+
+Acum: **runner unic** `scripts/_e2e.py` (owner: D, Rol 2):
+- pornește serverul izolat (`_serve_test.py`, port 8765, DB+date temporare în `%TEMP%`, fără AI);
+- rulează toate scripturile descoperite (`_pw_smoke.py` + `_check_*.py`) ca subprocese;
+- agregează rezultatele (OK/FAIL per script, durată, ultimele linii la fail);
+- oprește serverul la final;
+- exit code = numărul de scripturi eșuate (0 = toate verzi → integrabil în CI/release).
+
+Comenzi:
+```bash
+python scripts/_e2e.py                 # toată suita e2e (boot server, run, stop server)
+python scripts/_e2e.py xss grid        # doar scripturile al căror nume conține „xss" sau „grid"
+python scripts/_e2e.py --no-server http://127.0.0.1:8000   # rulează contra unui server existent
+python scripts/_e2e.py --list          # listează scripturile descoperite
+```
+Baseline (2026-06-09): **6/6 OK în 67s** (wall-clock, include boot server + Chromium); `_pw_smoke.py`
+domină (~26s). Rulează încă LOCAL (nu în CI): cere `chromium` instalat (`python -m playwright install
+chromium`), care e prea greu pentru CI-ul curent. **A rula înainte de fiecare release `.exe`.**
+
+> NU am atins logica scripturilor individuale (sunt teste per-feature, rămân ale autorilor); doar
+> le-am consolidat într-un runner reproductibil.
 
 ### 10.5 Procedură owner la re-sync cu master
 La fiecare schimbare de framework: `test-optim` trage din `origin/master`, rulează `pytest -n auto`
