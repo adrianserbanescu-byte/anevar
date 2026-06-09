@@ -179,7 +179,7 @@
       <h3>{{ icon("search") }} Descoperă comparabile</h3>
       <div class="field-row">
         <div class="field"><label for="d-tip">Caut</label>
-          <select id="d-tip"><option value="case">Construcții (casă/ap.)</option><option value="terenuri">Terenuri</option></select></div>
+          <select id="d-tip"><option value="casa">Casă + teren</option><option value="apartament">Apartament</option><option value="teren">Teren</option></select></div>
         <div class="field"><label for="d-portal">Portal</label>
           <select id="d-portal"><option value="toate" selected>Toate portalurile</option>
             <option value="imobiliare">imobiliare.ro</option><option value="storia">storia.ro</option></select></div>
@@ -798,10 +798,10 @@ if($("ing-fisier")) $("ing-fisier").addEventListener("change", function(){
       $("d-status").textContent="✓ "+linii.length+" importate în "+(teren?"Comparabile teren":"grilă")+".";
     });
   }
-  function cerePortal(portal, teren){
-    var url, payload;
+  function cerePortal(portal, tip){
+    var teren=(tip==="teren"), url, payload;
     if(teren){ url="/api/descopera-teren"; payload={portal:portal, judet:$("d-judet").value, localitate:$("d-localitate").value, suprafata_subiect:$("d-teren").value||null, max_candidati:8}; }
-    else { url="/api/descopera"; payload={portal:portal, judet:$("d-judet").value, localitate:$("d-localitate").value,
+    else { url="/api/descopera"; payload={portal:portal, judet:$("d-judet").value, localitate:$("d-localitate").value, tip_activ:tip,
       subiect:{an:parseInt($("d-an").value)||null, stare:parseInt($("d-stare").value)||null,
         finisaj:parseInt($("d-finisaj").value)||null, incalzire:$("d-incalzire").value||null, teren:$("d-teren").value||null},
       atribute_secundare:($("d-secundare")&&$("d-secundare").value||"").split("\n").filter(Boolean), max_candidati:8}; }
@@ -814,9 +814,9 @@ if($("ing-fisier")) $("ing-fisier").addEventListener("change", function(){
   cauta.addEventListener("click", function(){
     $("d-status").textContent="… se caută (poate dura câteva secunde)"; $("d-rezultate").innerHTML="";
     cerePortal._erori=0;
-    var teren=($("d-tip")&&$("d-tip").value==="terenuri");
+    var tip=($("d-tip")&&$("d-tip").value)||"casa", teren=(tip==="teren");
     var sel=$("d-portal").value, portaluri=(sel==="toate")?PORTALURI:[sel];
-    Promise.all(portaluri.map(function(pp){ return cerePortal(pp, teren); })).then(function(lists){
+    Promise.all(portaluri.map(function(pp){ return cerePortal(pp, tip); })).then(function(lists){
       var cand=[].concat.apply([], lists).sort(function(a,b){ return (b.relevanta||0)-(a.relevanta||0); });
       // nu masca eșecul drept „0 candidați": dacă toate portalurile au eșuat, spune-o clar.
       if(!cand.length && cerePortal._erori){ $("d-status").textContent="Portalul nu a răspuns sau conexiunea a eșuat — încearcă din nou sau adaugă comparabilele manual."; return; }
