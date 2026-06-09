@@ -1152,7 +1152,7 @@ function asambleaza(){
 $("calc").addEventListener("click", async function(){
   $("rezultat").textContent="Se calculează…";
   try{ var r=await fetch("/api/dosar/"+UID+"/calcul",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(asambleaza())});
-    if(!r.ok) throw new Error();
+    if(!r.ok){ var je=await r.json().catch(function(){return{};}); throw new Error(je.detail||("Calculul a eșuat (cod "+r.status+").")); }
     var d=await r.json();
     var h="<p><b>Valoare: "+fmtRo(d.valoare_finala)+" "+$("moneda").value+"</b> ("+d.metoda+")</p>";
     if(d.alerte && d.alerte.length){
@@ -1163,7 +1163,7 @@ $("calc").addEventListener("click", async function(){
     h+="<button type='button' id='la-gen'>Continuă la Generează →</button>";
     $("rezultat").innerHTML=h;
     var lg=$("la-gen"); if(lg) lg.addEventListener("click",function(){ subtab("s-genereaza"); });
-  }catch(e){ $("rezultat").textContent="Calculul a eșuat — verifică valorile (suprafețe, elemente, comparabile)."; }
+  }catch(e){ $("rezultat").textContent=(e&&e.message)?("Calculul a eșuat — "+e.message):"Calculul a eșuat — verifică valorile (suprafețe, elemente, comparabile)."; }
 });
 function genereazaRaport(adnotari, btn){
   // Nu mai injectăm tăcut o dată: dacă lipsesc datele, avertizăm explicit (risc juridic la garantare).
