@@ -14,3 +14,7 @@ feedback-*.csv
 # Pachet de feedback (binare mari — nu in git; README-ul ramane)
 packaging/*.zip
 packaging/evaluare-anevar-feedback/
+
+# Bundle wheel-uri pt build offline (~50 MB) + exe-uri de distributie - artefacte locale (vezi docs/build.md)
+packaging/wheels/
+packaging/*.exe
