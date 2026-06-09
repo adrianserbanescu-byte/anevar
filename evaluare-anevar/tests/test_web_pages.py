@@ -15,9 +15,10 @@ def test_index_is_alegere_ui(tmp_path):
     resp = client.get("/")
     assert resp.status_code == 200
     assert "text/html" in resp.headers["content-type"]
-    # pagina principala este acum alegerea interfetei (UI nou vs wizard vechi)
+    # pagina principala = alegerea interfetei UI NOU (flux + incepe); wizard vechi ASCUNS (decizie Adi 2026-06-08)
     assert "Alege interfața" in resp.text
-    assert 'href="/incepe"' in resp.text and 'href="/wizard"' in resp.text
+    assert 'href="/incepe"' in resp.text and 'href="/flux-livrabile"' in resp.text
+    assert 'href="/wizard"' not in resp.text   # wizard vechi ascuns din index
 
 
 def test_wizard_inca_la_ruta_proprie(tmp_path):

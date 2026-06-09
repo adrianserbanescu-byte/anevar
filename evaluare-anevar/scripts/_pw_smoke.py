@@ -163,7 +163,10 @@ with sync_playwright() as pw:
     # ---------- INDEX (alegere UI) + DOCUMENTE ----------
     p, errs = pagina(ctx, BASE + "/")
     check("index: alegere UI fără erori", not errs, "; ".join(errs[:3]))
-    check("index: linkuri UI nou + vechi", "/incepe" in p.content() and "/wizard" in p.content())
+    # Wizard vechi ASCUNS din index + nav (decizie Adi 2026-06-08): index = doar UI nou (flux + incepe).
+    _idx = p.content()
+    check("index: UI nou (incepe + flux), wizard ascuns",
+          "/incepe" in _idx and "/flux-livrabile" in _idx and "/wizard" not in _idx)
     check("index: cross-nav prezent", p.eval_on_selector(".cross-ui", "e=>!!e") is True)
     p.close()
     p, errs = pagina(ctx, BASE + "/documente")
