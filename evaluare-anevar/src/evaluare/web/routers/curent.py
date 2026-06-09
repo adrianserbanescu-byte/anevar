@@ -16,6 +16,8 @@ from fastapi.responses import FileResponse, HTMLResponse
 from evaluare import cont as cont_mod
 from evaluare import dosare_fs as fs
 from evaluare.assembler import EvaluationInput, construieste_context, valideaza
+from evaluare.engine import metodologie_store
+from evaluare.engine.metodologie import ca_dict
 from evaluare.logging_setup import get_logger
 from evaluare.report.generator import genereaza_raport
 from evaluare.web.deps import DOCX_MIME, Deps
@@ -27,11 +29,15 @@ log = get_logger(__name__)
 def build_router(d: Deps) -> APIRouter:
     router = APIRouter()
 
+    def _metodologie_cfg():
+        """Config de metodologie efectiv (default + override-ul evaluatorului persistat local)."""
+        return metodologie_store.config_efectiv(d.storage.db_path.parent)
+
     def _context(inp: EvaluationInput):
         """Construiește contextul; erorile de date (ex. depreciere goală la cost) → 422 clar, nu 500."""
         try:
-            return construieste_context(inp, client=d.client)
-        except ValueError as e:
+            return construieste_context(inp, client=d.client, cfg=_metodologie_cfg())
+        except (ValueError, ArithmeticError) as e:   # ArithmeticError: ex. rotunjire degenerata -> 422, nu 500
             raise HTTPException(422, f"Date insuficiente sau invalide pentru calcul: {e}") from e
 
     # ── Cont ─────────────────────────────────────────────────────────────────────
@@ -169,7 +175,7 @@ def build_router(d: Deps) -> APIRouter:
         return {
             "valoare_finala": str(ctx.reconciled.valoare_finala),
             "metoda": ctx.reconciled.metoda_selectata,
-            "alerte": [a.model_dump() for a in valideaza(inp)],
+            "alerte": [a.model_dump() for a in valideaza(inp, _metodologie_cfg())],
         }
 
     @router.post("/api/dosar/{uid}/audit.txt")
@@ -324,5 +330,18 @@ def build_router(d: Deps) -> APIRouter:
         buf.seek(0)
         return StreamingResponse(buf, media_type="application/zip",
             headers={"Content-Disposition": "attachment; filename=backup-dosare.zip"})
+
+    @router.get("/api/metodologie-config")
+    def get_metodologie_config() -> dict:
+        """Configul de metodologie efectiv (default + override evaluator) — opțiunile din auditul #3."""
+        return {"config": ca_dict(_metodologie_cfg()), "editabil": True}
+
+    @router.post("/api/metodologie-config")
+    def post_metodologie_config(body: dict) -> dict:
+        """Salvează opțiunile de metodologie editate de evaluator (M1/M3/M5/E1). Câmpurile necunoscute
+        sau cu tip invalid sunt ignorate (cad pe default) — persistă local, ca override-ul de ponderi."""
+        override = body.get("config", body) if isinstance(body, dict) else {}
+        salvat = metodologie_store.salveaza_override(d.storage.db_path.parent, override)
+        return {"ok": True, "config": salvat, "editabil": True}
 
     return router

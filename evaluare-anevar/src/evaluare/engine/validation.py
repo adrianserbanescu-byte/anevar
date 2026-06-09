@@ -8,14 +8,16 @@ from typing import Literal
 from pydantic import BaseModel
 
 from evaluare.engine.market import ajustare_bruta, pret_unitar_brut
+from evaluare.engine.metodologie import IMPLICIT, MetodologieConfig
 from evaluare.models.comparable import Comparable
 from evaluare.models.property import BuildingData, LandData
 
 Nivel = Literal["blocheaza", "alerteaza"]
 
-LIMITA_AJUSTARE_BRUTA = Decimal("0.25")
-PRAG_OUTLIER = Decimal("0.50")   # deviatie relativa fata de mediana
-MIN_COMPARABILE = 3
+# Praguri default (alias la config) — valorile efective vin din MetodologieConfig (M5, configurabil).
+LIMITA_AJUSTARE_BRUTA = IMPLICIT.limita_ajustare_bruta
+PRAG_OUTLIER = IMPLICIT.prag_outlier   # deviatie relativa fata de mediana
+MIN_COMPARABILE = IMPLICIT.min_comparabile
 
 
 class Issue(BaseModel):
@@ -43,13 +45,14 @@ def valideaza_proprietate(land: LandData, building: BuildingData) -> list[Issue]
     return issues
 
 
-def valideaza_comparabile(comparables: list[Comparable]) -> list[Issue]:
-    """Valideaza numarul, outlierii si limitele de ajustare ale comparabilelor."""
+def valideaza_comparabile(comparables: list[Comparable],
+                          cfg: MetodologieConfig = IMPLICIT) -> list[Issue]:
+    """Valideaza numarul, outlierii si limitele de ajustare ale comparabilelor (praguri din config — M5)."""
     issues: list[Issue] = []
-    if len(comparables) < MIN_COMPARABILE:
+    if len(comparables) < cfg.min_comparabile:
         issues.append(Issue(
             nivel="blocheaza",
-            mesaj=f"Sunt necesare minimum {MIN_COMPARABILE} comparabile (gasite: {len(comparables)}).",
+            mesaj=f"Sunt necesare minimum {cfg.min_comparabile} comparabile (gasite: {len(comparables)}).",
         ))
         return issues
 
@@ -58,17 +61,18 @@ def valideaza_comparabile(comparables: list[Comparable]) -> list[Issue]:
     if med > 0:
         for i, p in enumerate(preturi):
             deviatie = abs(p - med) / med
-            if deviatie > PRAG_OUTLIER:
+            if deviatie > cfg.prag_outlier:
                 issues.append(Issue(
                     nivel="alerteaza",
                     mesaj=f"Comparabilul {i} este outlier (deviatie {deviatie:.0%} fata de mediana).",
                 ))
 
     for i, c in enumerate(comparables):
-        if ajustare_bruta(c) > LIMITA_AJUSTARE_BRUTA:
+        g = ajustare_bruta(c)
+        if g > cfg.limita_ajustare_bruta:
             issues.append(Issue(
                 nivel="alerteaza",
-                mesaj=f"Comparabilul {i}: ajustare bruta {ajustare_bruta(c):.0%} depaseste limita de {LIMITA_AJUSTARE_BRUTA:.0%}.",
+                mesaj=f"Comparabilul {i}: ajustare bruta {g:.0%} depaseste limita de {cfg.limita_ajustare_bruta:.0%}.",
             ))
     return issues
 

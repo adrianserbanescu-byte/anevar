@@ -5,6 +5,7 @@ from decimal import ROUND_HALF_UP, Decimal
 from typing import Literal
 
 from evaluare.engine.abordari import RezultatAbordare
+from evaluare.engine.metodologie import IMPLICIT, MetodologieConfig
 from evaluare.models.results import CostResult, MarketResult, ReconciledResult
 
 Metoda = Literal["piata", "cost", "ponderata"]
@@ -14,7 +15,8 @@ def reconcile(
     market: MarketResult | None,
     cost: CostResult | None,
     metoda: Metoda = "piata",
-    pondere_piata: Decimal = Decimal("0.5"),
+    pondere_piata: Decimal | None = None,
+    cfg: MetodologieConfig = IMPLICIT,
 ) -> ReconciledResult:
     """Selecteaza valoarea finala din cele doua abordari.
 
@@ -22,7 +24,10 @@ def reconcile(
     - "cost": foloseste valoarea prin cost (teren + CIN)
     - "ponderata": medie ponderata (pondere_piata pentru piata)
     Daca abordarea ceruta nu e disponibila, cade pe cealalta si noteaza motivul.
+    `pondere_piata` None -> default din config (M3). Valoarea ponderata se rotunjeste la pasul din config (E1).
     """
+    if pondere_piata is None:
+        pondere_piata = cfg.pondere_piata_default
     market_value = market.valoare_piata if market is not None else None
     cost_value = cost.valoare_cost if cost is not None else None
 
@@ -54,7 +59,8 @@ def reconcile(
             nota="O abordare indisponibila; ponderarea nu s-a putut aplica.",
         )
     pondere_cost = Decimal("1") - pondere_piata
-    valoare = market_value * pondere_piata + cost_value * pondere_cost
+    valoare = (market_value * pondere_piata + cost_value * pondere_cost).quantize(
+        cfg.rotunjire_valoare, rounding=ROUND_HALF_UP)            # E1: rotunjire consistenta
     return ReconciledResult(valoare_finala=valoare, metoda_selectata="ponderata")
 
 
@@ -73,6 +79,7 @@ def reconcile_profil(
     rezultate: list[RezultatAbordare],
     primara: str,
     ponderi: dict[str, Decimal] | None = None,
+    cfg: MetodologieConfig = IMPLICIT,
 ) -> ReconciledResult:
     """Reconciliază o listă de RezultatAbordare după profil.
 
@@ -89,7 +96,7 @@ def reconcile_profil(
         total_pondere = sum(ponderi[a] for a in disponibile)
         if len(disponibile) >= 2 and total_pondere > 0:
             valoare = (sum(valori[a] * ponderi[a] for a in disponibile) / total_pondere
-                       ).quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
+                       ).quantize(cfg.rotunjire_valoare, rounding=ROUND_HALF_UP)   # E1
             return ReconciledResult(valoare_finala=valoare, metoda_selectata="ponderata")
         # sub doua abordari disponibile -> ponderarea nu se aplica; selectie cu nota
         nota = "Ponderarea nu s-a putut aplica (sub doua abordari disponibile)."

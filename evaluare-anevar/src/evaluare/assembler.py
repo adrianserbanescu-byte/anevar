@@ -11,6 +11,7 @@ from evaluare.engine.abordari import RezultatAbordare
 from evaluare.engine.cost import evaluate_cost
 from evaluare.engine.land import evaluate_land
 from evaluare.engine.market import evaluate_market
+from evaluare.engine.metodologie import IMPLICIT, MetodologieConfig
 from evaluare.engine.reconciliation import aloca_constructii, reconcile_profil
 from evaluare.engine.validation import (
     Issue,
@@ -98,24 +99,29 @@ class EvaluationInput(BaseModel):
     documente: list[str] = Field(default_factory=list)  # data-URL base64 (scanuri CF/cadastral) -> Anexa 3
 
 
-def valideaza(inp: EvaluationInput) -> list[Issue]:
+def valideaza(inp: EvaluationInput, cfg: MetodologieConfig = IMPLICIT) -> list[Issue]:
     """Ruleaza validarile SEV relevante pentru metoda aleasa.
 
     - proprietate (suprafete, Au<=Acd) si depreciere: mereu;
     - comparabile (min 3, outlier, limita ajustare): doar la metodele care folosesc piata.
+    `cfg` = praguri de metodologie configurabile (M5).
     """
     issues: list[Issue] = []
     issues += valideaza_proprietate(inp.land, inp.building)
     issues += valideaza_depreciere(inp.building)
     if inp.metoda in ("piata", "ponderata"):
-        issues += valideaza_comparabile(inp.comparables)
+        issues += valideaza_comparabile(inp.comparables, cfg)
     return issues
 
 
 def construieste_context(
-    inp: EvaluationInput, client: NarrativeClient | None
+    inp: EvaluationInput, client: NarrativeClient | None,
+    cfg: MetodologieConfig = IMPLICIT,
 ) -> ReportContext:
-    """Ruleaza motoarele si asambleaza ReportContext (inclusiv narativul)."""
+    """Ruleaza motoarele si asambleaza ReportContext (inclusiv narativul).
+
+    `cfg` = config de metodologie (M1 selectie teren, M3 pondere, E1 rotunjire); default = IMPLICIT.
+    """
     # Profil efectiv din tip (Pas 2) + scop (Pas 1) — framing raport, nu formula numerică.
     profil = rezolva_profil(inp.tip_proprietate, inp.scop, inp.profil)
     # Teren: daca exista comparabile de teren, valoarea se calculeaza prin grila;
@@ -123,7 +129,7 @@ def construieste_context(
     land_result = None
     valoare_teren = inp.valoare_teren
     if inp.land_comparables:
-        land_result = evaluate_land(inp.land_comparables, inp.land.suprafata)
+        land_result = evaluate_land(inp.land_comparables, inp.land.suprafata, cfg)
         valoare_teren = land_result.valoare_teren
 
     cost_result = None
@@ -172,7 +178,7 @@ def construieste_context(
     else:
         primara = "comparatie"
         ponderi = {"comparatie": inp.pondere_piata, "cost": Decimal("1") - inp.pondere_piata}
-    reconciled = reconcile_profil(rezultate, primara=primara, ponderi=ponderi)
+    reconciled = reconcile_profil(rezultate, primara=primara, ponderi=ponderi, cfg=cfg)
 
     alocare = None
     if valoare_teren is not None:

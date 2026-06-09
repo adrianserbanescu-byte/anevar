@@ -59,6 +59,17 @@ def test_lock_identitate_dupa_asumare(baza):
     assert d["wizard"]["au"] == "999"                          # tehnicul s-a actualizat
 
 
+def test_salveaza_wizard_recalc_nume_gol_apoi_completat(baza):
+    # Bug Adi 2026-06-09: un dosar creat GOL ramanea blocat pe „?_?_?"; acum salveaza_wizard
+    # recalculeaza MEREU numele -> dupa completarea identitatii, „?" dispare. (#7 coverage cod nou.)
+    import evaluare.dosare_fs as fs
+    uid = fs.creeaza("L1", "Ev", {})                       # gol -> nume cu „?"
+    assert "?" in fs.incarca(uid)["nume"]
+    d = fs.salveaza_wizard(uid, _wizard())                 # completat -> recalculat, fara „?"
+    assert "?" not in d["nume"]
+    assert fs.incarca(uid)["nume"] == d["nume"]            # persistat pe disc
+
+
 def test_deblocheaza_cere_motiv_si_logheaza(baza):
     # ADR-003: de-lock typo necesită motiv + intră în audit; re-generarea re-blochează.
     import evaluare.dosare_fs as fs

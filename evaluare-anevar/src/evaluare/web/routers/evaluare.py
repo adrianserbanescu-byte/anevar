@@ -32,12 +32,14 @@ def build_router(d: Deps) -> APIRouter:
     @router.post("/api/evaluare")
     def creeaza_evaluare(inp: EvaluationInput) -> dict:
         from evaluare.audit.validare_x import valideaza_incrucisat
+        from evaluare.engine import metodologie_store
+        cfg = metodologie_store.config_efectiv(d.storage.db_path.parent)   # acelasi config ca UI-ul nou
         try:
-            ctx = construieste_context(inp, client=d.client)
-        except ValueError as e:
+            ctx = construieste_context(inp, client=d.client, cfg=cfg)
+        except (ValueError, ArithmeticError) as e:
             raise HTTPException(422, f"Date insuficiente sau invalide pentru calcul: {e}") from e
         eid = d.storage.save(ctx)
-        alerte = [a.model_dump() for a in valideaza(inp)]
+        alerte = [a.model_dump() for a in valideaza(inp, cfg)]
         alerte += [a.model_dump() for a in valideaza_incrucisat(ctx)]  # validare incrucisata (audit)
         return {
             "id": eid,
