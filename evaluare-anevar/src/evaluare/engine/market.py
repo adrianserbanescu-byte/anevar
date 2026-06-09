@@ -15,6 +15,7 @@ from __future__ import annotations
 
 from decimal import Decimal
 
+from evaluare.engine.metodologie import IMPLICIT, MetodologieConfig
 from evaluare.models.comparable import Comparable
 from evaluare.models.results import MarketResult
 
@@ -79,13 +80,15 @@ def ajustare_neta(comp: Comparable) -> Decimal:
 
 
 def evaluate_market(
-    comparables: list[Comparable], suprafata_subiect: Decimal | None = None
+    comparables: list[Comparable], suprafata_subiect: Decimal | None = None,
+    cfg: MetodologieConfig = IMPLICIT,
 ) -> MarketResult:
-    """Ruleaza grila de comparatie pe pret total si selecteaza comparabilul cel mai similar.
+    """Ruleaza grila de comparatie pe pret total.
 
-    Selectia: comparabilul cu ajustarea bruta minima (etapa de proprietate).
-    Valoarea de piata = pretul total corectat al acelui comparabil (comparabilele sunt deja
-    aduse la subiect, inclusiv prin ajustarea de suprafata/arie utila).
+    Selectia: comparabilele cu ajustarea bruta minima (etapa de proprietate). Valoarea de piata =
+    MEDIA preturilor totale corectate ale celor mai similare `cfg.nr_comparabile_medie` comparabile
+    (M2; default = minimul legal de comparabile). `nr_comparabile_medie=1` -> comparabilul unic cel
+    mai similar (comportament istoric). `index_selectat` ramane cel mai similar (referinta).
     `suprafata_subiect` este pastrat pentru compatibilitate, dar nu mai intra in formula.
     """
     if not comparables:
@@ -93,12 +96,15 @@ def evaluate_market(
     preturi = [pret_total_corectat(c) for c in comparables]
     brute = [ajustare_bruta(c) for c in comparables]
     nete = [ajustare_neta(c) for c in comparables]
-    index_selectat = min(range(len(comparables)), key=lambda i: brute[i])
-    valoare = preturi[index_selectat]
+    ordine = sorted(range(len(comparables)), key=lambda i: brute[i])   # cele mai similare intai
+    index_selectat = ordine[0]
+    n = min(max(1, cfg.nr_comparabile_medie), len(comparables))
+    valoare = sum((preturi[i] for i in ordine[:n]), Decimal("0")) / n  # media top-N (N=1 -> selectie unica)
     return MarketResult(
         preturi_unitare_corectate=preturi,
         ajustari_brute=brute,
         ajustari_nete=nete,
         index_selectat=index_selectat,
+        indici_mediati=sorted(ordine[:n]),                 # comparabilele incluse in medie (M2)
         valoare_piata=valoare,
     )

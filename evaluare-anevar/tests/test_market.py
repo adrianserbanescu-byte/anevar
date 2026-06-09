@@ -9,7 +9,11 @@ from evaluare.engine.market import (
     pret_total_corectat,
     pret_unitar_brut,
 )
+from evaluare.engine.metodologie import MetodologieConfig
 from evaluare.models.comparable import Adjustment, Comparable
+
+# Grila reala GBF a folosit comparabilul UNIC (N=1); media top-N (M2) e testata in test_metodologie_m2.
+_N1 = MetodologieConfig(nr_comparabile_medie=1)
 
 
 def _adj(element, valoare, etapa="proprietate", tip="procentuala"):
@@ -50,7 +54,7 @@ def test_evaluate_market_valoare_egala_cu_totalul_ales():
                        adjustments=[_adj("A", 0.05)])
     comp1 = Comparable(pret=Decimal("520000"), suprafata=Decimal("100"),
                        adjustments=[_adj("A", -0.20)])
-    result = evaluate_market([comp0, comp1])
+    result = evaluate_market([comp0, comp1], cfg=_N1)
     assert result.index_selectat == 0
     # valoarea = totalul corectat al comp0 = 480000 * 1.05 = 504000 (NU x suprafata)
     assert result.valoare_piata == Decimal("504000.00")
@@ -144,7 +148,7 @@ def test_regresie_casa_reala_maneciu_brasov(oras):
 
 def test_regresie_casa_busteni_grila_completa():
     comps = [c for c, _ in BUSTENI_CASA]
-    r = evaluate_market(comps)
+    r = evaluate_market(comps, cfg=_N1)
     # toate preturile totale corectate reproduc celulele reale
     asteptate = [Decimal(f) for _, f in BUSTENI_CASA]
     for got, exp in zip(r.preturi_unitare_corectate, asteptate, strict=True):

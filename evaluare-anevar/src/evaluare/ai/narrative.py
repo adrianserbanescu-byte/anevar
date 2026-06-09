@@ -135,16 +135,16 @@ def _facts(ctx: ReportContext) -> str:
     if ctx.market_result is not None:
         m = ctx.market_result
         linii.append(
-            f"Abordarea prin piata (pret total): valoare={_b2(m.valoare_piata)}, "
-            f"comparabil selectat index {m.index_selectat}, "
-            f"numar comparabile={len(ctx.comparables)}."
+            f"Abordarea prin piata (pret total): valoare={_b2(m.valoare_piata)} = media celor mai "
+            f"similare {len(m.indici_mediati)} comparabile (cel mai similar: index {m.index_selectat}), "
+            f"din {len(ctx.comparables)} comparabile total."
         )
     if ctx.land_result is not None:
         lr = ctx.land_result
         linii.append(
             f"Teren prin comparatie: {_b2(lr.pret_mp_ales)} EUR/mp x {ctx.land.suprafata} mp = "
-            f"{_b2(lr.valoare_teren)} (comparabil selectat index {lr.index_selectat}, "
-            f"din {len(ctx.land_comparables)} comparabile de teren)."
+            f"{_b2(lr.valoare_teren)} (media celor mai similare {len(lr.indici_mediati)} comparabile; "
+            f"cel mai similar: index {lr.index_selectat}; din {len(ctx.land_comparables)} de teren)."
         )
     if ctx.alocare_constructii is not None:
         linii.append(

@@ -26,8 +26,9 @@ def test_grila_teren(tmp_path):
     resp = client.post("/api/grila-teren", json=payload)
     assert resp.status_code == 200
     data = resp.json()
-    assert data["index_selectat"] == 0
-    assert Decimal(data["valoare_teren"]) == Decimal("105000.00")
+    assert data["index_selectat"] == 0                  # cel mai similar (gross 0.05 < 0.30)
+    # M2 (default = media a 3, aici limitat la 2 comparabile): (105 + 84)/2 = 94.5 €/mp * 1000 = 94500
+    assert Decimal(data["valoare_teren"]) == Decimal("94500.00")
 
 
 def test_grila_casa(tmp_path):

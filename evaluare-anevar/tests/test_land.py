@@ -3,7 +3,12 @@ from decimal import Decimal
 import pytest
 
 from evaluare.engine.land import evaluate_land, pret_mp_corectat
+from evaluare.engine.metodologie import MetodologieConfig
 from evaluare.models.comparable import Adjustment, LandComparable
+
+# Grilele reale GBF au folosit SELECTIA comparabilului unic (N=1). Validam acel caz; media top-N
+# (M2, default 3) e testata separat in test_metodologie_m2. Vezi docs/audit-metodologie-3.
+_N1 = MetodologieConfig(nr_comparabile_medie=1)
 
 
 def _adj(element, valoare, etapa="proprietate", tip="procentuala"):
@@ -36,7 +41,7 @@ def test_evaluate_land_selecteaza_ajustare_bruta_minima():
                         adjustments=[_adj("A", 0.05)])
     c1 = LandComparable(pret_mp=Decimal("120"), suprafata=Decimal("500"),
                         adjustments=[_adj("A", -0.30)])
-    r = evaluate_land([c0, c1], suprafata_subiect=Decimal("1000"))
+    r = evaluate_land([c0, c1], suprafata_subiect=Decimal("1000"), cfg=_N1)
     assert r.index_selectat == 0
     assert r.pret_mp_ales == Decimal("105.00")
     assert r.valoare_teren == Decimal("105000.00")
@@ -107,7 +112,7 @@ REAL = {
 @pytest.mark.parametrize("nume", list(REAL.keys()))
 def test_regresie_grila_reala(nume):
     d = REAL[nume]
-    r = evaluate_land(d["comps"], suprafata_subiect=Decimal(d["supr"]))
+    r = evaluate_land(d["comps"], suprafata_subiect=Decimal(d["supr"]), cfg=_N1)
     assert r.index_selectat == d["idx"], f"{nume}: comparabil selectat gresit"
     # pretul/mp corectat al comparabilului ales reproduce celula reala
     assert round(r.pret_mp_ales, 5) == Decimal(d["pret_ales"]), f"{nume}: pret/mp gresit"

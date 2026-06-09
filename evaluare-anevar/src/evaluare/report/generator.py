@@ -356,7 +356,7 @@ def _adauga_grila_comparatie(doc: DocxDocument, ctx: ReportContext) -> None:
     hdr[0].text = "Comparabil"
     hdr[1].text = "Pret total corectat"
     hdr[2].text = "Ajustare bruta"
-    hdr[3].text = "Selectat"
+    hdr[3].text = "În medie"
     for i, _comp in enumerate(ctx.comparables):
         pret = m.preturi_unitare_corectate[i] if i < len(m.preturi_unitare_corectate) else ""
         bruta = m.ajustari_brute[i] if i < len(m.ajustari_brute) else ""
@@ -364,9 +364,15 @@ def _adauga_grila_comparatie(doc: DocxDocument, ctx: ReportContext) -> None:
         row[0].text = f"{i + 1}"
         row[1].text = _b2(pret)
         row[2].text = _pct(bruta)
-        row[3].text = "DA" if i == m.index_selectat else ""
+        # #6 (verificare adversariala B): valoarea = MEDIA celor N comparabile -> marcam TOATE cele N
+        # randuri din indici_mediati cu „DA" (nu doar unul), ca headline-ul sa se reconcilieze cu grila.
+        marcaj = "DA" if i in m.indici_mediati else ""
+        if i == m.index_selectat:
+            marcaj = (marcaj + " *").strip()   # * = cel mai similar (ajustare bruta minima), pastrat ca referinta
+        row[3].text = marcaj
     doc.add_paragraph(
-        f"Valoarea prin comparatie de piata: {_fmt(m.valoare_piata)} {ctx.meta.moneda}."
+        f"Valoarea prin comparatie de piata: {_fmt(m.valoare_piata)} {ctx.meta.moneda} = media celor mai "
+        f"similare {len(m.indici_mediati)} comparabile (cele marcate cu DA; * = cel mai similar, ajustare minima)."
     )
     doc.add_paragraph(
         "Sursele comparabilelor au caracter indicativ (oferte de pe portaluri publice); "
@@ -386,7 +392,7 @@ def _adauga_grila_teren(doc: DocxDocument, ctx: ReportContext) -> None:
     hdr[0].text = "Comparabil teren"
     hdr[1].text = "Pret/mp corectat"
     hdr[2].text = "Ajustare bruta"
-    hdr[3].text = "Selectat"
+    hdr[3].text = "În medie"
     for i, c in enumerate(ctx.land_comparables):
         pret = lr.preturi_mp_corectate[i] if i < len(lr.preturi_mp_corectate) else ""
         bruta = lr.ajustari_brute[i] if i < len(lr.ajustari_brute) else ""
@@ -395,9 +401,14 @@ def _adauga_grila_teren(doc: DocxDocument, ctx: ReportContext) -> None:
         row[0].text = eticheta
         row[1].text = _b2(pret)
         row[2].text = _pct(bruta)
-        row[3].text = "DA" if i == lr.index_selectat else ""
+        # #6 (verificare B): la fel ca la piata — marcam cele N randuri mediate (indici_mediati).
+        marcaj = "DA" if i in lr.indici_mediati else ""
+        if i == lr.index_selectat:
+            marcaj = (marcaj + " *").strip()
+        row[3].text = marcaj
     doc.add_paragraph(
-        f"Valoarea terenului = {_b2(lr.pret_mp_ales)} EUR/mp x {ctx.land.suprafata} mp = "
+        f"Valoarea terenului = {_b2(lr.pret_mp_ales)} EUR/mp (media celor mai similare "
+        f"{len(lr.indici_mediati)} comparabile; * = cel mai similar) x {ctx.land.suprafata} mp = "
         f"{_fmt(lr.valoare_teren)} EUR."
     )
 

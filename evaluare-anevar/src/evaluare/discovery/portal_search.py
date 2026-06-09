@@ -28,10 +28,13 @@ BAZE = {
 # /oferta/...; paginile de anunt sunt self-hosted (parserul generic extrage pret/supr/poza din JSON-LD+og).
 _SEGMENT = {
     ("imobiliare", "casa"): "vanzare-case-vile/judetul-{j}",
+    ("imobiliare", "apartament"): "vanzare-apartamente/judetul-{j}",
     ("imobiliare", "teren"): "vanzare-terenuri/judetul-{j}",
     ("storia", "casa"): "ro/rezultate/vanzare/casa/{j}",
+    ("storia", "apartament"): "ro/rezultate/vanzare/apartament/{j}",
     ("storia", "teren"): "ro/rezultate/vanzare/teren/{j}",
     ("imoradar", "casa"): "case-de-vanzare/judetul-{j}",
+    ("imoradar", "apartament"): "apartamente-de-vanzare/judetul-{j}",
     ("imoradar", "teren"): "terenuri-de-vanzare/judetul-{j}",
 }
 

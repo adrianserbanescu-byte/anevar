@@ -138,7 +138,7 @@ def construieste_context(
 
     market_result = None
     if inp.comparables:
-        market_result = evaluate_market(inp.comparables, suprafata_subiect=inp.building.acd)
+        market_result = evaluate_market(inp.comparables, suprafata_subiect=inp.building.acd, cfg=cfg)
 
     venit_result = None
     if inp.date_venit is not None:

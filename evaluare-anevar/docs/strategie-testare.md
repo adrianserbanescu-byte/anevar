@@ -227,7 +227,9 @@ Baseline (2026-06-09): **8/8 OK în ~114s** (boot server + Chromium incluse; `_p
 ~26s; auto-descoperă scripturile noi — `_check_descoperire_tip` + `_check_dosar_beneficiar` apărute
 între timp s-au integrat fără modificări la runner, validând designul glob). Rulează LOCAL (nu în CI):
 cere `chromium` instalat (`python -m playwright install chromium`), prea greu pentru CI-ul curent.
-**A rula înainte de fiecare release `.exe`.**
+**A rula înainte de fiecare release `.exe`** — vezi checklist-ul complet de release în
+[`docs/build.md` §3](build.md#3-release-checklist-înainte-de-a-publica-un-exe-ca-artefact)
+(gate-ul leagă pytest + e2e + build canonic + smoke).
 
 > **Decizie luată: NU paralelizăm scripturile e2e între ele.** Toate fac `POST /api/cont` +
 > `POST /api/dosar` pe ACELAȘI server izolat — paralelizarea naivă ar produce race-uri pe starea

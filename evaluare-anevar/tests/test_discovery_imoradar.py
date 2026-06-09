@@ -38,8 +38,16 @@ def test_build_search_url_slugify_diacritice_si_spatii():
 def test_build_search_url_portal_si_categorie_necunoscute_raises():
     with pytest.raises(ValueError):
         build_search_url("portal-inexistent", "ilfov", "", "casa")
-    with pytest.raises(ValueError):       # apartament nu e segment de search (doar casa/teren)
-        build_search_url("imoradar", "ilfov", "", "apartament")
+    with pytest.raises(ValueError):       # categorie genuinely necunoscuta (casa/apartament/teren sunt valide)
+        build_search_url("imoradar", "ilfov", "", "spatiu-comercial")
+
+
+def test_build_search_url_apartament_e_segment_valid():
+    # #3 (Adi): apartament e categorie de search VALIDA (nu mai cade pe „casa" -> nu mai aduce case).
+    for portal in ("imobiliare", "storia", "imoradar"):
+        url = build_search_url(portal, "prahova", "ploiesti", "apartament")
+        assert "apartament" in url.lower(), f"{portal} nu rutează la apartamente: {url}"
+        assert "case" not in url.lower(), f"{portal} aduce case la apartament: {url}"
 
 
 def test_extract_listing_urls_imoradar_oferta_si_prefer():

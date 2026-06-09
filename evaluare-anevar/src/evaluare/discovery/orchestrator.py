@@ -130,7 +130,11 @@ def descopera(
     ponderile efective ale categoriei (ex. override-ul editat de evaluator, persistat local).
     """
     ponderi = ponderi if ponderi is not None else ponderi_pentru(tip_activ)
-    urls = cauta_anunturi_multi(portal, judet, localitate, fetcher=fetcher)[:max_candidati]
+    # #3 (Adi): apartament -> sectiunea de APARTAMENTE a portalului. Fara asta, cauta_anunturi_multi
+    # cade pe "casa" (default) -> apartamentul aducea CASE. tip_activ schimba doar ponderile + filtrul.
+    categorie = "apartament" if tip_activ == "apartament" else "casa"
+    urls = cauta_anunturi_multi(portal, judet, localitate, fetcher=fetcher,
+                                categorie=categorie)[:max_candidati]
     rezultate: list[CandidateResult] = []
     for url in urls:
         try:

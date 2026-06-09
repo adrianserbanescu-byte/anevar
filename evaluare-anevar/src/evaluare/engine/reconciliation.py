@@ -87,7 +87,11 @@ def reconcile_profil(
     - `ponderi`: dacă e dat (dict nume->Decimal), face medie ponderată pe abordările cu valoare.
     Dacă primara lipsește, cade pe prima abordare disponibilă și notează motivul.
     """
-    valori = {r.abordare: r.valoare for r in rezultate if r.valoare is not None}
+    # Rotunjim valoarea fiecarei abordari la pasul din config (E1) -> valoarea finala e rotunjita
+    # consistent pe TOATE ramurile (piata/cost/ponderata), nu doar la ponderare. M2: media top-N poate
+    # avea multe zecimale; fara asta, valoarea bruta (ex. 28 cifre) ar ajunge in API + jurnalul de audit.
+    valori = {r.abordare: r.valoare.quantize(cfg.rotunjire_valoare, rounding=ROUND_HALF_UP)
+              for r in rezultate if r.valoare is not None}
     if not valori:
         raise ValueError("Nicio abordare nu produce o valoare utilizabilă.")
 
