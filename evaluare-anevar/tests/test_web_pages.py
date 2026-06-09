@@ -10,14 +10,25 @@ def _client(tmp_path):
     return TestClient(create_app(storage=storage, client=None))
 
 
-def test_index_is_alegere_ui(tmp_path):
+def test_root_redirect_cont_vs_incepe(tmp_path, monkeypatch):
+    # Logica de start (decizie Adi 2026-06-08): „/" fara cont -> /cont (definire user); cu cont -> /incepe.
+    monkeypatch.setenv("OUTPUT_DIR", str(tmp_path / "date"))
+    import evaluare.cont as cont_mod
     client = _client(tmp_path)
-    resp = client.get("/")
-    assert resp.status_code == 200
-    assert "text/html" in resp.headers["content-type"]
-    # pagina principala este acum alegerea interfetei (UI nou vs wizard vechi)
+    r = client.get("/", follow_redirects=False)
+    assert r.status_code in (302, 307) and r.headers["location"] == "/cont"
+    cont_mod.salveaza_cont("Test Evaluator", "12345")
+    r2 = client.get("/", follow_redirects=False)
+    assert r2.status_code in (302, 307) and r2.headers["location"] == "/incepe"
+
+
+def test_alegere_ui_la_alege(tmp_path):
+    # Alegerea interfetei (UI nou: flux + incepe) mutata pe /alege; wizard vechi ASCUNS.
+    resp = _client(tmp_path).get("/alege")
+    assert resp.status_code == 200 and "text/html" in resp.headers["content-type"]
     assert "Alege interfața" in resp.text
-    assert 'href="/incepe"' in resp.text and 'href="/wizard"' in resp.text
+    assert 'href="/incepe"' in resp.text and 'href="/flux-livrabile"' in resp.text
+    assert 'href="/wizard"' not in resp.text   # wizard vechi ascuns
 
 
 def test_wizard_inca_la_ruta_proprie(tmp_path):
@@ -96,3 +107,23 @@ def test_result_page_loads(tmp_path):
     assert resp.status_code == 200
     assert "Ion Popescu" in resp.text
     assert "raport.docx" in resp.text   # link de descarcare
+
+
+def test_setari_pagina(tmp_path, monkeypatch):
+    # Pagina Setări (batch Adi): vizualizare + editare cont (nume/legitimație/format) via /api/cont.
+    monkeypatch.setenv("OUTPUT_DIR", str(tmp_path / "date"))
+    import evaluare.cont as cont_mod
+    client = _client(tmp_path)
+    # fără cont: pagina se randează + invită la definire
+    r = client.get("/setari")
+    assert r.status_code == 200 and "Setări" in r.text
+    assert 'id="nume"' in r.text and 'id="legitimatie"' in r.text
+    # cu cont: afișează userul definit (nume + legitimație)
+    cont_mod.salveaza_cont("Maria Ionescu", "55512", ["client_nume", "tip_proprietate", "scop"])
+    r2 = client.get("/setari")
+    assert "Maria Ionescu" in r2.text and "55512" in r2.text and "Conectat ca" in r2.text
+
+
+def test_setari_in_nav(tmp_path):
+    # link-ul „Setări" apare în cross-nav pe paginile aplicației
+    assert 'href="/setari"' in _client(tmp_path).get("/incepe").text

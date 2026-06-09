@@ -61,13 +61,15 @@ def build_search_url(portal: str, judet: str, localitate: str = "",
     return f"{baza}/{localitate}" if localitate else baza
 
 
-def extract_listing_urls(html: str, baza: str, prefer: str = "") -> list[str]:
+def extract_listing_urls(html: str, baza: str, prefer: str = "", strict: bool = False) -> list[str]:
     """Extrage URL-urile anunturilor individuale (linkuri /oferta/) dintr-o pagina de cautare.
 
     `prefer` (ex. localitatea) — daca e dat SI exista anunturi al caror slug il contine,
     intoarce doar pe acelea. Astfel anunturile PROMOVATE din alta localitate (ex. un anunt
-    Pipera afisat pe cautarea Breaza) nu mai intra in setul de comparabile. Daca niciunul nu
-    se potriveste, intoarce toate (mai bine ceva decat nimic).
+    Pipera afisat pe cautarea Breaza) nu mai intra in setul de comparabile.
+    `strict` — daca prefer e dat dar NICIUN anunt nu-l contine: cu strict=False intoarce toate
+    (mai bine ceva decat nimic — ex. pe pagina localitatii, unde toate-s din localitate); cu
+    strict=True intoarce [] (ex. pe pagina de JUDET, ca sa nu aducem anunturi din alte localitati).
     """
     soup = BeautifulSoup(html, "html.parser")
     urls: list[str] = []
@@ -84,6 +86,8 @@ def extract_listing_urls(html: str, baza: str, prefer: str = "") -> list[str]:
         potrivite = [u for u in urls if prefer in u.lower()]
         if potrivite:
             return potrivite
+        if strict:               # pagina de judet (localitatea a dat 404) fara anunturi din
+            return []            # localitate -> [] (NU tot judetul), ca sa nu aducem alte localitati
     return urls
 
 
@@ -93,8 +97,9 @@ def cauta_anunturi(
 ) -> list[str]:
     """Descarca pagina de cautare si intoarce URL-urile anunturilor. Fetcher injectabil.
 
-    Incearca intai localitatea; daca da eroare (ex. 404 - unele orase au URL diferit pe storia)
-    sau nu gaseste anunturi, cade pe cautarea la nivel de judet.
+    Cu localitate: incearca pagina localitatii; la 404/goala cade pe pagina judetului DAR
+    filtreaza STRICT pe localitate (NU aduce tot judetul — cerinta Adi: doar localitatea aleasa;
+    localitatile vecine se adauga EXPLICIT, vezi orchestrator.descopera). Fara localitate: judet.
     """
     incercari = [localitate, ""] if localitate else [""]
     for loc in incercari:
@@ -103,8 +108,32 @@ def cauta_anunturi(
         except Exception as e:
             log.debug("Cautare esuata (portal=%s, judet=%s, loc=%r): %s", portal, judet, loc, e)
             continue
-        # la cautarea pe localitate, preferam anunturile cu localitatea in slug (taie promovate)
-        urls = extract_listing_urls(html, baza=BAZE[portal], prefer=loc)
+        # Filtram MEREU pe localitatea ceruta (si pe pagina de judet din fallback); pe fallback-ul
+        # de judet (loc="") cerem STRICT -> [] daca niciun anunt nu e in localitate (fara leak).
+        urls = extract_listing_urls(html, baza=BAZE[portal], prefer=localitate,
+                                    strict=bool(localitate) and loc == "")
         if urls:
             return urls
     return []
+
+
+def cauta_anunturi_multi(
+    portal: str, judet: str, localitati: str,
+    fetcher: Callable[[str], str] = fetch_html, categorie: str = "casa",
+) -> list[str]:
+    """Cauta pe MAI MULTE localitati (separate prin virgula) si combina rezultatele, dedup.
+
+    Asa userul adauga localitatile vecine pe care le vrea (cerinta Adi), fara geocoding:
+    fiecare localitate e cautata STRICT (cauta_anunturi nu aduce tot judetul), apoi se reunesc
+    in ordine. Sir gol / o singura localitate -> comportament identic cu cauta_anunturi.
+    """
+    parti = [p.strip() for p in (localitati or "").split(",") if p.strip()]
+    if len(parti) <= 1:
+        return cauta_anunturi(portal, judet, parti[0] if parti else "",
+                              fetcher=fetcher, categorie=categorie)
+    vazute: list[str] = []
+    for loc in parti:
+        for u in cauta_anunturi(portal, judet, loc, fetcher=fetcher, categorie=categorie):
+            if u not in vazute:
+                vazute.append(u)
+    return vazute

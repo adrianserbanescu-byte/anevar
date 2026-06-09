@@ -7,8 +7,14 @@ __pycache__/
 .pytest_cache/
 build/
 dist/
+.venv*/          # medii virtuale locale (build/dezvoltare)
+.upx/            # binarul UPX descarcat local (opt-in la build, vezi scripts/build.py --upx)
 feedback-*.csv
 
 # Pachet de feedback (binare mari — nu in git; README-ul ramane)
 packaging/*.zip
 packaging/evaluare-anevar-feedback/
+
+# Bundle wheel-uri pt build offline (~50 MB) + exe-uri de distributie - artefacte locale (vezi docs/build.md)
+packaging/wheels/
+packaging/*.exe

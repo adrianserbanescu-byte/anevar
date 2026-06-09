@@ -1,17 +1,26 @@
 <!DOCTYPE html>
 <html lang="ro">
-<head><meta charset="utf-8"><title>Cont — Evaluare ANEVAR</title>
+<head><meta charset="utf-8"><title>Setări — Evaluare ANEVAR</title>
 <style>{% include "_design.css" %}</style></head>
 <body>
+{% from "_icon.html" import icon %}
 <a class="skip-link" href="#continut">Sari la conținut</a>
 {% include "_nav_cross.html" %}
-<nav class="topbar" aria-label="Navigare principală"><a class="brand" href="/incepe"><span class="brand-seal">EA</span>
-  <span class="brand-text"><span class="kicker">Versiune curentă</span>
-  <span class="brand-title">Evaluare ANEVAR</span></span></a></nav>
-{% set kicker = "Versiune curentă" %}{% set titlu = "Cont evaluator" %}
-{% set subtitlu = "Identitatea ta + formatul numelui de dosar (se setează o dată)." %}
+{% set kicker = "Versiune curentă" %}{% set titlu = "Setări" %}
+{% set subtitlu = "Identitatea ta de evaluator + formatul numelui de dosar." %}
 {% include "_cartus.html" %}
 <main id="continut">
+  {% if cont %}
+  <div class="callout" role="note" style="margin-bottom:14px">
+    {{ icon("info") }} Conectat ca <b>{{ cont.nume }}</b> — legitimație ANEVAR <b>{{ cont.legitimatie }}</b>.
+    Modifică mai jos și salvează.
+  </div>
+  {% else %}
+  <div class="avert-warn" role="note" style="margin-bottom:14px">
+    {{ icon("warn","ico-gold") }} Niciun cont definit încă. Completează datele de mai jos pentru a începe.
+  </div>
+  {% endif %}
+
   <div class="field-row">
     <div class="field"><label for="nume">Nume evaluator</label>
       <input id="nume" type="text" autocomplete="name" required aria-required="true"
@@ -20,9 +29,9 @@
       <input id="legitimatie" type="text" inputmode="numeric" autocomplete="off" required aria-required="true"
              value="{{ cont.legitimatie if cont else '' }}"></div>
   </div>
-  <h3>Format nume dosar (minim 3 câmpuri, în ordine)</h3>
-  <p class="hint">Toate dosarele tale vor folosi acest format. „ID client" e free-text la dosar nou,
-   needitabil ulterior.</p>
+
+  <h2 style="font-size:1.15rem;margin:18px 0 4px;">Format nume dosar <span class="hint">(minim 3 câmpuri, în ordine)</span></h2>
+  <p class="hint">Toate dosarele tale folosesc acest format. „ID client" e free-text la dosar nou, needitabil ulterior.</p>
   <div id="campuri">
     {% for cheie, c in campuri.items() %}
     <label class="chk"><input type="checkbox" class="fmt" value="{{ cheie }}"
@@ -30,7 +39,7 @@
     {% endfor %}
   </div>
   <p class="hint">Previzualizare nume: <b id="preview">—</b></p>
-  <button type="button" id="salveaza" aria-describedby="status">Salvează contul</button>
+  <button type="button" id="salveaza" aria-describedby="status">Salvează setările</button>
   <span id="status" class="hint" role="status" aria-live="polite"></span>
 </main>
 <script>
@@ -67,8 +76,7 @@ document.getElementById('salveaza').addEventListener('click', async ()=>{
   try{
     const r=await fetch('/api/cont',{method:'POST',headers:{'Content-Type':'application/json'},
       body:JSON.stringify({nume,legitimatie,format_dosar})});
-    if(r.ok){ document.getElementById('status').textContent='✓ Cont salvat. Se deschide ÎNCEPE…';
-      setTimeout(()=>window.location.href='/incepe',800); return; }
+    if(r.ok){ document.getElementById('status').textContent='✓ Setări salvate.'; btn.classList.remove('is-loading'); btn.disabled=false; return; }
     document.getElementById('status').textContent='Salvarea a eșuat (cod '+r.status+'). Reîncearcă.';
   }catch(e){ document.getElementById('status').textContent='Salvarea a eșuat (eroare de rețea). Reîncearcă.'; }
   btn.classList.remove('is-loading'); btn.disabled=false;

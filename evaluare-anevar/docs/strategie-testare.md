@@ -1,7 +1,12 @@
 # Strategie de testare — Evaluare ANEVAR
 
 Document viu. Se actualizează la fiecare dezvoltare nouă (vezi §8 „Mentenanță").
-Ultima actualizare: 2026-06-06 (UI nou „curent" + import `.docx` + gardă pagină-listă portaluri).
+Ultima actualizare: 2026-06-09 (§11 securitate SEC-1/2/3 + PDF→DOCX + Imoradar P1.1 + igienă PII loguri).
+
+> **Proprietate (Rol owner testare = sesiunea D):** framework-ul de testare, strategia,
+> optimizarea execuției (viteză suită, e2e harness, coverage-gates) și actualizarea acestui
+> document. **Excepție:** testele per-feature scrise de fiecare sesiune pentru codul ei rămân
+> ale autorului — owner-ul deține structura din jur, nu conținutul lor de business.
 
 ## 0. Principii
 
@@ -20,7 +25,8 @@ Ultima actualizare: 2026-06-06 (UI nou „curent" + import `.docx` + gardă pagi
 | Strat | Module | Tip test | Fișiere |
 |------|--------|----------|---------|
 | **Calculator (motor)** | `engine/` (cost, market, land, chirie, venit, dcf, reconciliation, validation, abordari) | unitar, numeric exact (Decimal) | `test_engine_*`, `test_cost`, `test_market`, … |
-| **Parsere / import** | `importers/url_parser`, `discovery/*`, `ingestie/*` | unitar pe fixturi HTML/PDF | `test_url_parser*`, `test_discovery*`, `test_ingestie` |
+| **Parsere / import** | `importers/url_parser`, `discovery/*` (storia/imobiliare/olx/**imoradar**), `ingestie/*` | unitar pe fixturi HTML/PDF | `test_url_parser*`, `test_discovery*` (+ `test_discovery_imoradar`), `test_ingestie` |
+| **Securitate** | path-traversal (`dosare_fs`), CSRF (`web/app` middleware), XSS (escape scrape), PII loguri | unitar + e2e | `test_dosare_fs_security`, `test_csrf`, `test_documente` (escape); vezi **§11** |
 | **Asamblare / profil** | `assembler`, `profil`, `models/*` | unitar (input→context) | `test_assembler*`, `test_report_context` |
 | **Raport** | `report/generator`, `report/anonymizer`, `report/sectiuni` | unitar (.docx generat, conținut) | `test_report_*`, `test_generator*` |
 | **AML** | `aml/risc`, `indicatori`, `raportare`, `documente`, `store` | unitar | `test_aml_*`, `test_web_aml` |
@@ -113,10 +119,12 @@ fiecare cheie localStorage are ambele capete (scriere+citire).
 ## 7. Cum rulezi
 
 ```bash
-# Unit + integrare (rapid, în CI):
+# Unit + integrare (serial — pentru debugging clar, -x, pdb):
 python -m pytest -q
-# Cu acoperire + linii lipsă:
-python -m pytest --cov=evaluare --cov-report=term-missing
+# PARALEL (toata suita, ~2x mai rapid: ~131s -> ~61s pe 8 nuclee) — recomandat local + CI:
+python -m pytest -n auto -q
+# Cu acoperire + linii lipsă (paralel; pytest-cov combina worker-ii):
+python -m pytest -n auto --cov=evaluare --cov-report=term-missing
 # Lint:
 python -m ruff check src/ tests/
 # End-to-end Playwright (manual, cere chromium + server pe 8765):
@@ -152,6 +160,72 @@ diff <(grep -rhoE "fetch\(['\"\`][^'\"\`]+" *.html | sed -E "s/fetch\(['\"\`]//"
 | `curs_bnr`, `indice_anevar` | ~82-89% | rețea | testat la nivel HTTP cu monkeypatch |
 | `ingestie/ocr` | ~76% | OCR pe PDF scanat | fixtură PDF mică + test fallback |
 | `report/generator` | ~88% | multe ramuri de raport | teste pe secțiunile rare (lichidare, DCF) |
+| **SEC-2 XSS client-side** | — | escaparea (`escapeHtml`/`urlSafe`) e în JS pe conținut scrape-uit randat în `dosar.html`/`descoperire.html`; greu de testat unitar | verificare e2e (`_pw_smoke`); coordonare cu B (audit #7) dacă merită un test de randare |
+| **PII loguri (aserțiune negativă)** | parțial | se loghează `creator_legitimatie` (ID prof.), NU numele — dar nu există încă un test care să afirme că **numele NU apare** în log | gap de propus implementatorilor (B/audit): un test negativ pe conținutul jurnalului |
 
 > Nu urmărim 100% global cu orice preț — urmărim 100% pe **motor** și pe **căile critice**,
 > ≥90% în rest. Codul de rețea pură și framework-ul sunt excepții documentate.
+
+## 10. Optimizarea execuției (framework — owner: sesiunea D)
+
+**Țintă:** suită rapidă (sub ~3 min), determinism păstrat, coverage-gate intact. Bucla de
+feedback scurtă = teste rulate des = regresii prinse devreme.
+
+### 10.1 Paralelizare (`pytest-xdist`)
+- `pytest -n auto` distribuie testele pe toate nucleele. Măsurat: **~117s serial → ~54s paralel**
+  (8 nuclee, **583 teste** la 2026-06-09) — ~2.1×. Testele sunt deja izolate (fiecare cu `tmp_path`
+  / fixturi proprii, zero rețea), deci paralelizarea e sigură — **583 passed identic pe `-n auto`**.
+- **NU** punem `-n auto` în `addopts` implicit: rularea serială rămâne default-ul pentru
+  debugging clar (`-x`, `pdb`, output ne-întrețesut). Paralel = explicit (CI + rulări full locale).
+- CI (`.github/workflows/ci.yml`) rulează `pytest -n auto --cov` — `pytest-cov` combină automat
+  acoperirea per-worker, deci gate-ul `fail_under=90` rămâne valid (verificat: 93.6% pe `-n auto`).
+
+### 10.2 Coverage-gate
+- Prag `fail_under = 90` în `[tool.coverage.report]` (pyproject). Scădere sub prag = CI roșu.
+- `--cov-report=term-missing` arată liniile lipsă; `omit`-uri documentate: `__main__.py`, `vlm.py`.
+
+### 10.3 Teste lente (candidați de izolat dacă suita crește)
+Cele mai lente (din `--durations`): `test_docx_to_pdf_real_cu_libreoffice` (~4s, pornește
+LibreOffice), `test_settings_with_key_builds_client` (~4s, import `anthropic`), setup-urile
+`TestClient` din `test_web_curent` (~1s/test). Dacă devin un cost real, se pot marca pentru
+rulare opțională (marker `slow`) **fără** a le modifica logica (sunt teste per-feature ale altor sesiuni).
+
+### 10.4 e2e (Playwright)
+`scripts/_pw_smoke.py` (30 verificări) rămâne manual (cere browser + server pe 8765); de rulat
+înainte de fiecare release `.exe`. Vezi §6. Plan: harness reproductibil + integrare opțională în CI.
+
+### 10.5 Procedură owner la re-sync cu master
+La fiecare schimbare de framework: `test-optim` trage din `origin/master`, rulează `pytest -n auto`
+(verde) + `lock.py --check` + `ruff`, actualizează acest document. NU se modifică testele de
+business ale altor sesiuni; se optimizează doar structura/execuția din jur.
+
+## 11. Securitate + dezvoltări 2026-06-08/09 (ce se testează acum)
+
+### 11.1 Audit de securitate P0 (SEC-1/2/3) — închis
+| # | Risc | Fix | Teste |
+|---|------|-----|-------|
+| **SEC-1** | path traversal pe `uid` de dosar (`../`) | UUID canonic; rute dau 404 (nu 500) pe uid invalid; `importa_folder` canonicalizează | `test_dosare_fs_security.py` (4 teste: uid non-UUID respins, ștergere-traversal NU distruge baza, rute→404, canonicalizare) |
+| **SEC-2** | XSS din conținut scrape-uit randat în UI | `escapeHtml` + `urlSafe` în JS (`dosar.html`/`descoperire.html`); escapare markdown în documente | `test_documente.py::test_md_escape_html` (markdown). **Escaparea JS client-side = gap unit → e2e** (vezi §9) |
+| **SEC-3** | CSRF (mutații cross-site) | middleware care respinge POST cu `Origin` străin; permite extensia locală fără Origin; GET neafectat | `test_csrf.py` (3 teste: origin străin respins / extensie locală permisă / GET neafectat) |
+
+> Regulă nouă (securitate): orice fix de securitate ⇒ **test dedicat** (`test_<aria>_security.py` sau
+> `test_csrf.py`) în aceeași dezvoltare, cu cazul de ATAC (nu doar happy-path). Owner-ul verifică
+> existența testului la integrare; conținutul rămâne al autorului fixului.
+
+### 11.2 PDF→DOCX (livrabile)
+Livrabilele (raport, GDPR, AML) se generează **doar `.docx`** — selectorul de format a fost scos;
+conversia în PDF e o acțiune LOCALĂ a utilizatorului („salvează ca PDF"). Convertorul
+`report/pdf.docx_to_pdf` (LibreOffice/Word) rămâne pentru calea locală.
+Teste: `test_web_curent::test_raport_mereu_docx_fara_pdf` (raport mereu .docx, fără fmt=pdf/ambele),
+`test_web_api::test_download_raport_docx`, `test_report_pdf` (convertor local + căile de indisponibilitate).
+
+### 11.3 Imoradar (P1.1) + diacritice
+Portal nou `imoradar` în discovery, cu slugify de diacritice/spații pentru URL-ul de căutare.
+Teste: `test_discovery_imoradar.py` (6: build-URL casă/teren, **slugify diacritice**, portal/categorie
+necunoscute→raise, extragere URL-uri listing, parsare preț/supr/poză, căutare cu fetcher injectat)
++ fixturi `tests/fixtures/imoradar_{listing,search}.html`. Respectă regula §3 (portal nou ⇒ fixtură + test).
+
+### 11.4 Igienă PII în loguri (audit #9)
+La crearea unui dosar se loghează **legitimația** (ID profesional), NU numele evaluatorului (PII).
+Acoperit pozitiv (`creator_legitimatie` în `test_dosare_fs`); **aserțiunea negativă** („numele NU
+apare în jurnal") e un gap de propus implementatorilor — vezi §9.

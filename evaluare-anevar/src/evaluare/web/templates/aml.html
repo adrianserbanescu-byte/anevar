@@ -1,8 +1,26 @@
 <!DOCTYPE html>
 <html lang="ro">
 <head><meta charset="utf-8"><title>Conformitate AML (Legea 129/2019)</title>
-<style>{% include "_design.css" %}</style></head>
+<style>{% include "_design.css" %}</style>
+<style>
+  /* Tier-B: densitate redusa — checkbox-urile lungi de risc/indicatori pe 2 coloane.
+     DOAR layout (CSS); textul checkbox-urilor = continut de conformitate, neatins. */
+  fieldset.chk-cols .chk{ break-inside:avoid; }
+  @media(min-width:560px){ fieldset.chk-cols{ column-count:2; column-gap:28px; } }
+  /* UX polish (feedback Adi): fluid la <430px — fără scroll lateral pe pagină */
+  @media(max-width:430px){
+    /* min-width:0 + width:100% — select-urile cu opțiuni lungi (ex. „PFA … Norme art. 7”) nu mai
+       forțează min-content width => fără scroll lateral pe mobil (QA pre-lansare) */
+    fieldset input:not([type=checkbox]):not([type=radio]), fieldset select, fieldset textarea{
+      max-width:100%; width:100%; min-width:0; box-sizing:border-box; }
+    fieldset{ min-width:0; }
+    .row{ flex-wrap:wrap; }
+    .row > div{ min-width:0; flex:1 1 auto; }
+    table{ display:block; overflow-x:auto; }
+  }
+</style></head>
 <body>
+{% from "_icon.html" import icon %}
 <a class="skip-link" href="#continut">Sari la conținut</a>
 {% set pagina = "aml" %}{% include "_topbar.html" %}
 {% set kicker = "Conformitate" %}{% set titlu = "Conformitate AML — Legea 129/2019" %}{% set subtitlu = "KYC · evaluare de risc · documente de raportare." %}{% include "_cartus.html" %}
@@ -11,7 +29,7 @@ beneficiar real, evaluarea de risc, indicatorii de suspiciune și pragul de nume
 Datele rămân <b>local</b>; rapoartele suspecte se păstrează separat (interdicție de divulgare, art. 38).
 Modulul propune — <b>evaluatorul decide și transmite</b> (rapoarte.onpcsb.ro).</p>
 <div class="avert-legal" role="alert">
-  <span aria-hidden="true">⚠️</span> Aplicația <b>NU verifică automat</b> listele de sancțiuni/PEP. Verifică manual pe sursele oficiale:
+  {{ icon("warn","ico-gold") }} Aplicația <b>NU verifică automat</b> listele de sancțiuni/PEP. Verifică manual pe sursele oficiale:
   <a href="https://www.opensanctions.org/" target="_blank" rel="noopener">OpenSanctions</a> ·
   <a href="https://www.sanctionsmap.eu/" target="_blank" rel="noopener">EU Sanctions Map</a> ·
   <a href="https://sanctionssearch.ofac.treas.gov/" target="_blank" rel="noopener">OFAC</a>.
@@ -60,7 +78,7 @@ Modulul propune — <b>evaluatorul decide și transmite</b> (rapoarte.onpcsb.ro)
  </div>
 </fieldset>
 
-<fieldset>
+<fieldset class="chk-cols">
  <legend>Indicatori de suspiciune (HCD 58 art. 6(10))</legend>
  <label class="chk"><input type="checkbox" class="ind" value="graba_excesiva"> Grabă excesivă</label>
  <label class="chk"><input type="checkbox" class="ind" value="presiune_documente_insuficiente"> Presiune — documente insuficiente</label>
@@ -74,14 +92,15 @@ Modulul propune — <b>evaluatorul decide și transmite</b> (rapoarte.onpcsb.ro)
  <label class="chk"><input type="checkbox" class="ind" value="antecedente_penale"> Antecedente penale</label>
 </fieldset>
 
-<button type="button" onclick="evalueaza()" aria-describedby="rez">Evaluează relația</button>
+<button type="button" id="eval-btn" onclick="evalueaza()" aria-describedby="rez">Evaluează relația</button>
 <div id="rez" role="status" aria-live="polite"></div>
 
 <fieldset>
  <legend>Documente GDPR (model)</legend>
- <p class="hint">Drafturi de validat de un jurist și de adaptat la cabinet (operatorul de date e evaluatorul).</p>
- <button type="button" class="ghost" onclick="descarca('/api/gdpr/politica.docx')"><span aria-hidden="true">📄</span> Politică de prelucrare</button>
- <button type="button" class="ghost" onclick="descarca('/api/gdpr/consimtamant.docx')"><span aria-hidden="true">📄</span> Acord consimțământ client</button>
+ <p class="hint">Drafturi de validat de un jurist și de adaptat la cabinet (operatorul de date e evaluatorul).
+  Fișiere <b>Word (.docx)</b> editabile — verifică-le și salvează-le ca PDF local la nevoie.</p>
+ <button type="button" class="ghost" onclick="descarca('/api/gdpr/politica.docx')">{{ icon("doc") }} Politică de prelucrare</button>
+ <button type="button" class="ghost" onclick="descarca('/api/gdpr/consimtamant.docx')">{{ icon("doc") }} Acord consimțământ client</button>
 </fieldset>
 </main>
 
@@ -99,6 +118,9 @@ function semnaleRisc(){const s={};['tara_risc_inalt','pe_lista_sanctiuni','tranz
    .forEach(k=>{if(document.getElementById(k).checked)s[k]=true;});return s;}
 function semnaleInd(){const s={};document.querySelectorAll('.ind:checked').forEach(c=>s[c.value]=true);return s;}
 async function evalueaza(){
+  const btn=document.getElementById('eval-btn');
+  btn.classList.add('is-loading'); btn.disabled=true;
+  try{
   const body=Object.assign({tip_entitate:val('tip_entitate'),azi:val('azi'),
      semnale_risc:semnaleRisc(),semnale_indicatori:semnaleInd()},_client());
   const r=await fetch('/api/aml/evalueaza',{method:'POST',headers:{'Content-Type':'application/json'},
@@ -113,12 +135,13 @@ async function evalueaza(){
      d.indicatori.map(i=>`<li>${i.text}</li>`).join('')+`</ul>`;
   if(d.screening.length) h+=`<p class="warn">Posibile potriviri pe liste <b>demonstrative</b> (NU sunt liste oficiale live — verifică manual pe sursele oficiale):</p><ul>`+
      d.screening.map(s=>`<li>${s.lista}: ${s.intrare} (${s.scor})</li>`).join('')+`</ul>`;
-  h+=`<p>Documente de generat:</p><ul>`+d.documente_necesare.map(doc=>{
+  h+=`<p>Documente de generat <span class="hint">(.docx — verifică-le și salvează-le ca PDF local)</span>:</p><ul>`+d.documente_necesare.map(doc=>{
      const map={norme_interne:'/api/aml/norme-interne.docx',evaluare_risc:'/api/aml/evaluare-risc.docx',
        fisa_kyc:'/api/aml/fisa-kyc.docx',decizie_desemnare:'/api/aml/decizie.docx',rts:'/api/aml/rts.docx'};
-     return `<li><button onclick='descarca("${map[doc]}")'>${doc}</button></li>`;}).join('')+`</ul></div>`;
+     return `<li><button onclick='descarca("${map[doc]}")'>${doc}</button></li>`;}).join('')+`</ul><p id="aml-doc-status" class="hint" role="status" aria-live="polite"></p></div>`;
   document.getElementById('rez').innerHTML=h;
   window._amlBody=body;
+  }finally{ btn.classList.remove('is-loading'); btn.disabled=false; }
 }
 async function descarca(url){
   // Confirmare suplimentară pentru rapoartele de tranzacție (RTS/RTN) — risc legal Art. 33.
@@ -136,7 +159,13 @@ async function descarca(url){
   if(!r.ok){alert('Documentul nu a putut fi generat (verifică datele).');return;}
   const blob=await r.blob();const a=document.createElement('a');
   a.href=URL.createObjectURL(blob);a.download=url.split('/').pop();a.click();
+  const st=document.getElementById('aml-doc-status'); if(st) st.textContent='✓ '+url.split('/').pop()+' generat. Verifică-l și salvează-l ca PDF local.';
 }
+// Date-picker: calendar la click pe tot field-ul (aml NU include _helpers.js).
+document.querySelectorAll("input[type=date]").forEach(function(d){
+  d.style.cursor="pointer";
+  d.addEventListener("click", function(){ try{ d.showPicker(); }catch(e){} });
+});
 </script>
 {% include "_footer.html" %}
 </body>

@@ -123,8 +123,10 @@ def salveaza_wizard(uid: str, wizard: dict) -> dict:
                 wizard.pop(c, None)
     dosar["wizard"] = wizard
     dosar["identitate"] = _identitate(wizard)
-    if dosar.get("format_dosar"):
-        dosar["nume"] = nume_dosar(dosar["format_dosar"], wizard)
+    # Recalculăm MEREU numele (și fără format_dosar pe cont → nume_dosar folosește template-ul
+    # implicit): un dosar creat gol, cu identitatea completată ulterior în workspace, NU mai rămâne
+    # blocat pe „?_?_?". (Bug Adi 2026-06-09: guard-ul `if format_dosar` îngheța numele la „?".)
+    dosar["nume"] = nume_dosar(dosar.get("format_dosar"), wizard)
     dosar["modificat_la"] = _acum()
     _scrie(uid, dosar)
     return dosar

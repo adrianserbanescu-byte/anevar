@@ -1,8 +1,18 @@
 <!DOCTYPE html>
 <html lang="ro">
 <head><meta charset="utf-8"><title>Grile de ajustări (teren · casă · chirii)</title>
-<style>{% include "_design.css" %}</style></head>
+<style>{% include "_design.css" %}</style>
+<style>
+  /* UX polish (feedback Adi): fluid la <430px — tabelele de grilă scrollează local, nu pagina */
+  @media(max-width:430px){
+    input:not([type=checkbox]):not([type=radio]), select, textarea{ max-width:100%; box-sizing:border-box; }
+    .row, .callout{ flex-wrap:wrap; }
+    .rez, #rez-teren, #rez-casa, #rez-chirii, #t-rez, #indice-rez{ overflow-x:auto; }
+    table{ display:block; overflow-x:auto; white-space:nowrap; }
+  }
+</style></head>
 <body>
+{% from "_icon.html" import icon %}
 <a class="skip-link" href="#continut">Sari la conținut</a>
 {% set pagina = "grila" %}{% include "_topbar.html" %}
 {% set kicker = "Registru de evaluare" %}{% set titlu = "Grile de ajustări" %}{% set subtitlu = "Grile de comparabile: teren · casă · chirii." %}{% include "_cartus.html" %}
@@ -13,7 +23,7 @@ cele <span class="eur">valorice</span> în <b>EUR</b> (ex. <code>-5000</code>). 
 Se aplică <b>secvențial</b>; se alege comparabilul cu <b>ajustarea brută minimă</b>.<br>
 Pentru ajustarea <b>„Condițiile pieței (timp)"</b> poți folosi <b>Indicele imobiliar ANEVAR</b>
 (dinamica valorilor de piață/mp).
-<button type="button" onclick="incarcaIndice()">↻ Indicele ANEVAR</button>
+<button type="button" onclick="incarcaIndice()">{{ icon("refresh") }} Indicele ANEVAR</button>
 <span id="indice-status" class="hint" role="status"></span></p>
 <div id="indice-rez"></div>
 
@@ -37,10 +47,11 @@ Pentru ajustarea <b>„Condițiile pieței (timp)"</b> poți folosi <b>Indicele 
    similaritatea de suprafață cu terenul subiect.</small><br>
   <label for="t-portal">Portal:</label> <select id="t-portal"><option value="imobiliare">imobiliare.ro</option>
     <option value="storia">storia.ro</option></select>
-  <label for="t-judet">Județ:</label> <input id="t-judet" size="12" placeholder="prahova">
+  <label for="t-judet">Județ:</label> <input id="t-judet" size="12" placeholder="prahova" aria-required="true">
   <label for="t-loc">Localitate:</label> <input id="t-loc" size="12" placeholder="breaza">
-  <button onclick="descoperaTeren()">Caută terenuri</button>
-  <span id="t-status" class="hint" role="status"></span>
+  <button id="t-cauta" type="button" onclick="descoperaTeren()">Caută terenuri</button>
+  <span id="t-status" class="hint" role="status" aria-live="polite"></span>
+  <span id="t-judet-err" class="field-error"></span>
   <div id="t-rez" role="region" aria-label="Terenuri găsite"></div>
 </div>
 
@@ -74,6 +85,11 @@ Pentru ajustarea <b>„Condițiile pieței (timp)"</b> poți folosi <b>Indicele 
 
 <script>{% include "_helpers.js" %}</script>
 <script>
+// SEC-2 (QA pre-lansare): comparabilele de teren (descoperaTeren) vin din scraping necontrolat —
+// escapeHtml() pe text injectat via innerHTML, urlSafe() (doar http/https) pe href.
+function escapeHtml(s){ return String(s==null?'':s).replace(/[&<>"']/g, c=>(
+  {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+function urlSafe(u){ try{ var x=new URL(u, location.origin); return (x.protocol==='http:'||x.protocol==='https:')?x.href:'#'; }catch(e){ return '#'; } }
 const NCOMP = 3;
 
 // Catalog elemente. tip: "procentuala" sau "valorica".
@@ -225,24 +241,37 @@ function inGrilaTeren(pretMp){
   return false;
 }
 
+function emptyState(el, icon, titlu, msg){
+  el.textContent='';
+  const es=document.createElement('div'); es.className='empty-state';
+  const ic=document.createElement('span'); ic.className='es-icon'; ic.setAttribute('aria-hidden','true'); ic.textContent=icon;
+  const h=document.createElement('h3'); h.textContent=titlu;
+  const p=document.createElement('p'); p.textContent=msg;
+  es.appendChild(ic); es.appendChild(h); es.appendChild(p); el.appendChild(es);
+}
 async function descoperaTeren(){
-  const judet=$("t-judet").value.trim(), loc=$("t-loc").value.trim();
-  if(!judet){ $("t-status").textContent="Completează județul."; return; }
-  $("t-status").textContent="Se caută…"; $("t-rez").innerHTML="";
+  const judetEl=$("t-judet"), errEl=$("t-judet-err"), btn=$("t-cauta");
+  const judet=judetEl.value.trim(), loc=$("t-loc").value.trim();
+  judetEl.classList.remove("is-invalid"); errEl.textContent="";
+  if(!judet){ judetEl.classList.add("is-invalid"); judetEl.setAttribute("aria-invalid","true");
+    errEl.textContent="Județul e obligatoriu pentru căutare."; judetEl.focus(); return; }
+  judetEl.removeAttribute("aria-invalid");
+  $("t-status").textContent="Se caută…"; $("t-rez").textContent=""; btn.classList.add("is-loading"); btn.disabled=true;
   const supr=num($("supr-teren").value);
-  const body={portal:$("t-portal").value, judet, localitate:loc, suprafata_subiect:supr?String(supr):null, max_candidati:8};
+  const body={portal:$("t-portal").value, judet, localitate:loc, suprafata_subiect:supr?String(supr):null, max_candidati:20};
+  const gata=()=>{ btn.classList.remove("is-loading"); btn.disabled=false; };
   try{
     const r=await fetch("/api/descopera-teren",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(body)});
-    if(!r.ok){ $("t-status").textContent="Căutarea a eșuat (cod "+r.status+") — verifică datele și reîncearcă."; return; }
+    if(!r.ok){ $("t-status").textContent="Căutarea a eșuat (cod "+r.status+") — verifică datele și reîncearcă."; gata(); return; }
     const d=await r.json();
-    $("t-status").textContent=d.candidati.length+" terenuri";
-    if(!d.candidati.length){ $("t-rez").innerHTML='<p class="hint">Niciun rezultat. Încearcă doar județul.</p>'; return; }
+    $("t-status").textContent=d.candidati.length+" terenuri"; gata();
+    if(!d.candidati.length){ emptyState($("t-rez"),'🗺','Niciun teren găsit','Pentru zona aleasă nu există anunțuri. Încearcă doar județul, fără localitate.'); return; }
     let h='<table><tr><th>Rel.</th><th>Preț</th><th>Supr.</th><th>€/mp</th><th>Anunț</th><th></th></tr>';
     d.candidati.forEach(c=>{
       const add = c.pret_mp ? `<button class="t-add" data-mp="${c.pret_mp}">➕ grilă</button>` : '';
       h+=`<tr><td>${c.relevanta}%</td><td>${c.pret?(+c.pret).toLocaleString('ro-RO')+' €':'?'}</td>`
         +`<td>${c.suprafata||'?'} mp</td><td><b>${c.pret_mp||'?'}</b></td>`
-        +`<td><a href="${c.url}" target="_blank" rel="noopener">Vezi anunțul ↗</a>${c.nota?' <span class="err">'+c.nota+'</span>':''}</td>`
+        +`<td><a href="${urlSafe(c.url)}" target="_blank" rel="noopener">Vezi anunțul <span aria-hidden="true">↗</span></a>${c.nota?' <span class="err">'+escapeHtml(c.nota)+'</span>':''}</td>`
         +`<td>${add}</td></tr>`;
     });
     $("t-rez").innerHTML=h+'</table><p class="hint">„➕ grilă" pune €/mp în prima coloană liberă din grila de teren de mai sus; ajustările le pui tu.</p>';
@@ -250,7 +279,7 @@ async function descoperaTeren(){
       if(!inGrilaTeren(b.dataset.mp)) b.textContent="grilă plină";
       else b.textContent="✓ adăugat";
     }));
-  }catch(e){ $("t-status").textContent="Căutarea a eșuat — verifică internetul și reîncearcă."; }
+  }catch(e){ $("t-status").textContent="Căutarea a eșuat — verifică internetul și reîncearcă."; gata(); }
 }
 
 async function calcul(grid){

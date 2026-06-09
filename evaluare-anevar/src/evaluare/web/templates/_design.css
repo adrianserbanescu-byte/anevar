@@ -453,6 +453,11 @@ button.is-loading::after{
   color:var(--ink-2); font:600 .82rem/1 inherit; cursor:pointer; }
 .grid-add:hover{ border-color:var(--gold); color:var(--ink); background:var(--paper-card); }
 
+/* Iconuri linie (macro _icon.html) — înlocuiesc emoji. currentColor (preia culoarea contextului). */
+.ico{ vertical-align:-.15em; flex:none; }
+.ico-gold{ color:var(--gold); }
+.ico-danger{ color:var(--danger); }
+
 /* ----------------------------------------------------- Wizard: pași */
 main{ display:block; }
 .pas{

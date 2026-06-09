@@ -10,7 +10,7 @@ from bs4 import BeautifulSoup
 from evaluare.ai.narrative import NarrativeClient
 from evaluare.discovery.extractor import extrage_atribute
 from evaluare.discovery.ponderi import ponderi_pentru
-from evaluare.discovery.portal_search import cauta_anunturi
+from evaluare.discovery.portal_search import cauta_anunturi_multi
 from evaluare.discovery.profiles import SubjectProfile
 from evaluare.discovery.results import CandidateResult, LandDiscoveryResult
 from evaluare.discovery.scoring import scor_candidat
@@ -130,7 +130,7 @@ def descopera(
     ponderile efective ale categoriei (ex. override-ul editat de evaluator, persistat local).
     """
     ponderi = ponderi if ponderi is not None else ponderi_pentru(tip_activ)
-    urls = cauta_anunturi(portal, judet, localitate, fetcher=fetcher)[:max_candidati]
+    urls = cauta_anunturi_multi(portal, judet, localitate, fetcher=fetcher)[:max_candidati]
     rezultate: list[CandidateResult] = []
     for url in urls:
         try:
@@ -193,9 +193,7 @@ def descopera_teren(
 
     Relevanta = similaritatea de suprafata (la teren, pretul/mp depinde puternic de suprafata).
     """
-    from evaluare.discovery.portal_search import cauta_anunturi
-
-    urls = cauta_anunturi(portal, judet, localitate, fetcher=fetcher, categorie="teren")
+    urls = cauta_anunturi_multi(portal, judet, localitate, fetcher=fetcher, categorie="teren")
     urls = urls[:max_candidati]
     rezultate: list[LandDiscoveryResult] = []
     for url in urls:

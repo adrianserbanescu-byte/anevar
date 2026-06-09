@@ -8,7 +8,6 @@ from __future__ import annotations
 import contextlib
 import tempfile
 import uuid
-import zipfile
 from pathlib import Path
 
 from fastapi import APIRouter, HTTPException, Request
@@ -21,7 +20,6 @@ from evaluare.engine import metodologie_store
 from evaluare.engine.metodologie import ca_dict
 from evaluare.logging_setup import get_logger
 from evaluare.report.generator import genereaza_raport
-from evaluare.report.pdf import PdfIndisponibil
 from evaluare.web.deps import DOCX_MIME, Deps
 from evaluare.web.schemas import ContRequest, DosarNouRequest, ImportDocxRequest
 
@@ -55,6 +53,13 @@ def build_router(d: Deps) -> APIRouter:
             raise HTTPException(422, "Nume și legitimație obligatorii.")
         return cont_mod.salveaza_cont(req.nume, req.legitimatie, req.format_dosar or None)
 
+    # ── Setări (vizualizare + editare cont, accesibil din nav; cerere Adi/batch) ──────
+    @router.get("/setari", response_class=HTMLResponse)
+    def pagina_setari(request: Request) -> HTMLResponse:
+        from evaluare.master_config import CAMPURI_NUME_DOSAR
+        return d.templates.TemplateResponse(request, "curent/setari.html",
+            {"cont": cont_mod.incarca_cont(), "campuri": CAMPURI_NUME_DOSAR})
+
     # ── ÎNCEPE (homepage) ────────────────────────────────────────────────────────
     @router.get("/incepe", response_class=HTMLResponse)
     def pagina_incepe(request: Request) -> HTMLResponse:
@@ -79,7 +84,8 @@ def build_router(d: Deps) -> APIRouter:
             raise HTTPException(403, "Creează întâi un cont.")
         uid = fs.creeaza(cont["legitimatie"], cont["nume"], req.wizard,
                          format_dosar=cont.get("format_dosar"))
-        log.info("dosar creat uid=%s creator=%s", uid, cont.get("nume", "?"))
+        # igiena PII (audit #9): logam legitimatia (ID profesional), nu numele evaluatorului
+        log.info("dosar creat uid=%s creator_leg=%s", uid, cont.get("legitimatie", "?"))
         return {"uuid": uid}
 
     @router.post("/api/dosar/import-docx")
@@ -211,8 +217,10 @@ def build_router(d: Deps) -> APIRouter:
         return PlainTextResponse(text_audit(j))
 
     @router.post("/api/dosar/{uid}/raport.docx")
-    def genereaza(uid: str, inp: EvaluationInput, adnotari: int = 0, fmt: str = "docx") -> FileResponse:
-        """Generează raportul. `fmt` ∈ {docx (implicit), pdf, ambele}. PDF necesită LibreOffice/Word local.
+    def genereaza(uid: str, inp: EvaluationInput, adnotari: int = 0) -> FileResponse:
+        """Generează raportul .docx. App-ul NU mai produce PDF (decizie 2026-06-08): evaluatorul
+        verifică documentul și îl exportă manual ca PDF — răspunderea versiunii finale e a lui.
+        Convertorul docx→PDF rămâne în cod (report/pdf.py), dormant, dar nu mai e apelat de aici.
 
         Per decizia #14 (2026-06-07): Genereaza CERE Calcul reușit. _context() invocă
         construieste_context() — aceeași cale ca /api/dosar/{uid}/calcul. Date insuficiente → 422
@@ -223,7 +231,7 @@ def build_router(d: Deps) -> APIRouter:
         except KeyError:
             log.warning("genereaza: dosar inexistent uid=%s", uid)
             raise HTTPException(404, "Dosar inexistent.") from None
-        log.info("genereaza raport uid=%s fmt=%s adnotari=%s", uid, fmt, bool(adnotari))
+        log.info("genereaza raport uid=%s adnotari=%s", uid, bool(adnotari))
         ctx = _context(inp)  # 422 daca calcul nu poate fi facut (decizia #14)
         tmp = Path(tempfile.gettempdir())
         tok = uuid.uuid4().hex[:8]          # token unic: evită coliziuni la generări concurente pe același dosar
@@ -236,27 +244,8 @@ def build_router(d: Deps) -> APIRouter:
             return BackgroundTask(lambda: [Path(c).unlink(missing_ok=True) for c in cai])
 
         nume = f"raport_{uid[:8]}"
-        formate = (fmt or "docx").lower()
-        if formate == "docx":
-            return FileResponse(str(out), media_type=DOCX_MIME, filename=f"{nume}.docx",
-                                background=_sterge(out))
-        # pdf / ambele -> conversie cu convertorul de pe stația evaluatorului (LibreOffice/Word)
-        try:
-            pdf = d.pdf_converter(out)
-        except PdfIndisponibil as e:
-            out.unlink(missing_ok=True)
-            raise HTTPException(422, "PDF indisponibil pe această stație: instalează LibreOffice "
-                                "(gratuit) sau Microsoft Word. Documentul .docx a fost generat și "
-                                "salvat ca versiune în dosar.") from e
-        if formate == "pdf":
-            return FileResponse(str(pdf), media_type="application/pdf", filename=f"{nume}.pdf",
-                                background=_sterge(out, pdf))
-        zpath = tmp / f"raport_{uid}_{tok}.zip"   # „ambele" -> arhivă cu .docx + .pdf
-        with zipfile.ZipFile(zpath, "w", zipfile.ZIP_DEFLATED) as z:
-            z.write(out, f"{nume}.docx")
-            z.write(pdf, f"{nume}.pdf")
-        return FileResponse(str(zpath), media_type="application/zip", filename=f"{nume}.zip",
-                            background=_sterge(out, pdf, zpath))
+        return FileResponse(str(out), media_type=DOCX_MIME, filename=f"{nume}.docx",
+                            background=_sterge(out))
 
     @router.post("/api/dosar/{uid}/incarca-submis")
     def incarca_submis(uid: str, req: ImportDocxRequest) -> dict:

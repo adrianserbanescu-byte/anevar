@@ -15,6 +15,18 @@ from evaluare.web.deps import Deps
 from evaluare.web.routers import aml, curent, descoperire, evaluare, grile, pagini, piata
 
 
+def _build_data() -> str:
+    """Data buildului = mtime-ul exe-ului PyInstaller (`sys.executable`). În dev (nefreezat): 'dev'."""
+    import sys
+    if getattr(sys, "frozen", False):
+        from datetime import datetime
+        try:
+            return datetime.fromtimestamp(Path(sys.executable).stat().st_mtime).strftime("%d.%m.%Y %H:%M")
+        except OSError:
+            return ""
+    return "dev"
+
+
 def create_app(storage: Storage, client: NarrativeClient | None,
                fetcher: Callable[[str], str] = fetch_html,
                pdf_converter: Callable[[Path], Path] = docx_to_pdf) -> FastAPI:
@@ -36,6 +48,15 @@ def create_app(storage: Storage, client: NarrativeClient | None,
         if host not in _HOSTURI_LOCALE:
             return PlainTextResponse("Acces respins: aplicația acceptă doar conexiuni locale.",
                                      status_code=403)
+        # CSRF (audit SEC-3): la metode mutante, un site străin din browser trimite Origin: evil.com.
+        # Origin local sau extensie de browser = ok; lipsa Origin (ne-browser / same-origin) = ok.
+        if request.method in {"POST", "PUT", "PATCH", "DELETE"}:
+            origin = request.headers.get("origin")
+            if origin and not origin.startswith(("chrome-extension://", "moz-extension://")):
+                from urllib.parse import urlsplit
+                if urlsplit(origin).hostname not in _HOSTURI_LOCALE:
+                    return PlainTextResponse("Acces respins: cerere cross-site blocată (CSRF).",
+                                             status_code=403)
         return await call_next(request)
 
     # Permite extensiei de browser sa POST-eze pe /api/import-anunt (aplicatie locala).
@@ -47,6 +68,7 @@ def create_app(storage: Storage, client: NarrativeClient | None,
     )
     templates = Jinja2Templates(directory=str(Path(__file__).parent / "templates"))
     templates.env.globals["versiune"] = __version__
+    templates.env.globals["build_data"] = _build_data()
     deps = Deps(storage=storage, client=client, fetcher=fetcher, templates=templates,
                 pdf_converter=pdf_converter)
 

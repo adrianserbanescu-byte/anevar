@@ -1,7 +1,18 @@
+{% from "_icon.html" import icon %}
 <!DOCTYPE html>
 <html lang="ro">
 <head><meta charset="utf-8"><title>Dosar — {{ dosar.nume }}</title>
-<style>{% include "_design.css" %}</style></head>
+<style>{% include "_design.css" %}</style>
+<style>
+  /* #5 (audit Adi): aliniere grid în workspace. _design.css are .field-row=flex (câmpuri egale
+     PE RÂND => coloanele NU se aliniază între rânduri cu nr. diferit de câmpuri). Override local:
+     grid cu track-uri identice (auto-fill + minmax egal) => marginile-stânga se aliniază vertical
+     între toate rândurile; min 200px => dropdown-urile (Drept evaluat etc.) nu mai sunt înghesuite. */
+  main .field-row{ display:grid; grid-template-columns:repeat(auto-fill, minmax(200px, 1fr));
+    gap:0 18px; align-items:start; }
+  main .field-row .field[style*="flex:2"]{ grid-column:span 2; }
+  @media (max-width:560px){ main .field-row{ grid-template-columns:1fr; } }
+</style></head>
 <body>
 <a class="skip-link" href="#continut">Sari la conținut</a>
 {% include "_nav_cross.html" %}
@@ -16,14 +27,14 @@
 
 <main id="continut">
   <div class="avert-warn" id="concurent-banner" hidden role="alert">
-    <span aria-hidden="true">⚠</span> Acest dosar pare deschis și în <b>altă fereastră/instanță</b> —
+    {{ icon("warn") }} Acest dosar pare deschis și în <b>altă fereastră/instanță</b> —
     modificările se pot suprascrie reciproc. Recomandat: o singură fereastră per dosar.
   </div>
   <div class="tabs" role="tablist" aria-label="Secțiuni dosar">
-    <button type="button" role="tab" id="t-raport" aria-controls="p-raport" aria-selected="true"><span aria-hidden="true">📄</span> Raport evaluare</button>
-    <button type="button" role="tab" id="t-aml" aria-controls="p-aml" aria-selected="false" tabindex="-1" title="Combaterea spălării banilor (Legea 129/2019)"><span aria-hidden="true">🛡</span> AML</button>
-    <button type="button" role="tab" id="t-gdpr" aria-controls="p-gdpr" aria-selected="false" tabindex="-1" title="Protecția datelor cu caracter personal (GDPR)"><span aria-hidden="true">🔒</span> GDPR</button>
-    <button type="button" role="tab" id="t-audit" aria-controls="p-audit" aria-selected="false" tabindex="-1"><span aria-hidden="true">🧾</span> Audit</button>
+    <button type="button" role="tab" id="t-raport" aria-controls="p-raport" aria-selected="true">{{ icon("doc") }} Raport evaluare</button>
+    <button type="button" role="tab" id="t-aml" aria-controls="p-aml" aria-selected="false" tabindex="-1" title="Combaterea spălării banilor (Legea 129/2019)">{{ icon("shield") }} AML</button>
+    <button type="button" role="tab" id="t-gdpr" aria-controls="p-gdpr" aria-selected="false" tabindex="-1" title="Protecția datelor cu caracter personal (GDPR)">{{ icon("lock") }} GDPR</button>
+    <button type="button" role="tab" id="t-audit" aria-controls="p-audit" aria-selected="false" tabindex="-1">{{ icon("audit") }} Audit</button>
   </div>
 
   <!-- ============ RAPORT ============ -->
@@ -39,7 +50,7 @@
 
     <section role="tabpanel" id="sp-proprietate" aria-labelledby="s-proprietate" tabindex="0">
       <details class="grila-det">
-        <summary>📄 Pre-completare din documente (extras CF / releveu / plan)</summary>
+        <summary>{{ icon("doc") }} Pre-completare din documente (extras CF / releveu / plan)</summary>
         <p class="hint">Încarcă un PDF și extragem automat câmpurile (nr. cadastral, CF, suprafețe, proprietar…). Verifică-le după.</p>
         <div class="field-row">
           <div class="field"><label for="ing-tip">Tip document</label>
@@ -52,10 +63,10 @@
       <h3>Identificare <span class="hint">(definesc identitatea + numele dosarului)</span></h3>
       {% if blocat %}
       <div class="avert-warn" style="display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:6px 0">
-        <span><span aria-hidden="true">🔒</span> <b>Identitate asumată</b>{% if asumat_la %} la {{ asumat_la }}{% endif %} —
+        <span>{{ icon("lock") }} <b>Identitate asumată</b>{% if asumat_la %} la {{ asumat_la }}{% endif %} —
          câmpurile de identitate sunt <b>read-only</b> (inalterabilitate ADR-003).</span>
-        <button type="button" class="ghost" id="btn-delock" style="margin-left:auto"><span aria-hidden="true">🔓</span> Deblochează corectură</button>
-        <button type="button" class="ghost" id="btn-clone"><span aria-hidden="true">➕</span> Dosar nou (altă identitate)</button>
+        <button type="button" class="ghost" id="btn-delock" style="margin-left:auto">{{ icon("unlock") }} Deblochează corectură</button>
+        <button type="button" class="ghost" id="btn-clone">{{ icon("add") }} Dosar nou (altă identitate)</button>
       </div>
       {% endif %}
       <div class="field-row">
@@ -77,7 +88,7 @@
         <div class="field"><label for="judet">Județ</label><select id="judet"><option value="">— județ —</option></select></div>
         <div class="field"><label for="localitate">Localitate</label>
           <select id="localitate"><option value="">— localitate —</option></select>
-          <input id="localitate_alt" placeholder="altă localitate (scriu)" hidden></div>
+          <input id="localitate_alt" aria-label="Altă localitate" placeholder="altă localitate (scriu)" hidden></div>
         <div class="field"><label for="adresa_strada">Stradă, nr.</label><input id="adresa_strada"></div>
       </div>
       <div class="field-row">
@@ -136,11 +147,12 @@
           <div class="field"><label for="valoare_teren">Valoare teren (lei)</label><input id="valoare_teren" placeholder="ex. 100000"></div>
         </div>
         <fieldset><legend>Utilități (GEV 630)</legend>
-          <label class="chk"><input type="checkbox" class="util" value="apă"> Apă</label>
-          <label class="chk"><input type="checkbox" class="util" value="canalizare"> Canalizare</label>
-          <label class="chk"><input type="checkbox" class="util" value="gaze naturale"> Gaze</label>
-          <label class="chk"><input type="checkbox" class="util" value="energie electrică"> Curent</label>
-          <label class="chk"><input type="checkbox" class="util" value="internet"> Internet</label>
+          {# fiecare checkbox are id => snapshot()/restore le persistă (bug pierdere date: fără id erau sărite) #}
+          <label class="chk"><input type="checkbox" id="util_apa" class="util" value="apă"> Apă</label>
+          <label class="chk"><input type="checkbox" id="util_canalizare" class="util" value="canalizare"> Canalizare</label>
+          <label class="chk"><input type="checkbox" id="util_gaze" class="util" value="gaze naturale"> Gaze</label>
+          <label class="chk"><input type="checkbox" id="util_curent" class="util" value="energie electrică"> Curent</label>
+          <label class="chk"><input type="checkbox" id="util_internet" class="util" value="internet"> Internet</label>
         </fieldset>
         <div class="field"><label for="acces">Cale de acces <span class="hint">(afectează valoarea)</span></label>
           <input id="acces" placeholder="ex. drum asfaltat / pietruit / servitute de trecere"></div>
@@ -164,7 +176,7 @@
     </section>
 
     <section role="tabpanel" id="sp-comparabile" aria-labelledby="s-comparabile" tabindex="0" hidden>
-      <h3>🔎 Descoperă comparabile</h3>
+      <h3>{{ icon("search") }} Descoperă comparabile</h3>
       <div class="field-row">
         <div class="field"><label for="d-tip">Caut</label>
           <select id="d-tip"><option value="case">Construcții (casă/ap.)</option><option value="terenuri">Terenuri</option></select></div>
@@ -189,61 +201,61 @@
       <label for="d-secundare">Atribute secundare de potrivire <span class="hint">(opțional, una pe linie)</span></label>
       <textarea id="d-secundare" rows="2" placeholder="garaj&#10;piscină&#10;termopan"></textarea>
       <div class="btn-bar">
-        <button type="button" id="d-cauta">🔎 Caută comparabile</button>
+        <button type="button" id="d-cauta">{{ icon("search") }} Caută comparabile</button>
       </div>
       <span id="d-status" class="hint" role="status" aria-live="polite"></span>
       <div id="d-rezultate"></div>
       <h3>Import dintr-un anunț (URL)</h3>
       <div class="field-row">
         <div class="field" style="flex:3"><label for="d-url">Link imobiliare.ro / storia.ro</label><input id="d-url" placeholder="https://www.imobiliare.ro/..."></div>
-        <div class="field"><label for="d-url-btn-l">&nbsp;</label><button type="button" id="d-url-btn">📥 Importă din URL</button></div>
+        <div class="field"><label for="d-url-btn-l">&nbsp;</label><button type="button" id="d-url-btn">{{ icon("import") }} Importă din URL</button></div>
       </div>
       <span id="d-url-status" class="hint" role="status" aria-live="polite"></span>
       <details class="grila-det" id="coada-ext">
-        <summary>🧩 Anunțuri din extensia de browser (<span id="ext-nr">0</span>)</summary>
+        <summary>{{ icon("grid") }} Anunțuri din extensia de browser (<span id="ext-nr">0</span>)</summary>
         <p class="hint">Navighezi tu pe portal, extensia trimite anunțul aici. Bifează + importă în grilă.</p>
         <div class="btn-bar">
-          <button type="button" id="ext-reload"><span aria-hidden="true">↻</span> Reîmprospătează</button>
+          <button type="button" id="ext-reload">{{ icon("refresh") }} Reîmprospătează</button>
           <button type="button" class="ghost" id="ext-goleste">Golește coada</button>
         </div>
         <div id="ext-lista"></div>
       </details>
       <hr class="brass-rule">
-      <label for="comparabile">Comparabile construcție/proprietate <span class="hint">(preț;suprafață, una pe linie)</span></label>
+      <label for="comparabile">Comparabile construcție/proprietate</label>
       <textarea id="comparabile" rows="4" placeholder="250000;120"></textarea>
       <details class="grila-det">
-        <summary>📐 Grilă de ajustări — casă (pe etape + alerte prudențiale)</summary>
+        <summary>{{ icon("grid") }} Grilă de ajustări — casă (pe etape + alerte prudențiale)</summary>
         <p class="hint">Completează prețul + suprafața fiecărui comparabil și ajustările. „Tranzacție" = compus (ofertă→tranzacție);
           „proprietate" = aditiv (caracteristici). Procentual: fracție (0,05 = +5%). Valoric: lei.</p>
         <div class="field" style="max-width:220px"><label for="g-supr">Suprafață subiect (mp)</label><input id="g-supr" placeholder="ex. 120"></div>
         <div id="grila-casa-tabel" class="grila-scroll"></div>
         <div class="btn-bar">
           <button type="button" id="g-calc">Calculează grila</button>
-          <button type="button" class="ghost" id="g-import"><span aria-hidden="true">↑</span> Trimite prețurile în Comparabile</button>
+          <button type="button" class="ghost" id="g-import">{{ icon("upload") }} Trimite prețurile în Comparabile</button>
         </div>
         <div id="g-rezultat" role="status" aria-live="polite"></div>
       </details>
-      <label for="comparabile_teren">Comparabile teren <span class="hint">(preț/mp;suprafață — opțional; dacă există, valoarea terenului se calculează din grilă, nu manual)</span></label>
+      <label for="comparabile_teren">Comparabile teren <span class="hint">(opțional; dacă există, valoarea terenului se calculează din grilă, nu manual)</span></label>
       <textarea id="comparabile_teren" rows="3" placeholder="50;700"></textarea>
       <details class="grila-det">
-        <summary>📐 Grilă de ajustări — teren (pe etape + alerte prudențiale)</summary>
+        <summary>{{ icon("grid") }} Grilă de ajustări — teren (pe etape + alerte prudențiale)</summary>
         <p class="hint">Preț/mp + suprafața fiecărui comparabil + ajustările (procentuale, fracție 0,05 = +5%).</p>
         <div class="field" style="max-width:220px"><label for="gt-supr">Suprafață teren subiect (mp)</label><input id="gt-supr" placeholder="ex. 500"></div>
         <div id="grila-teren-tabel" class="grila-scroll"></div>
         <div class="btn-bar">
           <button type="button" id="gt-calc">Calculează grila teren</button>
-          <button type="button" class="ghost" id="gt-import"><span aria-hidden="true">↑</span> Trimite în Comparabile teren</button>
+          <button type="button" class="ghost" id="gt-import">{{ icon("upload") }} Trimite în Comparabile teren</button>
         </div>
         <div id="gt-rezultat" role="status" aria-live="polite"></div>
       </details>
       <details class="grila-det">
-        <summary>📐 Grilă de chirii — pentru abordarea prin venit (chirie/mp + ajustări → VBP)</summary>
+        <summary>{{ icon("grid") }} Grilă de chirii — pentru abordarea prin venit (chirie/mp + ajustări → VBP)</summary>
         <p class="hint">Chiria lunară/mp + suprafața fiecărui comparabil + ajustările. Rezultă venitul brut potențial anual (VBP).</p>
         <div class="field" style="max-width:220px"><label for="gc-supr">Suprafață închiriabilă subiect (mp)</label><input id="gc-supr" placeholder="ex. 100"></div>
         <div id="grila-chirii-tabel" class="grila-scroll"></div>
         <div class="btn-bar">
           <button type="button" id="gc-calc">Calculează grila chirii</button>
-          <button type="button" class="ghost" id="gc-vbp"><span aria-hidden="true">↑</span> Preia VBP la metoda Venit</button>
+          <button type="button" class="ghost" id="gc-vbp">{{ icon("upload") }} Preia VBP la metoda Venit</button>
         </div>
         <div id="gc-rezultat" role="status" aria-live="polite"></div>
       </details>
@@ -306,40 +318,34 @@
           Confirm că am verificat datele și <b>îmi asum profesional</b> valoarea și conținutul raportului,
           ca evaluator autorizat ANEVAR (semnătura îmi aparține; aplicația doar asistă).</label>
       </div>
-      <fieldset id="gen-format" style="border:1px solid #d8dce3;border-radius:8px;padding:8px 12px;margin:8px 0;">
-        <legend style="font-weight:600;padding:0 4px;">Format</legend>
-        <label class="chk"><input type="radio" name="gen-fmt" value="docx" checked> Word (.docx) — editabil</label>
-        <label class="chk"><input type="radio" name="gen-fmt" value="pdf"> PDF</label>
-        <label class="chk"><input type="radio" name="gen-fmt" value="ambele"> Amândouă (.zip)</label>
-        <span class="hint">PDF necesită LibreOffice (gratuit) sau Microsoft Word instalat pe calculator.</span>
-      </fieldset>
       <div class="btn-bar">
-        <button type="button" id="genereaza" aria-describedby="asumare-info" disabled><span aria-hidden="true">📄</span> Generează și descarcă raportul</button>
-        <button type="button" class="ghost" id="genereaza-demo"><span aria-hidden="true">📝</span> Raport cu note (demo)</button>
-        <button type="button" class="ghost" id="gen-audit"><span aria-hidden="true">🧾</span> Urmă de audit (.txt)</button>
+        <button type="button" id="genereaza" aria-describedby="asumare-info" disabled>{{ icon("doc") }} Generează și descarcă raportul (.docx)</button>
+        <button type="button" class="ghost" id="genereaza-demo">{{ icon("edit") }} Raport cu note (demo)</button>
+        <button type="button" class="ghost" id="gen-audit">{{ icon("audit") }} Urmă de audit (.txt)</button>
       </div>
+      <p class="hint" style="margin:4px 0 0;">Raportul se generează în format <b>Word (.docx)</b> editabil. Verifică documentul și salvează-l ca PDF local (din Word/LibreOffice: <i>Salvează ca / Exportă în PDF</i>).</p>
       <span id="gen-status" class="hint" role="status" aria-live="polite"></span>
       <details style="margin-top:10px;">
         <summary>Încarcă raport <b>submis</b> (returnat de bancă/client)</summary>
-        <p class="hint">Atașează versiunea finală/returnată a raportului (.docx). Se înregistrează cu
+        <p class="hint">Atașează versiunea finală/returnată a raportului (.docx sau .pdf). Se înregistrează cu
          <b>amprentă de integritate</b> (hash) și marchează identitatea dosarului ca <b>asumată</b> (ADR-003).</p>
-        <input type="file" id="submis-fisier" accept=".docx">
-        <button type="button" class="ghost" id="submis-incarca"><span aria-hidden="true">📎</span> Înregistrează fișierul submis</button>
+        <input type="file" id="submis-fisier" aria-label="Încarcă fișier (.docx sau .pdf)" accept=".docx,.pdf">
+        <button type="button" class="ghost" id="submis-incarca">{{ icon("attach") }} Înregistrează fișierul submis</button>
         <span id="submis-status" class="hint" role="status" aria-live="polite"></span>
       </details>
     </section>
     <div class="btn-bar btn-bar-jos">
       <button type="button" class="ghost" id="nav-inapoi"><span aria-hidden="true">◀</span> Înapoi</button>
       <button type="button" id="nav-inainte">Înainte <span aria-hidden="true">▶</span></button>
-      <button type="button" class="ghost" id="reset-dosar">🔄 Reset dosar</button>
-      <a class="btn ghost" href="/documente" title="Toate documentele livrate">📄 Documente</a>
-      <a class="btn ghost" href="/api/backup-dosare.zip" title="Arhivează toate dosarele (.zip)">💾 Backup dosare</a>
+      <button type="button" class="ghost" id="reset-dosar">{{ icon("refresh") }} Reset dosar</button>
+      <a class="btn ghost" href="/documente" title="Toate documentele livrate">{{ icon("doc") }} Documente</a>
+      <a class="btn ghost" href="/api/backup-dosare.zip" title="Arhivează toate dosarele (.zip)">{{ icon("save") }} Backup dosare</a>
     </div>
   </section>
 
   <section role="tabpanel" id="p-aml" aria-labelledby="t-aml" tabindex="0" hidden>
     <h2 class="sr-only">Conformitate AML</h2>
-    <div class="avert-warn" role="note">⚠️ Aplicația <b>NU verifică automat</b> sancțiuni/PEP — verifică manual pe
+    <div class="avert-warn" role="note">{{ icon("warn") }} Aplicația <b>NU verifică automat</b> sancțiuni/PEP — verifică manual pe
       <a href="https://www.opensanctions.org/" target="_blank" rel="noopener">OpenSanctions</a> /
       <a href="https://www.sanctionsmap.eu/" target="_blank" rel="noopener">EU Sanctions Map</a>. Documentele = drafturi (validează cu jurist, Legea 129 art. 43/44/49).</div>
     <fieldset><legend>Entitate evaluator</legend>
@@ -386,16 +392,16 @@
   </section>
   <section role="tabpanel" id="p-gdpr" aria-labelledby="t-gdpr" tabindex="0" hidden>
     <h2 class="sr-only">Documente GDPR</h2>
-    <p class="hint">Generează documentele GDPR (model) direct de aici:</p>
-    <button type="button" id="gdpr-politica">📄 Politică de prelucrare (.docx)</button>
-    <button type="button" id="gdpr-consimtamant">📄 Acord de consimțământ (.docx)</button>
+    <p class="hint">Generează documentele GDPR (model) direct de aici. Sunt fișiere <b>Word (.docx)</b> editabile — verifică-le și salvează-le ca PDF local la nevoie.</p>
+    <button type="button" id="gdpr-politica">{{ icon("doc") }} Politică de prelucrare (.docx)</button>
+    <button type="button" id="gdpr-consimtamant">{{ icon("doc") }} Acord de consimțământ (.docx)</button>
     <span id="gdpr-status" class="hint" role="status" aria-live="polite"></span>
     <p class="hint">Referință: <a href="/documente/politica-confidentialitate" target="_blank" rel="noopener">Politica de confidențialitate ↗</a> ·
       <a href="/documente/disclaimer-profesional" target="_blank" rel="noopener">Disclaimer profesional ↗</a></p></section>
   <section role="tabpanel" id="p-audit" aria-labelledby="t-audit" tabindex="0" hidden>
     <h2 class="sr-only">Urmă de audit</h2>
     <p class="hint">Urma de audit (jurnal hash-înlănțuit + validare încrucișată) pentru valorile curente:</p>
-    <button type="button" id="audit-gen">🧾 Generează urma de audit</button>
+    <button type="button" id="audit-gen">{{ icon("audit") }} Generează urma de audit</button>
     <span id="audit-status" class="hint" role="status" aria-live="polite"></span>
     <pre id="audit-out" class="document" style="display:none"></pre></section>
 </main>
@@ -505,8 +511,12 @@ function numeLoc(id){ var e=$(id); if(!e) return ""; if(e.tagName!=="SELECT") re
   }).catch(function(){
     // Lista indisponibilă: NU lăsa selecturile goale (auto-save ar suprascrie județ/localitate salvate cu "").
     // Restaurează valorile salvate ca opțiune unică + avertizează; userul își păstrează datele.
-    ["judet","localitate"].forEach(function(id){ var e=$(id), v=W[id]; if(!e) return;
-      if(v){ e.innerHTML="<option value='"+v+"' selected>"+v+"</option>"; }
+    // restaurează proprietatea (judet/localitate) ȘI propagă la descoperire (d-judet/d-localitate),
+    // ca subtabul Comparabile să nu pornească gol când lista eșuează (UX #3 — prins de Adi).
+    [["judet", W.judet], ["localitate", W.localitate],
+     ["d-judet", W.judet], ["d-localitate", W.localitate]].forEach(function(pair){
+      var e=$(pair[0]), v=pair[1]; if(!e || !v) return;
+      e.innerHTML="<option value='"+v+"' selected>"+v+"</option>";
       e.title="Lista de localități nu s-a putut încărca; valoarea salvată e păstrată."; });
     var st=$("save-ind"); if(st) st.textContent="⚠ Lista de localități indisponibilă — verifică conexiunea; datele salvate sunt păstrate.";
   });
@@ -712,6 +722,9 @@ function gridEditabil(id, cols, addLabel){
   ],"adaugă element");
   gridEditabil("depreciere",[{label:"Vârstă (ani)",ph:"5",num:1},{label:"Fracție (0–1)",ph:"0.05",num:1}],"adaugă punct");
   gridEditabil("fluxuri",[{label:"Flux anual (venit net)",ph:"10000",num:1}],"adaugă an");
+  // comparabile/comparabile_teren au importatori (URL/extensie/grilă) -> ei apelează refresh() după append.
+  gridEditabil("comparabile",[{label:"Preț",ph:"250000",num:1},{label:"Suprafață (mp)",ph:"120",num:1}],"adaugă comparabil");
+  gridEditabil("comparabile_teren",[{label:"Preț/mp",ph:"50",num:1},{label:"Suprafață teren (mp)",ph:"700",num:1}],"adaugă comparabil");
 })();
 
 // Anexe: foto (Anexa 2) + documente/scanuri (Anexa 3) → data-URL base64, incluse în raport.
@@ -751,6 +764,9 @@ if($("ing-fisier")) $("ing-fisier").addEventListener("change", function(){
   var cauta=$("d-cauta"); if(!cauta) return;
   if($("d-judet")&&!$("d-judet").value&&$("judet")) $("d-judet").value=$("judet").value;
   if($("d-localitate")&&!$("d-localitate").value&&$("localitate")) $("d-localitate").value=$("localitate").value;
+  // SEC-2 (audit): date scrape-uite (titlu/url/explicatie) -> escapate inainte de innerHTML/href (anti-XSS).
+  function esc(x){ return String(x==null?"":x).replace(/[&<>"']/g,function(m){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m];}); }
+  function urlSig(u){ u=String(u==null?"":u); return /^https?:\/\//i.test(u)?u:""; }
   function badge(r){ return r>=80?"b-high":"b-mid"; }
   var PORTALURI=["imobiliare","storia"];
   function randCand(cand, teren){
@@ -758,17 +774,17 @@ if($("ing-fisier")) $("ing-fisier").addEventListener("change", function(){
     $("d-rezultate").innerHTML="<p class='hint'>"+cand.length+" anunțuri găsite (sortate după scor de relevanță):</p>"+
       cand.map(function(c){ var val=teren?(c.pret_mp||""):(c.pret||"");
         return "<div class='callout' style='margin:6px 0'>"+
-        "<label class='chk'><input type='checkbox' class='d-bif' data-pret='"+val+"' data-supr='"+(c.suprafata||"")+"'> "+
-        "<span class='badge "+badge(c.relevanta)+"'>scor "+c.relevanta+"%</span> <b>"+
-        (teren?(c.pret_mp?fmtRo(c.pret_mp)+" EUR/mp":"preț/mp ?"):(c.pret?fmtRo(c.pret)+" "+(c.moneda||"EUR"):"preț ?"))+"</b> · "+
-        (c.suprafata||"?")+" mp"+(!teren&&c.teren?" · teren "+c.teren+" mp":"")+(c._portal?" · <small class='hint'>"+c._portal+"</small>":"")+"</label> "+
-        "<a href='"+c.url+"' target='_blank' rel='noopener'>vezi ↗</a>"+
-        ((c.explicatie||c.nota)?"<br><small class='hint'>"+(c.explicatie||c.nota)+"</small>":"")+"</div>"; }).join("")+
+        "<label class='chk'><input type='checkbox' class='d-bif' data-pret='"+esc(val)+"' data-supr='"+esc(c.suprafata||"")+"'> "+
+        "<span class='badge "+badge(c.relevanta)+"'>scor "+esc(c.relevanta)+"%</span> <b>"+
+        (teren?(c.pret_mp?esc(fmtRo(c.pret_mp))+" EUR/mp":"preț/mp ?"):(c.pret?esc(fmtRo(c.pret))+" "+esc(c.moneda||"EUR"):"preț ?"))+"</b> · "+
+        esc(c.suprafata||"?")+" mp"+(!teren&&c.teren?" · teren "+esc(c.teren)+" mp":"")+(c._portal?" · <small class='hint'>"+esc(c._portal)+"</small>":"")+"</label> "+
+        "<a href='"+esc(urlSig(c.url))+"' target='_blank' rel='noopener'>vezi ↗</a>"+
+        ((c.explicatie||c.nota)?"<br><small class='hint'>"+esc(c.explicatie||c.nota)+"</small>":"")+"</div>"; }).join("")+
       "<button type='button' id='d-importa'>Importă bifate</button>";
     $("d-importa").addEventListener("click", function(){
       var linii=[]; document.querySelectorAll(".d-bif:checked").forEach(function(b){ if(b.dataset.pret&&b.dataset.supr) linii.push(b.dataset.pret+";"+b.dataset.supr); });
       if(!linii.length){ $("d-status").textContent="Bifează cel puțin un candidat."; return; }
-      var ta=$(teren?"comparabile_teren":"comparabile"); ta.value=(ta.value.trim()?ta.value.trim()+"\n":"")+linii.join("\n"); salveaza();
+      var ta=$(teren?"comparabile_teren":"comparabile"); ta.value=(ta.value.trim()?ta.value.trim()+"\n":"")+linii.join("\n"); salveaza(); if(ta._grid)ta._grid.refresh();
       $("d-status").textContent="✓ "+linii.length+" importate în "+(teren?"Comparabile teren":"grilă")+".";
     });
   }
@@ -805,7 +821,7 @@ if($("ing-fisier")) $("ing-fisier").addEventListener("change", function(){
     fetch("/api/import-url",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({url:url})})
       .then(function(r){ return r.ok?r.json():r.json().then(function(e){ return Promise.reject(e.detail||"eroare"); }); })
       .then(function(d){ if(!d.pret||!d.suprafata){ $("d-url-status").textContent="Anunțul nu are preț+suprafață structurate — completează manual."; return; }
-        var ta=$("comparabile"); ta.value=(ta.value.trim()?ta.value.trim()+"\n":"")+d.pret+";"+d.suprafata; salveaza();
+        var ta=$("comparabile"); ta.value=(ta.value.trim()?ta.value.trim()+"\n":"")+d.pret+";"+d.suprafata; salveaza(); if(ta._grid)ta._grid.refresh();
         $("d-url-status").textContent="✓ importat: "+(d.titlu||url); $("d-url").value=""; })
       .catch(function(e){ $("d-url-status").textContent="Import eșuat — "+(typeof e==="string"?e:"verifică linkul/internetul"); })
       .finally(function(){ b.disabled=false; });
@@ -815,14 +831,14 @@ if($("ing-fisier")) $("ing-fisier").addEventListener("change", function(){
     if($("ext-nr")) $("ext-nr").textContent=lst.length;
     if(!$("ext-lista")) return;
     $("ext-lista").innerHTML = lst.length ? (lst.map(function(a){ return "<div class='callout' style='margin:6px 0'>"+
-      "<label class='chk'><input type='checkbox' class='ext-bif' data-pret='"+(a.pret||"")+"' data-supr='"+(a.suprafata||"")+"'> "+
-      "<b>"+(a.pret?fmtRo(a.pret)+" "+(a.moneda||"EUR"):"preț ?")+"</b> · "+(a.suprafata||"?")+" mp"+(a.suprafata_teren?" · teren "+a.suprafata_teren+" mp":"")+"</label> "+
-      (a.url?"<a href='"+a.url+"' target='_blank' rel='noopener'>vezi ↗</a>":"")+"</div>"; }).join("")+
+      "<label class='chk'><input type='checkbox' class='ext-bif' data-pret='"+esc(a.pret||"")+"' data-supr='"+esc(a.suprafata||"")+"'> "+
+      "<b>"+(a.pret?esc(fmtRo(a.pret))+" "+esc(a.moneda||"EUR"):"preț ?")+"</b> · "+esc(a.suprafata||"?")+" mp"+(a.suprafata_teren?" · teren "+esc(a.suprafata_teren)+" mp":"")+"</label> "+
+      (a.url?"<a href='"+esc(urlSig(a.url))+"' target='_blank' rel='noopener'>vezi ↗</a>":"")+"</div>"; }).join("")+
       "<button type='button' id='ext-importa'>Importă bifate în grilă</button>") : "<p class='hint'>Coada e goală. Instalează extensia și navighează pe un anunț.</p>";
     var imp=$("ext-importa"); if(imp) imp.addEventListener("click", function(){
       var linii=[]; document.querySelectorAll(".ext-bif:checked").forEach(function(b){ if(b.dataset.pret&&b.dataset.supr) linii.push(b.dataset.pret+";"+b.dataset.supr); });
       if(!linii.length) return;
-      var ta=$("comparabile"); ta.value=(ta.value.trim()?ta.value.trim()+"\n":"")+linii.join("\n"); salveaza();
+      var ta=$("comparabile"); ta.value=(ta.value.trim()?ta.value.trim()+"\n":"")+linii.join("\n"); salveaza(); if(ta._grid)ta._grid.refresh();
       $("d-status").textContent="✓ "+linii.length+" importate din extensie."; });
   }
   function incarcaCoada(){ fetch("/api/anunturi-importate").then(function(r){return r.ok?r.json():{anunturi:[]};})
@@ -839,7 +855,7 @@ function descarcaDoc(url, nume, btn){
   fetch(url,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({})})
     .then(function(r){ return r.ok?r.blob():Promise.reject(); })
     .then(function(b){ var u=URL.createObjectURL(b); var a=document.createElement("a"); a.href=u; a.download=nume; a.click(); URL.revokeObjectURL(u);
-      if($("gdpr-status")) $("gdpr-status").textContent="✓ generat"; })
+      if($("gdpr-status")) $("gdpr-status").textContent="✓ .docx generat. Verifică-l și salvează-l ca PDF local."; })
     .catch(function(){ if($("gdpr-status")) $("gdpr-status").textContent="generarea a eșuat"; })
     .finally(function(){ btn.disabled=false; });
 }
@@ -877,7 +893,8 @@ if($("audit-gen")) $("audit-gen").addEventListener("click", function(){
     if(url.indexOf("rts")>=0) body.rts={motiv:"indicatori de suspiciune bifați",data_inregistrare:$("aml_azi").value,indicatori:Object.keys(amlInd())};
     fetch(url,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(body)})
       .then(function(r){ return r.ok?r.blob():Promise.reject(); })
-      .then(function(b){ var a=document.createElement("a"); a.href=URL.createObjectURL(b); a.download=url.split("/").pop(); a.click(); })
+      .then(function(b){ var a=document.createElement("a"); a.href=URL.createObjectURL(b); a.download=url.split("/").pop(); a.click();
+        var st=document.getElementById("aml-doc-status"); if(st) st.textContent="✓ "+url.split("/").pop()+" generat. Verifică-l și salvează-l ca PDF local."; })
       .catch(function(){ alert("Documentul nu a putut fi generat."); });
   }
   ev.addEventListener("click", function(){
@@ -890,7 +907,7 @@ if($("audit-gen")) $("audit-gen").addEventListener("click", function(){
         if(d.indicatori&&d.indicatori.length) h+="<p>Indicatori activi"+(d.propune_rts?" → <b>se propune RTS</b>":"")+"</p><ul>"+d.indicatori.map(function(i){return "<li>"+i.text+"</li>";}).join("")+"</ul>";
         if(d.screening&&d.screening.length) h+="<p>Posibile potriviri (demonstrative — verifică manual):</p><ul>"+d.screening.map(function(s){return "<li>"+s.lista+": "+s.intrare+" ("+s.scor+")</li>";}).join("")+"</ul>";
         var map={norme_interne:"/api/aml/norme-interne.docx",evaluare_risc:"/api/aml/evaluare-risc.docx",fisa_kyc:"/api/aml/fisa-kyc.docx",decizie_desemnare:"/api/aml/decizie.docx",rts:"/api/aml/rts.docx"};
-        h+="<p>Documente:</p><div>"+(d.documente_necesare||[]).map(function(doc){ return "<button type='button' class='ghost' data-url='"+map[doc]+"'>"+doc+"</button> "; }).join("")+"</div></div>";
+        h+="<p>Documente <span class='hint'>(.docx — verifică-le și salvează-le ca PDF local)</span>:</p><div>"+(d.documente_necesare||[]).map(function(doc){ return "<button type='button' class='ghost' data-url='"+map[doc]+"'>"+doc+"</button> "; }).join("")+"</div><p id='aml-doc-status' class='hint' role='status' aria-live='polite'></p></div>";
         $("aml-rez").innerHTML=h; window._amlBody=body;
         document.querySelectorAll("#aml-rez button[data-url]").forEach(function(b){ b.addEventListener("click", function(){ amlDescarca(b.dataset.url); }); });
       })
@@ -999,7 +1016,7 @@ function asambleaza(){
   });
   if($("g-import")) $("g-import").addEventListener("click", function(){
     var comps=compForm(); if(!comps.length){ $("g-rezultat").textContent="Nimic de trimis."; return; }
-    var ta=$("comparabile"); ta.value=(ta.value.trim()?ta.value.trim()+"\n":"")+comps.map(function(c){return c.pret+";"+c.suprafata;}).join("\n"); salveaza();
+    var ta=$("comparabile"); ta.value=(ta.value.trim()?ta.value.trim()+"\n":"")+comps.map(function(c){return c.pret+";"+c.suprafata;}).join("\n"); salveaza(); if(ta._grid)ta._grid.refresh();
     $("g-rezultat").textContent="✓ "+comps.length+" prețuri trimise în Comparabile.";
   });
 })();
@@ -1052,7 +1069,7 @@ function asambleaza(){
   });
   if($("gt-import")) $("gt-import").addEventListener("click", function(){
     var comps=compForm(); if(!comps.length){ $("gt-rezultat").textContent="Nimic de trimis."; return; }
-    var ta=$("comparabile_teren"); ta.value=(ta.value.trim()?ta.value.trim()+"\n":"")+comps.map(function(c){return c.pret_mp+";"+c.suprafata;}).join("\n"); salveaza();
+    var ta=$("comparabile_teren"); ta.value=(ta.value.trim()?ta.value.trim()+"\n":"")+comps.map(function(c){return c.pret_mp+";"+c.suprafata;}).join("\n"); salveaza(); if(ta._grid)ta._grid.refresh();
     $("gt-rezultat").textContent="✓ "+comps.length+" comparabile trimise în Comparabile teren.";
   });
 })();
@@ -1127,27 +1144,24 @@ $("calc").addEventListener("click", async function(){
     var lg=$("la-gen"); if(lg) lg.addEventListener("click",function(){ subtab("s-genereaza"); });
   }catch(e){ $("rezultat").textContent="Calculul a eșuat — verifică valorile (suprafețe, elemente, comparabile)."; }
 });
-function genereazaRaport(adnotari, btn, formatForce){
+function genereazaRaport(adnotari, btn){
   // Nu mai injectăm tăcut o dată: dacă lipsesc datele, avertizăm explicit (risc juridic la garantare).
   if(!$("data_evaluarii").value || !$("data_raportului").value){
     if(!confirm("Data evaluării și/sau data raportului nu sunt completate.\n\nRaportul va folosi DATA DE AZI — verifică, fiindcă o dată greșită afectează valabilitatea juridică a evaluării pentru garantare.\n\nContinui cu data de azi?")) {
       $("gen-status").textContent="Completează datele (evaluare/raport) înainte de generare."; return; }
   }
-  var sel=document.querySelector('input[name="gen-fmt"]:checked');
-  var fmt=formatForce||(sel?sel.value:"docx");
-  var ext=fmt==="pdf"?"pdf":(fmt==="ambele"?"zip":"docx");
-  var nume=(adnotari?"raport-demo":"raport")+"."+ext;
+  var nume=(adnotari?"raport-demo":"raport")+".docx";   // PDF→DOCX: raportul e mereu .docx (verificat + exportat manual ca PDF)
   btn.disabled=true; btn.setAttribute("aria-busy","true");
-  $("gen-status").textContent="Se generează"+(fmt!=="docx"?" ("+fmt.toUpperCase()+", poate dura câteva secunde)":"")+"…";
-  fetch("/api/dosar/"+UID+"/raport.docx?fmt="+fmt+(adnotari?"&adnotari=1":""),{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(asambleaza())})
+  $("gen-status").textContent="Se generează…";
+  fetch("/api/dosar/"+UID+"/raport.docx"+(adnotari?"?adnotari=1":""),{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(asambleaza())})
     .then(function(r){ if(r.ok) return r.blob(); return r.json().catch(function(){return{};}).then(function(j){ throw (j.detail||("Generarea a eșuat (cod "+r.status+").")); }); })
     .then(function(b){ var u=URL.createObjectURL(b); var a=document.createElement("a"); a.href=u; a.download=nume; a.click(); URL.revokeObjectURL(u);
-      $("gen-status").textContent="✓ "+nume+" — .docx salvat ca versiune în folder."; })
+      $("gen-status").textContent="✓ "+nume+" generat (salvat ca versiune în folder). Verifică-l și salvează-l ca PDF local."; })
     .catch(function(e){ $("gen-status").textContent=(typeof e==="string"?e:"Generarea a eșuat."); })
     .finally(function(){ btn.disabled=false; btn.removeAttribute("aria-busy"); });
 }
 $("genereaza").addEventListener("click", function(){ genereazaRaport(false, this); });
-if($("genereaza-demo")) $("genereaza-demo").addEventListener("click", function(){ genereazaRaport(true, this, "docx"); });
+if($("genereaza-demo")) $("genereaza-demo").addEventListener("click", function(){ genereazaRaport(true, this); });
 if($("submis-incarca")) $("submis-incarca").addEventListener("click", function(){   // ADR-003 trigger #3
   var f=$("submis-fisier").files[0]; if(!f){ $("submis-status").textContent="Alege un fișier .docx."; return; }
   this.disabled=true; $("submis-status").textContent="Se înregistrează…";

@@ -3,6 +3,7 @@
 <head><meta charset="utf-8"><title>Evaluare ANEVAR — alege interfața</title>
 <style>{% include "_design.css" %}</style></head>
 <body>
+{% from "_icon.html" import icon %}
 <a class="skip-link" href="#continut">Sari la conținut</a>
 {% include "_nav_cross.html" %}
 {% set kicker = "Evaluare ANEVAR" %}{% set titlu = "Alege interfața" %}
@@ -10,7 +11,7 @@
 <main id="continut">
   <div class="alegere">
     <div class="card">
-      <h2><span aria-hidden="true">🗺</span> Flux livrabile <span class="badge">v1.5</span> <span class="badge b-high">recomandat</span></h2>
+      <h2>{{ icon("map") }} Flux livrabile <span class="badge">v1.5</span> <span class="badge b-high">recomandat</span></h2>
       <p>Hartă de proces: ce livrabile produce un dosar, pe 3 niveluri legale (firmă · client ·
          eveniment). Concept vizual nou, portat din Lovable — orientat pe output.</p>
       <p><a class="btn" href="/flux-livrabile">Deschide Flux livrabile →</a></p>
@@ -23,16 +24,8 @@
       <p><a class="btn" href="/incepe">Deschide Homepage nou →</a></p>
       <p class="hint">Prima dată? Se creează contul la <a href="/cont">/cont</a>.</p>
     </div>
-    <div class="card">
-      <h2><span aria-hidden="true">🧭</span> Wizard (UI vechi) <span class="badge">v0</span></h2>
-      <p>Flux ghidat pas-cu-pas (adresă → subiect → comparabile → calcul → raport). Toate funcțiile
-         clasice: grile, descoperire comparabile, AML, formular monolit.</p>
-      <p><a class="btn ghost" href="/wizard">Deschide Wizard →</a></p>
-      <p class="hint">Pagini: <a href="/wizard">Evaluare</a> · <a href="/grila">Grile</a> ·
-        <a href="/descoperire">Descoperire</a> · <a href="/aml">AML</a> · <a href="/dosare">Dosare</a>.</p>
-    </div>
   </div>
-  <div class="callout"><span aria-hidden="true">📄</span> Toate documentele proiectului (sinteză lansare, juridice, strategie) sunt în
+  <div class="callout">{{ icon("doc") }} Toate documentele proiectului (sinteză lansare, juridice, strategie) sunt în
     <a href="/documente">pagina Documente</a> — link disponibil în antetul și subsolul fiecărei pagini.</div>
 </main>
 {% include "_footer.html" %}

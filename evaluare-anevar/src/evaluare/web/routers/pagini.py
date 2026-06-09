@@ -9,7 +9,7 @@ from datetime import datetime
 from pathlib import Path
 
 from fastapi import APIRouter, Request
-from fastapi.responses import HTMLResponse, PlainTextResponse, Response
+from fastapi.responses import HTMLResponse, PlainTextResponse, RedirectResponse, Response
 
 from evaluare import __version__
 from evaluare.logging_setup import get_logger
@@ -74,9 +74,17 @@ def build_router(d: Deps) -> APIRouter:
         return Response(content=svg, media_type="image/svg+xml",
                         headers={"Cache-Control": "public, max-age=86400"})
 
-    @router.get("/", response_class=HTMLResponse)
-    def pagina_index(request: Request) -> HTMLResponse:
-        # Pagina principala = alegerea interfetei (UI nou „output-first" vs wizard vechi).
+    @router.get("/", include_in_schema=False)
+    def pagina_index() -> RedirectResponse:
+        # Logica de start (decizie Adi 2026-06-08): prima oara -> definirea userului (/cont);
+        # daca userul e deja definit -> direct in workspace (/incepe). Alegerea de interfata: /alege.
+        from evaluare import cont as cont_mod
+        tinta = "/incepe" if cont_mod.incarca_cont() is not None else "/cont"
+        return RedirectResponse(tinta)
+
+    @router.get("/alege", response_class=HTMLResponse)
+    def pagina_alege(request: Request) -> HTMLResponse:
+        # Alegerea interfetei (UI nou: Flux livrabile vs Homepage nou). Mutata de pe „/" (acum redirect).
         return d.templates.TemplateResponse(request, "index.html", {})
 
     @router.get("/documente", response_class=HTMLResponse)
