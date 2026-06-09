@@ -93,7 +93,8 @@ def evaluate_land(
     comparables: list[LandComparable], suprafata_subiect: Decimal,
     cfg: MetodologieConfig = IMPLICIT,
 ) -> LandResult:
-    """Ruleaza grila de teren si selecteaza comparabilul cu ajustare bruta minima.
+    """Ruleaza grila de teren. Valoarea = MEDIA pretului/mp corectat al celor mai similare
+    `cfg.nr_comparabile_medie` comparabile (M2; default = minimul legal). N=1 -> comparabilul unic.
 
     `cfg.teren_selectie_include_eur` (M1) decide daca selectia numara si ajustarile valorice (EUR).
     """
@@ -103,8 +104,10 @@ def evaluate_land(
     preturi = [pret_mp_corectat(c) for c in comparables]
     brute = [ajustare_bruta(c, inc) for c in comparables]
     nete = [ajustare_neta(c, inc) for c in comparables]
-    index = min(range(len(comparables)), key=lambda i: brute[i])
-    pret_ales = preturi[index]
+    ordine = sorted(range(len(comparables)), key=lambda i: brute[i])   # cele mai similare intai
+    index = ordine[0]
+    n = min(max(1, cfg.nr_comparabile_medie), len(comparables))
+    pret_ales = sum((preturi[i] for i in ordine[:n]), _ZERO) / n       # media top-N €/mp (N=1 -> unic)
     valoare = pret_ales * suprafata_subiect
     return LandResult(
         preturi_mp_corectate=preturi, ajustari_brute=brute, ajustari_nete=nete,

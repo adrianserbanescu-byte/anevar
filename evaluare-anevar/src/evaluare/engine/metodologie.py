@@ -18,6 +18,11 @@ from decimal import Decimal
 class MetodologieConfig:
     """Parametrii de metodologie configurabili. Default = alegere sensibilă, override-abilă de evaluator."""
 
+    # M2 — câte comparabile (cele mai similare, top-down) se MEDIAZĂ pentru valoare. Default 3 =
+    # minimul legal de comparabile (decizia Adi). 1 = selecția comparabilului unic cel mai similar
+    # (comportamentul istoric, validat pe grilele GBF). Se aplică la abordarea prin piață ȘI la teren.
+    nr_comparabile_medie: int = 3
+
     # M1 — la TEREN, includem ajustările VALORICE (EUR) în criteriul de selecție (ajustarea brută)?
     # Default True = consistent cu abordarea prin piață (casa le numără). False = doar procentuale (vechi).
     teren_selectie_include_eur: bool = True
@@ -38,6 +43,7 @@ IMPLICIT = MetodologieConfig()
 
 # Câmpurile expuse ca opțiuni (pt API/UI) + tipul lor — sursă unică pentru validare/serializare.
 CAMPURI = {
+    "nr_comparabile_medie": int,
     "teren_selectie_include_eur": bool,
     "pondere_piata_default": Decimal,
     "limita_ajustare_bruta": Decimal,
@@ -57,6 +63,7 @@ _LIMITE: dict[str, tuple] = {
     "prag_outlier": (Decimal("0.0001"), Decimal("100")),
     "rotunjire_valoare": (Decimal("0.0001"), Decimal("1000000")),    # pas de rotunjire sanatos
     "min_comparabile": (1, 100),
+    "nr_comparabile_medie": (1, 20),                                 # 1 = selectie unica; >1 = medie top-N
 }
 
 
@@ -101,6 +108,7 @@ def din_override(override: dict | None) -> MetodologieConfig:
 def ca_dict(cfg: MetodologieConfig) -> dict:
     """Serializare prietenoasă (Decimal → str) pentru API/persistență."""
     return {
+        "nr_comparabile_medie": cfg.nr_comparabile_medie,
         "teren_selectie_include_eur": cfg.teren_selectie_include_eur,
         "pondere_piata_default": str(cfg.pondere_piata_default),
         "limita_ajustare_bruta": str(cfg.limita_ajustare_bruta),
@@ -113,6 +121,7 @@ def ca_dict(cfg: MetodologieConfig) -> dict:
 def _ca_dict(cfg: MetodologieConfig) -> dict:
     """Câmpurile ca dict tipat (pt reconstrucția dataclass-ului)."""
     return {
+        "nr_comparabile_medie": cfg.nr_comparabile_medie,
         "teren_selectie_include_eur": cfg.teren_selectie_include_eur,
         "pondere_piata_default": cfg.pondere_piata_default,
         "limita_ajustare_bruta": cfg.limita_ajustare_bruta,
