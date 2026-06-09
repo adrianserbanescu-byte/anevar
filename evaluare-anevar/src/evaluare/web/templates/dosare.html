@@ -21,8 +21,8 @@
     <div class="empty-state">
       <span class="es-icon">{{ icon("folder") }}</span>
       <h2>Niciun dosar salvat încă</h2>
-      <p>Dosarele generate prin wizard se salvează automat aici și pot fi redeschise, redenumite sau descărcate ca raport.</p>
-      <a class="btn" href="/wizard">Deschide wizardul →</a>
+      <p>Dosarele se salvează automat aici și pot fi redeschise, redenumite sau descărcate ca raport.</p>
+      <a class="btn" href="/incepe">Începe un dosar nou →</a>
     </div>
   {% else %}
   <p class="hint">{{ dosare|length }} dosar(e). Fiecare se salvează automat la calcul.</p>
@@ -53,12 +53,11 @@ document.querySelectorAll(".open").forEach(b => b.addEventListener("click", asyn
   b.classList.add("is-loading"); b.disabled = true;
   const gata = () => { b.classList.remove("is-loading"); b.disabled = false; };
   try {
-    const r = await fetch("/api/evaluare/" + id + "/dosar");
-    const d = await r.json();
-    if (!d.wizard) { document.getElementById("dosare-status").textContent =
-      "Dosar mai vechi — nu are snapshot de re-deschidere. Doar descărcarea .docx e disponibilă."; gata(); return; }
-    localStorage.setItem("wizard", JSON.stringify(d.wizard));
-    window.location.href = "/wizard";
+    // Lista veche (SQLite) e deprecată — fluxul curent e /incepe -> /dosar/{uuid}. Wizardul vechi nu mai
+    // e linkat din UI (cerere Adi). Pt evaluările legacy rămâne descărcarea .docx; reeditarea -> flux nou.
+    document.getElementById("dosare-status").textContent =
+      "Pentru reeditare folosește fluxul curent (Începe). Aici poți descărca raportul .docx.";
+    gata(); return;
   } catch(e) { document.getElementById("dosare-status").textContent = "Nu am putut deschide dosarul."; gata(); }
 }));
 document.querySelectorAll(".ren").forEach(b => b.addEventListener("click", async () => {
