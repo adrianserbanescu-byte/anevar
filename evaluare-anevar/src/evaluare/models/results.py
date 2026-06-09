@@ -24,8 +24,9 @@ class MarketResult(BaseModel):
     preturi_unitare_corectate: list[Decimal] = Field(default_factory=list)
     ajustari_brute: list[Decimal] = Field(default_factory=list)
     ajustari_nete: list[Decimal] = Field(default_factory=list)
-    index_selectat: int
-    valoare_piata: Decimal
+    index_selectat: int                                      # cel mai similar (referinta)
+    indici_mediati: list[int] = Field(default_factory=list)  # M2: comparabilele incluse in medie
+    valoare_piata: Decimal                                   # MEDIA preturilor corectate ale lor
 
 
 class ReconciledResult(BaseModel):
@@ -43,8 +44,9 @@ class LandResult(BaseModel):
     preturi_mp_corectate: list[Decimal] = Field(default_factory=list)
     ajustari_brute: list[Decimal] = Field(default_factory=list)
     ajustari_nete: list[Decimal] = Field(default_factory=list)
-    index_selectat: int
-    pret_mp_ales: Decimal
+    index_selectat: int                                      # cel mai similar (referinta)
+    indici_mediati: list[int] = Field(default_factory=list)  # M2: comparabilele incluse in medie
+    pret_mp_ales: Decimal                                    # MEDIA pretului/mp al lor
     valoare_teren: Decimal
 
 

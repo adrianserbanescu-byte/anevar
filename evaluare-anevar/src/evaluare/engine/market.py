@@ -105,5 +105,6 @@ def evaluate_market(
         ajustari_brute=brute,
         ajustari_nete=nete,
         index_selectat=index_selectat,
+        indici_mediati=sorted(ordine[:n]),                 # comparabilele incluse in medie (M2)
         valoare_piata=valoare,
     )

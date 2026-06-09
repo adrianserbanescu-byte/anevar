@@ -111,5 +111,6 @@ def evaluate_land(
     valoare = pret_ales * suprafata_subiect
     return LandResult(
         preturi_mp_corectate=preturi, ajustari_brute=brute, ajustari_nete=nete,
-        index_selectat=index, pret_mp_ales=pret_ales, valoare_teren=valoare,
+        index_selectat=index, indici_mediati=sorted(ordine[:n]),   # comparabilele mediate (M2)
+        pret_mp_ales=pret_ales, valoare_teren=valoare,
     )

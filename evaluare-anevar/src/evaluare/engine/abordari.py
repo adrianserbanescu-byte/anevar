@@ -8,6 +8,7 @@ from pydantic import BaseModel, Field
 
 from evaluare.engine.cost import evaluate_cost
 from evaluare.engine.market import evaluate_market
+from evaluare.engine.metodologie import IMPLICIT, MetodologieConfig
 from evaluare.models.comparable import Comparable
 from evaluare.models.property import BuildingData
 
@@ -31,8 +32,9 @@ def abordare_cost(building: BuildingData, valoare_teren: Decimal | None) -> Rezu
     )
 
 
-def abordare_comparatie(comparables: list[Comparable], suprafata_subiect: Decimal) -> RezultatAbordare:
-    res = evaluate_market(comparables, suprafata_subiect=suprafata_subiect)
+def abordare_comparatie(comparables: list[Comparable], suprafata_subiect: Decimal,
+                        cfg: MetodologieConfig = IMPLICIT) -> RezultatAbordare:
+    res = evaluate_market(comparables, suprafata_subiect=suprafata_subiect, cfg=cfg)
     return RezultatAbordare(
         abordare="comparatie", valoare=res.valoare_piata,
         detalii={"index_selectat": res.index_selectat},

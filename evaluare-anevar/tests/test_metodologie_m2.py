@@ -60,3 +60,44 @@ def test_nr_comparabile_medie_din_config_override():
     assert din_override({"nr_comparabile_medie": 2}).nr_comparabile_medie == 2
     assert din_override({"nr_comparabile_medie": 0}).nr_comparabile_medie == IMPLICIT.nr_comparabile_medie
     assert din_override({"nr_comparabile_medie": 99}).nr_comparabile_medie == IMPLICIT.nr_comparabile_medie
+
+
+# ── Fix-uri din verificarea adversariala M2 ─────────────────────────────────────────────────────
+def test_indici_mediati_expusi_pentru_trasabilitate():
+    # raportul/UI trebuie sa stie CARE comparabile s-au mediat (nu doar index_selectat)
+    comps = [_casa(0.02), _casa(0.06), _casa(0.04)]            # gross: 0=.02, 1=.06, 2=.04
+    assert sorted(evaluate_market(comps).indici_mediati) == [0, 1, 2]   # N=3 -> toate
+    assert evaluate_market(comps, cfg=_N1).indici_mediati == [0]        # N=1 -> doar cel mai similar
+    assert sorted(evaluate_land([_teren(0.02), _teren(0.06), _teren(0.04)],
+                                Decimal("1000")).indici_mediati) == [0, 1, 2]
+
+
+def test_valoare_finala_rotunjita_la_medie_nonexacta():
+    # M2: o medie care nu se imparte exact NU trebuie sa ajunga cu 28 cifre in API/jurnal de audit
+    from evaluare.engine.abordari import RezultatAbordare
+    from evaluare.engine.reconciliation import reconcile_profil
+    rez = [RezultatAbordare(abordare="comparatie", valoare=Decimal("100000.3333333333333333333"))]
+    assert reconcile_profil(rez, "comparatie").valoare_finala == Decimal("100000.33")
+
+
+def test_grila_casa_respecta_override_persistat(tmp_path):
+    # Fix major: /api/grila-casa foloseste configul persistat (M2), la fel ca /calcul si grila-teren
+    from fastapi.testclient import TestClient
+
+    from evaluare.db.storage import Storage
+    from evaluare.engine.metodologie_store import salveaza_override
+    from evaluare.web.app import create_app
+    storage = Storage(tmp_path / "t.db")
+    storage.init()
+    client = TestClient(create_app(storage=storage, client=None, fetcher=lambda u: ""))
+    comps = [{"pret": "100000", "suprafata": "100",
+              "adjustments": [{"element": "a", "tip": "procentuala", "valoare": "0.02"}]},
+             {"pret": "100000", "suprafata": "100",
+              "adjustments": [{"element": "a", "tip": "procentuala", "valoare": "0.04"}]}]
+    payload = {"suprafata_subiect": "100", "comparabile": comps}
+    # default N=3 (limitat la 2 comparabile): media (102000 + 104000)/2 = 103000
+    assert Decimal(client.post("/api/grila-casa", json=payload).json()["valoare_piata"]) == Decimal("103000")
+    # override N=1 -> doar comparabilul unic = 102000
+    salveaza_override(storage.db_path.parent, {"nr_comparabile_medie": 1})
+    assert Decimal(client.post("/api/grila-casa",
+                               json=payload).json()["valoare_piata"]) == Decimal("102000.00")
