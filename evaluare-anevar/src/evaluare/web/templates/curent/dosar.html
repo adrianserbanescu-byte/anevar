@@ -185,6 +185,7 @@
             <option value="imobiliare">imobiliare.ro</option><option value="storia">storia.ro</option></select></div>
         <div class="field"><label for="d-judet">Județ</label><select id="d-judet"><option value="">— județ —</option></select></div>
         <div class="field"><label for="d-localitate">Localitate</label><select id="d-localitate"><option value="">— localitate —</option></select></div>
+        <div class="field"><label for="d-vecine">Localități vecine <span class="hint">(opțional, separate prin virgulă)</span></label><input id="d-vecine" placeholder="Băicoi, Blejoi"></div>
       </div>
       <div class="field-row">
         <div class="field"><label for="d-an">An constr.</label><input id="d-an" type="number" placeholder="2013"></div>
@@ -202,6 +203,7 @@
       <textarea id="d-secundare" rows="2" placeholder="garaj&#10;piscină&#10;termopan"></textarea>
       <div class="btn-bar">
         <button type="button" id="d-cauta">{{ icon("search") }} Caută comparabile</button>
+        <button type="button" class="ghost" id="d-cauta-judet">{{ icon("search") }} Caută în tot județul</button>
       </div>
       <span id="d-status" class="hint" role="status" aria-live="polite"></span>
       <div id="d-rezultate"></div>
@@ -798,10 +800,10 @@ if($("ing-fisier")) $("ing-fisier").addEventListener("change", function(){
       $("d-status").textContent="✓ "+linii.length+" importate în "+(teren?"Comparabile teren":"grilă")+".";
     });
   }
-  function cerePortal(portal, tip){
+  function cerePortal(portal, tip, loc){
     var teren=(tip==="teren"), url, payload;
-    if(teren){ url="/api/descopera-teren"; payload={portal:portal, judet:$("d-judet").value, localitate:$("d-localitate").value, suprafata_subiect:$("d-teren").value||null, max_candidati:8}; }
-    else { url="/api/descopera"; payload={portal:portal, judet:$("d-judet").value, localitate:$("d-localitate").value, tip_activ:tip,
+    if(teren){ url="/api/descopera-teren"; payload={portal:portal, judet:$("d-judet").value, localitate:loc, suprafata_subiect:$("d-teren").value||null, max_candidati:8}; }
+    else { url="/api/descopera"; payload={portal:portal, judet:$("d-judet").value, localitate:loc, tip_activ:tip,
       subiect:{an:parseInt($("d-an").value)||null, stare:parseInt($("d-stare").value)||null,
         finisaj:parseInt($("d-finisaj").value)||null, incalzire:$("d-incalzire").value||null, teren:$("d-teren").value||null},
       atribute_secundare:($("d-secundare")&&$("d-secundare").value||"").split("\n").filter(Boolean), max_candidati:8}; }
@@ -811,19 +813,26 @@ if($("ing-fisier")) $("ing-fisier").addEventListener("change", function(){
       .catch(function(){ cerePortal._erori++; return []; });  // eșec real, nu „0 rezultate"
   }
   cerePortal._erori=0;
-  cauta.addEventListener("click", function(){
-    $("d-status").textContent="… se caută (poate dura câteva secunde)"; $("d-rezultate").innerHTML="";
+  // Caut pe localitatea aleasă + cele vecine adăugate (virgulă). Butonul „tot județul" -> loc="".
+  function localitatiCautare(){
+    var p=[$("d-localitate")?$("d-localitate").value:""];
+    if($("d-vecine")) p=p.concat(($("d-vecine").value||"").split(","));
+    return p.map(function(s){ return (s||"").trim(); }).filter(Boolean).join(",");
+  }
+  function cautaCu(loc){
+    $("d-status").textContent="… se caută ("+(loc?("loc.: "+loc):"tot județul")+")"; $("d-rezultate").textContent="";
     cerePortal._erori=0;
     var tip=($("d-tip")&&$("d-tip").value)||"casa", teren=(tip==="teren");
     var sel=$("d-portal").value, portaluri=(sel==="toate")?PORTALURI:[sel];
-    Promise.all(portaluri.map(function(pp){ return cerePortal(pp, tip); })).then(function(lists){
+    Promise.all(portaluri.map(function(pp){ return cerePortal(pp, tip, loc); })).then(function(lists){
       var cand=[].concat.apply([], lists).sort(function(a,b){ return (b.relevanta||0)-(a.relevanta||0); });
-      // nu masca eșecul drept „0 candidați": dacă toate portalurile au eșuat, spune-o clar.
       if(!cand.length && cerePortal._erori){ $("d-status").textContent="Portalul nu a răspuns sau conexiunea a eșuat — încearcă din nou sau adaugă comparabilele manual."; return; }
-      $("d-status").textContent=cand.length+" candidați"+(sel==="toate"?" (toate portalurile)":"");
+      $("d-status").textContent=cand.length+" candidați"+(loc?"":" (tot județul)")+(sel==="toate"?" · toate portalurile":"");
       randCand(cand, teren);
     });
-  });
+  }
+  cauta.addEventListener("click", function(){ cautaCu(localitatiCautare()); });
+  if($("d-cauta-judet")) $("d-cauta-judet").addEventListener("click", function(){ cautaCu(""); });
   // Import comparabil dintr-un anunț (URL) → adaugă „preț;suprafață" în grilă.
   if($("d-url-btn")) $("d-url-btn").addEventListener("click", function(){
     var url=($("d-url").value||"").trim(); if(!url){ $("d-url-status").textContent="Lipsește linkul."; return; }
