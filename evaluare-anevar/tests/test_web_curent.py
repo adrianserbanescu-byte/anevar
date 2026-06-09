@@ -417,3 +417,46 @@ def test_import_docx_continut_invalid_400(client):
     r = client.post("/api/dosar/import-docx",
                     json={"nume_fisier": "x.docx", "continut": "@@@nu e base64@@@"})
     assert r.status_code == 400
+
+
+# ── #7 coverage cod nou: /setari, /api/cont edit, recalc nume API, identitate raport ──────────
+def test_setari_get_cu_si_fara_cont(client):
+    # /setari (pagina noua de vizualizare/editare cont) — accesibila si fara cont
+    assert client.get("/setari").status_code == 200
+    _cont(client)
+    r = client.get("/setari")
+    assert r.status_code == 200 and "Adi S" in r.text and "8717" in r.text
+
+
+def test_api_cont_edit_actualizeaza(client):
+    # /api/cont re-postat = EDIT: actualizeaza identitatea evaluatorului persistata
+    _cont(client)
+    assert client.post("/api/cont", json={"nume": "Adi Schimbat",
+                                          "legitimatie": "9999"}).status_code == 200
+    pagina = client.get("/cont").text
+    assert "Adi Schimbat" in pagina and "9999" in pagina and "8717" not in pagina
+
+
+def test_api_dosar_salveaza_recalc_nume_end_to_end(client):
+    # end-to-end: dosar creat GOL -> nume cu „?"; dupa /salveaza cu identitate -> fara „?" (bug Adi)
+    _cont(client)
+    uid = client.post("/api/dosar", json={"wizard": {}}).json()["uuid"]
+    assert "?" in client.get(f"/api/dosar/{uid}").json()["nume"]
+    client.post(f"/api/dosar/{uid}/salveaza",
+                json={"id_client": "D9", "nume_client": "Pop", "tip_proprietate": "casa"})
+    assert "?" not in client.get(f"/api/dosar/{uid}").json()["nume"]
+
+
+def test_raport_contine_identitatea_lucrarii(client):
+    # #7: identitatea lucrarii (scopul evaluarii) apare in raportul .docx generat
+    import io
+
+    import docx
+    _cont(client)
+    uid = client.post("/api/dosar", json={"wizard": {}}).json()["uuid"]
+    p = _payload()
+    p["meta"]["scop"] = "garantarea imprumutului bancar XYZ"
+    r = client.post(f"/api/dosar/{uid}/raport.docx", json=p)
+    assert r.status_code == 200
+    text = "\n".join(par.text for par in docx.Document(io.BytesIO(r.content)).paragraphs)
+    assert "garantarea imprumutului bancar XYZ" in text
