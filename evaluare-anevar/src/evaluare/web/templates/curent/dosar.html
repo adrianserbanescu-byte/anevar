@@ -2,7 +2,17 @@
 <!DOCTYPE html>
 <html lang="ro">
 <head><meta charset="utf-8"><title>Dosar — {{ dosar.nume }}</title>
-<style>{% include "_design.css" %}</style></head>
+<style>{% include "_design.css" %}</style>
+<style>
+  /* #5 (audit Adi): aliniere grid în workspace. _design.css are .field-row=flex (câmpuri egale
+     PE RÂND => coloanele NU se aliniază între rânduri cu nr. diferit de câmpuri). Override local:
+     grid cu track-uri identice (auto-fill + minmax egal) => marginile-stânga se aliniază vertical
+     între toate rândurile; min 200px => dropdown-urile (Drept evaluat etc.) nu mai sunt înghesuite. */
+  main .field-row{ display:grid; grid-template-columns:repeat(auto-fill, minmax(200px, 1fr));
+    gap:0 18px; align-items:start; }
+  main .field-row .field[style*="flex:2"]{ grid-column:span 2; }
+  @media (max-width:560px){ main .field-row{ grid-template-columns:1fr; } }
+</style></head>
 <body>
 <a class="skip-link" href="#continut">Sari la conținut</a>
 {% include "_nav_cross.html" %}
@@ -137,11 +147,12 @@
           <div class="field"><label for="valoare_teren">Valoare teren (lei)</label><input id="valoare_teren" placeholder="ex. 100000"></div>
         </div>
         <fieldset><legend>Utilități (GEV 630)</legend>
-          <label class="chk"><input type="checkbox" class="util" value="apă"> Apă</label>
-          <label class="chk"><input type="checkbox" class="util" value="canalizare"> Canalizare</label>
-          <label class="chk"><input type="checkbox" class="util" value="gaze naturale"> Gaze</label>
-          <label class="chk"><input type="checkbox" class="util" value="energie electrică"> Curent</label>
-          <label class="chk"><input type="checkbox" class="util" value="internet"> Internet</label>
+          {# fiecare checkbox are id => snapshot()/restore le persistă (bug pierdere date: fără id erau sărite) #}
+          <label class="chk"><input type="checkbox" id="util_apa" class="util" value="apă"> Apă</label>
+          <label class="chk"><input type="checkbox" id="util_canalizare" class="util" value="canalizare"> Canalizare</label>
+          <label class="chk"><input type="checkbox" id="util_gaze" class="util" value="gaze naturale"> Gaze</label>
+          <label class="chk"><input type="checkbox" id="util_curent" class="util" value="energie electrică"> Curent</label>
+          <label class="chk"><input type="checkbox" id="util_internet" class="util" value="internet"> Internet</label>
         </fieldset>
         <div class="field"><label for="acces">Cale de acces <span class="hint">(afectează valoarea)</span></label>
           <input id="acces" placeholder="ex. drum asfaltat / pietruit / servitute de trecere"></div>

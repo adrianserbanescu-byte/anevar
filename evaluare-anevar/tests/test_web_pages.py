@@ -107,3 +107,23 @@ def test_result_page_loads(tmp_path):
     assert resp.status_code == 200
     assert "Ion Popescu" in resp.text
     assert "raport.docx" in resp.text   # link de descarcare
+
+
+def test_setari_pagina(tmp_path, monkeypatch):
+    # Pagina Setări (batch Adi): vizualizare + editare cont (nume/legitimație/format) via /api/cont.
+    monkeypatch.setenv("OUTPUT_DIR", str(tmp_path / "date"))
+    import evaluare.cont as cont_mod
+    client = _client(tmp_path)
+    # fără cont: pagina se randează + invită la definire
+    r = client.get("/setari")
+    assert r.status_code == 200 and "Setări" in r.text
+    assert 'id="nume"' in r.text and 'id="legitimatie"' in r.text
+    # cu cont: afișează userul definit (nume + legitimație)
+    cont_mod.salveaza_cont("Maria Ionescu", "55512", ["client_nume", "tip_proprietate", "scop"])
+    r2 = client.get("/setari")
+    assert "Maria Ionescu" in r2.text and "55512" in r2.text and "Conectat ca" in r2.text
+
+
+def test_setari_in_nav(tmp_path):
+    # link-ul „Setări" apare în cross-nav pe paginile aplicației
+    assert 'href="/setari"' in _client(tmp_path).get("/incepe").text

@@ -47,6 +47,13 @@ def build_router(d: Deps) -> APIRouter:
             raise HTTPException(422, "Nume și legitimație obligatorii.")
         return cont_mod.salveaza_cont(req.nume, req.legitimatie, req.format_dosar or None)
 
+    # ── Setări (vizualizare + editare cont, accesibil din nav; cerere Adi/batch) ──────
+    @router.get("/setari", response_class=HTMLResponse)
+    def pagina_setari(request: Request) -> HTMLResponse:
+        from evaluare.master_config import CAMPURI_NUME_DOSAR
+        return d.templates.TemplateResponse(request, "curent/setari.html",
+            {"cont": cont_mod.incarca_cont(), "campuri": CAMPURI_NUME_DOSAR})
+
     # ── ÎNCEPE (homepage) ────────────────────────────────────────────────────────
     @router.get("/incepe", response_class=HTMLResponse)
     def pagina_incepe(request: Request) -> HTMLResponse:
