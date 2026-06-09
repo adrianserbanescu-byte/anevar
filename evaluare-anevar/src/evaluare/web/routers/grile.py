@@ -36,8 +36,9 @@ def build_router(d: Deps) -> APIRouter:
 
     @router.post("/api/grila-casa")
     def grila_casa(req: GrilaCasaRequest) -> dict:
+        cfg = metodologie_store.config_efectiv(d.storage.db_path.parent)   # acelasi config ca /calcul (M2/M1)
         try:
-            r = evaluate_market(req.comparabile, req.suprafata_subiect)
+            r = evaluate_market(req.comparabile, req.suprafata_subiect, cfg)
         except ValueError as e:
             raise HTTPException(status_code=422, detail=str(e)) from e
         return {
