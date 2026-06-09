@@ -9,6 +9,9 @@ Folosire:
     python scripts/_e2e.py xss grid           # doar scripturile al căror nume conține "xss" sau "grid"
     python scripts/_e2e.py --no-server URL    # rulează contra unui server deja pornit (ex. http://127.0.0.1:8000)
     python scripts/_e2e.py --list             # listează scripturile descoperite și ies
+    python scripts/_e2e.py --fail-fast        # oprește la primul fail (util pentru iterare locală)
+    python scripts/_e2e.py --quiet            # output minimal (util pentru CI / scripturi)
+    python scripts/_e2e.py --json             # raport JSON pe stdout (consum machine)
 
 Owner: sesiunea D (Rol 2 — framework testare). NU modifică testele individuale; doar le
 agreg într-un runner reproductibil.
@@ -63,14 +66,15 @@ def asteapta_server(timeout: int) -> bool:
     return False
 
 
-def porneste_server() -> subprocess.Popen:
+def porneste_server(tacut: bool = False) -> subprocess.Popen:
     if not port_liber(PORT):
         raise SystemExit(f"Portul {PORT} e ocupat — închide procesul care îl folosește, "
                          f"sau rulează cu --no-server <URL>.")
     env = os.environ.copy()
     env["PYTHONPATH"] = str(RADACINA / "src")
     env["PYTHONIOENCODING"] = "utf-8"
-    print(f"→ Pornesc serverul de test ({SERVE_TEST.name}) pe :{PORT}…", flush=True)
+    if not tacut:
+        print(f"→ Pornesc serverul de test ({SERVE_TEST.name}) pe :{PORT}…", flush=True)
     proc = subprocess.Popen(
         [sys.executable, str(SERVE_TEST)],
         cwd=RADACINA, env=env,
@@ -79,7 +83,8 @@ def porneste_server() -> subprocess.Popen:
     if not asteapta_server(TIMEOUT_BOOT):
         proc.terminate()
         raise SystemExit(f"Serverul nu a răspuns pe {BASE} în {TIMEOUT_BOOT}s.")
-    print(f"✓ Server gata: {BASE}", flush=True)
+    if not tacut:
+        print(f"✓ Server gata: {BASE}", flush=True)
     return proc
 
 
@@ -109,6 +114,12 @@ def main(argv: list[str]) -> int:
             print(f.name)
         return 0
 
+    # Flag-uri simple (toate opt-in, fără value).
+    fail_fast = "--fail-fast" in argv
+    quiet = "--quiet" in argv
+    json_mode = "--json" in argv
+    argv = [a for a in argv if a not in ("--fail-fast", "--quiet", "--json")]
+
     # --no-server <URL>: nu pornim server propriu, folosim unul existent.
     baza = BASE
     server_extern = False
@@ -120,7 +131,8 @@ def main(argv: list[str]) -> int:
         baza = argv[i + 1]
         argv = argv[:i] + argv[i + 2:]
         server_extern = True
-        print(f"→ Folosesc serverul extern: {baza}", flush=True)
+        if not (quiet or json_mode):
+            print(f"→ Folosesc serverul extern: {baza}", flush=True)
 
     filtre = [a for a in argv if not a.startswith("--")]
     scripturi = descopera_scripturi(filtre)
@@ -128,18 +140,26 @@ def main(argv: list[str]) -> int:
         print(f"Nicio potrivire pentru filtrele: {filtre}", file=sys.stderr)
         return 2
 
-    proc = None if server_extern else porneste_server()
+    # JSON-mode tace orice altceva pe stdout, ca să nu strice payload-ul.
+    def info(msg: str) -> None:
+        if not (quiet or json_mode):
+            print(msg, flush=True)
+
+    proc = None if server_extern else porneste_server(tacut=quiet or json_mode)
     try:
         rezultate: list[tuple[Path, bool, float, str]] = []
-        print(f"\n=== Rulez {len(scripturi)} script(uri) e2e ===", flush=True)
+        info(f"\n=== Rulez {len(scripturi)} script(uri) e2e ===")
         for sc in scripturi:
-            print(f"\n→ {sc.name}", flush=True)
+            info(f"\n→ {sc.name}")
             ok, dt, ultim = ruleaza_script(sc, baza)
             marca = "✓ OK" if ok else "✗ FAIL"
-            print(f"  {marca}  ({dt:.1f}s)")
-            if not ok and ultim:
+            info(f"  {marca}  ({dt:.1f}s)")
+            if not ok and ultim and not quiet and not json_mode:
                 print(f"  ultimele linii:\n    " + ultim.replace("\n", "\n    "))
             rezultate.append((sc, ok, dt, ultim))
+            if fail_fast and not ok:
+                info("  → --fail-fast: oprire la primul fail.")
+                break
     finally:
         if proc is not None:
             proc.terminate()
@@ -149,12 +169,28 @@ def main(argv: list[str]) -> int:
     trecute = sum(1 for _, ok, _, _ in rezultate if ok)
     esuate = len(rezultate) - trecute
     total_dt = sum(dt for _, _, dt, _ in rezultate)
-    print(f"\n=== {trecute}/{len(rezultate)} OK · {esuate} FAIL · {total_dt:.1f}s total ===")
-    if esuate:
-        print("ESEC:")
-        for sc, ok, _, _ in rezultate:
-            if not ok:
-                print(f"  - {sc.name}")
+    if json_mode:
+        import json
+        print(json.dumps({
+            "ok": esuate == 0,
+            "trecute": trecute,
+            "esuate": esuate,
+            "total_durata_s": round(total_dt, 1),
+            "scripturi": [
+                {"nume": sc.name, "ok": ok, "durata_s": round(dt, 1),
+                 "ultimele_linii": ultim if not ok else ""}
+                for sc, ok, dt, ultim in rezultate
+            ],
+        }, ensure_ascii=False, indent=2))
+    elif not quiet:
+        print(f"\n=== {trecute}/{len(rezultate)} OK · {esuate} FAIL · {total_dt:.1f}s total ===")
+        if esuate:
+            print("ESEC:")
+            for sc, ok, _, _ in rezultate:
+                if not ok:
+                    print(f"  - {sc.name}")
+    else:                                    # --quiet: o singură linie sumar
+        print(f"{trecute}/{len(rezultate)} OK ({total_dt:.1f}s)")
     return esuate                            # exit code = nr. eșuate (0 = tot OK)
 
 

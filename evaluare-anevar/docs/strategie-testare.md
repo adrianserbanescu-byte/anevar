@@ -174,9 +174,10 @@ diff <(grep -rhoE "fetch\(['\"\`][^'\"\`]+" *.html | sed -E "s/fetch\(['\"\`]//"
 feedback scurtă = teste rulate des = regresii prinse devreme.
 
 ### 10.1 Paralelizare (`pytest-xdist`)
-- `pytest -n auto` distribuie testele pe toate nucleele. Măsurat: **~117s serial → ~46-54s paralel**
-  (8 nuclee, **586 teste** la 2026-06-09) — ~2.1×. Testele sunt izolate (fiecare cu `tmp_path` /
-  fixturi proprii, zero rețea), deci paralelizarea e sigură — **586 passed identic pe `-n auto`**.
+- `pytest -n auto` distribuie testele pe toate nucleele. Măsurat: **~117s serial → ~46-60s paralel**
+  (8 nuclee, **607 teste** la 2026-06-09, post-audit #7 coverage al lui B) — ~2×. Testele sunt izolate
+  (`tmp_path`/fixturi proprii, zero rețea), deci paralelizarea e sigură — **607 passed identic pe
+  `-n auto`** (verificat post-rebase pe `c2c04bf`: metodologie M1/M3/M5 + fix critic rotunjire).
 - **NU** punem `-n auto` în `addopts` implicit: rularea serială rămâne default-ul pentru
   debugging clar (`-x`, `pdb`, output ne-întrețesut). Paralel = explicit (CI + rulări full locale).
 - CI rulează **`pytest -n auto --dist loadscope --max-worker-restart=4 --cov`**, precedat de
@@ -216,12 +217,22 @@ Comenzi:
 ```bash
 python scripts/_e2e.py                 # toată suita e2e (boot server, run, stop server)
 python scripts/_e2e.py xss grid        # doar scripturile al căror nume conține „xss" sau „grid"
-python scripts/_e2e.py --no-server http://127.0.0.1:8000   # rulează contra unui server existent
+python scripts/_e2e.py --no-server URL # rulează contra unui server existent (ex. http://127.0.0.1:8000)
+python scripts/_e2e.py --fail-fast     # oprește la primul fail (util pentru iterare locală)
+python scripts/_e2e.py --quiet         # output minimal (o linie sumar — pentru scripturi de gate)
+python scripts/_e2e.py --json          # raport JSON pe stdout (consum machine; pentru CI viitor)
 python scripts/_e2e.py --list          # listează scripturile descoperite
 ```
-Baseline (2026-06-09): **6/6 OK în 67s** (wall-clock, include boot server + Chromium); `_pw_smoke.py`
-domină (~26s). Rulează încă LOCAL (nu în CI): cere `chromium` instalat (`python -m playwright install
-chromium`), care e prea greu pentru CI-ul curent. **A rula înainte de fiecare release `.exe`.**
+Baseline (2026-06-09): **8/8 OK în ~114s** (boot server + Chromium incluse; `_pw_smoke.py` domină
+~26s; auto-descoperă scripturile noi — `_check_descoperire_tip` + `_check_dosar_beneficiar` apărute
+între timp s-au integrat fără modificări la runner, validând designul glob). Rulează LOCAL (nu în CI):
+cere `chromium` instalat (`python -m playwright install chromium`), prea greu pentru CI-ul curent.
+**A rula înainte de fiecare release `.exe`.**
+
+> **Decizie luată: NU paralelizăm scripturile e2e între ele.** Toate fac `POST /api/cont` +
+> `POST /api/dosar` pe ACELAȘI server izolat — paralelizarea naivă ar produce race-uri pe starea
+> partajată (overwrite cont, conflicte UID, dosare amestecate). Un server-per-script ar costa
+> 6× boot. Verdictul: serialul cu izolare prin server e cel mai bun raport risc/câștig.
 
 > NU am atins logica scripturilor individuale (sunt teste per-feature, rămân ale autorilor); doar
 > le-am consolidat într-un runner reproductibil.
