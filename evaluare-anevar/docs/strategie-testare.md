@@ -223,9 +223,11 @@ python scripts/_e2e.py --quiet         # output minimal (o linie sumar — pentr
 python scripts/_e2e.py --json          # raport JSON pe stdout (consum machine; pentru CI viitor)
 python scripts/_e2e.py --list          # listează scripturile descoperite
 ```
-Baseline (2026-06-09): **6/6 OK în ~67-90s wall-clock** (include boot server + Chromium); `_pw_smoke.py`
-domină (~26s). Rulează LOCAL (nu în CI): cere `chromium` instalat (`python -m playwright install
-chromium`), care e prea greu pentru CI-ul curent. **A rula înainte de fiecare release `.exe`.**
+Baseline (2026-06-09): **8/8 OK în ~114s** (boot server + Chromium incluse; `_pw_smoke.py` domină
+~26s; auto-descoperă scripturile noi — `_check_descoperire_tip` + `_check_dosar_beneficiar` apărute
+între timp s-au integrat fără modificări la runner, validând designul glob). Rulează LOCAL (nu în CI):
+cere `chromium` instalat (`python -m playwright install chromium`), prea greu pentru CI-ul curent.
+**A rula înainte de fiecare release `.exe`.**
 
 > **Decizie luată: NU paralelizăm scripturile e2e între ele.** Toate fac `POST /api/cont` +
 > `POST /api/dosar` pe ACELAȘI server izolat — paralelizarea naivă ar produce race-uri pe starea
