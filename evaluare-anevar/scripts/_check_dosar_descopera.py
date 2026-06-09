@@ -46,11 +46,14 @@ with sync_playwright() as p:
     assert pg.query_selector("#d-vecine"), "input localități vecine lipsește"
     assert pg.query_selector("#d-cauta-judet"), "buton „tot județul” lipsește"
 
+    pg.evaluate("var e=document.getElementById('acd'); if(e){ e.value='120'; }")
     pg.fill("#d-vecine", "baicoi, blejoi")
     pg.click("#d-cauta")
     pg.wait_for_function("document.querySelectorAll('#d-rezultate .callout').length > 0", timeout=8000)
     loc1 = (payloads[-1].get("localitate") or "").replace(" ", "")
     assert "baicoi,blejoi" in loc1, f"vecinele nu ajung în payload: {loc1!r}"
+    supr = (payloads[-1].get("subiect") or {}).get("suprafata_construita")
+    assert supr == "120", f"suprafața subiectului nu ajunge la scoring (cauza relevanței 0%!): {supr!r}"
 
     pg.click("#d-cauta-judet")
     pg.wait_for_timeout(1500)
@@ -61,4 +64,4 @@ with sync_playwright() as p:
 if erori:
     print("EROARE console:", erori)
     sys.exit(1)
-print(f"OK: vecine -> localitate='{loc1}'; tot județul -> localitate=''; zero erori console")
+print(f"OK: suprafață subiect={supr} (relevanță>0); vecine -> '{loc1}'; tot județul -> localitate=''; zero erori")
