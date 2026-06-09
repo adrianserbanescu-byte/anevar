@@ -172,13 +172,22 @@ diff <(grep -rhoE "fetch\(['\"\`][^'\"\`]+" *.html | sed -E "s/fetch\(['\"\`]//"
 feedback scurtă = teste rulate des = regresii prinse devreme.
 
 ### 10.1 Paralelizare (`pytest-xdist`)
-- `pytest -n auto` distribuie testele pe toate nucleele. Măsurat: **~117s serial → ~54s paralel**
-  (8 nuclee, **583 teste** la 2026-06-09) — ~2.1×. Testele sunt deja izolate (fiecare cu `tmp_path`
-  / fixturi proprii, zero rețea), deci paralelizarea e sigură — **583 passed identic pe `-n auto`**.
+- `pytest -n auto` distribuie testele pe toate nucleele. Măsurat: **~117s serial → ~46-54s paralel**
+  (8 nuclee, **586 teste** la 2026-06-09) — ~2.1×. Testele sunt izolate (fiecare cu `tmp_path` /
+  fixturi proprii, zero rețea), deci paralelizarea e sigură — **586 passed identic pe `-n auto`**.
 - **NU** punem `-n auto` în `addopts` implicit: rularea serială rămâne default-ul pentru
   debugging clar (`-x`, `pdb`, output ne-întrețesut). Paralel = explicit (CI + rulări full locale).
-- CI (`.github/workflows/ci.yml`) rulează `pytest -n auto --cov` — `pytest-cov` combină automat
-  acoperirea per-worker, deci gate-ul `fail_under=90` rămâne valid (verificat: 93.6% pe `-n auto`).
+- CI rulează **`pytest -n auto --dist loadscope --max-worker-restart=4 --cov`**, precedat de
+  `python -m compileall -q src tests`. `pytest-cov` combină acoperirea per-worker → gate
+  `fail_under=90` valid (93.6%).
+
+> **⚠️ Flakiness xdist sub LOAD (2026-06-09):** pe o mașină **supraîncărcată** (mai multe sesiuni
+> rulând simultan), `-n auto` poate pica TRANZITORIU la colectare (`ImportError` pe module, ex.
+> `test_zona`) — workeri care mor sub presiune CPU/RAM. **Nu e bug de cod** (serial e mereu verde).
+> Mitigări aplicate în CI: `compileall` (elimină race-ul `.pyc` între workeri), `--max-worker-restart=4`
+> (repornește workerii morți în loc să pice run-ul), `--dist loadscope` (mai puțin re-setup).
+> **Pe CI dedicat (GitHub, 2-4 nuclee, low-load) e robust.** **Local, sub load greu (sesiuni paralele):
+> folosește `pytest` serial sau `pytest -n 2`** — serialul rămâne gate-ul determinist de referință.
 
 ### 10.2 Coverage-gate
 - Prag `fail_under = 90` în `[tool.coverage.report]` (pyproject). Scădere sub prag = CI roșu.

@@ -26,7 +26,13 @@ jobs:
       - name: Verifica lockfile la zi
         run: python scripts/lock.py --check
 
-      - name: Teste (pytest paralel + acoperire)
-        # -n auto: ruleaza suita pe toate nucleele (pytest-xdist). pytest-cov combina
-        # automat acoperirea per-worker, deci gate-ul de 90% ramane valid. ~2x mai rapid.
-        run: pytest -n auto -q --cov=evaluare --cov-report=term-missing
+      - name: Pre-compila (elimina race-ul .pyc intre workerii xdist)
+        run: python -m compileall -q src tests
+
+      - name: Teste (pytest paralel resilient + acoperire)
+        # -n auto: suita pe toate nucleele (pytest-xdist); pytest-cov combina acoperirea
+        # per-worker -> gate 90% ramane valid. --dist loadscope: grupeaza testele pe modul
+        # (mai stabil, mai putin re-setup). --max-worker-restart=4: daca un worker moare sub
+        # presiune (load), xdist il reporneste in loc sa pice colectarea (flakiness sub load).
+        # Vezi docs/strategie-testare.md §10.1 (sub load LOCAL greu, foloseste serial / -n 2).
+        run: pytest -n auto --dist loadscope --max-worker-restart=4 -q --cov=evaluare --cov-report=term-missing
