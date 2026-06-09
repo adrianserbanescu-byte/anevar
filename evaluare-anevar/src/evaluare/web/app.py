@@ -57,7 +57,12 @@ def create_app(storage: Storage, client: NarrativeClient | None,
                 if urlsplit(origin).hostname not in _HOSTURI_LOCALE:
                     return PlainTextResponse("Acces respins: cerere cross-site blocată (CSRF).",
                                              status_code=403)
-        return await call_next(request)
+        resp = await call_next(request)
+        # No-cache pe paginile HTML: după un deploy, browserul vede modificările INSTANT (fără
+        # hard-refresh). Asset-urile statice (CSS/JS) rămân cacheabile (nu primesc acest header).
+        if "text/html" in (resp.headers.get("content-type") or ""):
+            resp.headers["Cache-Control"] = "no-cache, must-revalidate"
+        return resp
 
     # Permite extensiei de browser sa POST-eze pe /api/import-anunt (aplicatie locala).
     app.add_middleware(
