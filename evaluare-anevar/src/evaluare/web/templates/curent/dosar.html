@@ -486,6 +486,28 @@ Object.keys(WIZARD||{}).forEach(function(k){ var e=$(k); if(!e) return;
   if(e && WIZARD && WIZARD[k]){ e.disabled=true; e.setAttribute("aria-disabled","true");
     e.title="Stabilit la crearea dosarului — pentru altul, creează un dosar nou."; } });
 
+// M2 (B): valoarea de piață/teren/chirie = MEDIA celor mai similare N comparabile (default 3).
+// Helper de fallback safe pre-integrare: dacă indici_mediati lipsește din payload (motor M1) →
+// cădem pe [index_selectat] (comportament identic cu cel pre-M2). Folosit la afișarea valorii
+// + la verificarea pragurilor prudențiale pe TOATE comparabilele incluse în medie (concern B —
+// pre-M2 alerta acoperea doar comparabilul ales; cu media, comp 2/3 mai ajustate intrau în
+// valoare dar scăpau de alertă).
+function _indMed(d){ return (Array.isArray(d.indici_mediati) && d.indici_mediati.length)
+  ? d.indici_mediati : [d.index_selectat||0]; }
+function _alertePrudentiale(d, prag){
+  prag = prag || 0.25;
+  var med = _indMed(d), brute = d.ajustari_brute||[];
+  return med.filter(function(i){ return parseFloat(brute[i]||0) > prag; }).map(function(i){
+    return "Comp "+(i+1)+": ajustare brută "+Math.round(parseFloat(brute[i])*100)+"% > "
+         + Math.round(prag*100)+"% (prag prudențial GEV 520)";
+  });
+}
+function _etichetaSelectie(d){
+  var med = _indMed(d);
+  return med.length>1
+    ? ("media celor mai similare "+med.length+" comparabile (#"+med.map(function(i){return i+1;}).join(", #")+")")
+    : ("comparabil ales: #"+((d.index_selectat||0)+1));
+}
 // Numele afișat (text) al unui select de localitate/județ — pentru raport (nu slug-ul).
 function numeLoc(id){ var e=$(id); if(!e) return ""; if(e.tagName!=="SELECT") return e.value;
   if(e.value==="__alt__") return ($(id+"_alt")&&$(id+"_alt").value)||"";
@@ -1016,8 +1038,8 @@ function asambleaza(){
     fetch("/api/grila-casa",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({suprafata_subiect:ss,comparabile:comps})})
       .then(function(r){ return r.ok?r.json():Promise.reject(); })
       .then(function(d){
-        var al=[]; (d.ajustari_brute||[]).forEach(function(b,i){ if(parseFloat(b)>0.25) al.push("Comp "+(i+1)+": ajustare brută "+Math.round(parseFloat(b)*100)+"% > 25% (prag prudențial GEV 520)"); });
-        var html="<div class='callout'><p><b>Valoare de piață: "+fmtRo(d.valoare_piata)+"</b> · comparabil ales: #"+((d.index_selectat||0)+1)+"</p>"+
+        var al = _alertePrudentiale(d);   // M2: prag verificat pe TOATE comparabilele mediate
+        var html="<div class='callout'><p><b>Valoare de piață: "+fmtRo(d.valoare_piata)+"</b> · "+_etichetaSelectie(d)+"</p>"+
           "<p class='hint'>Prețuri unitare corectate: "+(d.preturi_unitare_corectate||[]).map(function(p){return fmtRo(p);}).join(" · ")+"</p>";
         html+=al.length?("<ul>"+al.map(function(a){return "<li class='alerta'>⚠ "+a+"</li>";}).join("")+"</ul>"):"<p class='hint'>✓ Toate ajustările brute sub pragul prudențial de 25%.</p>";
         $("g-rezultat").innerHTML=html+"</div>";
@@ -1070,8 +1092,8 @@ function asambleaza(){
     fetch("/api/grila-teren",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({suprafata_subiect:ss,comparabile:comps})})
       .then(function(r){ return r.ok?r.json():Promise.reject(); })
       .then(function(d){
-        var al=[]; (d.ajustari_brute||[]).forEach(function(b,i){ if(parseFloat(b)>0.25) al.push("Comp "+(i+1)+": ajustare brută "+Math.round(parseFloat(b)*100)+"% > 25% (prag prudențial GEV 520)"); });
-        var html="<div class='callout'><p><b>Valoare teren: "+fmtRo(d.valoare_teren)+"</b> · preț/mp ales: "+fmtRo(d.pret_mp_ales)+" · comparabil #"+((d.index_selectat||0)+1)+"</p>";
+        var al = _alertePrudentiale(d);   // M2: prag pe TOATE comparabilele mediate
+        var html="<div class='callout'><p><b>Valoare teren: "+fmtRo(d.valoare_teren)+"</b> · preț/mp ales: "+fmtRo(d.pret_mp_ales)+" · "+_etichetaSelectie(d)+"</p>";
         html+=al.length?("<ul>"+al.map(function(a){return "<li class='alerta'>⚠ "+a+"</li>";}).join("")+"</ul>"):"<p class='hint'>✓ Toate ajustările brute sub pragul prudențial de 25%.</p>";
         $("gt-rezultat").innerHTML=html+"</div>";
       })
@@ -1124,8 +1146,8 @@ function asambleaza(){
       .then(function(r){ return r.ok?r.json():r.json().then(function(e){return Promise.reject(e.detail||"eroare");}); })
       .then(function(d){
         _vbp=d.venit_brut_potential;
-        var al=[]; (d.ajustari_brute||[]).forEach(function(b,i){ if(parseFloat(b)>0.25) al.push("Comp "+(i+1)+": ajustare brută "+Math.round(parseFloat(b)*100)+"% > 25% (prag prudențial GEV 520)"); });
-        var html="<div class='callout'><p><b>Venit brut potențial (VBP): "+fmtRo(d.venit_brut_potential)+"/an</b> · chirie/mp aleasă: "+fmtRo(d.chirie_mp_aleasa)+" · chirie lunară: "+fmtRo(d.chirie_lunara)+"</p>";
+        var al = _alertePrudentiale(d);   // M2: prag pe TOATE comparabilele mediate
+        var html="<div class='callout'><p><b>Venit brut potențial (VBP): "+fmtRo(d.venit_brut_potential)+"/an</b> · chirie/mp aleasă: "+fmtRo(d.chirie_mp_aleasa)+" · chirie lunară: "+fmtRo(d.chirie_lunara)+" · "+_etichetaSelectie(d)+"</p>";
         html+=al.length?("<ul>"+al.map(function(a){return "<li class='alerta'>⚠ "+a+"</li>";}).join("")+"</ul>"):"<p class='hint'>✓ Toate ajustările brute sub pragul prudențial de 25%.</p>";
         $("gc-rezultat").innerHTML=html+"</div>";
       })
