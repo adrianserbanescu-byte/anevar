@@ -3,6 +3,9 @@
 <head><meta charset="utf-8"><title>Grile de ajustări (teren · casă · chirii)</title>
 <style>{% include "_design.css" %}</style>
 <style>
+  /* M2 (B): rândurile incluse în media celor mai similare N comparabile sunt evidențiate subtil
+     (mai puțin pregnant decât .sel verde — cel mai bun rămâne marcat). Local: NU ating _design.css. */
+  tr.mediat td{ background:rgba(47,107,79,.07); }   /* verde foarte estompat (oglinda .sel) */
   /* UX polish (feedback Adi): fluid la <430px — tabelele de grilă scrollează local, nu pagina */
   @media(max-width:430px){
     input:not([type=checkbox]):not([type=radio]), select, textarea{ max-width:100%; box-sizing:border-box; }
@@ -307,23 +310,44 @@ function afiseaza(grid, d, div){
    : grid==="chirii" ? "Chirie/mp corectată" : "Preț total corectat";
  // Praguri prudențiale (orientative, uzanțe bancare GEV 520): brut ≤25%, net ≤15%.
  const PRAG_BRUT=0.25, PRAG_NET=0.15;
- let t = '<div class="rez"><table><tr><th>Comparabil</th><th>'+unitLbl+'</th><th>Ajustare brută</th><th>Selecție</th></tr>';
+ // M2 (B): valoarea = media celor mai similare N comparabile (default 3). Fallback SAFE pre-integrare:
+ // dacă enabler-ul indici_mediati nu există în payload → cădem pe [index_selectat] (comportament identic).
+ const mediati = (Array.isArray(d.indici_mediati) && d.indici_mediati.length)
+   ? d.indici_mediati : [d.index_selectat];
+ const inMed = new Set(mediati);
+ const N = mediati.length;
+ let t = '<div class="rez"><table><tr><th>Comparabil</th><th>'+unitLbl
+       + '</th><th>Ajustare brută</th><th>Selecție</th></tr>';
  preturi.forEach((p,i) => {
    const sel = i===d.index_selectat;
+   const med = inMed.has(i);
    const bv = parseFloat(d.ajustari_brute[i]);
    const bruta = (bv*100).toFixed(1)+"%" + (bv>PRAG_BRUT?' 🚩':'');
-   t += `<tr class="${sel?'sel':''}"><td>Comp ${i+1}</td><td>${fmtRo(p)}</td><td>${bruta}</td><td>${sel?'✓ ales':''}</td></tr>`;
+   const eticheta = sel ? '✓ ales' : (med ? '✓ mediat' : '');
+   const rowCls = sel ? 'sel' : (med ? 'mediat' : '');
+   t += `<tr class="${rowCls}"><td>Comp ${i+1}</td><td>${fmtRo(p)}</td><td>${bruta}</td><td>${eticheta}</td></tr>`;
  });
  t += "</table>";
- // Alertă prudențială pe comparabilul ales.
- const iSel=d.index_selectat;
- const brutSel=parseFloat(d.ajustari_brute[iSel]);
- const netSel=d.ajustari_nete?Math.abs(parseFloat(d.ajustari_nete[iSel])):0;
- if(brutSel>PRAG_BRUT || netSel>PRAG_NET){
-   t += `<div class="avert-warn" role="alert">⚠️ Comparabilul ales are ajustare brută `
-      + `${(brutSel*100).toFixed(1)}% (prag ~25%)${netSel>PRAG_NET?` și netă ${(netSel*100).toFixed(1)}% (prag 15%)`:''}. `
-      + `Ajustările totale mari sunt frecvent respinse de bănci — verifică alegerea și justific-o în raport. `
-      + `Selecția se face pe ajustarea brută minimă; confirmă și ajustarea brută <b>totală</b> a comparabilelor.</div>`;
+ // Alertă prudențială: verificăm pragurile pe TOATE comparabilele incluse în medie (concern B —
+ // pre-M2 alerta acoperea doar index_selectat; cu media, comp 2/3 mai ajustate intrau în valoare
+ // dar scăpau de alertă). Acum: depășire la oricare comp mediat => alertă globală cu lista.
+ const incalca = mediati.filter(i => {
+   const bv = parseFloat(d.ajustari_brute[i]||0);
+   const nv = d.ajustari_nete ? Math.abs(parseFloat(d.ajustari_nete[i]||0)) : 0;
+   return bv>PRAG_BRUT || nv>PRAG_NET;
+ });
+ if(incalca.length){
+   const detalii = incalca.map(i => {
+     const bv = parseFloat(d.ajustari_brute[i]||0);
+     const nv = d.ajustari_nete ? Math.abs(parseFloat(d.ajustari_nete[i]||0)) : 0;
+     return `Comp ${i+1}: brut ${(bv*100).toFixed(1)}%${nv>PRAG_NET?` · net ${(nv*100).toFixed(1)}%`:''}`;
+   }).join("; ");
+   const cuvant = N>1 ? "Comparabile mediate" : "Comparabilul ales";
+   t += `<div class="avert-warn" role="alert">⚠️ ${cuvant} cu ajustare peste prag `
+      + `(brut ~25% / net 15%): ${detalii}. `
+      + `Ajustările totale mari sunt frecvent respinse de bănci — verifică alegerea și justific-o `
+      + `în raport. Selecția se face pe ajustarea brută minimă; confirmă și ajustarea brută `
+      + `<b>totală</b> a comparabilelor.</div>`;
  }
  if(grid==="teren")
    t += `<p class="val">Valoare teren = ${fmtRo(d.pret_mp_ales)} EUR/mp × suprafață = ${fmtRo(d.valoare_teren)} EUR</p>`;
