@@ -10,15 +10,25 @@ def _client(tmp_path):
     return TestClient(create_app(storage=storage, client=None))
 
 
-def test_index_is_alegere_ui(tmp_path):
+def test_root_redirect_cont_vs_incepe(tmp_path, monkeypatch):
+    # Logica de start (decizie Adi 2026-06-08): „/" fara cont -> /cont (definire user); cu cont -> /incepe.
+    monkeypatch.setenv("OUTPUT_DIR", str(tmp_path / "date"))
+    import evaluare.cont as cont_mod
     client = _client(tmp_path)
-    resp = client.get("/")
-    assert resp.status_code == 200
-    assert "text/html" in resp.headers["content-type"]
-    # pagina principala = alegerea interfetei UI NOU (flux + incepe); wizard vechi ASCUNS (decizie Adi 2026-06-08)
+    r = client.get("/", follow_redirects=False)
+    assert r.status_code in (302, 307) and r.headers["location"] == "/cont"
+    cont_mod.salveaza_cont("Test Evaluator", "12345")
+    r2 = client.get("/", follow_redirects=False)
+    assert r2.status_code in (302, 307) and r2.headers["location"] == "/incepe"
+
+
+def test_alegere_ui_la_alege(tmp_path):
+    # Alegerea interfetei (UI nou: flux + incepe) mutata pe /alege; wizard vechi ASCUNS.
+    resp = _client(tmp_path).get("/alege")
+    assert resp.status_code == 200 and "text/html" in resp.headers["content-type"]
     assert "Alege interfața" in resp.text
     assert 'href="/incepe"' in resp.text and 'href="/flux-livrabile"' in resp.text
-    assert 'href="/wizard"' not in resp.text   # wizard vechi ascuns din index
+    assert 'href="/wizard"' not in resp.text   # wizard vechi ascuns
 
 
 def test_wizard_inca_la_ruta_proprie(tmp_path):

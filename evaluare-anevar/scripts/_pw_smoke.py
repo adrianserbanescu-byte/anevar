@@ -160,14 +160,18 @@ with sync_playwright() as pw:
     check("aml: banner legal prezent", "NU verifică automat" in p.inner_text("body"))
     p.close()
 
-    # ---------- INDEX (alegere UI) + DOCUMENTE ----------
+    # ---------- START (/" redirect dupa cont) + ALEGERE UI (/alege) + DOCUMENTE ----------
+    # „/" redirectioneaza (decizie Adi 2026-06-08): fara cont -> /cont; cu cont -> /incepe.
     p, errs = pagina(ctx, BASE + "/")
-    check("index: alegere UI fără erori", not errs, "; ".join(errs[:3]))
-    # Wizard vechi ASCUNS din index + nav (decizie Adi 2026-06-08): index = doar UI nou (flux + incepe).
+    check("/ redirect la cont/incepe", p.url.rstrip("/").endswith(("/cont", "/incepe")), p.url)
+    p.close()
+    # Alegerea de interfata mutata pe /alege (UI nou: flux + incepe); wizard vechi ASCUNS.
+    p, errs = pagina(ctx, BASE + "/alege")
+    check("alege: fără erori consolă", not errs, "; ".join(errs[:3]))
     _idx = p.content()
-    check("index: UI nou (incepe + flux), wizard ascuns",
+    check("alege: UI nou (incepe + flux), wizard ascuns",
           "/incepe" in _idx and "/flux-livrabile" in _idx and "/wizard" not in _idx)
-    check("index: cross-nav prezent", p.eval_on_selector(".cross-ui", "e=>!!e") is True)
+    check("alege: cross-nav prezent", p.eval_on_selector(".cross-ui", "e=>!!e") is True)
     p.close()
     p, errs = pagina(ctx, BASE + "/documente")
     check("documente: index încarcă", "Documente" in p.inner_text("body"))
