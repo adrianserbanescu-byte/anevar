@@ -96,11 +96,17 @@
     size="30" placeholder="otopeni, tunari, ..."
     title="Una sau mai multe localități din județ, separate prin virgulă. Adaugă vecinele pe care le vrei — căutarea le combină și aduce DOAR din localitățile alese (nu tot județul).">
   <span class="hint">mai multe, separate prin virgulă (adaugă vecine)</span><br>
-  <b>Casa subiect:</b> <label for="an">An</label> <input id="an" name="an" value="2013" size="5">
+  <label for="tip">Tip:</label>
+  <select id="tip" name="tip" title="Ce cauți: casă cu teren / apartament / teren. Rutează căutarea + scorul corect.">
+    <option value="casa">Casă + teren</option><option value="apartament">Apartament</option><option value="teren">Teren</option>
+  </select><br>
+  <b id="subiect-titlu">Casă subiect:</b>
+  <span id="camp-cladire"><label for="an">An</label> <input id="an" name="an" value="2013" size="5">
    <label for="stare">Stare(1-5)</label> <input id="stare" name="stare" value="3" size="3">
    <label for="finisaj">Finisaj(1-4)</label> <input id="finisaj" name="finisaj" value="4" size="3">
-   <label for="incalzire">Incalzire</label> <input id="incalzire" name="incalzire" value="centrala_gaz" size="14">
-   <label for="teren">Teren mp</label> <input id="teren" name="teren" value="500" size="6">
+   <label for="incalzire">Incalzire</label> <input id="incalzire" name="incalzire" value="centrala_gaz" size="14"></span>
+  <span id="camp-apartament" hidden><label for="nr_camere">Nr. camere</label> <input id="nr_camere" name="nr_camere" value="3" size="3"></span>
+   <label for="teren" id="lbl-teren">Teren mp</label> <input id="teren" name="teren" value="500" size="6">
    <label for="max_candidati">Câte comparabile</label>
    <input id="max_candidati" name="max_candidati" type="number" min="1" max="50" value="20" size="4"
      title="Numărul maxim de comparabile returnate (1–50)"><br>
@@ -213,6 +219,7 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 function randMetodologie(m){
+  if(!m) return '';   // teren: răspunsul n-are tabel de metodologie -> nimic de afișat
   let h = '<h2>Metodologie scoring</h2><table><caption class="sr-only">Metodologia de scoring: '
         + 'atribut, pondere, cotă și formula diferenței folosită la calculul relevanței.</caption>'
         + '<tr><th scope="col">#</th><th scope="col">Atribut</th>'
@@ -305,6 +312,7 @@ function chipsAtribute(c){
   }).join('') + '</div>';
 }
 function randCandidat(c){
+  if('nota' in c) return randCandidatTeren(c);   // candidat de TEREN (răspunsul are 'nota') -> card simplu
   const secId = (c.secundare||[]).filter(s=>s.stare!=='nementionat');
   const sec = secId.map(s => `${escapeHtml(s.nume)}: ${escapeHtml(s.stare)}`     // SEC-2: secundare din anunț
      + (s.valoare_gasita ? ` („${escapeHtml(s.valoare_gasita)}")` : '')).join(' · ');
@@ -331,6 +339,22 @@ function randCandidat(c){
     <div class="cand-foot">
       <a class="vezi" href="${urlSafe(c.url)}" target="_blank" rel="noopener"><span aria-hidden="true">▶</span> Vezi anunțul${c.titlu?': '+escapeHtml(c.titlu):''}</a>
       <details class="cand-detalii"><summary>Calculul complet (atribute × ponderi)</summary>${tabelAtribute(c)}</details>
+    </div>
+  </div>`;
+}
+function randCandidatTeren(c){          // card simplu pt TEREN (răspuns mai mic: fără radar/atribute/breakdown)
+  const avert = c.nota ? '<span class="alerta">⚠ '+escapeHtml(c.nota)+'</span>' : '';     // SEC-2: notă din scrape
+  const meta = [(c.suprafata||'?')+' mp',
+                c.pret_mp ? '<b>'+escapeHtml(String(c.pret_mp))+' €/mp</b>' : null].filter(Boolean).join(' · ');
+  return `<div class="candidat cand-card">
+    <div class="cand-head">
+      <label class="cand-sel"><input type="checkbox" class="bif" data-pret="${c.pret||''}" data-supr="${c.suprafata||''}">
+        <span class="badge ${badgeClass(c)}" title="Relevanță: ${c.relevanta}%">${relevantaText(c)} <span class="scor-sec">· ${c.relevanta}%</span></span></label>
+      <span class="cand-pret">${c.pret?escapeHtml(String(c.pret))+' EUR':'preț ?'}</span>
+    </div>
+    <div class="cand-meta">${meta}${avert?' · '+avert:''}</div>
+    <div class="cand-foot">
+      <a class="vezi" href="${urlSafe(c.url)}" target="_blank" rel="noopener"><span aria-hidden="true">▶</span> Vezi anunțul${c.titlu?': '+escapeHtml(c.titlu):''}</a>
     </div>
   </div>`;
 }
@@ -386,17 +410,37 @@ function randHarta(res){
   });
 }
 
+function aplicaTip(){
+  var tip = document.getElementById('tip').value;
+  document.getElementById('camp-cladire').hidden = (tip === 'teren');
+  document.getElementById('camp-apartament').hidden = (tip !== 'apartament');
+  document.getElementById('lbl-teren').textContent = (tip === 'teren') ? 'Suprafață (mp)' : 'Teren mp';
+  document.getElementById('subiect-titlu').textContent =
+    (tip === 'teren') ? 'Teren subiect:' : (tip === 'apartament' ? 'Apartament subiect:' : 'Casă subiect:');
+}
+document.getElementById('tip').addEventListener('change', aplicaTip); aplicaTip();
+
 document.getElementById('f').addEventListener('submit', async (e)=>{
   e.preventDefault();
   const d = Object.fromEntries(new FormData(e.target).entries());
-  const payload = {portal:d.portal, judet:d.judet, localitate:d.localitate,
-    subiect:{an:parseInt(d.an)||null, stare:parseInt(d.stare)||null,
-      finisaj:parseInt(d.finisaj)||null, incalzire:d.incalzire||null, teren:d.teren||null},
-    atribute_secundare:(d.secundare||'').split('\n').filter(Boolean),
-    max_candidati: Math.min(50, Math.max(1, parseInt(d.max_candidati,10) || 20))};
+  const tip = d.tip || 'casa';
+  const maxc = Math.min(50, Math.max(1, parseInt(d.max_candidati,10) || 20));
+  let url, payload;
+  if(tip === 'teren'){
+    url = '/api/descopera-teren';
+    payload = {portal:d.portal, judet:d.judet, localitate:d.localitate,
+      suprafata_subiect: d.teren || null, max_candidati: maxc};
+  } else {
+    url = '/api/descopera';
+    payload = {portal:d.portal, judet:d.judet, localitate:d.localitate, tip_activ: tip,
+      subiect:{an:parseInt(d.an)||null, stare:parseInt(d.stare)||null,
+        finisaj:parseInt(d.finisaj)||null, incalzire:d.incalzire||null,
+        teren:d.teren||null, nr_camere:parseInt(d.nr_camere)||null},
+      atribute_secundare:(d.secundare||'').split('\n').filter(Boolean), max_candidati: maxc};
+  }
   let res;
   try {
-    const r = await fetch('/api/descopera',{method:'POST',
+    const r = await fetch(url,{method:'POST',
       headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
     res = await r.json();
   } catch(err) {
@@ -420,6 +464,8 @@ document.getElementById('f').addEventListener('submit', async (e)=>{
     + '<button id="copiaza">Copiază comparabilele bifate (pret;suprafata)</button> '
     + '<button id="laGrila"><span aria-hidden="true">➜</span> Trimite bifatele la grila casă</button><pre id="out"></pre>';
   randHarta(res);   // P1.3 — plasează pinii dacă B a furnizat coordonate (altfel rămâne ascunsă)
+  if(tip === 'teren'){ var _lg = document.getElementById('laGrila');   // label corect pt teren (textContent, nu innerHTML)
+    if(_lg && _lg.lastChild) _lg.lastChild.textContent = ' Trimite bifatele la grila teren'; }
   document.getElementById('copiaza').addEventListener('click', ()=>{
     const linii = [...document.querySelectorAll('.bif:checked')]
       .map(b => b.dataset.pret + ';' + b.dataset.supr);
@@ -430,7 +476,7 @@ document.getElementById('f').addEventListener('submit', async (e)=>{
       .map(b => ({pret:b.dataset.pret, suprafata:b.dataset.supr}))
       .filter(c => c.pret && c.suprafata);
     if(sel.length===0){ document.getElementById('out').textContent='Bifează cel puțin un comparabil.'; return; }
-    localStorage.setItem('grila_prefill_casa', JSON.stringify(sel));
+    localStorage.setItem(tip === 'teren' ? 'grila_prefill_teren' : 'grila_prefill_casa', JSON.stringify(sel));
     document.getElementById('out').textContent =
       sel.length + ' comparabil(e) trimise. Se deschide grila…';
     window.location.href = '/grila';
