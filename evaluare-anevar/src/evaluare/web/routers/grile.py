@@ -1,6 +1,8 @@
 """Grile de comparabile: teren, casa, chirii + pagina /grila."""
 from __future__ import annotations
 
+from decimal import ROUND_HALF_UP, Decimal
+
 from fastapi import APIRouter, HTTPException, Request
 from fastapi.responses import HTMLResponse
 
@@ -13,6 +15,14 @@ from evaluare.web.deps import Deps
 from evaluare.web.schemas import GrilaCasaRequest, GrilaChiriiRequest, GrilaTerenRequest
 
 log = get_logger(__name__)
+
+_BANI = Decimal("0.01")
+
+
+def _bani(v: Decimal) -> str:
+    """Valoarea de afisare rotunjita la bani — media top-N (M2) poate avea multe zecimale; fara asta
+    ele ajung brute in raspunsul API. (Motorul ramane exact: rotunjim doar la marginea de iesire.)"""
+    return str(v.quantize(_BANI, rounding=ROUND_HALF_UP))
 
 
 def build_router(d: Deps) -> APIRouter:
@@ -30,8 +40,9 @@ def build_router(d: Deps) -> APIRouter:
             "ajustari_brute": [str(b) for b in r.ajustari_brute],
             "ajustari_nete": [str(n) for n in r.ajustari_nete],
             "index_selectat": r.index_selectat,
+            "indici_mediati": r.indici_mediati,
             "pret_mp_ales": str(r.pret_mp_ales),
-            "valoare_teren": str(r.valoare_teren),
+            "valoare_teren": _bani(r.valoare_teren),
         }
 
     @router.post("/api/grila-casa")
@@ -46,7 +57,8 @@ def build_router(d: Deps) -> APIRouter:
             "ajustari_brute": [str(b) for b in r.ajustari_brute],
             "ajustari_nete": [str(n) for n in r.ajustari_nete],
             "index_selectat": r.index_selectat,
-            "valoare_piata": str(r.valoare_piata),
+            "indici_mediati": r.indici_mediati,
+            "valoare_piata": _bani(r.valoare_piata),
         }
 
     @router.post("/api/grila-chirii")

@@ -7,7 +7,7 @@ from typing import Literal
 
 from pydantic import BaseModel
 
-from evaluare.engine.market import ajustare_bruta, pret_unitar_brut
+from evaluare.engine.market import ajustare_bruta, pret_total_corectat, pret_unitar_brut
 from evaluare.engine.metodologie import IMPLICIT, MetodologieConfig
 from evaluare.models.comparable import Comparable
 from evaluare.models.property import BuildingData, LandData
@@ -68,6 +68,11 @@ def valideaza_comparabile(comparables: list[Comparable],
                 ))
 
     for i, c in enumerate(comparables):
+        if pret_total_corectat(c) <= 0:    # ajustari care duc pretul corectat la <=0 -> valoare nonsens
+            issues.append(Issue(
+                nivel="blocheaza",
+                mesaj=f"Comparabilul {i}: pretul corectat este <= 0 (ajustari prea mari) — verifica ajustarile.",
+            ))
         g = ajustare_bruta(c)
         if g > cfg.limita_ajustare_bruta:
             issues.append(Issue(
