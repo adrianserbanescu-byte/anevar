@@ -31,6 +31,14 @@ Legendă: ✅ rezolvat+comis · ▶ în lucru A · 📨 dispatched (lane, GO imp
 | `# nosec` B404/B603 pdf.py (subprocess soffice sigur) | B+SAST | `36f1276` |
 | docs E SEV2025-general (SEV 100/101/102/106/450) | E | `19bdf2d` |
 | SAST profund cross-file (uid→path, URL→SSRF, scraped→AI) | A | 0 findings noi |
+| D fuzz-parsere (Hypothesis pe pypdf/docx/BS4) + fix importorskip CI-safe | D+A | `24768a3`,`fe05140` |
+| D a11y-axe (axe-core 12 pagini, 0 critice) | D | `61daf76` |
+| B cost.py rotunjire unică (Dfn pe vcp exact, fără efect prag) | B | `adb0547` |
+| B rotunjire grilă + gardă preț negativ (versiune curată, fără regresie) | B | `6e9e1b3` |
+| B property-based Hypothesis pe motor (5 invarianți) + hypothesis în lock | B+A | `fbf5504` |
+| D differential-review pe batch = **0 regresii** | D | verificat |
+
+**Decizii Adi:** venit ponderat = **(b) alertă transparentă** (→B implementează); GDPR lifecycle (retenție/DSAR/ștergere completă) = **deferat pre-launch** (cere politică de retenție = decizia Adi).
 
 **B re-audit:** lane motor CONFIRMAT curat (pip-audit 0, ruff-S 0, vulture 0). **Build bit-identic** pe Windows = imposibil (PE timestamps) → SHA256-artefact ca integritate (deferat).
 
