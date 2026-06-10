@@ -9,6 +9,7 @@ date / 500 reproductibil(a). Marcate `xfail(strict=True)` => trec automat la VER
 """
 from __future__ import annotations
 
+import json
 import threading
 
 import pytest
@@ -39,9 +40,9 @@ def test_aml_next_id_coliziune_deterministica(tmp_path):
     assert id1 == id2 == 1, "ambele calcule vad 0 fisiere -> ambele aleg id=1 (coliziune)"
 
 
-@pytest.mark.xfail(strict=True, reason="F-4: _next_id=len()+1 nu e atomic -> RTS-uri pierdute la concurenta")
-def test_aml_salveaza_concurent_pierde_rapoarte(tmp_path):
-    # 12 RTS-uri salvate SIMULTAN (barrier) -> len+1 coincide -> fisiere suprascrise -> RTS-uri pierdute.
+def test_aml_salveaza_concurent_pastreaza_toate_rapoartele(tmp_path):
+    # FIXAT (F-4): 12 RTS salvate SIMULTAN (barrier) -> alocare atomica O_EXCL -> 12 fisiere distincte,
+    # zero suprascriere. Inainte de fix: 1-3 fisiere (9-11 RTS pierdute). Regresie pt pierderea de date AML.
     store = StoreAML(tmp_path / "aml")
     N = 12
     barrier = threading.Barrier(N)
@@ -59,9 +60,13 @@ def test_aml_salveaza_concurent_pierde_rapoarte(tmp_path):
         t.start()
     for t in ts:
         t.join()
+    assert not erori, f"exceptii in scriitori concurenti: {erori}"
     fisiere = list((tmp_path / "aml").glob("rts_*.json"))
-    print(f"\n[F-4] RTS salvate={N}, fisiere pe disc={len(fisiere)} (pierdute={N - len(fisiere)})")
+    print(f"\n[F-4 FIXAT] RTS salvate={N}, fisiere pe disc={len(fisiere)} (pierdute={N - len(fisiere)})")
     assert len(fisiere) == N, f"pierdere de date AML: {N - len(fisiere)} RTS-uri suprascrise"
+    # id-uri unice si contigue 1..N (alocare secventiala pastrata sub concurenta)
+    ids = sorted(json.loads(f.read_text(encoding="utf-8"))["id"] for f in fisiere)
+    assert ids == list(range(1, N + 1)), f"id-uri ne-unice/lacunare: {ids}"
 
 
 # ── F-1 (HIGH): lost-update pe dosar.json — /salveaza vs generare raport (ADR-003) ────────────────
