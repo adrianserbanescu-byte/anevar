@@ -15,6 +15,7 @@ from __future__ import annotations
 
 from decimal import ROUND_HALF_UP, Decimal
 
+from evaluare.engine.metodologie import IMPLICIT, MetodologieConfig
 from evaluare.engine.venit import DateVenit
 from evaluare.models.comparable import RentComparable
 from evaluare.models.results import RentResult
@@ -61,9 +62,13 @@ def ajustare_neta(comp: RentComparable) -> Decimal:
 
 
 def evalueaza_chirie(
-    comparables: list[RentComparable], suprafata_subiect: Decimal
+    comparables: list[RentComparable], suprafata_subiect: Decimal,
+    cfg: MetodologieConfig = IMPLICIT,
 ) -> RentResult:
-    """Ruleaza grila de chirii si selecteaza comparabilul cu ajustare bruta minima."""
+    """Ruleaza grila de chirii. Chiria de piata = MEDIA chiriei/mp corectate a celor mai similare
+    `cfg.nr_comparabile_medie` comparabile (M2, consistent cu piata/teren; default = minimul legal).
+    `nr_comparabile_medie=1` -> comparabilul unic cel mai similar (comportamentul istoric, grile validate).
+    """
     if not comparables:
         raise ValueError("Sunt necesare comparabile de chirie.")
     if suprafata_subiect <= 0:
@@ -71,13 +76,16 @@ def evalueaza_chirie(
     chirii = [chirie_mp_corectata(c) for c in comparables]
     brute = [ajustare_bruta(c) for c in comparables]
     nete = [ajustare_neta(c) for c in comparables]
-    index = min(range(len(comparables)), key=lambda i: brute[i])
-    chirie_aleasa = chirii[index]
+    ordine = sorted(range(len(comparables)), key=lambda i: brute[i])   # cele mai similare intai
+    index = ordine[0]
+    n = min(max(1, cfg.nr_comparabile_medie), len(comparables))
+    chirie_aleasa = sum((chirii[i] for i in ordine[:n]), _ZERO) / n    # media top-N (N=1 -> unic)
     chirie_lunara = (chirie_aleasa * suprafata_subiect).quantize(_BANI, rounding=ROUND_HALF_UP)
     vbp = (chirie_lunara * _LUNI).quantize(_BANI, rounding=ROUND_HALF_UP)
     return RentResult(
         chirii_mp_corectate=chirii, ajustari_brute=brute, ajustari_nete=nete,
-        index_selectat=index, chirie_mp_aleasa=chirie_aleasa,
+        index_selectat=index, indici_mediati=sorted(ordine[:n]),
+        chirie_mp_aleasa=chirie_aleasa,
         chirie_lunara=chirie_lunara, venit_brut_potential=vbp,
     )
 

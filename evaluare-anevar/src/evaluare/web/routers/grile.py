@@ -51,8 +51,9 @@ def build_router(d: Deps) -> APIRouter:
 
     @router.post("/api/grila-chirii")
     def grila_chirii(req: GrilaChiriiRequest) -> dict:
+        cfg = metodologie_store.config_efectiv(d.storage.db_path.parent)   # acelasi config ca /calcul (M2)
         try:
-            r = evalueaza_chirie(req.comparabile, req.suprafata_subiect)
+            r = evalueaza_chirie(req.comparabile, req.suprafata_subiect, cfg)
         except ValueError as e:
             raise HTTPException(status_code=422, detail=str(e)) from e
         return {
@@ -60,6 +61,7 @@ def build_router(d: Deps) -> APIRouter:
             "ajustari_brute": [str(b) for b in r.ajustari_brute],
             "ajustari_nete": [str(n) for n in r.ajustari_nete],
             "index_selectat": r.index_selectat,
+            "indici_mediati": r.indici_mediati,
             "chirie_mp_aleasa": str(r.chirie_mp_aleasa),
             "chirie_lunara": str(r.chirie_lunara),
             "venit_brut_potential": str(r.venit_brut_potential),
