@@ -114,3 +114,49 @@ def test_descopera_teren_pipeline():
     assert rez[0].suprafata == Decimal("1000")
     assert rez[0].pret_mp == Decimal("50")     # 50000 / 1000
     assert rez[0].relevanta == 100             # suprafata identica cu subiectul
+
+
+def test_descopera_gap2_incredere_la_coada_gap4_pret_atipic():
+    # GAP #2 + #4 (audit comparabile), prin pipeline-ul real:
+    #  #2: un anunt din care NU se extrag atribute (LLM null) -> incredere_scazuta -> COADA, chiar daca
+    #      suprafata lui bate exact subiectul (relevanta bruta mare = inselatoare, „96%" pe 1 atribut).
+    #  #4: un anunt cu €/mp absurd (mult sub mediana) -> MARCAT „atipic", NU exclus (evaluatorul decide).
+    def _listing(supr, pret, marker):
+        return (f'<html><head><title>Casa {marker} Breaza</title>'
+                f'<script type="application/ld+json">{{"@type":"Offer","price":"{pret}",'
+                f'"priceCurrency":"EUR","floorSize":{{"value":"{supr}"}}}}</script>'
+                f'</head><body>{marker} text</body></html>')
+    listings = {"bogat": _listing(130, 250000, "BOGAT"),
+                "sarac": _listing(120, 260000, "SARAC"),     # suprafata EXACT subiect, dar atribute lipsa
+                "ieftin": _listing(125, 1000, "BOGAT")}       # pret absurd, dar atribute complete (confident)
+    search = ('<html><body><a href="/oferta/bogat-1">a</a>'
+              '<a href="/oferta/sarac-1">b</a><a href="/oferta/ieftin-1">c</a></body></html>')
+
+    def fetcher(url):
+        for k, v in listings.items():
+            if k in url:
+                return v
+        return search
+
+    class FakeClient:
+        def complete(self, system, user):
+            if "BOGAT" in user:
+                return ('{"an":{"valoare":2013,"text":"2013"},"stare":{"treapta":3,"text":"ok"},'
+                        '"finisaj":{"treapta":4,"text":"lux"},'
+                        '"incalzire":{"categorie":"centrala_gaz","text":"gaz"},'
+                        '"teren":{"valoare":500,"text":"500"},"secundare":[]}')
+            return ('{"an":{"valoare":null,"text":""},"stare":{"treapta":null,"text":""},'
+                    '"finisaj":{"treapta":null,"text":""},"incalzire":{"categorie":null,"text":""},'
+                    '"teren":{"valoare":null,"text":""},"secundare":[]}')
+
+    subiect = SubjectProfile(suprafata_construita=Decimal("120"), an=2013, stare=3, finisaj=4,
+                             incalzire="centrala_gaz", teren=Decimal("500"))
+    rez = descopera("imobiliare", "prahova", "breaza", subiect=subiect, atribute_secundare=[],
+                    fetcher=fetcher, client=FakeClient(), max_candidati=5)
+    assert len(rez) == 3
+    # GAP #2: „sarac" (suprafata 120 = exact subiect -> relevanta bruta mare) e ULTIMUL fiindca incredere_scazuta
+    assert rez[-1].suprafata == Decimal("120")
+    assert rez[-1].breakdown.incredere_scazuta is True
+    # GAP #4: „ieftin" (1000€ / 125mp = 8 €/mp << mediana) e MARCAT atipic
+    ieftin = next(r for r in rez if r.pret == Decimal("1000"))
+    assert "atipic" in ieftin.breakdown.explicatie

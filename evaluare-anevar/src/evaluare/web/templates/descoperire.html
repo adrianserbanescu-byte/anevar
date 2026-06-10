@@ -90,7 +90,7 @@
 
 <form id="f">
   <label for="portal">Portal:</label> <select id="portal" name="portal"><option value="imobiliare">imobiliare.ro</option>
-    <option value="storia">storia.ro</option></select>
+    <option value="storia">storia.ro</option><option value="imoradar">imoradar24.ro</option></select>
   <label for="judet">Judet:</label> <input id="judet" name="judet" value="ilfov">
   <label for="localitate">Localități:</label> <input id="localitate" name="localitate" value="otopeni"
     size="30" placeholder="otopeni, tunari, ..."
@@ -101,7 +101,8 @@
     <option value="casa">Casă + teren</option><option value="apartament">Apartament</option><option value="teren">Teren</option>
   </select><br>
   <b id="subiect-titlu">Casă subiect:</b>
-  <span id="camp-cladire"><label for="an">An</label> <input id="an" name="an" value="2013" size="5">
+  <span id="camp-cladire"><label for="acd" title="Suprafața construită desfășurată a proprietății subiect — atributul cu cea mai mare pondere la potrivire">Supr. constr. mp</label> <input id="acd" name="acd" value="120" size="6">
+   <label for="an">An</label> <input id="an" name="an" value="2013" size="5">
    <label for="stare">Stare(1-5)</label> <input id="stare" name="stare" value="3" size="3">
    <label for="finisaj">Finisaj(1-4)</label> <input id="finisaj" name="finisaj" value="4" size="3">
    <label for="incalzire">Incalzire</label> <input id="incalzire" name="incalzire" value="centrala_gaz" size="14"></span>
@@ -438,7 +439,7 @@ document.getElementById('f').addEventListener('submit', async (e)=>{
   } else {
     url = '/api/descopera';
     payload = {portal:d.portal, judet:d.judet, localitate:d.localitate, tip_activ: tip,
-      subiect:{an:parseInt(d.an)||null, stare:parseInt(d.stare)||null,
+      subiect:{suprafata_construita:d.acd||null, an:parseInt(d.an)||null, stare:parseInt(d.stare)||null,
         finisaj:parseInt(d.finisaj)||null, incalzire:d.incalzire||null,
         teren:d.teren||null, nr_camere:parseInt(d.nr_camere)||null},
       atribute_secundare:(d.secundare||'').split('\n').filter(Boolean), max_candidati: maxc};

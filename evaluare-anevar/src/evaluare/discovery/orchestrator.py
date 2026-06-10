@@ -160,6 +160,15 @@ def descopera(
         if parsed.nr_camere is not None:
             extraction.profile.nr_camere = parsed.nr_camere
             extraction.profile.texte.setdefault("nr_camere", str(parsed.nr_camere))
+        # GAP #3 (audit comparabile): an + încălzire din datele STRUCTURATE (parser/JSON-LD) au
+        # prioritate când există; altfel rămâne valoarea LLM. Înainte erau aruncate -> cu client=None
+        # (config validă) veneau null deși existau în pagină -> atribute excluse tăcut din scor.
+        if parsed.an is not None:
+            extraction.profile.an = parsed.an
+            extraction.profile.texte.setdefault("an", str(parsed.an))
+        if parsed.incalzire:
+            extraction.profile.incalzire = parsed.incalzire
+            extraction.profile.texte.setdefault("incalzire", parsed.incalzire)
         if _apartament_exclus(tip_activ, subiect.nr_camere, parsed.nr_camere):
             log.debug("Apartament sarit (camere %s vs subiect %s, dif >1) %s",
                       parsed.nr_camere, subiect.nr_camere, url)
@@ -177,8 +186,31 @@ def descopera(
             teren=extraction.profile.teren, pret_mp=pret_mp, poza=parsed.poza,
             breakdown=breakdown, secundare=extraction.secundare,
         ))
-    rezultate.sort(key=lambda r: r.breakdown.relevanta, reverse=True)
+    _marcheaza_pret_atipic(rezultate)   # GAP #4 (audit comparabile): marchează outlierii €/mp
+    # GAP #2 (audit comparabile): candidații cu `incredere_scazuta` (>=3 atribute lipsă — anunț
+    # expirat/truncat) merg la COADĂ, chiar dacă relevanța brută pe puținele atribute cunoscute e mare
+    # (un singur atribut apropiat dădea 96% înșelător). În fiecare grupă: ordine după relevanță.
+    rezultate.sort(key=lambda r: (r.breakdown.incredere_scazuta, -r.breakdown.relevanta))
     return rezultate
+
+
+def _marcheaza_pret_atipic(rezultate: list[CandidateResult]) -> None:
+    """GAP #4 (audit comparabile): marchează — NU exclude — anunțurile cu €/mp atipic (>±50% față de
+    mediana setului). Un preț tastat greșit (ex. 1€/total absurd) ar intra altfel în grilă nesemnalat;
+    aplicația AVERTIZEAZĂ, evaluatorul decide. Nevoie de >=3 prețuri valide ca mediana să fie semnificativă."""
+    eur_mp = sorted(r.pret / r.suprafata for r in rezultate
+                    if r.pret and r.suprafata and r.suprafata > 0)
+    if len(eur_mp) < 3:
+        return
+    mediana = eur_mp[len(eur_mp) // 2]
+    if mediana <= 0:
+        return
+    for r in rezultate:
+        if not (r.pret and r.suprafata and r.suprafata > 0):
+            continue
+        if abs(r.pret / r.suprafata - mediana) / mediana > Decimal("0.5"):
+            r.breakdown.explicatie = (f"{r.breakdown.explicatie} ⚠ Preț/mp atipic "
+                                      "(>50% față de mediana setului) — verifică prețul.").strip()
 
 
 def _relevanta_teren(supr, subiect_supr) -> int:
