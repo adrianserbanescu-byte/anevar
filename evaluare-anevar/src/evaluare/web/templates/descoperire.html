@@ -53,6 +53,24 @@
   .cand-detalii summary{ cursor:pointer; font-size:.8rem; color:var(--sienna); font-family:var(--sans); }
   .cand-detalii[open] summary{ margin-bottom:8px; }
   .cand-detalii .detalii{ font-size:.8rem; }
+  /* Display COMPACT (dispatch A #3): fiecare comparabil pe UN rând (scanabil) */
+  .cand-row{ display:flex; align-items:center; gap:8px 14px; flex-wrap:wrap;
+    background:var(--paper-card); border:1px solid var(--line); border-radius:var(--radius);
+    box-shadow:var(--shadow); padding:8px 12px; margin:0 0 6px; }
+  .cand-row .cr-sel{ display:flex; align-items:center; }
+  .cand-row .cr-badge{ white-space:nowrap; }
+  .cand-row .cr-pret{ font-family:var(--serif); font-size:1rem; font-weight:600; color:var(--ink); white-space:nowrap; }
+  .cand-row .cr-fapt{ font-size:.85rem; color:var(--ink-faint); white-space:nowrap; }
+  .cand-row .cr-loc{ font-size:.85rem; color:var(--ink-2); white-space:nowrap; }
+  .cand-row .cr-loc::before{ content:"📍 "; }
+  .cand-row .cr-km{ font-size:.82rem; color:var(--ink-faint); white-space:nowrap; }
+  .cand-row .cr-vezi{ font-size:.85rem; margin-left:auto; white-space:nowrap; }
+  .cand-row .alerta{ color:var(--danger-ink); font-weight:600; font-size:.8rem; }
+  .cand-row .cr-detalii{ flex:1 1 100%; margin-top:4px; padding-top:8px; border-top:1px solid var(--line); }
+  .cand-row .cr-detalii .cand-chips{ margin:0 0 8px; }
+  .cand-row .cr-detalii .cand-radar-wrap{ display:inline-block; vertical-align:top; margin-top:6px; }
+  .cr-paginare{ text-align:center; margin:12px 0; }
+  .rez-actiuni{ margin:12px 0 0; }
   /* D1: ponderi editabile */
   .ponderi-box{ background:var(--paper-card); border:1px solid var(--line); border-radius:var(--radius);
     padding:12px 16px; margin:14px 0; }
@@ -317,51 +335,57 @@ function chipsAtribute(c){
       + `${escapeHtml(a.nume)}: <b>${val}</b></span>`;
   }).join('') + '</div>';
 }
+// Localitate + distanță km — câmpuri opționale (vin din branch-ul geo al lui B; afișate doar dacă există).
+// Distanța = DOAR afișare (decizia A: NU intră în scor).
+function celulaLoc(c){
+  return c.localitate ? `<span class="cr-loc" title="Localitate">${escapeHtml(String(c.localitate))}</span>` : '';
+}
+function celulaKm(c){
+  return (typeof c.distanta_km === 'number')
+    ? `<span class="cr-km" title="Distanță față de subiect (doar informativ)">${c.distanta_km} km</span>` : '';
+}
+// Display COMPACT (dispatch A #3): un comparabil = UN rând (checkbox/scor/preț/mp/teren/€mp/localitate/km/vezi);
+// calculul complet (formula + atribute × ponderi + radar) rămâne într-un <details> „Calcul".
 function randCandidat(c){
-  if('nota' in c) return randCandidatTeren(c);   // candidat de TEREN (răspunsul are 'nota') -> card simplu
+  if('nota' in c) return randCandidatTeren(c);   // candidat de TEREN (răspunsul are 'nota') -> rând simplu
   const secId = (c.secundare||[]).filter(s=>s.stare!=='nementionat');
   const sec = secId.map(s => `${escapeHtml(s.nume)}: ${escapeHtml(s.stare)}`     // SEC-2: secundare din anunț
      + (s.valoare_gasita ? ` („${escapeHtml(s.valoare_gasita)}")` : '')).join(' · ');
-  const avert = c.incredere_scazuta ? '<span class="alerta">⚠ date insuficiente — verifică manual</span>' : '';
-  const meta = [
-    `${c.suprafata||'?'} mp construiți`,
-    `teren ${c.teren||'?'} mp`,
-    c.pret_mp ? `<b>${c.pret_mp} €/mp</b> teren comparabil` : null,
-  ].filter(Boolean).join(' · ');
-  return `<div class="candidat cand-card">
-    <div class="cand-head">
-      <label class="cand-sel"><input type="checkbox" class="bif" data-pret="${c.pret||''}" data-supr="${c.suprafata||''}">
-        <span class="badge ${badgeClass(c)}" title="Scor de relevanță: ${c.relevanta}%">${relevantaText(c)} <span class="scor-sec">· ${c.relevanta}%</span></span></label>
-      <span class="cand-pret">${c.pret?c.pret+' '+(c.moneda||'EUR'):'preț ?'}</span>
-    </div>
-    <div class="cand-meta">${meta}${avert?' · '+avert:''}</div>
-    <div class="cand-body">
-      ${c.poza ? '<img class="cand-poza" src="'+c.poza+'" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.remove()">' : ''}
-      <div class="cand-attr">${chipsAtribute(c)}</div>
-      ${c.axe ? '<div class="cand-radar-wrap">'+randRadar(c.axe)+'</div>' : ''}
-    </div>
-    ${sec ? '<p class="cand-sec"><b>Secundare:</b> '+sec+'</p>' : ''}
-    <p class="cand-expl">${c.explicatie}</p>
-    <div class="cand-foot">
-      <a class="vezi" href="${urlSafe(c.url)}" target="_blank" rel="noopener"><span aria-hidden="true">▶</span> Vezi anunțul${c.titlu?': '+escapeHtml(c.titlu):''}</a>
-      <details class="cand-detalii"><summary>Calculul complet (atribute × ponderi)</summary>${tabelAtribute(c)}</details>
-    </div>
+  const avert = c.incredere_scazuta ? '<span class="alerta">⚠ date insuficiente</span>' : '';
+  return `<div class="cand-row" role="listitem">
+    <label class="cr-sel"><input type="checkbox" class="bif" data-pret="${c.pret||''}" data-supr="${c.suprafata||''}"
+        aria-label="Selectează comparabilul${c.titlu?' '+escapeHtml(c.titlu):''}"></label>
+    <span class="badge ${badgeClass(c)} cr-badge" title="Scor de relevanță: ${c.relevanta}% — vezi formula în «Calcul»">${relevantaText(c)} <span class="scor-sec">${c.relevanta}%</span></span>
+    <span class="cr-pret">${c.pret?escapeHtml(String(c.pret))+' '+(c.moneda||'EUR'):'preț ?'}</span>
+    <span class="cr-fapt">${c.suprafata||'?'} mp</span>
+    <span class="cr-fapt">teren ${c.teren||'?'} mp</span>
+    ${c.pret_mp ? `<span class="cr-fapt"><b>${c.pret_mp} €/mp</b></span>` : ''}
+    ${celulaLoc(c)}${celulaKm(c)}
+    ${avert}
+    <a class="vezi cr-vezi" href="${urlSafe(c.url)}" target="_blank" rel="noopener"><span aria-hidden="true">▶</span> Vezi${c.titlu?': '+escapeHtml(c.titlu):''}</a>
+    <details class="cand-detalii cr-detalii"><summary>Calcul (formulă + atribute × ponderi)</summary>
+      <div class="cand-body">
+        <div class="cand-attr">${chipsAtribute(c)}</div>
+        ${c.axe ? '<div class="cand-radar-wrap">'+randRadar(c.axe)+'</div>' : ''}
+      </div>
+      ${sec ? '<p class="cand-sec"><b>Secundare:</b> '+sec+'</p>' : ''}
+      <p class="cand-expl">${c.explicatie}</p>
+      ${tabelAtribute(c)}
+    </details>
   </div>`;
 }
-function randCandidatTeren(c){          // card simplu pt TEREN (răspuns mai mic: fără radar/atribute/breakdown)
+function randCandidatTeren(c){          // rând simplu pt TEREN (răspuns mai mic: fără radar/atribute/breakdown)
   const avert = c.nota ? '<span class="alerta">⚠ '+escapeHtml(c.nota)+'</span>' : '';     // SEC-2: notă din scrape
-  const meta = [(c.suprafata||'?')+' mp',
-                c.pret_mp ? '<b>'+escapeHtml(String(c.pret_mp))+' €/mp</b>' : null].filter(Boolean).join(' · ');
-  return `<div class="candidat cand-card">
-    <div class="cand-head">
-      <label class="cand-sel"><input type="checkbox" class="bif" data-pret="${c.pret||''}" data-supr="${c.suprafata||''}">
-        <span class="badge ${badgeClass(c)}" title="Relevanță: ${c.relevanta}%">${relevantaText(c)} <span class="scor-sec">· ${c.relevanta}%</span></span></label>
-      <span class="cand-pret">${c.pret?escapeHtml(String(c.pret))+' EUR':'preț ?'}</span>
-    </div>
-    <div class="cand-meta">${meta}${avert?' · '+avert:''}</div>
-    <div class="cand-foot">
-      <a class="vezi" href="${urlSafe(c.url)}" target="_blank" rel="noopener"><span aria-hidden="true">▶</span> Vezi anunțul${c.titlu?': '+escapeHtml(c.titlu):''}</a>
-    </div>
+  return `<div class="cand-row" role="listitem">
+    <label class="cr-sel"><input type="checkbox" class="bif" data-pret="${c.pret||''}" data-supr="${c.suprafata||''}"
+        aria-label="Selectează terenul${c.titlu?' '+escapeHtml(c.titlu):''}"></label>
+    <span class="badge ${badgeClass(c)} cr-badge" title="Relevanță: ${c.relevanta}%">${relevantaText(c)} <span class="scor-sec">${c.relevanta}%</span></span>
+    <span class="cr-pret">${c.pret?escapeHtml(String(c.pret))+' EUR':'preț ?'}</span>
+    <span class="cr-fapt">${c.suprafata||'?'} mp</span>
+    ${c.pret_mp ? `<span class="cr-fapt"><b>${escapeHtml(String(c.pret_mp))} €/mp</b></span>` : ''}
+    ${celulaLoc(c)}${celulaKm(c)}
+    ${avert}
+    <a class="vezi cr-vezi" href="${urlSafe(c.url)}" target="_blank" rel="noopener"><span aria-hidden="true">▶</span> Vezi${c.titlu?': '+escapeHtml(c.titlu):''}</a>
   </div>`;
 }
 // ── P1.3 Hartă: pini colorați după relevanță; subiectul = pin negru ────────────
@@ -424,6 +448,38 @@ function aplicaTip(){
   document.getElementById('subiect-titlu').textContent =
     (tip === 'teren') ? 'Teren subiect:' : (tip === 'apartament' ? 'Apartament subiect:' : 'Casă subiect:');
 }
+
+// CONSTRANGERE TIP CAUTARE (dispatch A #1): tipul căutării NU mai e liber — vine din tipul
+// proprietății din dosar (param ?tip_dosar=… setat de gating-ul lui A la intrarea din workspace).
+//   casă (+teren)        -> doar: Casă+teren, Teren
+//   apartament/garsonieră -> doar: Apartament
+//   teren (agricol/etc.)  -> doar: Teren
+// Fără param (acces standalone /descoperire) -> toate opțiunile rămân (compatibilitate).
+var CONSTRANGERI_TIP = {
+  casa:['casa','teren'], casa_teren:['casa','teren'], 'casă':['casa','teren'],
+  apartament:['apartament'], garsoniera:['apartament'], 'garsonieră':['apartament'],
+  teren:['teren'], teren_agricol:['teren'], agricol:['teren'],
+  teren_intravilan:['teren'], teren_extravilan:['teren'],
+};
+function constrangeTipDinDosar(){
+  var p = new URLSearchParams(location.search).get('tip_dosar');
+  if(!p) return;                                   // standalone -> fără constrângere
+  var cheie = p.trim().toLowerCase().replace(/[\s-]+/g,'_');
+  var permise = CONSTRANGERI_TIP[cheie];
+  if(!permise || !permise.length) return;          // tip necunoscut -> lăsăm toate opțiunile
+  var sel = document.getElementById('tip');
+  [].slice.call(sel.options).forEach(function(opt){
+    if(permise.indexOf(opt.value) < 0) opt.remove();
+  });
+  if(permise.indexOf(sel.value) < 0 && sel.options.length) sel.value = sel.options[0].value;
+  // NB: NU folosim `disabled` — un <select> dezactivat e exclus din FormData -> `tip` ar lipsi la submit.
+  // Cu o singură opțiune e oricum nemodificabil; semnalăm vizual că tipul vine din dosar.
+  var hint = document.createElement('span');
+  hint.className = 'hint'; hint.id = 'tip-lock-hint';
+  hint.textContent = (sel.options.length <= 1) ? ' (fixat din dosar)' : ' (limitat de tipul din dosar)';
+  sel.insertAdjacentElement('afterend', hint);
+}
+constrangeTipDinDosar();
 document.getElementById('tip').addEventListener('change', aplicaTip); aplicaTip();
 
 document.getElementById('f').addEventListener('submit', async (e)=>{
@@ -454,7 +510,7 @@ document.getElementById('f').addEventListener('submit', async (e)=>{
       'Căutarea a eșuat — verifică internetul și reîncearcă.';
     return;
   }
-  document.getElementById('desc-status').textContent = res.candidati.length + ' candidați găsiți';
+  document.getElementById('desc-status').textContent = res.candidati.length + ' comparabile găsite';
   document.getElementById('metodologie').innerHTML = randMetodologie(res.metodologie);
   if(res.candidati.length === 0){
     document.getElementById('rezultate').innerHTML =
@@ -465,10 +521,40 @@ document.getElementById('f').addEventListener('submit', async (e)=>{
       + '<button type="button" class="btn" onclick="document.getElementById(\'localitate\').focus()">Ajustează zona ↑</button></div>';
     return;
   }
+  // PAGINARE (dispatch A #4): nu turna toate dintr-o dată — arată numărul total, primele 20, apoi
+  // câte 20 la cerere. `total` (dacă backend-ul îl trimite) = câte au fost găsite înainte de limită;
+  // altfel folosim câte au venit. Dacă s-a atins limita „Câte comparabile", sugerăm mărirea ei.
+  const PAGINA = 20;
+  const lista = res.candidati;
+  const totalGasit = (typeof res.total === 'number' && res.total >= lista.length) ? res.total : lista.length;
+  const truncat = totalGasit > lista.length || lista.length >= maxc;
+  let afisate = 0;
   document.getElementById('rezultate').innerHTML =
-    res.candidati.map(randCandidat).join('')
-    + '<button id="copiaza">Copiază comparabilele bifate (pret;suprafata)</button> '
-    + '<button id="laGrila"><span aria-hidden="true">➜</span> Trimite bifatele la grila casă</button><pre id="out"></pre>';
+    `<p class="hint" id="rez-total" role="status">`
+    + `<b>${totalGasit}</b> comparabile găsite`
+    + (totalGasit > lista.length ? ` (am adus primele ${lista.length})` : ``)
+    + (truncat ? ` — mărește «Câte comparabile» pentru și mai multe.` : ``) + `</p>`
+    + '<div id="lista-rezultate" role="list" aria-label="Comparabile găsite"></div>'
+    + '<div id="cr-paginare" class="cr-paginare"></div>'
+    + '<div class="rez-actiuni"><button id="copiaza">Copiază comparabilele bifate (pret;suprafata)</button> '
+    + '<button id="laGrila"><span aria-hidden="true">➜</span> Trimite bifatele la grila casă</button></div><pre id="out"></pre>';
+  const contLista = document.getElementById('lista-rezultate');
+  const contPag = document.getElementById('cr-paginare');
+  function maiMulte(){
+    const lot = lista.slice(afisate, afisate + PAGINA);
+    contLista.insertAdjacentHTML('beforeend', lot.map(randCandidat).join(''));
+    afisate += lot.length;
+    const ramase = lista.length - afisate;
+    if(ramase > 0){
+      contPag.innerHTML = `<button type="button" id="maiMulte">Arată încă ${Math.min(PAGINA, ramase)} `
+        + `(rămân ${ramase})</button>`;
+      document.getElementById('maiMulte').addEventListener('click', maiMulte);
+    } else {
+      contPag.innerHTML = afisate > PAGINA
+        ? `<p class="hint">Toate cele ${afisate} comparabile aduse sunt afișate.</p>` : '';
+    }
+  }
+  maiMulte();   // primele 20
   randHarta(res);   // P1.3 — plasează pinii dacă B a furnizat coordonate (altfel rămâne ascunsă)
   if(tip === 'teren'){ var _lg = document.getElementById('laGrila');   // label corect pt teren (textContent, nu innerHTML)
     if(_lg && _lg.lastChild) _lg.lastChild.textContent = ' Trimite bifatele la grila teren'; }
