@@ -104,3 +104,21 @@ def test_aml_evalueaza_data_invalida_da_422_nu_500(tmp_path):
     assert client.post("/api/aml/evalueaza", json={"azi": "2026-06-03"}).status_code == 200
     # documentul AML: azi None -> fallback (200), dar non-gol invalid -> 422
     assert client.post("/api/aml/evaluare-risc.docx", json={"azi": "xxx"}).status_code == 422
+
+
+def test_aml_model_din_dict_user_invalid_da_422_nu_500(tmp_path):
+    # Audit proactiv lane B: tiparul Model(**req.X) (ClientPF/PJ, Semnale, SemnaleIndicatori, RaportRTN/RTS)
+    # arunca ValidationError/TypeError pe chei/tipuri gresite -> era 500. Acum _construieste -> 422.
+    client, _ = _client(tmp_path)
+    assert client.post("/api/aml/evalueaza", json={
+        "azi": "2026-01-01", "client_pf": {"persoana": "nu-e-dict"}}).status_code == 422
+    assert client.post("/api/aml/evalueaza", json={
+        "azi": "2026-01-01", "semnale_indicatori": {"camp_inexistent": 1}}).status_code == 422
+    assert client.post("/api/aml/rtn.docx", json={
+        "azi": "2026-01-01", "rtn": {"cheie_gresita": 1}}).status_code == 422
+    assert client.post("/api/aml/rts.docx", json={
+        "azi": "2026-01-01", "rts": {"cheie_gresita": 1}}).status_code == 422
+    # valid ramane 200
+    assert client.post("/api/aml/evalueaza", json={
+        "azi": "2026-06-03", "client_pf": {"persoana": {"nume": "Ion", "prenume": "Pop"}}}
+    ).status_code == 200
