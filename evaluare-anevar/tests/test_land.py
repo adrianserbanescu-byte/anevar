@@ -119,3 +119,25 @@ def test_regresie_grila_reala(nume):
     # valoarea rotunjita la mia cea mai apropiata = valoarea raportata GBF
     val_rot = round(r.valoare_teren / 1000) * 1000
     assert val_rot == d["valoare"], f"{nume}: valoare {r.valoare_teren} -> {val_rot} != {d['valoare']}"
+
+
+def test_teren_ajustari_valorice_eur_in_tranzactie_brut_net():
+    # Mutation testing (lane B): caile ajustarilor VALORICE (EUR) ale terenului erau netestate
+    # (16 supravietuitori — test_land folosea doar procentuale). Acopera: EUR in tranzactie (aditiv pe baza),
+    # pret_mp_corectat, ajustare_bruta (abs(EUR)/baza), ajustare_neta (EUR/baza, algebric), include_eur.
+    from decimal import Decimal
+
+    from evaluare.engine.land import ajustare_bruta, ajustare_neta, pret_mp_corectat
+    from evaluare.models.comparable import Adjustment, LandComparable
+    c = LandComparable(pret_mp=Decimal("100"), suprafata=Decimal("500"), adjustments=[
+        Adjustment(element="negociere", tip="valorica", valoare=Decimal("-10"),
+                   etapa="tranzactie"),                                # baza/mp = 90
+        Adjustment(element="acces", tip="valorica", valoare=Decimal("9"),
+                   etapa="proprietate"),                              # +9 EUR/mp
+        Adjustment(element="forma", tip="procentuala", valoare=Decimal("-0.10"),
+                   etapa="proprietate"),                              # -10%
+    ])
+    assert pret_mp_corectat(c) == Decimal("90.0")        # 90*(1-0.10) + 9 = 81 + 9 = 90
+    assert ajustare_bruta(c) == Decimal("0.2")           # |−0.10| + |9|/90 = 0.10 + 0.10
+    assert ajustare_neta(c) == Decimal("0.0")            # −0.10 + 9/90 = 0
+    assert ajustare_bruta(c, include_eur=False) == Decimal("0.10")   # M1=False -> doar procentuale
