@@ -97,3 +97,35 @@ def test_valideaza_cost_nu_cere_comparabile():
     issues = valideaza(inp)
     # fara comparabile dar metoda cost -> nu blocheaza pe numarul de comparabile
     assert not any(i.nivel == "blocheaza" and "comparabile" in i.mesaj.lower() for i in issues)
+
+
+def test_construieste_context_ponderata_si_bounds_pondere():
+    # Mutation testing (lane B): metoda=ponderata cu pondere explicit (kills L188 Sub->Add pe greutatea
+    # cost = 1 - pondere) + bounds pydantic pe pondere_piata (ge=0/le=1).
+    from decimal import ROUND_HALF_UP
+
+    import pytest
+    from pydantic import ValidationError
+    inp = EvaluationInput(
+        meta=_meta(), land=LandData(suprafata=Decimal("500")),
+        building=_building_with_elements(),
+        comparables=[Comparable(pret=Decimal("360000"), suprafata=Decimal("120")),
+                     Comparable(pret=Decimal("372000"), suprafata=Decimal("120")),
+                     Comparable(pret=Decimal("366000"), suprafata=Decimal("120"))],
+        valoare_teren=Decimal("100000"), metoda="ponderata", pondere_piata=Decimal("0.5"),
+    )
+    ctx = construieste_context(inp, client=None)
+    assert ctx.reconciled.metoda_selectata == "ponderata"
+    q = Decimal("0.01")
+    piata = ctx.market_result.valoare_piata.quantize(q, rounding=ROUND_HALF_UP)
+    cost = ctx.cost_result.valoare_cost.quantize(q, rounding=ROUND_HALF_UP)
+    # ponderi 0.5/0.5 (suma 1.0) -> medie simpla; cu Sub->Add greutatea cost ar fi 1.5 -> alta valoare
+    asteptat = ((piata * Decimal("0.5") + cost * Decimal("0.5")) / Decimal("1.0")
+                ).quantize(q, rounding=ROUND_HALF_UP)
+    assert ctx.reconciled.valoare_finala == asteptat
+    # bounds: pondere_piata in [0, 1]
+    with pytest.raises(ValidationError):
+        EvaluationInput(meta=_meta(), land=LandData(suprafata=Decimal("500")),
+                        building=_building_with_elements(), pondere_piata=Decimal("1.5"))  # > 1 (le=1)
+    EvaluationInput(meta=_meta(), land=LandData(suprafata=Decimal("500")),
+                    building=_building_with_elements(), pondere_piata=Decimal("0"))         # 0 ok (ge=0)
