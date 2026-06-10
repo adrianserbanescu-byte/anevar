@@ -379,6 +379,13 @@ def test_ssrf_url_guard():
     assert _url_public_sigur("file:///etc/passwd") is False         # schemă nepermisă
 
 
+def test_import_url_gol_422_nu_500(client):
+    # robustețe (audit D schemathesis pe live): url="" ajungea la parser -> 500 nehandelat.
+    # Garda SSRF respinge URL-ul -> ValueError prins în router -> 422 clar (nu 500).
+    r = client.post("/api/import-url", json={"url": ""})
+    assert r.status_code == 422 and "url" in r.json()["detail"].lower()
+
+
 def test_fetch_html_blocheaza_redirect_spre_intern(monkeypatch):
     # SSRF prin redirect: un host PUBLIC raspunde 302 -> adresa INTERNA. Garda re-valideaza FIECARE
     # Location si respinge (nu urmeaza orbeste). Vezi fix-ul allow_redirects=False + bucla manuala.
