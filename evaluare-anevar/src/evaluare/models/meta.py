@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 from decimal import Decimal
+from typing import Literal
 
 from pydantic import BaseModel
 
@@ -12,6 +13,10 @@ class EvaluationMeta(BaseModel):
     client_nume: str
     client_tip: str = "Persoana fizica"
     beneficiar: str = ""                 # banca finantatoare / utilizator desemnat
+    # GEV 520 (2025, par. 77-78): tipul utilizatorului desemnat. 'creditor' (default) = garantare credit
+    # -> raportul se inregistreaza in BIG. 'ANAF' = garantare la reesalonarea datoriilor -> NU se
+    # inregistreaza in BIG. Conditioneaza textul de inregistrare BIG din raport (vezi report/generator).
+    utilizator_desemnat: Literal["creditor", "ANAF"] = "creditor"
     proprietar: str | None = None     # daca difera de client
     adresa: str
     numar_cadastral: str
