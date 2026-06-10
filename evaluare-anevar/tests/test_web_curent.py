@@ -214,6 +214,38 @@ def test_raport_date_insuficiente_422(client):
     assert client.post(f"/api/dosar/{uid}/calcul", json=p).status_code == 422
 
 
+def test_raport_blocat_pe_problema_blocanta_422(client):
+    # I1 (re-audit lean — gap de testare la nivel de router): o problemă `nivel="blocheaza"`
+    # (Au>Acd) e ADVISORY în /calcul (200 + alertă; evaluatorul vede valoarea+problema), dar
+    # BLOCHEAZĂ documentul OFICIAL /raport.docx (422 „Raport blocat") — un raport SEMNABIL de
+    # garantare NU se generează pe date blocante. Regresie pt commit 7d6ed0a.
+    _cont(client)
+    uid = client.post("/api/dosar", json={"wizard": {}}).json()["uuid"]
+    p = _payload()
+    p["building"]["au"] = "200"                       # Au(200) > Acd(120) -> nivel="blocheaza"
+    # /calcul: calcul reușește, problema rămâne advisory (200 + alertă)
+    rc = client.post(f"/api/dosar/{uid}/calcul", json=p)
+    assert rc.status_code == 200 and rc.json()["alerte"]
+    # /raport.docx: ACELAȘI input -> documentul oficial e BLOCAT (422), nu generat mut
+    rr = client.post(f"/api/dosar/{uid}/raport.docx", json=p)
+    assert rr.status_code == 422 and "blocat" in rr.json()["detail"].lower()
+
+
+def test_validare_422_mesaj_citibil_nu_object_object(client):
+    # M1 (audit user-journey): un câmp obligatoriu lipsă (numar_cadastral, schema-required) producea
+    # un array Pydantic BRUT pe care UI-ul îl afișa evaluatorului ca „[object Object]". Handler-ul global
+    # RequestValidationError formatează în `detail` STRING citibil (numește câmpul) -> mesaj prietenos.
+    _cont(client)
+    uid = client.post("/api/dosar", json={"wizard": {}}).json()["uuid"]
+    p = _payload()
+    del p["meta"]["numar_cadastral"]                  # câmp obligatoriu lipsă -> 422 Pydantic
+    r = client.post(f"/api/dosar/{uid}/calcul", json=p)
+    assert r.status_code == 422
+    det = r.json()["detail"]
+    assert isinstance(det, str)                       # STRING, NU array (array -> „[object Object]" în UI)
+    assert "numar_cadastral" in det                   # numește câmpul-problemă, acționabil
+
+
 def test_import_docx_continut_invalid_nu_crapa(client):
     # robustețe: conținut care NU e .docx valid -> NU 500; degradează grațios la parsarea numelui.
     import base64
@@ -345,6 +377,58 @@ def test_ssrf_url_guard():
     assert _url_public_sigur("http://169.254.169.254/") is False    # link-local (metadata)
     assert _url_public_sigur("http://10.0.0.5/x") is False          # privat
     assert _url_public_sigur("file:///etc/passwd") is False         # schemă nepermisă
+
+
+def test_import_url_gol_422_nu_500(client):
+    # robustețe (audit D schemathesis pe live): url="" ajungea la parser -> 500 nehandelat.
+    # Garda SSRF respinge URL-ul -> ValueError prins în router -> 422 clar (nu 500).
+    r = client.post("/api/import-url", json={"url": ""})
+    assert r.status_code == 422 and "url" in r.json()["detail"].lower()
+
+
+def test_fetch_html_blocheaza_redirect_spre_intern(monkeypatch):
+    # SSRF prin redirect: un host PUBLIC raspunde 302 -> adresa INTERNA. Garda re-valideaza FIECARE
+    # Location si respinge (nu urmeaza orbeste). Vezi fix-ul allow_redirects=False + bucla manuala.
+    import evaluare.importers.url_parser as up
+
+    class FakeResp:
+        is_redirect = True
+        headers = {"Location": "http://169.254.169.254/latest/meta-data/"}
+
+        def raise_for_status(self):
+            pass
+
+    monkeypatch.setattr(up.requests, "get", lambda *a, **k: FakeResp())
+    try:
+        up.fetch_html("http://93.184.216.34/")              # IP public valid -> 302 -> intern
+        raise AssertionError("ar fi trebuit sa respinga redirect-ul spre adresa interna")
+    except ValueError as e:
+        assert "SSRF" in str(e)
+
+
+def test_comparabile_resping_suprafata_si_pret_zero():
+    # audit B: comparabil cu suprafata/pret 0 (sau negativ) -> respins la validare (Field gt=0), nu 500
+    # din DivisionByZero in market.py / pret_unitar_brut.
+    from pydantic import ValidationError
+
+    from evaluare.models.comparable import Comparable, LandComparable, RentComparable
+    for kw in ({"pret": 100, "suprafata": 0}, {"pret": 0, "suprafata": 100}):
+        with pytest.raises(ValidationError):
+            Comparable(**kw)
+    with pytest.raises(ValidationError):
+        LandComparable(pret_mp=0, suprafata=100)
+    with pytest.raises(ValidationError):
+        RentComparable(chirie_mp=10, suprafata=0)
+
+
+def test_security_headers_prezente(client):
+    # audit C/D (defense-in-depth): nosniff + anti-clickjacking + CSP + referrer + permissions.
+    r = client.get("/incepe")
+    assert r.headers.get("X-Content-Type-Options") == "nosniff"
+    assert r.headers.get("X-Frame-Options") == "DENY"
+    assert "Content-Security-Policy" in r.headers
+    assert "Referrer-Policy" in r.headers
+    assert "Permissions-Policy" in r.headers
 
 
 def test_cnp_redaction_prefix_9():

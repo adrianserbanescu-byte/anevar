@@ -11,7 +11,7 @@ Scop = Literal["garantare_credit", "raportare_financiara", "asigurare", "impozit
                "vanzare", "litigii", "expropriere", "aport"]
 TipValoare = Literal["piata", "investitie", "justa", "lichidare", "asigurare", "chirie"]
 Abordare = Literal["cost", "comparatie", "venit"]
-Ghid = Literal["GEV_520", "GEV_630", "GEV_500", "none"]
+Ghid = Literal["GEV_520", "GEV_630", "GEV_500", "SEV_450", "none"]
 
 
 class ProfilEvaluare(BaseModel):
@@ -56,8 +56,10 @@ RAPORTARE_FINANCIARA = ProfilEvaluare(
     abordari_aplicabile=["venit", "comparatie", "cost"], ghid="GEV_500",
 )
 ASIGURARE = ProfilEvaluare(
+    # SEV 450 (ed. 2025) = standardul specific evaluarii costurilor in scop de asigurare. Valoarea de
+    # asigurare = costul de RECONSTRUCTIE (cost de inlocuire BRUT, NEdeprecat), nu cost net (GEV 630).
     tip_activ="casa", scop="asigurare", tip_valoare="asigurare",
-    abordari_aplicabile=["cost"], ghid="GEV_630",
+    abordari_aplicabile=["cost"], ghid="SEV_450",
 )
 IMPOZITARE = ProfilEvaluare(
     tip_activ="casa", scop="impozitare", tip_valoare="piata",

@@ -111,7 +111,7 @@ _TIP_VALOARE_TXT = {
     "piata": "valoare de piață (definită conform SEV 102 — Tipuri ale valorii / IVS 104)",
     "justa": "valoare justă (definită conform SEV 102 / IFRS 13)",
     "lichidare": "valoare de lichidare (definită conform SEV 102, Anexă)",
-    "asigurare": "valoare de asigurare — cost de înlocuire net (conform GEV 630)",
+    "asigurare": "valoare de asigurare — cost de înlocuire brut (de reconstrucție), conform SEV 450",
     "impozabila": "valoare impozabilă (estimată conform GEV 500)",
 }
 
@@ -231,6 +231,7 @@ def _scrisoare_transmitere(doc: DocxDocument, ctx: ReportContext, adnotari: bool
 _GHID_CLAUZA = {
     "GEV_520": "incluzand Ghidul GEV 520 — Evaluarea pentru garantarea imprumutului.",
     "GEV_630": "incluzand Ghidul GEV 630 — Evaluarea bunurilor imobile.",
+    "SEV_450": "incluzand SEV 450 — Evaluarea costurilor in scop de asigurare.",
     "GEV_500": "incluzand Ghidul GEV 500 — Estimarea valorii impozabile a cladirilor.",
     "none": "",
 }
@@ -257,6 +258,11 @@ def _declaratie_conformitate(doc: DocxDocument, ctx: ReportContext, adnotari: bo
         "sau de marimea valorii estimate.",
         "Evaluatorul este membru ANEVAR, detine competenta necesara si asigurarea de raspundere "
         "civila profesionala in vigoare.",
+        # SEV 100 (2025) — declarate explicit in raport (le aplicam de-facto prin validari + audit):
+        "Evaluatorul a aplicat scepticism profesional pe parcursul evaluarii, evaluand critic datele "
+        "si informatiile utilizate si neacceptandu-le necritic (SEV 100, par. 10.4).",
+        "Raportul a fost supus unei proceduri de verificare a calitatii (controale de coerenta a "
+        "datelor de intrare si a calculelor) inainte de finalizare, conform SEV 100, par. 20.",
     ]
     for a in afirmatii:
         doc.add_paragraph(a, style="List Bullet")
@@ -505,6 +511,23 @@ def _adauga_alocare(doc: DocxDocument, ctx: ReportContext, adnotari: bool = Fals
             ).bold = True
 
 
+def _adauga_clauza_subasigurare(doc: DocxDocument, ctx: ReportContext, adnotari: bool = False) -> None:
+    """Clauza de subasigurare (SEV 450, par. 4 — regula proportionalitatii). Specifica evaluarii pentru
+    asigurare: avertizeaza ca o suma asigurata sub costul de reconstructie reduce proportional despagubirea."""
+    doc.add_heading("CLAUZA DE SUBASIGURARE (SEV 450)", level=1)
+    doc.add_paragraph(
+        "Suma asigurata ar trebui sa corespunda valorii de asigurare (costul de reconstructie / de inlocuire "
+        "BRUT) estimate in prezentul raport. Daca, la data producerii unei daune, suma asigurata este mai "
+        "mica decat costul de reconstructie, despagubirea se reduce PROPORTIONAL cu raportul dintre suma "
+        "asigurata si costul de reconstructie (regula proportionalitatii / a subasigurarii), conform "
+        "conditiilor politei de asigurare."
+    )
+    doc.add_paragraph(
+        "Se recomanda actualizarea periodica a sumei asigurate, pentru a reflecta evolutia costurilor de "
+        "constructie si a evita subasigurarea."
+    )
+
+
 def _adauga_risc_garantie(doc: DocxDocument, ctx: ReportContext, adnotari: bool = False) -> None:
     doc.add_heading("RISCUL ASOCIAT GARANTIEI (GEV 520)", level=1)
     _nota(doc, "gev520", adnotari)
@@ -529,10 +552,19 @@ def _adauga_risc_garantie(doc: DocxDocument, ctx: ReportContext, adnotari: bool 
         "Lichiditate si vandabilitate: se apreciaza lichiditatea pietei locale, gradul de adecvare "
         "al proprietatii ca garantie si perioada de comercializare estimata."
     )
-    doc.add_paragraph(
-        "Inregistrare BIG: raportul, avand utilizarea desemnata de garantare a imprumutului, se "
-        "inregistreaza in Baza Imobiliara de Garantii (BIG), conform reglementarilor ANEVAR."
-    )
+    # Inregistrare BIG — conditionat de utilizatorul desemnat (GEV 520 ed. 2025, par. 77-78): raportul
+    # de garantare la REESALONAREA datoriilor (utilizator desemnat ANAF) NU se inregistreaza in BIG.
+    if ctx.meta.utilizator_desemnat == "ANAF":
+        doc.add_paragraph(
+            "Inregistrare BIG: raportul are utilizatorul desemnat ANAF (garantare in procesul de "
+            "reesalonare a datoriilor, GEV 520 par. 77-78); conform Ghidului, acest tip de raport NU se "
+            "inregistreaza in Baza Imobiliara de Garantii (BIG) a ANEVAR."
+        )
+    else:
+        doc.add_paragraph(
+            "Inregistrare BIG: raportul, avand utilizarea desemnata de garantare a imprumutului, se "
+            "inregistreaza in Baza Imobiliara de Garantii (BIG), conform reglementarilor ANEVAR."
+        )
     # B4 — Valoarea de lichidare / vanzare fortata (ceruta frecvent la garantare).
     vp = ctx.reconciled.valoare_finala
     factor = Decimal("0.85")
@@ -553,6 +585,12 @@ def _adauga_risc_garantie(doc: DocxDocument, ctx: ReportContext, adnotari: bool 
         "Checklist de conformitate — de verificat si bifat de evaluator inainte de transmitere "
         "(de aliniat la Anexa 1 a GEV 520 in vigoare):"
     )
+    # Punctul de checklist BIG — conditionat de utilizatorul desemnat (GEV 520 par. 77-78).
+    big_punct = (
+        "Raportul are utilizator desemnat ANAF -> NU se inregistreaza in BIG (GEV 520 par. 77-78)."
+        if ctx.meta.utilizator_desemnat == "ANAF"
+        else "Raportul se inregistreaza in BIG."
+    )
     for punct in (
         "Valoarea estimata este valoarea de piata (SEV 102 / IVS 104), exprimata fara TVA.",
         "Data evaluarii si data raportului sunt precizate.",
@@ -567,7 +605,7 @@ def _adauga_risc_garantie(doc: DocxDocument, ctx: ReportContext, adnotari: bool 
         "Valoarea de lichidare / vanzare fortata a fost estimata.",
         "Comparabilele provenite din oferte au fost ajustate la nivel de tranzactie.",
         "Sursele de date sunt mentionate si verificabile.",
-        "Raportul se inregistreaza in BIG.",
+        big_punct,
         "Evaluatorul este autorizat ANEVAR si detine asigurare de raspundere profesionala.",
         "Declaratia de conformitate si de independenta este semnata.",
     ):
@@ -789,11 +827,15 @@ def genereaza_raport(
         f"Valoarea finala: {_fmt(ctx.reconciled.valoare_finala)} {meta.moneda}"
         f"{_echiv_lei(ctx)}. {_fara_tva(ctx)}"
     )
+    if ctx.reconciled.nota:   # transparenta reconciliere (ex. abordare calculata dar neponderata)
+        doc.add_paragraph(f"Notă privind reconcilierea: {ctx.reconciled.nota}")
 
     # --- Shell GBF (back matter) ---
     _adauga_alocare(doc, ctx, adnotari)
     if ctx.profil.ghid == "GEV_520":   # sectiunea de risc e specifica garantarii imprumutului
         _adauga_risc_garantie(doc, ctx, adnotari)
+    if ctx.profil.ghid == "SEV_450":   # clauza de subasigurare e specifica evaluarii pentru asigurare
+        _adauga_clauza_subasigurare(doc, ctx, adnotari)
     _adauga_anexe(doc, ctx, adnotari)
     _adauga_semnatura(doc, ctx, adnotari)
 

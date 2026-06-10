@@ -19,7 +19,14 @@ def build_router(d: Deps) -> APIRouter:
 
     @router.post("/api/import-url")
     def importa_url(req: ImportUrlRequest) -> dict:
-        parsed = import_from_url(req.url, fetcher=d.fetcher)
+        try:
+            parsed = import_from_url(req.url, fetcher=d.fetcher)
+        except (ValueError, OSError) as e:
+            # url gol / schemă nepermisă / SSRF / rețea / parse eșuat -> 422 clar, NU 500 nehandelat
+            # (audit D schemathesis pe live: url="" ajungea la parser -> crash). Detaliul intern -> log, nu UI.
+            log.info("import-url respins: %s", e)
+            raise HTTPException(status_code=422, detail=(
+                "URL invalid sau inaccesibil. Folosește linkul http/https al unui anunț individual.")) from e
         if parsed.pagina_lista:
             raise HTTPException(status_code=422, detail=(
                 "Linkul pare o pagină de listă/căutare, nu un anunț individual. "

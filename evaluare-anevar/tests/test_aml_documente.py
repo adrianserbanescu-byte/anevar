@@ -45,6 +45,7 @@ def test_norme_interne_au_7_capitole():
     # clauze de antet
     assert "aprobat" in t.lower()
     assert "129/2019" in t
+    assert "nicio răspundere" in t.lower()        # disclaimer aplicatie -> evaluator (cerinta Adi)
 
 
 # --------------------------------------------------------------------------- #

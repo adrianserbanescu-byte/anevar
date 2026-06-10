@@ -8,7 +8,7 @@ prezent, se ridică `PdfIndisponibil` cu mesaj clar — userul primește oricum 
 from __future__ import annotations
 
 import shutil
-import subprocess
+import subprocess  # nosec B404 - doar pt soffice (cale locala gasita), lista args, shell=False
 import tempfile
 from pathlib import Path
 
@@ -34,7 +34,7 @@ def _gaseste_soffice() -> str | None:
 def _via_soffice(docx: Path, soffice: str) -> Path:
     # Profil izolat: nu intră în conflict cu o instanță LibreOffice deschisă de user.
     profil = Path(tempfile.gettempdir()) / "anevar-lo-profile"
-    subprocess.run(
+    subprocess.run(  # nosec B603 - soffice=cale locala (_gaseste_soffice), lista args (shell=False), input=.docx propriu
         [soffice, f"-env:UserInstallation=file:///{profil.as_posix()}",
          "--headless", "--convert-to", "pdf", "--outdir", str(docx.parent), str(docx)],
         check=True, capture_output=True, timeout=120,

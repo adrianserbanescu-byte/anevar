@@ -61,8 +61,11 @@ def evaluate_cost(
     """Ruleaza abordarea prin cost completa pentru o constructie."""
     cib = compute_cib(building.elements)
     vcp = compute_vcp(building.elements, building.an_referinta)
-    vcp = vcp.quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
+    # Politica unica de rotunjire: interpolam deprecierea pe varsta EXACTA. Rotunjirea lui vcp la 0.01
+    # INAINTE de interpolare introducea un mic efect de PRAG pe Dfn (vcp sare in trepte de 0.01 an).
+    # vcp se rotunjeste DOAR pentru afisarea/raportarea valorii (CostResult.vcp), nu pentru calcul.
     dfn = interpolate_depreciation(vcp, building.depreciation_points)
+    vcp = vcp.quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
     cin = compute_cin(
         cib, dfn, building.functional_depreciation, building.external_depreciation
     )

@@ -80,3 +80,44 @@ def test_depreciere_functionala_cu_justificare_ok():
     building = _building(c_nf="0.10", justif_nf="uzura interioara avansata")
     issues = valideaza_depreciere(building)
     assert all(i.nivel != "blocheaza" for i in issues)
+
+
+def test_valideaza_comparabile_teren_m5_simetric_cu_piata():
+    # #7: gardile M5 (min 3, outlier, limita ajustare, pret<=0) aplicate si la comparabilele de TEREN.
+    from decimal import Decimal
+
+    from evaluare.engine.validation import valideaza_comparabile_teren
+    from evaluare.models.comparable import Adjustment, LandComparable
+
+    def _t(pret_mp, adj=None):
+        return LandComparable(pret_mp=Decimal(pret_mp), suprafata=Decimal("500"),
+                              adjustments=adj or [])
+
+    # <3 comparabile de teren -> blocheaza
+    iss = valideaza_comparabile_teren([_t("100")])
+    assert any(i.nivel == "blocheaza" and "teren" in i.mesaj for i in iss)
+    # 3 comparabile: unul outlier (300 vs mediana 100) + unul cu ajustare bruta 40% (> 25%)
+    comps = [_t("100"), _t("300"),
+             _t("100", [Adjustment(element="x", tip="procentuala",
+                                   valoare=Decimal("0.40"), etapa="proprietate")])]
+    iss2 = valideaza_comparabile_teren(comps)
+    assert any("outlier" in i.mesaj and "teren" in i.mesaj for i in iss2)        # 300 e outlier
+    assert any("ajustare bruta" in i.mesaj and "teren" in i.mesaj for i in iss2)  # 0.40 > 0.25
+
+
+def test_assembler_valideaza_aplica_garda_pe_comparabile_teren():
+    # #7: assembler.valideaza ruleaza acum gardile si pe land_comparables (nu doar piata).
+    from decimal import Decimal
+
+    from evaluare.assembler import EvaluationInput, valideaza
+    from evaluare.models.comparable import LandComparable
+    inp = EvaluationInput(
+        meta={"client_nume": "X", "adresa": "A", "numar_cadastral": "1", "carte_funciara": "CF",
+              "evaluator_nume": "E", "evaluator_legitimatie": "1", "data_evaluarii": "2026-01-01",
+              "data_raportului": "2026-01-01"},
+        land={"suprafata": "500"}, building={"au": "100", "acd": "120", "an_referinta": 2025},
+        land_comparables=[LandComparable(pret_mp=Decimal("100"), suprafata=Decimal("500"))],  # doar 1 -> <3
+        metoda="cost",
+    )
+    issues = valideaza(inp)
+    assert any("comparabile de teren" in i.mesaj for i in issues)   # garda M5 pe teren a rulat

@@ -35,6 +35,7 @@ def build_anonymizer(meta: EvaluationMeta) -> Anonymizer:
     """Construieste anonimizatorul din datele personale ale lucrarii."""
     candidates = {
         meta.client_nume: "[CLIENT]",
+        meta.beneficiar: "[BENEFICIAR]",     # banca/utilizator desemnat — scapase neanonimizat (audit GDPR/SAST)
         meta.adresa: "[ADRESA]",
         meta.numar_cadastral: "[CADASTRAL]",
         meta.carte_funciara: "[CF]",

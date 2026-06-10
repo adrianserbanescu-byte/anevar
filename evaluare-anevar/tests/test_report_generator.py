@@ -49,6 +49,28 @@ def _all_text(path) -> str:
     return "\n".join(parts)
 
 
+def test_gev520_inregistrare_big_conditionata_de_utilizator_desemnat(tmp_path):
+    # GEV 520 ed. 2025, par. 77-78: la utilizator desemnat ANAF (garantare in reesalonarea datoriilor)
+    # raportul NU se inregistreaza in BIG. Codul afirma acum CONDITIONAT, nu neconditionat. (Cross-check E.)
+    # creditor (default): se inregistreaza in BIG
+    out_c = tmp_path / "creditor.docx"
+    genereaza_raport(_ctx(), out_c)
+    tc = _all_text(out_c)
+    assert "se inregistreaza in Baza Imobiliara de Garantii" in tc
+    assert "NU se inregistreaza" not in tc
+    assert "Raportul se inregistreaza in BIG." in tc                  # punct de checklist (creditor)
+    # ANAF: NU se inregistreaza in BIG
+    ctx = _ctx()
+    ctx.meta.utilizator_desemnat = "ANAF"
+    out_a = tmp_path / "anaf.docx"
+    genereaza_raport(ctx, out_a)
+    ta = _all_text(out_a)
+    assert "utilizatorul desemnat ANAF" in ta
+    assert "NU se inregistreaza in Baza Imobiliara de Garantii" in ta
+    assert "Raportul se inregistreaza in BIG." not in ta             # checklistul NU mai afirma inregistrarea
+    assert "NU se inregistreaza in BIG (GEV 520 par. 77-78)" in ta   # punct de checklist (ANAF)
+
+
 def test_genereaza_raport_creeaza_fisier(tmp_path):
     out = tmp_path / "raport.docx"
     genereaza_raport(_ctx(), out)
@@ -363,3 +385,106 @@ def test_anexe_corupte_logheaza_avertisment_nu_dispar_tacut(tmp_path, caplog):
     assert out.exists()                                   # raportul se generează oricum (nu crapă)
     assert "Anexa 2: fotografia 1 nu a putut fi inserată" in caplog.text
     assert "Anexa 3: documentul 1 nu a putut fi decodat" in caplog.text
+
+
+def test_raport_afiseaza_nota_reconciliere(tmp_path):
+    # Transparenta (optiunea b, decizia Adi): nota de reconciliere (ex. abordare calculata dar
+    # neponderata) apare EXPLICIT in raport, ca valoarea finala sa nu diverge tacit de indicatii.
+    ctx = _ctx()
+    ctx.reconciled.nota = "Abordarea prin venit a fost calculata dar NU este inclusa in valoarea ponderata."
+    out = tmp_path / "r.docx"
+    genereaza_raport(ctx, out)
+    text = _all_text(out)
+    assert "Notă privind reconcilierea" in text and "venit" in text
+
+
+def test_sev106_raport_contine_cele_18_elemente_obligatorii(tmp_path):
+    # SEV 106 §30.6 (continutul minim al raportului de evaluare): test STRUCTURAL ca raportul contine
+    # cele 18 elemente obligatorii. Test de completitudine — prinde regresii care scot vreun element.
+    out = tmp_path / "r.docx"
+    genereaza_raport(_ctx(), out)
+    t = _all_text(out)
+    tl = t.lower()
+    elemente = {
+        "1. evaluator (nume + legitimatie)": "Maria Ionescu" in t and "19567" in t,
+        "2. client": "Ion Popescu" in t,
+        "3. scopul evaluarii": "garantarea" in tl or "scop" in tl,
+        "4. identificarea proprietatii (adresa)": "Str. Exemplu" in t,
+        "5. nr. cadastral + carte funciara": "123456" in t and "CF123456" in t,
+        "6. tipul valorii (SEV 102)": "SEV 102" in t or "valoare de piat" in tl,
+        "7. data evaluarii si a raportului": "2026-01-16" in t,
+        "8. ipoteze (generale si speciale)": "ipotez" in tl,
+        "9. abordarile / metodele aplicate": "abordare" in tl or "metodelor" in tl,
+        "10. reconcilierea rezultatelor": "reconcili" in tl,
+        "11. valoarea finala estimata": "valoarea estimata" in tl or "valoarea finala" in tl,
+        "12. declaratia de conformitate": "conformitate" in tl,
+        "13. restrictii de utilizare / utilizator desemnat": (
+            "exclusiv" in tl or "desemnat" in tl or "difuzar" in tl),
+        "14. conformitatea cu standardele SEV/IVS": "SEV" in t,
+        "15. dreptul de proprietate evaluat": "drept" in tl,
+        "16. amploarea inspectiei / investigatiei": "inspect" in tl or "investiga" in tl,
+        "17. cea mai buna utilizare (CMBU)": "cmbu" in tl or "cea mai buna utilizare" in tl,
+        "18. precizarea fara TVA": "tva" in tl,
+    }
+    lipsa = [k for k, ok in elemente.items() if not ok]
+    assert not lipsa, f"Elemente SEV 106 §30.6 lipsa din raport: {lipsa}"
+
+
+def test_sev100_declara_scepticism_si_verificare_calitate(tmp_path):
+    # SEV 100 (2025): raportul declara EXPLICIT scepticismul profesional (§10.4) + procedura de
+    # verificare a calitatii (§20) — le aplicam de-facto (validari + audit), dar trebuie DECLARATE.
+    out = tmp_path / "r.docx"
+    genereaza_raport(_ctx(), out)
+    t = _all_text(out)
+    assert "scepticism profesional" in t and "SEV 100, par. 10.4" in t
+    assert "verificare a calitatii" in t and "SEV 100, par. 20" in t
+
+
+def test_sev450_asigurare_valoare_cib_brut_nu_cin_net(tmp_path):
+    # E-(a) SEV 450: la scop=asigurare valoarea = cost de RECONSTRUCTIE (CIB brut, NEdeprecat, fara teren),
+    # NU CIN net+teren (altfel sub-asigurare). Referinta = SEV 450, nu GEV 630.
+    from decimal import Decimal
+
+    from evaluare.assembler import EvaluationInput, construieste_context
+    from evaluare.engine.cost import evaluate_cost
+    building = {"au": "100", "acd": "120", "an_referinta": 2025,
+                "elements": [{"element": "S", "cod": "X", "um": "mp", "cantitate": "120",
+                              "cost_unitar": "2000", "an_pif": 2015}],
+                "depreciation_points": [{"varsta": 5, "depreciere": "0.05"}]}
+    inp = EvaluationInput(
+        meta={"client_nume": "Ion", "adresa": "A", "numar_cadastral": "1", "carte_funciara": "CF",
+              "evaluator_nume": "E", "evaluator_legitimatie": "1", "data_evaluarii": "2026-01-01",
+              "data_raportului": "2026-01-01", "tip_valoare": "asigurare"},
+        land={"suprafata": "500"}, building=building,
+        valoare_teren="100000", metoda="cost", scop="asigurare")
+    ctx = construieste_context(inp, client=None)
+    cost = evaluate_cost(inp.building, valoare_teren=Decimal("100000"))
+    assert ctx.reconciled.valoare_finala == cost.cib.quantize(Decimal("0.01"))   # CIB brut
+    assert ctx.reconciled.valoare_finala != cost.valoare_cost                    # NU CIN net + teren
+    out = tmp_path / "asig.docx"
+    genereaza_raport(ctx, out)
+    text = _all_text(out)
+    assert "SEV 450" in text and "reconstruc" in text.lower()
+
+
+def test_sev450_raport_asigurare_contine_clauza_subasigurare(tmp_path):
+    # SEV 450 §4: raportul de evaluare pentru asigurare contine clauza de SUBASIGURARE (proportionalitate).
+    from evaluare.assembler import EvaluationInput, construieste_context
+    inp = EvaluationInput(
+        meta={"client_nume": "Ion", "adresa": "A", "numar_cadastral": "1", "carte_funciara": "CF",
+              "evaluator_nume": "E", "evaluator_legitimatie": "1", "data_evaluarii": "2026-01-01",
+              "data_raportului": "2026-01-01", "tip_valoare": "asigurare"},
+        land={"suprafata": "500"},
+        building={"au": "100", "acd": "120", "an_referinta": 2025,
+                  "elements": [{"element": "S", "cod": "X", "um": "mp", "cantitate": "120",
+                                "cost_unitar": "2000", "an_pif": 2015}],
+                  "depreciation_points": [{"varsta": 5, "depreciere": "0.05"}]},
+        metoda="cost", scop="asigurare")
+    out = tmp_path / "asig.docx"
+    genereaza_raport(construieste_context(inp, client=None), out)
+    text = _all_text(out)
+    assert "SUBASIGURARE" in text.upper() and "proportional" in text.lower()
+    # profilul de garantare NU primeste clauza (specifica asigurarii)
+    out2 = tmp_path / "gar.docx"
+    genereaza_raport(_ctx(), out2)
+    assert "CLAUZA DE SUBASIGURARE" not in _all_text(out2)

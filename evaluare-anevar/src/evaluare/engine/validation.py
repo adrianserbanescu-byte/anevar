@@ -7,9 +7,11 @@ from typing import Literal
 
 from pydantic import BaseModel
 
-from evaluare.engine.market import ajustare_bruta, pret_unitar_brut
+from evaluare.engine.land import ajustare_bruta as ajustare_bruta_teren
+from evaluare.engine.land import pret_mp_corectat
+from evaluare.engine.market import ajustare_bruta, pret_total_corectat, pret_unitar_brut
 from evaluare.engine.metodologie import IMPLICIT, MetodologieConfig
-from evaluare.models.comparable import Comparable
+from evaluare.models.comparable import Comparable, LandComparable
 from evaluare.models.property import BuildingData, LandData
 
 Nivel = Literal["blocheaza", "alerteaza"]
@@ -68,11 +70,59 @@ def valideaza_comparabile(comparables: list[Comparable],
                 ))
 
     for i, c in enumerate(comparables):
+        if pret_total_corectat(c) <= 0:    # ajustari care duc pretul corectat la <=0 -> valoare nonsens
+            issues.append(Issue(
+                nivel="blocheaza",
+                mesaj=f"Comparabilul {i}: pretul corectat este <= 0 (ajustari prea mari) — verifica ajustarile.",
+            ))
         g = ajustare_bruta(c)
         if g > cfg.limita_ajustare_bruta:
             issues.append(Issue(
                 nivel="alerteaza",
                 mesaj=f"Comparabilul {i}: ajustare bruta {g:.0%} depaseste limita de {cfg.limita_ajustare_bruta:.0%}.",
+            ))
+    return issues
+
+
+def valideaza_comparabile_teren(comparables: list[LandComparable],
+                                cfg: MetodologieConfig = IMPLICIT) -> list[Issue]:
+    """Valideaza comparabilele de TEREN — SIMETRIC cu valideaza_comparabile pt piata (gardile M5 lipseau
+    la teren): numar minim, outlieri (deviatie de la mediana pretului/mp corectat), pret/mp corectat <= 0,
+    limita ajustarii brute. `cfg.teren_selectie_include_eur` (M1) decide daca ajustarea bruta numara EUR."""
+    issues: list[Issue] = []
+    if len(comparables) < cfg.min_comparabile:
+        issues.append(Issue(
+            nivel="blocheaza",
+            mesaj=f"Sunt necesare minimum {cfg.min_comparabile} comparabile de teren "
+                  f"(gasite: {len(comparables)}).",
+        ))
+        return issues
+
+    inc = cfg.teren_selectie_include_eur
+    preturi = [pret_mp_corectat(c) for c in comparables]
+    med = Decimal(str(median([float(p) for p in preturi])))
+    if med > 0:
+        for i, p in enumerate(preturi):
+            deviatie = abs(p - med) / med
+            if deviatie > cfg.prag_outlier:
+                issues.append(Issue(
+                    nivel="alerteaza",
+                    mesaj=f"Comparabilul de teren {i} este outlier "
+                          f"(deviatie {deviatie:.0%} fata de mediana).",
+                ))
+
+    for i, c in enumerate(comparables):
+        if pret_mp_corectat(c) <= 0:
+            issues.append(Issue(
+                nivel="blocheaza",
+                mesaj=f"Comparabilul de teren {i}: pretul/mp corectat este <= 0 (ajustari prea mari).",
+            ))
+        g = ajustare_bruta_teren(c, inc)
+        if g > cfg.limita_ajustare_bruta:
+            issues.append(Issue(
+                nivel="alerteaza",
+                mesaj=f"Comparabilul de teren {i}: ajustare bruta {g:.0%} depaseste limita de "
+                      f"{cfg.limita_ajustare_bruta:.0%}.",
             ))
     return issues
 

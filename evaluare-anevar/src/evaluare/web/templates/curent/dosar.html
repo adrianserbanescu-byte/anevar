@@ -774,7 +774,6 @@ if($("up-foto")) $("up-foto").addEventListener("change", function(){
   Promise.all([].map.call(this.files, _fileURL)).then(function(a){ ANEXE_FOTO=ANEXE_FOTO.concat(a); randFoto(); }); });
 if($("up-doc")) $("up-doc").addEventListener("change", function(){
   Promise.all([].map.call(this.files, _fileURL)).then(function(a){ ANEXE_DOC=ANEXE_DOC.concat(a); randDoc(); }); });
-if($("la-anexe")) $("la-anexe").addEventListener("click", function(){ var rt=$("t-raport"); if(rt) rt.click(); subtab("s-anexe"); });
 
 // Ingestie documente: PDF (CF/releveu/plan/CPE) → /api/ingestie → pre-completează câmpurile (verifică după!).
 if($("ing-fisier")) $("ing-fisier").addEventListener("change", function(){

@@ -9,6 +9,14 @@ repos:
       - id: ruff-format    # formatare (optional; nu rescrie agresiv)
         stages: [manual]
 
+  - repo: https://github.com/PyCQA/bandit
+    rev: 1.8.6
+    hooks:
+      - id: bandit         # SAST pe Python staged (acelasi threshold ca in CI: MEDIUM+)
+        args: ["--severity-level", "medium", "--confidence-level", "medium", "-q"]
+        files: ^src/.*\.py$
+        additional_dependencies: ["bandit[toml]"]
+
   - repo: local
     hooks:
       - id: pytest

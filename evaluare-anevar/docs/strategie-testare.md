@@ -174,10 +174,11 @@ diff <(grep -rhoE "fetch\(['\"\`][^'\"\`]+" *.html | sed -E "s/fetch\(['\"\`]//"
 feedback scurtă = teste rulate des = regresii prinse devreme.
 
 ### 10.1 Paralelizare (`pytest-xdist`)
-- `pytest -n auto` distribuie testele pe toate nucleele. Măsurat: **~117s serial → ~46-60s paralel**
-  (8 nuclee, **607 teste** la 2026-06-09, post-audit #7 coverage al lui B) — ~2×. Testele sunt izolate
-  (`tmp_path`/fixturi proprii, zero rețea), deci paralelizarea e sigură — **607 passed identic pe
-  `-n auto`** (verificat post-rebase pe `c2c04bf`: metodologie M1/M3/M5 + fix critic rotunjire).
+- `pytest -n auto` distribuie testele pe toate nucleele. Măsurat: **~117s serial → ~60-82s paralel**
+  (8 nuclee, **617 teste** la 2026-06-10) — ~2×. Testele sunt izolate (`tmp_path`/fixturi proprii,
+  zero rețea), deci paralelizarea e sigură — **617 passed identic pe `-n auto`** (verificat
+  post-rebase pe `672f5b1` disclaimer aplicație→evaluator; precedent: M2 media top-N de la B,
+  fix critic rotunjire, audit #7 coverage).
 - **NU** punem `-n auto` în `addopts` implicit: rularea serială rămâne default-ul pentru
   debugging clar (`-x`, `pdb`, output ne-întrețesut). Paralel = explicit (CI + rulări full locale).
 - CI rulează **`pytest -n auto --dist loadscope --max-worker-restart=4 --cov`**, precedat de

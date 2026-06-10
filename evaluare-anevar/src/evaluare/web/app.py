@@ -10,9 +10,12 @@ from fastapi.templating import Jinja2Templates
 from evaluare.ai.narrative import NarrativeClient
 from evaluare.db.storage import Storage
 from evaluare.importers.url_parser import fetch_html
+from evaluare.logging_setup import get_logger
 from evaluare.report.pdf import docx_to_pdf
 from evaluare.web.deps import Deps
 from evaluare.web.routers import aml, curent, descoperire, evaluare, grile, pagini, piata
+
+log = get_logger(__name__)
 
 
 def _build_data() -> str:
@@ -37,6 +40,23 @@ def create_app(storage: Storage, client: NarrativeClient | None,
     from evaluare import __version__
     app = FastAPI(title="Evaluare ANEVAR")
 
+    # M1 (audit user-journey): o validare Pydantic eșuată (ex. `numar_cadastral`/`carte_funciara` lipsă,
+    # care-s obligatorii) întorcea un array Pydantic BRUT pe care UI-ul îl afișa evaluatorului ca
+    # „[object Object]". Acest handler formatează ORICE 422 de validare într-un `detail` STRING citibil
+    # în RO -> mesaj prietenos, nu cifrat. (Calea `_context()` rămâne pentru erorile de calcul/aritmetică.)
+    from fastapi.exceptions import RequestValidationError
+    from starlette.responses import JSONResponse
+
+    @app.exception_handler(RequestValidationError)
+    async def _eroare_validare(_request, exc):
+        def _ro(e: dict) -> str:
+            loc = [str(p) for p in e.get("loc", ()) if p != "body"]
+            camp = ".".join(loc) or "date"
+            return f"«{camp}»: {e.get('msg', 'valoare invalidă')}"
+        detalii = "; ".join(_ro(e) for e in exc.errors())
+        return JSONResponse(status_code=422,
+                            content={"detail": f"Date invalide sau incomplete — {detalii}"})
+
     # Gardă anti DNS-rebinding / cross-site: aplicația locală acceptă DOAR Host local.
     # Un site vizitat (evil.com) care rezolvă la 127.0.0.1 ar trimite Host: evil.com -> respins,
     # deci nu poate șterge dosare / exfiltra PII prin API-ul local. „testserver" = host-ul TestClient.
@@ -46,6 +66,7 @@ def create_app(storage: Storage, client: NarrativeClient | None,
     async def doar_host_local(request, call_next):
         host = (request.headers.get("host") or "127.0.0.1").rsplit(":", 1)[0].strip("[]")
         if host not in _HOSTURI_LOCALE:
+            log.warning("Acces respins (host non-local, posibil sondaj): %s", host)
             return PlainTextResponse("Acces respins: aplicația acceptă doar conexiuni locale.",
                                      status_code=403)
         # CSRF (audit SEC-3): la metode mutante, un site străin din browser trimite Origin: evil.com.
@@ -55,9 +76,23 @@ def create_app(storage: Storage, client: NarrativeClient | None,
             if origin and not origin.startswith(("chrome-extension://", "moz-extension://")):
                 from urllib.parse import urlsplit
                 if urlsplit(origin).hostname not in _HOSTURI_LOCALE:
+                    log.warning("Acces respins (CSRF cross-site, posibil sondaj): %s", origin)
                     return PlainTextResponse("Acces respins: cerere cross-site blocată (CSRF).",
                                              status_code=403)
         resp = await call_next(request)
+        # Security headers (defense-in-depth, audit C/D): nosniff + anti-clickjacking + referrer +
+        # permissions + CSP. CSP = al 4-lea strat anti-XSS peste escapeHtml/urlSafe/teste; permite
+        # inline (app-ul are JS/CSS inline) + unpkg (MapLibre, pana la bundle-ul local) + https (tile harta).
+        resp.headers["X-Content-Type-Options"] = "nosniff"
+        resp.headers["X-Frame-Options"] = "DENY"
+        resp.headers["Referrer-Policy"] = "no-referrer"
+        resp.headers["Permissions-Policy"] = "geolocation=(), microphone=(), camera=(), payment=()"
+        resp.headers["Content-Security-Policy"] = (
+            "default-src 'self'; base-uri 'self'; object-src 'none'; frame-ancestors 'none'; "
+            "img-src 'self' data: blob: https:; font-src 'self' data:; connect-src 'self' https:; "
+            "style-src 'self' 'unsafe-inline' https://unpkg.com; "
+            "script-src 'self' 'unsafe-inline' https://unpkg.com")
+        resp.headers["Server"] = "anevar"             # nu mai expune "uvicorn" (fingerprint, audit D)
         # No-STORE pe paginile HTML: după un deploy, browserul ia INSTANT versiunea nouă, fără niciun
         # hard-refresh (no-cache singur lăsa uneori pagina veche în memoria browserului / bfcache).
         # Asset-urile statice (CSS/JS) rămân cacheabile (nu primesc acest header).

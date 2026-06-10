@@ -91,3 +91,59 @@ def test_pagina_aml_se_incarca(tmp_path):
     resp = client.get("/aml")
     assert resp.status_code == 200
     assert "AML" in resp.text
+
+
+def test_aml_evalueaza_data_invalida_da_422_nu_500(tmp_path):
+    # P0 (schemathesis/D): azi="" (sau format invalid) crapa date.fromisoformat downstream -> 500.
+    # Acum validator pe AmlEvaluareRequest.azi -> 422 clar (input hardening, NU textul juridic AML).
+    client, _ = _client(tmp_path)
+    assert client.post("/api/aml/evalueaza",
+                       json={"azi": "", "semnale_indicatori": None}).status_code == 422
+    assert client.post("/api/aml/evalueaza", json={"azi": "nu-e-data"}).status_code == 422
+    # data valida ramane 200 (fara regresie)
+    assert client.post("/api/aml/evalueaza", json={"azi": "2026-06-03"}).status_code == 200
+    # documentul AML: azi None -> fallback (200), dar non-gol invalid -> 422
+    assert client.post("/api/aml/evaluare-risc.docx", json={"azi": "xxx"}).status_code == 422
+
+
+def test_aml_model_din_dict_user_invalid_da_422_nu_500(tmp_path):
+    # Audit proactiv lane B: tiparul Model(**req.X) (ClientPF/PJ, Semnale, SemnaleIndicatori, RaportRTN/RTS)
+    # arunca ValidationError/TypeError pe chei/tipuri gresite -> era 500. Acum _construieste -> 422.
+    client, _ = _client(tmp_path)
+    assert client.post("/api/aml/evalueaza", json={
+        "azi": "2026-01-01", "client_pf": {"persoana": "nu-e-dict"}}).status_code == 422
+    assert client.post("/api/aml/evalueaza", json={
+        "azi": "2026-01-01", "semnale_indicatori": {"camp_inexistent": 1}}).status_code == 422
+    assert client.post("/api/aml/rtn.docx", json={
+        "azi": "2026-01-01", "rtn": {"cheie_gresita": 1}}).status_code == 422
+    assert client.post("/api/aml/rts.docx", json={
+        "azi": "2026-01-01", "rts": {"cheie_gresita": 1}}).status_code == 422
+    # valid ramane 200
+    assert client.post("/api/aml/evalueaza", json={
+        "azi": "2026-06-03", "client_pf": {"persoana": {"nume": "Ion", "prenume": "Pop"}}}
+    ).status_code == 200
+
+
+def test_aml_date_invalide_pe_campuri_nested_dau_422_nu_500(tmp_path):
+    # Re-audit A (lane B): campuri de tip data 'str' fara validator (RaportRTN.data_tranzactie,
+    # RaportRTS.data_inregistrare, StatutPEP.data_incetare_functie) ajungeau la date.fromisoformat
+    # downstream -> 500. Acum validator ISO pe ele -> 422 (data_incetare '' -> None, PEP curent).
+    client, _ = _client(tmp_path)
+    P = {"nume": "Ion", "prenume": "Pop"}
+    assert client.post("/api/aml/rtn.docx", json={
+        "azi": "2026-01-01", "rtn": {"suma_eur": "15000", "data_tranzactie": ""}}).status_code == 422
+    assert client.post("/api/aml/rts.docx", json={
+        "azi": "2026-01-01", "rts": {"motiv": "x", "data_inregistrare": "nope"}}).status_code == 422
+    assert client.post("/api/aml/evalueaza", json={
+        "azi": "2026-01-01",
+        "client_pf": {"persoana": P, "pep": {"este_pep": True, "data_incetare_functie": "garbage"}}}
+    ).status_code == 422
+    # data_incetare '' -> tratat ca PEP curent (fara data), NU crash
+    assert client.post("/api/aml/evalueaza", json={
+        "azi": "2026-01-01",
+        "client_pf": {"persoana": P, "pep": {"este_pep": True, "data_incetare_functie": ""}}}
+    ).status_code == 200
+    # valide -> 200
+    assert client.post("/api/aml/rtn.docx", json={
+        "azi": "2026-01-01", "rtn": {"suma_eur": "15000", "data_tranzactie": "2026-01-10"}}
+    ).status_code == 200

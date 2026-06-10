@@ -53,3 +53,17 @@ def test_ponderata_degenerata_o_singura_abordare():
     assert out.valoare_finala == Decimal("320000")
     assert out.metoda_selectata == "piata"
     assert out.nota != ""
+
+
+def test_ponderata_declara_abordarea_calculata_dar_neponderata():
+    # Optiunea b (decizia Adi): o abordare CALCULATA dar NEPONDERATA (ex. venitul la o ponderare
+    # piata/cost) e declarata EXPLICIT in nota -> valoarea finala nu diverge TACUT de indicatii.
+    rez = [_r("cost", "300000"), _r("comparatie", "280000"), _r("venit", "350000")]
+    r = reconcile_profil(rez, primara="comparatie",
+                         ponderi={"comparatie": Decimal("0.5"), "cost": Decimal("0.5")})
+    assert r.valoare_finala == Decimal("290000.00")        # media cost+comparatie (venitul exclus)
+    assert "venit" in r.nota.lower() and "nu este inclusa" in r.nota.lower()
+    # fara abordari excluse -> nota goala (comportament nemodificat)
+    r2 = reconcile_profil([_r("cost", "300000"), _r("comparatie", "280000")], primara="comparatie",
+                          ponderi={"comparatie": Decimal("0.5"), "cost": Decimal("0.5")})
+    assert r2.nota == ""

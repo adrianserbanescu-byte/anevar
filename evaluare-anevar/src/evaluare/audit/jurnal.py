@@ -15,9 +15,11 @@ GENESIS = "0" * 64
 
 
 def _acum() -> str:
-    from datetime import datetime  # import local: usor de inlocuit; evita probleme de determinism
+    # UTC tz-aware (audit): timestamp neambiguu, reproductibil intre masini, imun la fusul local/DST.
+    # Lantul ramane verificabil oricum (verifica() re-hashuieste timestamp-ul stocat, nu ceasul curent).
+    from datetime import datetime, timezone
 
-    return datetime.now().isoformat(timespec="seconds")
+    return datetime.now(timezone.utc).isoformat(timespec="seconds")
 
 
 def _hash(index: int, timestamp: str, tip: str, detalii: str, hash_anterior: str) -> str:

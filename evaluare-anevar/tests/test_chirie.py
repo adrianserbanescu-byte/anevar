@@ -8,8 +8,13 @@ from evaluare.engine.chirie import (
     date_venit_din_chirie,
     evalueaza_chirie,
 )
+from evaluare.engine.metodologie import MetodologieConfig
 from evaluare.engine.venit import evalueaza_venit
 from evaluare.models.comparable import Adjustment, RentComparable
+
+# Selectia comparabilului unic (N=1) — comportamentul istoric validat; media top-N (M2) e in
+# test_metodologie_m2. Mentinem testul de selectie pe cazul N=1.
+_N1 = MetodologieConfig(nr_comparabile_medie=1)
 
 
 def _comp(chirie, supr, adj=None):
@@ -45,7 +50,7 @@ def test_selecteaza_ajustare_bruta_minima_si_vbp_anual():
         _comp("10", "100", [Adjustment(element="y", tip="procentuala",
                                        valoare=Decimal("0.05"), etapa="proprietate")]),   # bruta 0.05 -> ales
     ]
-    r = evalueaza_chirie(comps, Decimal("100"))
+    r = evalueaza_chirie(comps, Decimal("100"), cfg=_N1)
     assert r.index_selectat == 1
     assert r.chirie_mp_aleasa == Decimal("10.50")          # 10*1.05
     assert r.chirie_lunara == Decimal("1050.00")            # 10.50 * 100
