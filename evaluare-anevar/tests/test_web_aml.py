@@ -122,3 +122,28 @@ def test_aml_model_din_dict_user_invalid_da_422_nu_500(tmp_path):
     assert client.post("/api/aml/evalueaza", json={
         "azi": "2026-06-03", "client_pf": {"persoana": {"nume": "Ion", "prenume": "Pop"}}}
     ).status_code == 200
+
+
+def test_aml_date_invalide_pe_campuri_nested_dau_422_nu_500(tmp_path):
+    # Re-audit A (lane B): campuri de tip data 'str' fara validator (RaportRTN.data_tranzactie,
+    # RaportRTS.data_inregistrare, StatutPEP.data_incetare_functie) ajungeau la date.fromisoformat
+    # downstream -> 500. Acum validator ISO pe ele -> 422 (data_incetare '' -> None, PEP curent).
+    client, _ = _client(tmp_path)
+    P = {"nume": "Ion", "prenume": "Pop"}
+    assert client.post("/api/aml/rtn.docx", json={
+        "azi": "2026-01-01", "rtn": {"suma_eur": "15000", "data_tranzactie": ""}}).status_code == 422
+    assert client.post("/api/aml/rts.docx", json={
+        "azi": "2026-01-01", "rts": {"motiv": "x", "data_inregistrare": "nope"}}).status_code == 422
+    assert client.post("/api/aml/evalueaza", json={
+        "azi": "2026-01-01",
+        "client_pf": {"persoana": P, "pep": {"este_pep": True, "data_incetare_functie": "garbage"}}}
+    ).status_code == 422
+    # data_incetare '' -> tratat ca PEP curent (fara data), NU crash
+    assert client.post("/api/aml/evalueaza", json={
+        "azi": "2026-01-01",
+        "client_pf": {"persoana": P, "pep": {"este_pep": True, "data_incetare_functie": ""}}}
+    ).status_code == 200
+    # valide -> 200
+    assert client.post("/api/aml/rtn.docx", json={
+        "azi": "2026-01-01", "rtn": {"suma_eur": "15000", "data_tranzactie": "2026-01-10"}}
+    ).status_code == 200

@@ -9,7 +9,7 @@ from __future__ import annotations
 from datetime import date, timedelta
 from decimal import ROUND_HALF_UP, Decimal
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
 
 from evaluare.aml.constante import (
     PRAG_ANTIFRAGMENTARE_EUR,
@@ -108,6 +108,16 @@ def tranzactii_legate(transe: list[dict], fereastra_zile: int = 30) -> bool:
 # --------------------------------------------------------------------------- #
 # Structuri de raport (stocate separat de dosar)
 # --------------------------------------------------------------------------- #
+def _data_iso_obligatorie(v: str) -> str:
+    """Valideaza ca `v` e o data ISO yyyy-mm-dd. Altfel ValueError -> 422 (prin _construieste in router),
+    nu 500 cand date.fromisoformat ar crapa downstream (termen_rtn / suspendare_pana_la)."""
+    try:
+        date.fromisoformat((v or "").strip())
+    except (ValueError, TypeError) as e:
+        raise ValueError("Data trebuie sa fie o data valida in format yyyy-mm-dd.") from e
+    return v
+
+
 class RaportRTN(BaseModel):
     """Raport tranzactie cu numerar (>= 10.000 €)."""
 
@@ -117,6 +127,11 @@ class RaportRTN(BaseModel):
     descriere: str = ""
     transmis: bool = False
     data_transmitere: str | None = None
+
+    @field_validator("data_tranzactie")
+    @classmethod
+    def _valideaza_data_tranzactie(cls, v: str) -> str:
+        return _data_iso_obligatorie(v)
 
     @property
     def termen(self) -> str:
@@ -133,6 +148,11 @@ class RaportRTS(BaseModel):
     transmis: bool = False
     data_transmitere: str | None = None
     avertisment_tipping_off: str = _AVERTISMENT_TIPPING_OFF
+
+    @field_validator("data_inregistrare")
+    @classmethod
+    def _valideaza_data_inregistrare(cls, v: str) -> str:
+        return _data_iso_obligatorie(v)
 
     @property
     def suspendare_pana_la(self) -> str:
