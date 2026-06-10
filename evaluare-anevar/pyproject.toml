@@ -15,7 +15,7 @@ dependencies = [
     "jinja2>=3.1,<4",
     "requests>=2.31,<3",
     "beautifulsoup4>=4.12,<5",
-    "pypdf>=4,<6",        # pypdf (BSD, fost PyMuPDF AGPL) extragere text PDF (ingestie/ocr.py)
+    "pypdf>=6.10.2,<7",   # pypdf (BSD, fost PyMuPDF AGPL) extragere text PDF; >=6.10.2 = fix 5 CVE-uri (audit D)
     "Pillow>=11,<13",          # tranzitiv via python-docx; fixat ca sa nu sara la 13
     # Tranzitive via requests, fixate ca prag de securitate (audit dependențe 2026-06-07):
     "urllib3>=2.7.0,<3",       # PYSEC-2026-141/142 (header-leak la redirect + DoS decompresie)

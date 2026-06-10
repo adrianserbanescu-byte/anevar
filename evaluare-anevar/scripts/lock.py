@@ -21,7 +21,7 @@ from packaging.requirements import Requirement
 # Acelasi set ca [project].dependencies + [dev] din pyproject.toml.
 ROOTS = [
     "pydantic", "python-docx", "anthropic", "fastapi", "uvicorn", "jinja2",
-    "requests", "beautifulsoup4", "PyMuPDF", "Pillow", "pytest", "httpx", "ruff",
+    "requests", "beautifulsoup4", "pypdf", "Pillow", "pytest", "httpx", "ruff",
     "pytest-cov", "pytest-xdist",
 ]
 LOCK = Path(__file__).resolve().parent.parent / "requirements.lock"
