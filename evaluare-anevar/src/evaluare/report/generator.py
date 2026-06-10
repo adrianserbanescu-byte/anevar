@@ -111,7 +111,7 @@ _TIP_VALOARE_TXT = {
     "piata": "valoare de piață (definită conform SEV 102 — Tipuri ale valorii / IVS 104)",
     "justa": "valoare justă (definită conform SEV 102 / IFRS 13)",
     "lichidare": "valoare de lichidare (definită conform SEV 102, Anexă)",
-    "asigurare": "valoare de asigurare — cost de înlocuire net (conform GEV 630)",
+    "asigurare": "valoare de asigurare — cost de înlocuire brut (de reconstrucție), conform SEV 450",
     "impozabila": "valoare impozabilă (estimată conform GEV 500)",
 }
 
@@ -231,6 +231,7 @@ def _scrisoare_transmitere(doc: DocxDocument, ctx: ReportContext, adnotari: bool
 _GHID_CLAUZA = {
     "GEV_520": "incluzand Ghidul GEV 520 — Evaluarea pentru garantarea imprumutului.",
     "GEV_630": "incluzand Ghidul GEV 630 — Evaluarea bunurilor imobile.",
+    "SEV_450": "incluzand SEV 450 — Evaluarea costurilor in scop de asigurare.",
     "GEV_500": "incluzand Ghidul GEV 500 — Estimarea valorii impozabile a cladirilor.",
     "none": "",
 }

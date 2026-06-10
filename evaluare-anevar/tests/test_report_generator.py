@@ -438,3 +438,30 @@ def test_sev100_declara_scepticism_si_verificare_calitate(tmp_path):
     t = _all_text(out)
     assert "scepticism profesional" in t and "SEV 100, par. 10.4" in t
     assert "verificare a calitatii" in t and "SEV 100, par. 20" in t
+
+
+def test_sev450_asigurare_valoare_cib_brut_nu_cin_net(tmp_path):
+    # E-(a) SEV 450: la scop=asigurare valoarea = cost de RECONSTRUCTIE (CIB brut, NEdeprecat, fara teren),
+    # NU CIN net+teren (altfel sub-asigurare). Referinta = SEV 450, nu GEV 630.
+    from decimal import Decimal
+
+    from evaluare.assembler import EvaluationInput, construieste_context
+    from evaluare.engine.cost import evaluate_cost
+    building = {"au": "100", "acd": "120", "an_referinta": 2025,
+                "elements": [{"element": "S", "cod": "X", "um": "mp", "cantitate": "120",
+                              "cost_unitar": "2000", "an_pif": 2015}],
+                "depreciation_points": [{"varsta": 5, "depreciere": "0.05"}]}
+    inp = EvaluationInput(
+        meta={"client_nume": "Ion", "adresa": "A", "numar_cadastral": "1", "carte_funciara": "CF",
+              "evaluator_nume": "E", "evaluator_legitimatie": "1", "data_evaluarii": "2026-01-01",
+              "data_raportului": "2026-01-01", "tip_valoare": "asigurare"},
+        land={"suprafata": "500"}, building=building,
+        valoare_teren="100000", metoda="cost", scop="asigurare")
+    ctx = construieste_context(inp, client=None)
+    cost = evaluate_cost(inp.building, valoare_teren=Decimal("100000"))
+    assert ctx.reconciled.valoare_finala == cost.cib.quantize(Decimal("0.01"))   # CIB brut
+    assert ctx.reconciled.valoare_finala != cost.valoare_cost                    # NU CIN net + teren
+    out = tmp_path / "asig.docx"
+    genereaza_raport(ctx, out)
+    text = _all_text(out)
+    assert "SEV 450" in text and "reconstruc" in text.lower()

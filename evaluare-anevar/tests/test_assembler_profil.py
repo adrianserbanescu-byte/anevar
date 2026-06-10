@@ -48,7 +48,7 @@ def test_tip_necunoscut_pastreaza_profil_implicit():
 
 def test_scop_special_conduce_tipul_valorii_si_ghidul():
     # Scopurile speciale schimbă tipul valorii + ghidul GEV (raportare → justă/GEV 500 etc.).
-    asteptari = {"raportare_financiara": ("justa", "GEV_500"), "asigurare": ("asigurare", "GEV_630"),
+    asteptari = {"raportare_financiara": ("justa", "GEV_500"), "asigurare": ("asigurare", "SEV_450"),
                  "impozitare": ("piata", "GEV_630"), "litigii": ("piata", "GEV_630")}
     for scop, (tip_valoare, ghid) in asteptari.items():
         inp = _input("cost")

@@ -154,7 +154,12 @@ def construieste_context(
 
     rezultate = []
     if cost_result is not None:
-        rezultate.append(RezultatAbordare(abordare="cost", valoare=cost_result.valoare_cost))
+        # SEV 450 (asigurare): valoarea = costul de RECONSTRUCTIE = cost de inlocuire BRUT (CIB),
+        # NEdeprecat si fara teren (terenul nu se asigura) — altfel clientul ar fi SUB-ASIGURAT. Pentru
+        # restul scopurilor (garantare etc.) ramane valoare_cost (CIN deprecat + teren).
+        valoare_cost_abordare = (cost_result.cib if inp.scop == "asigurare"
+                                 else cost_result.valoare_cost)
+        rezultate.append(RezultatAbordare(abordare="cost", valoare=valoare_cost_abordare))
     if market_result is not None:
         rezultate.append(RezultatAbordare(abordare="comparatie", valoare=market_result.valoare_piata))
     # Abordarea prin venit: capitalizare directa SAU DCF (nu ambele) — DCF doar daca metoda e "dcf".
