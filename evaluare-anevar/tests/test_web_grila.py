@@ -31,6 +31,18 @@ def test_grila_teren(tmp_path):
     assert Decimal(data["valoare_teren"]) == Decimal("94500.00")
 
 
+def test_grila_comparabil_suprafata_zero_422(tmp_path):
+    # robustete (audit motor): comparabil cu suprafata=0 -> validare pydantic (gt=0) -> 422 clar,
+    # NU 500 din DivisionByZero la pret/suprafata. La fel pt pret/pret_mp <= 0.
+    client = _client(tmp_path)
+    assert client.post("/api/grila-casa", json={"suprafata_subiect": "120", "comparabile": [
+        {"pret": "100000", "suprafata": "0"}]}).status_code == 422
+    assert client.post("/api/grila-teren", json={"suprafata_subiect": "500", "comparabile": [
+        {"pret_mp": "100", "suprafata": "0"}]}).status_code == 422
+    assert client.post("/api/grila-casa", json={"suprafata_subiect": "120", "comparabile": [
+        {"pret": "-5", "suprafata": "100"}]}).status_code == 422
+
+
 def test_grila_casa(tmp_path):
     client = _client(tmp_path)
     payload = {
