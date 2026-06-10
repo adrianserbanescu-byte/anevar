@@ -20,8 +20,13 @@
 - **✅ BUILD + REDEPLOY DONE (#6 rezolvat):** live-ul (127.0.0.1:8000) rulează acum **build-ul NOU** cu toate fix-urile — smoke HTTP 200 + CSP prezent + nosniff (verificat). Datele tale (`date/`, `dosare/`, `cont.json`, `backups/`) **intacte**; `evaluare-anevar.exe.old` = backup-ul build-ului vechi (rollback 1 pas dacă vrei).
 - **✅ Re-audit LEAN DONE:** master SOLID (SEV450 zero leakage pe alte scopuri, #7/I1/G1 curate, live fără 500). 1 finding low = lipsă test regresie router I1 → **rezolvat**. Property scale-invarianta era prea strictă (egalitate exactă) → **toleranță 1 cent** (artefact quantize Decimal, validat de B). Clauza sub-asigurare §4 integrată (`fbf7248`).
 - **✅ BUILD+REDEPLOY #2 (FINAL):** live-ul rulează acum build-ul **cu clauza** + toate fix-urile (653 teste verzi, smoke 200+CSP+nosniff). `evaluare-anevar.exe.old` = build precedent (rollback 1 pas).
-- **În lucru:** audit **USER-JOURNEY** (faza queued cerută de tine — perspectiva evaluatorului prin app; dacă găsește recomandări MAJORE → audit app-vs-lege/norme → raport; apoi audit exhaustiv comparabile).
-- **C/E** tăcuți (taskuri non-blocante deferate).
+- **✅ END-PIPELINE (audituri queued de tine) — DONE:**
+  - **User-journey** → 1 MAJOR (**M1**: câmp obligatoriu lipsă dădea `[object Object]` în UI) → **rezolvat** (handler RequestValidationError → 422 RO citibil, `3797a60`). U1/U2/U3 (empty-state/listă-legacy/istoric) → C/UI follow-up.
+  - **App-vs-lege/norme** (declanșat de MAJOR) → **🔴 RAPORT PENTRU TINE:** `docs/conformitate/audit-app-vs-lege-2026-06-10.md`. Conform pe calcul (zero erori aritmetice), dar **2 P0** (declarație de conformitate necondiționată + PII-at-rest) + **3 noutăți GEV 520 ed.2025** (ESG/competență, re-desemnare utilizator, conflict EBA) → **escaladate B/jurist** (decizie metodologie/juridic = a ta, NU am reparat unilateral).
+  - **Comparabile** (implementat fără aprobare, per mandatul tău) → 5 GAP-uri reparate: suprafața subiect trimisă (relevanță corectă, nu inflată) · sort retrogradează anunțurile cu 1 atribut (nu mai par „96%") · inject an/încălzire din parser · marcaj €/mp atipic · imoradar24 în UI (`cdd4cf9`).
+  - **Robustețe 500** (D schemathesis pe live + B audit PROACTIV) → **7/7 erori server-500 → 422** (input degenerat: AML/grilă/import-url/Model(**) nu mai crapă).
+- **✅ BUILD+REDEPLOY #3:** live rulează acum TOT (smoke 200+CSP+nosniff + 500-fix confirmat LIVE: import-url gol → 422). **659+ teste verzi.**
+- **În lucru:** D re-rulează schemathesis pe live (confirmă **0 server-500**). C/E tăcuți (follow-up UI non-blocant).
 - **🔴 De revizuit de tine:** decizia SEV450 (valoarea asigurare CIN→CIB — aplicarea standardului, dar îți schimbă valoarea pe scop asigurare; revert 1-linie dacă nu ești de acord).
 
 ## Detalii complete
