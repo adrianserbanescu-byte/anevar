@@ -29,7 +29,7 @@ from hypothesis import strategies as st
 
 # Hypothesis "fuzz" profile: examples mai puține (CI rapid), deadline strict.
 settings.register_profile(
-    "fuzz", max_examples=50, deadline=2000,
+    "fuzz", max_examples=50, deadline=None,   # fara deadline: fuzz = crash-resistance nu viteza (warmup xdist + warning pypdf -> DeadlineExceeded sub -n auto)
     suppress_health_check=[HealthCheck.too_slow, HealthCheck.large_base_example],
 )
 settings.load_profile("fuzz")

@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import io
+import logging
 from collections.abc import Callable
 
 from evaluare.logging_setup import get_logger
@@ -9,6 +10,12 @@ from evaluare.logging_setup import get_logger
 Sursa = str | bytes | bytearray
 
 log = get_logger(__name__)
+
+# pypdf 6.x inunda logul cu WARNING la fiecare PDF malformat/scanat ("invalid pdf header", "EOF marker
+# not found") -> zgomot in productie (poate masca erori reale + posibil PII din PDF in log) si blocheaza
+# worker-ul Hypothesis la fuzz prin latenta logger-ului. Ridicam pragul la ERROR; esecul REAL de extragere
+# e tratat oricum de extrage_text (fallback pe OCR / text gol).
+logging.getLogger("pypdf").setLevel(logging.ERROR)
 
 
 def text_din_pdf(sursa: Sursa) -> str:
