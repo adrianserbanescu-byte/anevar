@@ -84,7 +84,10 @@ def extract_listing_urls(html: str, baza: str, prefer: str = "", strict: bool = 
             if absolut not in vazute:
                 vazute.add(absolut)
                 urls.append(absolut)
-    prefer = (prefer or "").strip().lower()
+    # _slug (nu doar .lower()): slug-urile URL au diacriticele pliate (Timișoara->timisoara). Fara asta,
+    # filtrul de localitate pica TACUT pe orice localitate cu diacritice (Brăila/Argeș/Mureș/Năsăud...)
+    # -> pe pagina localitatii intra anunturile PROMOVATE din alta localitate. (Audit motor 2026-06-10.)
+    prefer = _slug(prefer)
     if prefer:
         potrivite = [u for u in urls if prefer in u.lower()]
         if potrivite:

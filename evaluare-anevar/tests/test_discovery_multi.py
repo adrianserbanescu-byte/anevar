@@ -42,3 +42,16 @@ def test_cauta_anunturi_multi_o_localitate_delegheaza():
     # 0/1 localitate -> identic cu cauta_anunturi
     assert cauta_anunturi_multi("imobiliare", "ilfov", "otopeni", fetcher=fetcher) == \
         cauta_anunturi("imobiliare", "ilfov", "otopeni", fetcher=fetcher)
+
+
+def test_extract_filtru_localitate_cu_diacritice():
+    # Bug audit motor 2026-06-10: localitatea cu DIACRITICE (Timișoara) trebuie sa filtreze anunturile
+    # PROMOVATE din alta localitate, desi slug-urile URL au diacriticele pliate (timisoara). Inainte de
+    # fix (prefer doar .lower()) filtrul pica tacut -> intra si anuntul Pipera promovat.
+    html = ('<a href="/oferta/casa-timisoara-de-vanzare">x</a>'
+            '<a href="/oferta/teren-pipera-promovat">y</a>')
+    r = extract_listing_urls(html, BAZE["imobiliare"], prefer="Timișoara", strict=False)
+    assert len(r) == 1 and "timisoara" in r[0]        # doar Timișoara, fara promovatul Pipera
+    # strict pe pagina de judet: localitate cu diacritice fara potrivire -> [] (fara leak)
+    assert extract_listing_urls('<a href="/oferta/teren-pipera">z</a>', BAZE["imobiliare"],
+                                 prefer="Brăila", strict=True) == []
