@@ -10,7 +10,13 @@ from pathlib import Path
 from fastapi import APIRouter, HTTPException, Request
 from fastapi.responses import FileResponse, HTMLResponse
 
-from evaluare.assembler import EvaluationInput, construieste_context, valideaza
+from evaluare.assembler import (
+    EvaluationInput,
+    construieste_context,
+    valideaza,
+    valideaza_din_context,
+    valoare_imposibila,
+)
 from evaluare.logging_setup import get_logger
 from evaluare.report.generator import genereaza_raport
 from evaluare.web.deps import DOCX_MIME, Deps
@@ -38,6 +44,13 @@ def build_router(d: Deps) -> APIRouter:
             ctx = construieste_context(inp, client=d.client, cfg=cfg)
         except (ValueError, ArithmeticError) as e:
             raise HTTPException(422, f"Date insuficiente sau invalide pentru calcul: {e}") from e
+        # NU persista o valoare matematic imposibila (finala <=0 / pret corectat <=0): decizia owner
+        # 2026-06-10 — garda de valoare se aplica si la persistenta, nu doar la raport. Blocajele de
+        # DATE raman advisory (returnate in `alerte`). Vezi assembler.valoare_imposibila.
+        invalide = valoare_imposibila(ctx)
+        if invalide:
+            raise HTTPException(422, "Calcul invalid (valoare imposibila): "
+                                + "; ".join(i.mesaj for i in invalide))
         eid = d.storage.save(ctx)
         alerte = [a.model_dump() for a in valideaza(inp, cfg)]
         alerte += [a.model_dump() for a in valideaza_incrucisat(ctx)]  # validare incrucisata (audit)
@@ -73,6 +86,18 @@ def build_router(d: Deps) -> APIRouter:
                 status_code=404,
                 detail="Dosarul nu există sau a fost șters (cod 404). Verifică ID-ul în lista de dosare la /dosare.",
             ) from None
+        # Documentul OFICIAL nu se genereaza pe date blocante — PARITATE cu endpointul nou
+        # /api/dosar/{uid}/raport.docx (re-audit I1). Aici nu mai avem inputul brut (dosarul vine din
+        # storage), deci rulam validatorii pe CONTEXT (valideaza_din_context) + validarea incrucisata
+        # (ex. valoare finala <=0). Apara si dosarele LEGACY deja persistate cu valoare imposibila.
+        from evaluare.audit.validare_x import valideaza_incrucisat
+        from evaluare.engine import metodologie_store
+        cfg = metodologie_store.config_efectiv(d.storage.db_path.parent)
+        blocante = [i for i in valideaza_din_context(ctx, cfg) if i.nivel == "blocheaza"]
+        blocante += [i for i in valideaza_incrucisat(ctx) if i.nivel == "blocheaza"]
+        if blocante:
+            raise HTTPException(422, "Raport blocat: corectati problemele blocante inainte de generare — "
+                                + "; ".join(i.mesaj for i in blocante))
         # ?demo=1 -> raport cu note de provenienta (calculat/extras/AI/exemplu/placeholder)
         sufix = "_demo" if demo else ""
         out = Path(tempfile.gettempdir()) / f"raport_{eid}{sufix}.docx"

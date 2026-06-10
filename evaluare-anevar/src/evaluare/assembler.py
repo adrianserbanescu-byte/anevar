@@ -6,11 +6,12 @@ from typing import Literal
 
 from pydantic import BaseModel, Field
 
+from evaluare.audit.validare_x import valideaza_incrucisat
 from evaluare.ai.narrative import NarrativeClient, generate_narrative
 from evaluare.engine.abordari import RezultatAbordare
 from evaluare.engine.cost import evaluate_cost
-from evaluare.engine.land import evaluate_land
-from evaluare.engine.market import evaluate_market
+from evaluare.engine.land import evaluate_land, pret_mp_corectat
+from evaluare.engine.market import evaluate_market, pret_total_corectat
 from evaluare.engine.metodologie import IMPLICIT, MetodologieConfig
 from evaluare.engine.reconciliation import aloca_constructii, reconcile_profil
 from evaluare.engine.validation import (
@@ -115,6 +116,54 @@ def valideaza(inp: EvaluationInput, cfg: MetodologieConfig = IMPLICIT) -> list[I
     if inp.land_comparables:   # grila de teren -> valoarea terenului: aceleasi garzi M5 ca piata
         issues += valideaza_comparabile_teren(inp.land_comparables, cfg)
     return issues
+
+
+def valideaza_din_context(ctx: ReportContext, cfg: MetodologieConfig = IMPLICIT) -> list[Issue]:
+    """Ca `valideaza`, dar reconstruita din ReportContext (nu din inputul brut).
+
+    Endpointul vechi `/api/evaluare/{eid}/raport.docx` incarca dosarul din storage si NU mai are
+    `EvaluationInput`-ul; ca sa blocheze documentul oficial pe ACELEASI probleme blocante ca
+    endpointul nou, ruleaza aceiasi validatori pe campurile din context. Piata conteaza doar cand
+    a contribuit efectiv la valoare (`metoda_selectata` = piata/ponderata); terenul intra mereu.
+    """
+    issues: list[Issue] = []
+    issues += valideaza_proprietate(ctx.land, ctx.building)
+    issues += valideaza_depreciere(ctx.building)
+    if ctx.reconciled.metoda_selectata in ("piata", "ponderata"):
+        issues += valideaza_comparabile(ctx.comparables, cfg)
+    if ctx.land_comparables:
+        issues += valideaza_comparabile_teren(ctx.land_comparables, cfg)
+    return issues
+
+
+def valoare_imposibila(ctx: ReportContext) -> list[Issue]:
+    """Blocaje de VALOARE imposibila matematic — subsetul de `blocheaza` care NU poate fi emis nici
+    macar provizoriu (un pret negativ/zero nu e o estimare utila), spre deosebire de blocajele de DATE
+    (Au>Acd, depreciere fara justificare) care raman advisory in /calcul (decizia re-audit I1).
+
+    Sursa unica de adevar pentru garda «nu produce/persista o valoare imposibila», aplicata la /calcul,
+    persistenta si raportul oficial. Lucreaza DOAR pe context (nu pe inputul brut), ca sa fie folosibila
+    si de endpointul vechi care incarca dosarul din storage. Decizia owner (2026-06-10): «blocheaza doar
+    valorile invalide» — valoarea finala <=0 SAU un pret corectat (comparabil/teren care contribuie la
+    valoare) <=0.
+    """
+    invalide: list[Issue] = [i for i in valideaza_incrucisat(ctx) if i.nivel == "blocheaza"]
+    # Pretul corectat <=0 polueaza valoarea DOAR cand piata a contribuit efectiv (piata/ponderata).
+    if ctx.reconciled.metoda_selectata in ("piata", "ponderata"):
+        for idx, comp in enumerate(ctx.comparables):
+            if pret_total_corectat(comp) <= 0:
+                invalide.append(Issue(
+                    nivel="blocheaza",
+                    mesaj=f"Comparabilul {idx}: pretul corectat este <= 0 — valoarea de piata e nonsens.",
+                ))
+    # Terenul intra MEREU in valoare (prin valoare_teren) cand exista grila de teren.
+    for idx, comp in enumerate(ctx.land_comparables):
+        if pret_mp_corectat(comp) <= 0:
+            invalide.append(Issue(
+                nivel="blocheaza",
+                mesaj=f"Comparabilul de teren {idx}: pretul/mp corectat este <= 0 — valoarea terenului e nonsens.",
+            ))
+    return invalide
 
 
 def construieste_context(

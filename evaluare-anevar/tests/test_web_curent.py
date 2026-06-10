@@ -325,6 +325,96 @@ def test_dosar_html_arata_lock_dupa_asumare(client):
     assert "var BLOCAT = true" in html
 
 
+# ── Garda de VALOARE imposibila end-to-end (decizia owner 2026-06-10) ──────────────────────────────
+# Audit advers: garda «pret corectat <=0 -> blocheaza» exista, dar valoarea negativa scapa la capete:
+# /calcul o emitea (200 + valoare negativa), endpointul VECHI o persista + genera raport oficial pe ea,
+# iar garda raportului nou cadea OPEN la exceptie. Aici fixam toate caile + protejam decizia I1.
+def _payload_piata(adj_pct: str) -> dict:
+    """Payload cu grila de piata (3 comparabile); primul are ajustarea de proprietate `adj_pct`."""
+    p = _payload()
+    p["metoda"] = "piata"
+    p["comparables"] = [
+        {"pret": "100000", "suprafata": "100",
+         "adjustments": [{"element": "x", "tip": "procentuala", "valoare": adj_pct,
+                          "etapa": "proprietate"}]},
+        {"pret": "100000", "suprafata": "100"},
+        {"pret": "100000", "suprafata": "100"},
+    ]
+    return p
+
+
+def test_calcul_valoare_finala_negativa_blocata_422(client):
+    # PROBLEMA 1: /calcul returna 200 + valoare_finala = −66666.67 (valoare imposibila, advisory).
+    # Acum: 422 — un pret negativ nu e o estimare utila nici provizoriu.
+    _cont(client)
+    uid = client.post("/api/dosar", json={"wizard": {}}).json()["uuid"]
+    r = client.post(f"/api/dosar/{uid}/calcul", json=_payload_piata("-5.0"))
+    assert r.status_code == 422
+    det = r.json()["detail"].lower()
+    assert "imposibila" in det and ("valoarea finala" in det or "corectat" in det)
+
+
+def test_calcul_pret_corectat_negativ_chiar_cu_finala_pozitiva_422(client):
+    # Caz subtil: pret corectat <=0 dar media ramane POZITIVA (60000) — grila e poluata de un
+    # comparabil nonsens. Carve-out-ul prinde si acest caz (decizia owner: «pret corectat <=0»).
+    _cont(client)
+    uid = client.post("/api/dosar", json={"wizard": {}}).json()["uuid"]
+    r = client.post(f"/api/dosar/{uid}/calcul", json=_payload_piata("-1.20"))
+    assert r.status_code == 422 and "corectat" in r.json()["detail"].lower()
+
+
+def test_calcul_blocaj_de_date_ramane_advisory_200(client):
+    # REGRESIE decizia re-audit I1: un blocaj de DATE (Au>Acd) cu valoare POZITIVA ramane advisory
+    # in /calcul (200 + alerta) — carve-out-ul NU trebuie sa-l promoveze la 422. Protejeaza granita.
+    _cont(client)
+    uid = client.post("/api/dosar", json={"wizard": {}}).json()["uuid"]
+    p = _payload()
+    p["building"]["au"] = "200"                        # Au(200) > Acd(120) -> blocheaza de DATE
+    r = client.post(f"/api/dosar/{uid}/calcul", json=p)
+    assert r.status_code == 200
+    assert any(a["nivel"] == "blocheaza" for a in r.json()["alerte"])   # vizibila ca alerta, nu 422
+
+
+def test_raport_nou_blocat_pe_valoare_imposibila_422(client):
+    # Documentul oficial nou e blocat pe valoare imposibila (deja prin pret corectat <=0, acum si
+    # prin validarea incrucisata «valoare finala <=0» — vezi fix-ul de completitudine).
+    _cont(client)
+    uid = client.post("/api/dosar", json={"wizard": {}}).json()["uuid"]
+    r = client.post(f"/api/dosar/{uid}/raport.docx", json=_payload_piata("-5.0"))
+    assert r.status_code == 422 and "blocat" in r.json()["detail"].lower()
+
+
+def test_raport_nou_fail_closed_daca_validarea_arunca(client, monkeypatch):
+    # PROBLEMA 3 (fail-open): codul vechi prindea exceptia din valideaza() si seta blocante=[] -> raport
+    # GENERAT pe validare esuata. Acum garda e FAIL-CLOSED: o exceptie -> 422, nu document mut.
+    def _arunca(*a, **k):
+        raise ArithmeticError("validare degenerata simulata")
+    monkeypatch.setattr("evaluare.web.routers.curent.valideaza", _arunca)
+    _cont(client)
+    uid = client.post("/api/dosar", json={"wizard": {}}).json()["uuid"]
+    r = client.post(f"/api/dosar/{uid}/raport.docx", json=_payload())   # input altfel valid
+    assert r.status_code == 422 and "fail-closed" in r.json()["detail"].lower()
+
+
+def test_evaluare_veche_nu_persista_valoare_imposibila_422(client):
+    # PROBLEMA 2: endpointul VECHI /api/evaluare persista dosarul cu valoare_finala = −66666.67.
+    # Acum: 422 inainte de save -> dosarul NU se creeaza (nicio scriere orfana cu valoare negativa).
+    r = client.post("/api/evaluare", json=_payload_piata("-5.0"))
+    assert r.status_code == 422 and "imposibila" in r.json()["detail"].lower()
+    assert client.get("/api/evaluare/1").status_code == 404   # nimic persistat
+
+
+def test_raport_vechi_blocat_pe_dosar_legacy_422(client, monkeypatch):
+    # PROBLEMA 2 (aparare legacy): un dosar deja persistat cu valoare imposibila (inainte de fix) NU
+    # mai produce raport oficial. Simulam un dosar legacy dezactivand garda DOAR la create (ca vechiul
+    # cod), apoi cerem raportul -> 422 (garda raportului vechi, pe context, blocheaza).
+    monkeypatch.setattr("evaluare.web.routers.evaluare.valoare_imposibila", lambda ctx: [])
+    eid = client.post("/api/evaluare", json=_payload_piata("-5.0")).json()["id"]   # persistat (legacy)
+    monkeypatch.undo()
+    r = client.get(f"/api/evaluare/{eid}/raport.docx")
+    assert r.status_code == 422 and "blocat" in r.json()["detail"].lower()
+
+
 def test_lock_unlock_concurenta_endpoints(client):
     # ADR-003 item 7: lock detectează altă fereastră (alt token); unlock eliberează; 404 pe inexistent.
     _cont(client)
