@@ -21,6 +21,19 @@ Legendă: ✅ rezolvat+comis · ▶ în lucru A · 📨 dispatched (lane, GO imp
 | **Integrare C**: M2 UI (alertă pe TOATE mediatele — fix integritate B) | `007c19e` |
 | **Integrare docs** E (GEV520/SEV2025/PyMuPDF/SRI) + D (strategie-testare) | `8cd3715`,`bc360ae` |
 
+## ✅ RUNDA 4 — integrat din fleet (discovery dispatch)
+| Livrabil | Sursă | Commit |
+|---|---|---|
+| pypdf 5.9.0→6.13.1 (5 CVE prinse de gate-ul CI) + reparat `lock.py` ROOTS | D-gate/A | `e8f5f5c` |
+| GEV 520 #1 — BIG condiționat ANAF/creditor | B | `427c1d6` |
+| Job securitate CI (pip-audit + bandit + pre-commit) | D | `ad6ce37` |
+| Build reproducible (SOURCE_DATE_EPOCH/PYTHONHASHSEED + smoke-offline) | D | `3f81971` |
+| `# nosec` B404/B603 pdf.py (subprocess soffice sigur) | B+SAST | `36f1276` |
+| docs E SEV2025-general (SEV 100/101/102/106/450) | E | `19bdf2d` |
+| SAST profund cross-file (uid→path, URL→SSRF, scraped→AI) | A | 0 findings noi |
+
+**B re-audit:** lane motor CONFIRMAT curat (pip-audit 0, ruff-S 0, vulture 0). **Build bit-identic** pe Windows = imposibil (PE timestamps) → SHA256-artefact ca integritate (deferat).
+
 ## 📨 DISPATCHED — plan discovery (GO implementare pe branch, raport → A integrează)
 **B** (motor): venit în reconciliere ponderată (assembler.py:181 — divergență grilă↔valoare) · property-based Hypothesis pe engine · cost.py rotunjire prag Dfn · pyright src/ · SEV106 §30.6 test 18 elem · prompt-injection indirect AI · spec-to-code-compliance · GEV520#1 ANAF.
 **C** (UI/a11y): WCAG 2.2 delta (9 criterii) · diacritice RO round-trip export .docx/PDF (cp1252) · webapp-testing suită structurată · M14 modularizare dosar.html.
