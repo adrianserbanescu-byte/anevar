@@ -187,9 +187,28 @@ def test_diff_noi_existente_disparute(baza):
     assert len(d1["noi"]) == 1 and d1["noi"][0]["uuid"] == uid
     d2 = fs.diff()                                     # a doua: e „existent"
     assert len(d2["existente"]) == 1 and d2["noi"] == []
-    fs.sterge(uid)
-    d3 = fs.diff()                                     # șters → „dispărut"
+    # „disparute" = folder șters EXTERN (în afara app-ului) → rămâne în index. App-sterge curăță
+    # indexul (PII, re-audit G1), deci nu lasă „disparut"; simulăm dispariția EXTERNĂ cu rmtree direct.
+    import shutil
+    shutil.rmtree(fs.baza() / uid)
+    d3 = fs.diff()                                     # dispărut extern → „dispărut"
     assert len(d3["disparute"]) == 1 and d3["disparute"][0]["uuid"] == uid
+
+
+def test_sterge_curata_index_si_cache_pii(baza):
+    # re-audit G1: app-sterge scoate dosarul (PII: nume client) din _index.json + _cache_antete.json
+    # IMEDIAT, nu la următorul listeaza()/diff() (înainte rămânea PII tranzitoriu pe disc după ștergere).
+    import json
+    from evaluare import dosare_fs as fs
+    uid = fs.creeaza("8717", "Adi S", _wizard())
+    fs.listeaza()                                      # populează _cache_antete.json
+    fs.diff()                                          # populează _index.json
+    cf, idxf = fs.baza() / "_cache_antete.json", fs.baza() / "_index.json"
+    assert uid in json.loads(cf.read_text(encoding="utf-8"))
+    assert uid in json.loads(idxf.read_text(encoding="utf-8"))
+    fs.sterge(uid)
+    assert uid not in json.loads(cf.read_text(encoding="utf-8"))    # cache curățat imediat
+    assert uid not in json.loads(idxf.read_text(encoding="utf-8"))  # index curățat imediat
 
 
 def test_import_acelasi_user_adopta(baza, tmp_path):

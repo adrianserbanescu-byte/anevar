@@ -140,6 +140,10 @@ def redenumeste(uid: str, nume: str) -> None:
 
 def sterge(uid: str) -> None:
     shutil.rmtree(_cale(uid), ignore_errors=True)
+    # PII (re-audit G1): scoate IMEDIAT dosarul din index + cache (nume client) - nu astepta urmatorul
+    # diff()/listeaza() sa se auto-vindece (lasa PII tranzitoriu pe disc dupa stergere).
+    sterge_din_index(uid)
+    _sterge_din_cache(uid)
 
 
 PASTREAZA_VERSIUNI = 10   # câte versiuni .docx păstrăm per dosar (retenție)
@@ -305,6 +309,18 @@ _CAMPURI_ANTET = ("uuid", "nume", "creator_legitimatie", "creator_nume",
 
 def _fisier_cache() -> Path:
     return baza() / "_cache_antete.json"
+
+
+def _sterge_din_cache(uid: str) -> None:
+    """Scoate antetul (cu PII: nume client) din cache imediat la stergere (re-audit G1)."""
+    cf = _fisier_cache()
+    if not cf.exists():
+        return
+    with contextlib.suppress(OSError, ValueError):
+        cache = json.loads(cf.read_text(encoding="utf-8"))
+        if uid in cache:
+            del cache[uid]
+            _scrie_atomic(cf, json.dumps(cache, ensure_ascii=False))
 
 
 def listeaza() -> list[dict]:
