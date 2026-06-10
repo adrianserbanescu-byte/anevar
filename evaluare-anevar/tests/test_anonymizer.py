@@ -49,3 +49,13 @@ def test_empty_fields_are_skipped():
     anon = build_anonymizer(meta)
     # nu trebuie sa inlocuiasca string gol (ar corupe tot textul)
     assert anon.mask("text oarecare") == "text oarecare"
+
+
+def test_mask_include_beneficiar():
+    # audit GDPR/SAST: beneficiarul (nume banca / utilizator desemnat) scapase neanonimizat catre AI.
+    meta = _meta()
+    meta.beneficiar = "Banca Transilvania SA"
+    anon = build_anonymizer(meta)
+    masked = anon.mask("Beneficiar: Banca Transilvania SA, scop garantare credit.")
+    assert "Banca Transilvania SA" not in masked
+    assert "[BENEFICIAR]" in masked
