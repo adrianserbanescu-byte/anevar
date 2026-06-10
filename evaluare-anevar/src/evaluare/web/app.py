@@ -10,9 +10,12 @@ from fastapi.templating import Jinja2Templates
 from evaluare.ai.narrative import NarrativeClient
 from evaluare.db.storage import Storage
 from evaluare.importers.url_parser import fetch_html
+from evaluare.logging_setup import get_logger
 from evaluare.report.pdf import docx_to_pdf
 from evaluare.web.deps import Deps
 from evaluare.web.routers import aml, curent, descoperire, evaluare, grile, pagini, piata
+
+log = get_logger(__name__)
 
 
 def _build_data() -> str:
@@ -46,6 +49,7 @@ def create_app(storage: Storage, client: NarrativeClient | None,
     async def doar_host_local(request, call_next):
         host = (request.headers.get("host") or "127.0.0.1").rsplit(":", 1)[0].strip("[]")
         if host not in _HOSTURI_LOCALE:
+            log.warning("Acces respins (host non-local, posibil sondaj): %s", host)
             return PlainTextResponse("Acces respins: aplicația acceptă doar conexiuni locale.",
                                      status_code=403)
         # CSRF (audit SEC-3): la metode mutante, un site străin din browser trimite Origin: evil.com.
@@ -55,6 +59,7 @@ def create_app(storage: Storage, client: NarrativeClient | None,
             if origin and not origin.startswith(("chrome-extension://", "moz-extension://")):
                 from urllib.parse import urlsplit
                 if urlsplit(origin).hostname not in _HOSTURI_LOCALE:
+                    log.warning("Acces respins (CSRF cross-site, posibil sondaj): %s", origin)
                     return PlainTextResponse("Acces respins: cerere cross-site blocată (CSRF).",
                                              status_code=403)
         resp = await call_next(request)
