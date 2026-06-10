@@ -7,6 +7,7 @@ Curăță artefactele de output, curăță folderele %TEMP%\\_MEI* rămase (care
     python scripts/build.py --clean    # build COMPLET (șterge build/ + --clean -> reproductibil, lent)
     python scripts/build.py --upx      # + UPX pe mupdfcpp64.dll (-~3 MB, +~30s; cere upx.exe)
     python scripts/build.py --smoke    # + smoke test (pornește exe-ul, lovește /api/status)
+    python scripts/build.py --smoke-offline   # + smoke offline (5 rute locale; nu apeleaza extern)
 
 Optimizare viteză (build-optim): implicit NU mai ștergem `build/` și NU mai pasăm `--clean`,
 deci PyInstaller reutilizează cache-ul de analiză (Analysis-00.toc + PYZ). Câștigul e mare pe
@@ -74,16 +75,36 @@ def gaseste_upx() -> str | None:
     return None
 
 
+def _seteaza_reproductibilitate(env: dict) -> None:
+    """Setează SOURCE_DATE_EPOCH + PYTHONHASHSEED pt build PyInstaller reproductibil bit-by-bit.
+
+    - PYTHONHASHSEED fixat → ordinea dict-urilor/set-urilor pe care PyInstaller le serializează e stabilă.
+    - SOURCE_DATE_EPOCH = timpul commit-ului HEAD (UNIX s) → timestamp-urile incluse în PE deterministe.
+    Honor pentru valori deja prezente în env (CI poate suprascrie); fallback: HEAD-ul git, apoi 0.
+    """
+    env.setdefault("PYTHONHASHSEED", "0")
+    if "SOURCE_DATE_EPOCH" not in env:
+        try:                                # timpul commit-ului HEAD = ancoră stabilă, per-commit deterministă
+            r = subprocess.run(["git", "-C", str(RADACINA), "log", "-1", "--format=%ct"],
+                               capture_output=True, text=True, timeout=5, check=True)
+            ts = r.stdout.strip()
+            env["SOURCE_DATE_EPOCH"] = ts if ts else "0"
+        except (subprocess.SubprocessError, OSError):
+            env["SOURCE_DATE_EPOCH"] = "0"
+
+
 def build(full: bool, upx_dir: str | None = None) -> int:
     t0 = time.time()
     cmd = [sys.executable, "-m", "PyInstaller", str(SPEC), "--noconfirm"]
     if full:
         cmd.append("--clean")            # invalidează cache-ul (build complet, reproductibil)
     env = os.environ.copy()
+    _seteaza_reproductibilitate(env)     # PYTHONHASHSEED + SOURCE_DATE_EPOCH (vezi docstring)
     if upx_dir:
         cmd += ["--upx-dir", upx_dir]
         env["ANEVAR_UPX_DIR"] = upx_dir  # spec-ul citește asta ca să activeze upx=True
         print(f"UPX activat (din {upx_dir}) — exe mai mic cu ~3 MB, build cu ~30s mai lent.")
+    print(f"Reproductibilitate: PYTHONHASHSEED={env['PYTHONHASHSEED']} SOURCE_DATE_EPOCH={env['SOURCE_DATE_EPOCH']}")
     r = subprocess.run(cmd, cwd=RADACINA, env=env)
     if r.returncode != 0:
         print("BUILD EȘUAT.")
@@ -95,6 +116,56 @@ def build(full: bool, upx_dir: str | None = None) -> int:
     mod = "complet" if full else "incremental"
     print(f"\n✓ Build OK ({mod}) în {time.time() - t0:.0f}s — {EXE.name}: {mb:.0f} MB")
     return 0
+
+
+def smoke_offline() -> int:
+    """Verifica ca exe-ul booteaza si raspunde la rute LOCALE fara apel extern (offline-friendly).
+
+    Nu apeleaza endpoint-uri care fac request-uri externe la pornire (BNR/ANEVAR/AI). Cele lazy
+    (lovite la cerere) ramân OK; importul lor pe boot ar pica daca DNS/network e taiat. Aici
+    portul, host-ul si rutele sunt strict locale.
+    """
+    import urllib.error
+    import urllib.request
+
+    port = int(os.environ.get("ANEVAR_PORT", "8155"))
+    base = f"http://127.0.0.1:{port}"
+    env = os.environ.copy()
+    env["ANEVAR_PORT"] = str(port)
+    env["ANEVAR_NO_BROWSER"] = "1"
+    print(f"Smoke offline: pornesc exe-ul pe port {port}…")
+    proc = subprocess.Popen([str(EXE)], env=env, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+    try:
+        for _ in range(20):
+            time.sleep(1)
+            with contextlib.suppress(OSError):
+                with urllib.request.urlopen(f"{base}/api/status", timeout=2) as r:
+                    if r.status == 200:
+                        break
+        else:
+            print("✗ Smoke offline: serverul nu a raspuns in 20s.")
+            return 1
+        rute = ("/api/status", "/", "/incepe", "/dosare", "/documente")
+        esuate = []
+        for r in rute:
+            try:
+                with urllib.request.urlopen(f"{base}{r}", timeout=5) as resp:
+                    cod = resp.status
+            except urllib.error.HTTPError as e:
+                cod = e.code
+            except OSError:
+                cod = 0
+            marca = "✓" if 200 <= cod < 400 else "✗"
+            print(f"  {marca} {cod}  {r}")
+            if not (200 <= cod < 400):
+                esuate.append(r)
+        if esuate:
+            print(f"✗ Smoke offline: {len(esuate)} ruta(e) au esuat: {esuate}")
+            return 1
+        print("✓ Smoke offline OK — flux local complet fara apel extern.")
+        return 0
+    finally:
+        proc.terminate()
 
 
 def smoke() -> int:
@@ -129,6 +200,8 @@ def main() -> int:
     cod = build(full, upx_dir)
     if cod == 0 and "--smoke" in sys.argv:
         cod = smoke()
+    if cod == 0 and "--smoke-offline" in sys.argv:
+        cod = smoke_offline()
     return cod
 
 
