@@ -257,6 +257,11 @@ def _declaratie_conformitate(doc: DocxDocument, ctx: ReportContext, adnotari: bo
         "sau de marimea valorii estimate.",
         "Evaluatorul este membru ANEVAR, detine competenta necesara si asigurarea de raspundere "
         "civila profesionala in vigoare.",
+        # SEV 100 (2025) — declarate explicit in raport (le aplicam de-facto prin validari + audit):
+        "Evaluatorul a aplicat scepticism profesional pe parcursul evaluarii, evaluand critic datele "
+        "si informatiile utilizate si neacceptandu-le necritic (SEV 100, par. 10.4).",
+        "Raportul a fost supus unei proceduri de verificare a calitatii (controale de coerenta a "
+        "datelor de intrare si a calculelor) inainte de finalizare, conform SEV 100, par. 20.",
     ]
     for a in afirmatii:
         doc.add_paragraph(a, style="List Bullet")
