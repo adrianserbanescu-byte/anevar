@@ -6,17 +6,20 @@ from decimal import Decimal
 
 from pydantic import BaseModel, field_validator
 
+from evaluare.aml.validare_data import verifica_an_plauzibil
 from evaluare.discovery.profiles import SubjectProfile
 from evaluare.models.comparable import Comparable, LandComparable, RentComparable
 
 
 def _data_iso(v: str) -> str:
-    """Valideaza ca `v` e o data ISO yyyy-mm-dd. Altfel ValueError -> 422 clar (nu 500 downstream,
-    cand date.fromisoformat ar crapa pe '' / format invalid)."""
+    """Valideaza ca `v` e o data ISO yyyy-mm-dd cu an plauzibil. Altfel ValueError -> 422 clar
+    (nu 500 downstream, cand date.fromisoformat ar crapa pe '' / format invalid, sau cand un an
+    absurd ca 9999 ar depasi limita lui date() in aritmetica de reevaluare)."""
     try:
-        date.fromisoformat(str(v).strip())
+        d = date.fromisoformat(str(v).strip())
     except (ValueError, TypeError) as e:
         raise ValueError("Data trebuie sa fie o data valida in format yyyy-mm-dd.") from e
+    verifica_an_plauzibil(d)
     return v
 
 

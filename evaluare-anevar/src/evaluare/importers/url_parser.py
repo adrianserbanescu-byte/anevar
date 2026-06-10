@@ -52,9 +52,12 @@ def _to_decimal(value) -> Decimal | None:
     if value is None:
         return None
     try:
-        return Decimal(str(value).replace(" ", "").replace(",", "."))
+        d = Decimal(str(value).replace(" ", "").replace(",", "."))
     except (InvalidOperation, ValueError):
         return None
+    # JSON `1e400` -> float('inf') -> Decimal('Infinity'): valid ca Decimal, dar respins de validatorul
+    # pydantic `finite_number` din ParsedListing -> ValidationError -> 500 (RUNDA 9). Il taiem la sursa.
+    return d if d.is_finite() else None
 
 
 def _to_decimal_ro(value) -> Decimal | None:
@@ -66,9 +69,10 @@ def _to_decimal_ro(value) -> Decimal | None:
         return None
     s = str(value).strip().replace(" ", "").replace(".", "").replace(",", ".")
     try:
-        return Decimal(s)
+        d = Decimal(s)
     except (InvalidOperation, ValueError):
         return None
+    return d if d.is_finite() else None   # respinge Infinity/NaN (vezi _to_decimal)
 
 
 def _iter_nodes(data):

@@ -99,7 +99,10 @@ def build_router(d: Deps) -> APIRouter:
         cont = cont_mod.incarca_cont()
         if cont is None:
             raise HTTPException(403, "Creează întâi un cont.")
-        payload = req.continut.split(",", 1)[1] if req.continut.startswith("data:") else req.continut
+        # `and "," in ...`: data-URL fara virgula ("data:") ramane intreg -> b64decode il respinge
+        # (400 clar) in loc de IndexError pe [1] -> 500 (aceeasi clasa RUNDA 9 ca /api/ingestie).
+        payload = (req.continut.split(",", 1)[1]
+                   if req.continut.startswith("data:") and "," in req.continut else req.continut)
         if len(payload) > 35_000_000:            # ~26 MB după decodare — limită anti-DoS
             raise HTTPException(413, "Fișier prea mare (limită ~25 MB).")
         try:

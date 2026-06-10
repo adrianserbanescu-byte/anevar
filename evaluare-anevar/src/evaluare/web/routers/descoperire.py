@@ -84,7 +84,13 @@ def build_router(d: Deps) -> APIRouter:
         Omul navighează manual; extensia trimite DOM-ul -> zero scraping automat. Vezi
         docs/spec-extensie-browser.md.
         """
-        p = parse_listing_html(req.html, sursa_url=req.url)
+        # Plasă de siguranță (ca geamănul /api/import-url): HTML ostil poate produce valori
+        # implauzibile (ex. JSON-LD price=1e400 -> Decimal('Infinity')) care fac ParsedListing sa
+        # ridice ValidationError (subclasa de ValueError) -> 422, nu 500 (RUNDA 9).
+        try:
+            p = parse_listing_html(req.html, sursa_url=req.url)
+        except ValueError as e:
+            raise HTTPException(422, "HTML-ul anunțului conține valori invalide sau implauzibile.") from e
         anunt = {
             "pret": str(p.pret) if p.pret is not None else None,
             "moneda": p.moneda,

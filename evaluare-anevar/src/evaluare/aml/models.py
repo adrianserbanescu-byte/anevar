@@ -11,6 +11,8 @@ from typing import Literal
 
 from pydantic import BaseModel, Field, field_validator
 
+from evaluare.aml.validare_data import verifica_an_plauzibil
+
 TipAct = Literal["CI", "pasaport", "permis_sedere"]
 TipClient = Literal["PF", "PJ", "PJ_straina"]
 TipControlBR = Literal["proprietate", "alte_mijloace", "senior_management"]
@@ -55,9 +57,10 @@ class StatutPEP(BaseModel):
         if not v:
             return None
         try:
-            date.fromisoformat(v.strip())
+            d = date.fromisoformat(v.strip())
         except (ValueError, TypeError) as e:
             raise ValueError("data_incetare_functie trebuie sa fie o data ISO yyyy-mm-dd.") from e
+        verifica_an_plauzibil(d)
         return v
 
 
