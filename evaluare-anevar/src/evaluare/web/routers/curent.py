@@ -239,6 +239,16 @@ def build_router(d: Deps) -> APIRouter:
             raise HTTPException(404, "Dosar inexistent.") from None
         log.info("genereaza raport uid=%s adnotari=%s", uid, bool(adnotari))
         ctx = _context(inp)  # 422 daca calcul nu poate fi facut (decizia #14)
+        # Enforce nivel="blocheaza" (re-audit I1): un raport SEMNABIL de garantare NU se genereaza daca
+        # exista probleme BLOCANTE (ex. comparabil cu pret corectat <=0). In /calcul ramane advisory
+        # (evaluatorul vede valoarea+alerta); aici, la documentul OFICIAL, se BLOCHEAZA generarea.
+        try:
+            blocante = [i for i in valideaza(inp, _metodologie_cfg()) if i.nivel == "blocheaza"]
+        except (ValueError, ArithmeticError):
+            blocante = []
+        if blocante:
+            raise HTTPException(422, "Raport blocat: corectati problemele blocante inainte de generare — "
+                                + "; ".join(i.mesaj for i in blocante))
         tmp = Path(tempfile.gettempdir())
         tok = uuid.uuid4().hex[:8]          # token unic: evită coliziuni la generări concurente pe același dosar
         out = tmp / f"raport_{uid}_{tok}.docx"
