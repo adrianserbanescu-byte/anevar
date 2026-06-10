@@ -82,6 +82,16 @@ Lansat după build #3 (scepticismul Adi „e un cacat" + cererea de audituri rep
 - **robustețe-500:** **2 erori 500 AML NOI** pe care D-schemathesis + B-audit-proactiv le RATASERĂ: (1) RTN/RTS `data_tranzactie`/`data_inregistrare` nevalidate → `date.fromisoformat` → 500 (reprodus: `rtn.docx` garbage→500, `rts.docx` `2026-99-99`→500); (2) PEP `data_incetare_functie` nevalidată → `_luni_intre` (`risc.py:45`) → 500 (reprodus: `evalueaza`/`evaluare-risc.docx` PEP garbage→500, + ramura PJ/BeneficiarReal). → **GO B** (input-hardening AML, în lucru).
 - **comparabile:** GAP#4 `_marcheaza_pret_atipic` fals-pozitiv (€/mp construit include terenul → o casă pe teren premium era marcată FALS) → **rezolvat A** (prag factor 3 nu ±50%; `0c37249` + test regresie).
 **Win:** workflow-ul ultracode a prins **3 probleme reale** ratate de 2 runde anterioare de testare riguroasă — validează scepticismul + verificarea adversarială. **Next:** B 2×AML → rebuild #4 + redeploy → D re-verifică (0 server-500).
+**RUNDA 8 ÎNCHISĂ:** AML 2× = `a407aa4` (validatori ISO format) → **build #4 + redeploy DONE** (smoke exe 6/6, live 8000 4/4 AML→422, log live 0 erori). GAP#4 = `0c37249`.
+
+## ✅ RUNDA 9 — re-audit robustețe pe build #4 (workflow ultracode: 7 finderi/router + critic + verify determinist)
+Lansat după build #4 ca „D re-verifică 0 server-500". Metoda: finderi citesc sursa fiecărui router → enumeră căi input-netrusted→500; verificare deterministă cu `TestClient(raise_server_exceptions=False)` + state real (cont/dosar/evaluare). **7 erori 500 REPRODUSE (clasă NOUĂ, ratată de a407aa4 + 2 runde) → toate ÎNCHISE** (re-verificat 0 server-500, suită **671 verde**, ruff curat). Integrat master `17ceb31`.
+| Clasă | Findings | Fix |
+|---|---|---|
+| **A** overflow aritmetic an | 4× AML: `azi`/`data_tranzactie`/`data_inregistrare`=9999 → `date(an>9999)`/`replace(year)`/`+timedelta` 500 | `validare_data.verifica_an_plauzibil` margine an [1900,2200] în 3 validatori → 422 |
+| **B** split-înainte-de-try | data-URL fără virgulă (`"data:"`) → `split(",",1)[1]` IndexError: `/api/ingestie`, `import-docx` (ratat de finder), `_decode_foto` raport | `and "," in x` → cade pe b64decode → 4xx (poză sărită grațios la raport) |
+| **C** Infinity Decimal | `/api/import-anunt` JSON-LD `price=1e400` → `Decimal('Infinity')` → ParsedListing ValidationError neprinsă (geamănul import-url o prinde) | `_to_decimal` taie non-finite la sursă + guard `except ValueError→422` în router |
+**Win #2:** încă o clasă reală prinsă de workflow-ul ultracode după ce a407aa4 + schemathesis + audit B au ratat-o. **RUNDA 9 ÎNCHISĂ:** build #5 `--clean` (`17ceb31`) → smoke exe 6/6 → hot-swap live 8000 (build #4 → `.old`) → **live verificat 6/6** (R9-A azi=9999→422, R9-B ingestie fără-virgulă→400, R9-C import-anunt 1e400→200 Infinity-dezbracat, + a407aa4 + boot). Live servește RUNDA 9, 0 server-500.
 
 ## 📨 DISPATCHED — plan discovery (GO implementare pe branch, raport → A integrează)
 **B** (motor): venit în reconciliere ponderată (assembler.py:181 — divergență grilă↔valoare) · property-based Hypothesis pe engine · cost.py rotunjire prag Dfn · pyright src/ · SEV106 §30.6 test 18 elem · prompt-injection indirect AI · spec-to-code-compliance · GEV520#1 ANAF.
