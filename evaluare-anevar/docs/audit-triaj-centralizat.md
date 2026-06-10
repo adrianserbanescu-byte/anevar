@@ -93,6 +93,16 @@ Lansat după build #4 ca „D re-verifică 0 server-500". Metoda: finderi citesc
 | **C** Infinity Decimal | `/api/import-anunt` JSON-LD `price=1e400` → `Decimal('Infinity')` → ParsedListing ValidationError neprinsă (geamănul import-url o prinde) | `_to_decimal` taie non-finite la sursă + guard `except ValueError→422` în router |
 **Win #2:** încă o clasă reală prinsă de workflow-ul ultracode după ce a407aa4 + schemathesis + audit B au ratat-o. **RUNDA 9 ÎNCHISĂ:** build #5 `--clean` (`17ceb31`) → smoke exe 6/6 → hot-swap live 8000 (build #4 → `.old`) → **live verificat 6/6** (R9-A azi=9999→422, R9-B ingestie fără-virgulă→400, R9-C import-anunt 1e400→200 Infinity-dezbracat, + a407aa4 + boot). Live servește RUNDA 9, 0 server-500.
 
+## ✅ RUNDA 10 — re-audituri fleet adversariale (C/D/F, build #4→#8)
+După build #4 fiecare sesiune a re-auditat lane-ul ei pe LIVE/master cu tool-uri reale. **4 findings reale**, toate închise + integrate (master `70609d2`, suită **697 verde**, builds #6/#7/#8 deployed):
+| Sursă | Finding | Sev | Fix / Build |
+|---|---|---|---|
+| **C** (pa11y+Playwright, seam UI↔motor) | **bug 100x grile** dosar.html: header `%` dar trimite valoare RAW la /api/grila-* (5→+500%) → valoare 100x + alertă M2 falsă | 🔴 HIGH | `5cd8d1e` `/100` ca grila.html + 3 teste · **build #6 LIVE** |
+| **F** (TestClient, gardă valoare) | dosar cu valoare ≤0 persista + genera `.docx` OFICIAL (I1 doar pe endpoint nou + fail-open) | 🔴 HIGH | `386444f` `valoare_imposibila(ctx)` → 422 peste tot + nu persista, +9 teste · **build #7 LIVE** |
+| **D** (schemathesis safety-net seed=1 max=10) | path-param `eid > 2⁶³` → SQLite `OverflowError` → 500 (`/api/evaluare/{eid}/*`, 8 endpointuri) | 🔴 P0 | `70609d2` `EvaluareId=Annotated[int,Path(ge=1,le=2⁶³-1)]` +11 teste · **build #8 LIVE** |
+| **C** (WCAG 2.2) | 2.5.8 target-size: nav 21px + `?` toggle 17px (<24px) | 🟡 LOW | coadă (build #9) |
+**Lecția D:** `max-examples=3` = sub-coverage; **`max-examples=10` + multi-seed = noul default robustețe** (a prins eid-overflow ratat de delta strict). **Reconciliere:** F lucra în worktree-ul principal partajat → 386444f+eid erau pe branch nu pe master; ff master la `70609d2` (verificat: live build #7 avea deja F+100x corect). **SEV 450** (E) = închis demult pe master (`5f00060`+`fbf7248`, semnat E-), branch-urile redundante. **del-sectiuni-mort** = redundant (deja `a05c91c`). **piata/BNR** = fetch are timeout 15s (mărginit, OK).
+
 ## 📨 DISPATCHED — plan discovery (GO implementare pe branch, raport → A integrează)
 **B** (motor): venit în reconciliere ponderată (assembler.py:181 — divergență grilă↔valoare) · property-based Hypothesis pe engine · cost.py rotunjire prag Dfn · pyright src/ · SEV106 §30.6 test 18 elem · prompt-injection indirect AI · spec-to-code-compliance · GEV520#1 ANAF.
 **C** (UI/a11y): WCAG 2.2 delta (9 criterii) · diacritice RO round-trip export .docx/PDF (cp1252) · webapp-testing suită structurată · M14 modularizare dosar.html.
