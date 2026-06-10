@@ -61,7 +61,7 @@ Legendă: ✅ rezolvat+comis · ▶ în lucru A · 📨 dispatched (lane, GO imp
 - **G1** (P3): `sterge()` lăsa PII (nume client) tranzitoriu în `_index.json`/cache. Fix: `sterge()` curăță index+cache IMEDIAT (art.17 GDPR; `1709a8f`).
 
 **B coadă acoperită:** SEV106✅ · sectiuni✅ · prompt-injection✅(A) · **SEV100✅** (`4d46100`) · **#7** spec = motor FIDEL spec-ului documentat (GBF/depreciere/selecție/M1/M2/M5 ✓), 1 gap: comparabilele de TEREN nu-s validate M5 (asimetrie piață/teren) → GO B · **SEV450** = asigurarea folosește CIN net (depreciat) → client SUB-asigurat; corect CIB brut (reconstrucție) + ref SEV450 → GO B (**🔴 decizia MEA autonomă, schimbă valoarea pe scop asigurare — REVIEW Adi la trezire**).
-**Pending:** #7 land-validation ✅ (`f6959b4` — simetrie piață/teren, M5 pe comparabile de teren); rămas **DOAR SEV450** (B) → apoi **build+redeploy** (#6 live vechi) + re-audit lean (loop). C/E tăcut → deferat (non-blocant).
+**✅ TOATĂ coada B + re-audit = COMPLET + VERDE** (master `5f00060`, 651 teste). #7 land-validation✅ (`f6959b4` — simetrie piață/teren) · SEV450✅ (`5f00060` — asigurare = CIB brut/reconstrucție, sub-asigurarea corectată; ref SEV_450). **Next: build+redeploy** (#6 live vechi) → re-audit lean (loop). C/E deferat (non-blocant). SEV450 §4 sub-asigurare = follow-up opțional B; §5 demolare = defer (cere input nou).
 
 ## 📨 DISPATCHED — plan discovery (GO implementare pe branch, raport → A integrează)
 **B** (motor): venit în reconciliere ponderată (assembler.py:181 — divergență grilă↔valoare) · property-based Hypothesis pe engine · cost.py rotunjire prag Dfn · pyright src/ · SEV106 §30.6 test 18 elem · prompt-injection indirect AI · spec-to-code-compliance · GEV520#1 ANAF.
