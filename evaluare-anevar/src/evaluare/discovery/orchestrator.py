@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import json
+import re
 from collections.abc import Callable
 from decimal import Decimal
 
@@ -89,6 +90,35 @@ def extrage_descriere(html: str, max_caractere: int = 4000) -> str:
     return " ".join(parti)
 
 
+# Teren-in-formula (dispatch A): terenul apare adesea DOAR in titlu/descriere ("teren 257 mp",
+# "257 mp teren", "teren de 1.910 mp"), nu in datele structurate -> ramanea None -> atributul
+# „teren" era exclus TACIT din scor desi exista in anunt. Regex tolerant la formatul RO de numere
+# (punct=mii, virgula=zecimale). Acopera ambele ordini (teren inainte sau dupa cifra).
+_RE_TEREN_TEXT = re.compile(
+    r"(?:teren\w*(?:\s+de)?\s*:?\s*([\d][\d.  ]*)\s*(?:mp|m²|m2)"
+    r"|([\d][\d.  ]*)\s*(?:mp|m²|m2)\s+teren)",
+    re.IGNORECASE,
+)
+
+
+def _teren_din_text(text: str) -> Decimal | None:
+    """Suprafata terenului dintr-un text liber (titlu/descriere), cand lipseste din datele
+    structurate. Intoarce primul match plauzibil (10..1_000_000 mp), altfel None."""
+    if not text:
+        return None
+    for m in _RE_TEREN_TEXT.finditer(text):
+        brut = (m.group(1) or m.group(2) or "").replace(" ", "").replace(" ", "").replace(".", "")
+        if not brut:
+            continue
+        try:
+            val = Decimal(brut)
+        except (ArithmeticError, ValueError):
+            continue
+        if Decimal(10) <= val <= Decimal(1_000_000):
+            return val
+    return None
+
+
 TOLERANTA_TEREN = Decimal("0.40")   # +-40%: peste asta, terenul nu e comparabil
 
 
@@ -156,6 +186,13 @@ def descopera(
         if parsed.suprafata_teren is not None:
             extraction.profile.teren = parsed.suprafata_teren
             extraction.profile.texte.setdefault("teren", str(parsed.suprafata_teren))
+        # FIX teren-in-formula (dispatch A): daca terenul lipseste din datele structurate SI din LLM,
+        # il extragem din titlu/descriere ("teren 257 mp") ca sa intre in scor (nu mai e exclus tacit).
+        if extraction.profile.teren is None:
+            t_text = _teren_din_text(parsed.titlu or "") or _teren_din_text(descriere)
+            if t_text is not None:
+                extraction.profile.teren = t_text
+                extraction.profile.texte.setdefault("teren", str(t_text))
         # numarul de camere din date structurate (driver major la apartament — P0.2)
         if parsed.nr_camere is not None:
             extraction.profile.nr_camere = parsed.nr_camere
