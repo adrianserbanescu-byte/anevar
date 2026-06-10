@@ -17,6 +17,8 @@ from evaluare.web.schemas import GrilaCasaRequest, GrilaChiriiRequest, GrilaTere
 log = get_logger(__name__)
 
 _BANI = Decimal("0.01")
+# Input degenerat (valori subnormale / uriase ~1e308 -> overflow la quantize/Decimal) -> 422 clar, nu 500.
+_DETALIU_INVALID = "Valoare numerica invalida sau in afara intervalului calculabil: {e}"
 
 
 def _bani(v: Decimal) -> str:
@@ -33,54 +35,54 @@ def build_router(d: Deps) -> APIRouter:
         cfg = metodologie_store.config_efectiv(d.storage.db_path.parent)   # acelasi config ca /calcul
         try:
             r = evaluate_land(req.comparabile, req.suprafata_subiect, cfg)
-        except ValueError as e:
-            raise HTTPException(status_code=422, detail=str(e)) from e
-        return {
-            "preturi_mp_corectate": [str(p) for p in r.preturi_mp_corectate],
-            "ajustari_brute": [str(b) for b in r.ajustari_brute],
-            "ajustari_nete": [str(n) for n in r.ajustari_nete],
-            "index_selectat": r.index_selectat,
-            "indici_mediati": r.indici_mediati,
-            "pret_mp_ales": _bani(r.pret_mp_ales),   # rata €/mp mediata (M2) -> rotunjita la bani in API
-            "valoare_teren": _bani(r.valoare_teren),
-        }
+            return {
+                "preturi_mp_corectate": [str(p) for p in r.preturi_mp_corectate],
+                "ajustari_brute": [str(b) for b in r.ajustari_brute],
+                "ajustari_nete": [str(n) for n in r.ajustari_nete],
+                "index_selectat": r.index_selectat,
+                "indici_mediati": r.indici_mediati,
+                "pret_mp_ales": _bani(r.pret_mp_ales),   # rata €/mp mediata (M2) -> rotunjita la bani in API
+                "valoare_teren": _bani(r.valoare_teren),
+            }
+        except (ValueError, ArithmeticError) as e:   # ArithmeticError: input degenerat (subnormal/urias)
+            raise HTTPException(status_code=422, detail=_DETALIU_INVALID.format(e=e)) from e
 
     @router.post("/api/grila-casa")
     def grila_casa(req: GrilaCasaRequest) -> dict:
         cfg = metodologie_store.config_efectiv(d.storage.db_path.parent)   # acelasi config ca /calcul (M2/M1)
         try:
             r = evaluate_market(req.comparabile, req.suprafata_subiect, cfg)
-        except ValueError as e:
-            raise HTTPException(status_code=422, detail=str(e)) from e
-        return {
-            "preturi_unitare_corectate": [str(p) for p in r.preturi_unitare_corectate],
-            "ajustari_brute": [str(b) for b in r.ajustari_brute],
-            "ajustari_nete": [str(n) for n in r.ajustari_nete],
-            "index_selectat": r.index_selectat,
-            "indici_mediati": r.indici_mediati,
-            "valoare_piata": _bani(r.valoare_piata),
-        }
+            return {
+                "preturi_unitare_corectate": [str(p) for p in r.preturi_unitare_corectate],
+                "ajustari_brute": [str(b) for b in r.ajustari_brute],
+                "ajustari_nete": [str(n) for n in r.ajustari_nete],
+                "index_selectat": r.index_selectat,
+                "indici_mediati": r.indici_mediati,
+                "valoare_piata": _bani(r.valoare_piata),
+            }
+        except (ValueError, ArithmeticError) as e:
+            raise HTTPException(status_code=422, detail=_DETALIU_INVALID.format(e=e)) from e
 
     @router.post("/api/grila-chirii")
     def grila_chirii(req: GrilaChiriiRequest) -> dict:
         cfg = metodologie_store.config_efectiv(d.storage.db_path.parent)   # acelasi config ca /calcul (M2)
         try:
             r = evalueaza_chirie(req.comparabile, req.suprafata_subiect, cfg)
-        except ValueError as e:
-            raise HTTPException(status_code=422, detail=str(e)) from e
-        return {
-            "chirii_mp_corectate": [str(p) for p in r.chirii_mp_corectate],
-            "ajustari_brute": [str(b) for b in r.ajustari_brute],
-            "ajustari_nete": [str(n) for n in r.ajustari_nete],
-            "index_selectat": r.index_selectat,
-            "indici_mediati": r.indici_mediati,
-            # Rotunjim TOATE iesirile monetare la bani: chirie_lunara/vbp sunt deja quantizate engine-side,
-            # dar chirie_mp_aleasa (rata €/mp mediata M2) iesea cu multe zecimale; _bani pe toate =
-            # consistent + robust (valorile ajung in wizard via localStorage 'vbp_din_grila').
-            "chirie_mp_aleasa": _bani(r.chirie_mp_aleasa),
-            "chirie_lunara": _bani(r.chirie_lunara),
-            "venit_brut_potential": _bani(r.venit_brut_potential),
-        }
+            return {
+                "chirii_mp_corectate": [str(p) for p in r.chirii_mp_corectate],
+                "ajustari_brute": [str(b) for b in r.ajustari_brute],
+                "ajustari_nete": [str(n) for n in r.ajustari_nete],
+                "index_selectat": r.index_selectat,
+                "indici_mediati": r.indici_mediati,
+                # Rotunjim TOATE iesirile monetare la bani: chirie_lunara/vbp sunt deja quantizate engine-side,
+                # dar chirie_mp_aleasa (rata €/mp mediata M2) iesea cu multe zecimale; _bani pe toate =
+                # consistent + robust (valorile ajung in wizard via localStorage 'vbp_din_grila').
+                "chirie_mp_aleasa": _bani(r.chirie_mp_aleasa),
+                "chirie_lunara": _bani(r.chirie_lunara),
+                "venit_brut_potential": _bani(r.venit_brut_potential),
+            }
+        except (ValueError, ArithmeticError) as e:
+            raise HTTPException(status_code=422, detail=_DETALIU_INVALID.format(e=e)) from e
 
     @router.get("/grila", response_class=HTMLResponse)
     def pagina_grila(request: Request) -> HTMLResponse:

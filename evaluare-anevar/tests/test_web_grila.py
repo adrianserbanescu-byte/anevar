@@ -120,3 +120,24 @@ def test_grila_teren_rotunjeste_pret_mp(tmp_path):
     d = client.post("/api/grila-teren",
                     json={"suprafata_subiect": "500", "comparabile": comps}).json()
     assert d["pret_mp_ales"] == "100.33" and len(d["valoare_teren"].split(".")[-1]) <= 2
+
+
+def test_grila_input_degenerat_da_422_nu_500(tmp_path):
+    # P0 (schemathesis/D): input numeric degenerat (valori uriase ~1e308 -> overflow la quantize, sau
+    # "Infinity"/"NaN" string) -> 422 clar, NU 500. Toate 3 grilele.
+    client = _client(tmp_path)
+    assert client.post("/api/grila-teren", json={
+        "suprafata_subiect": 1.7e308,
+        "comparabile": [{"pret_mp": 1.7e308, "suprafata": 500}] * 3}).status_code == 422
+    assert client.post("/api/grila-teren", json={
+        "suprafata_subiect": 100,
+        "comparabile": [{"pret_mp": "Infinity", "suprafata": 500}] * 3}).status_code == 422
+    assert client.post("/api/grila-teren", json={
+        "suprafata_subiect": 100,
+        "comparabile": [{"pret_mp": "NaN", "suprafata": 500}] * 3}).status_code == 422
+    assert client.post("/api/grila-casa", json={
+        "suprafata_subiect": 100,
+        "comparabile": [{"pret": 1.7e308, "suprafata": 500}] * 3}).status_code == 422
+    assert client.post("/api/grila-chirii", json={
+        "suprafata_subiect": 1.7e308,
+        "comparabile": [{"chirie_mp": 100, "suprafata": 500}] * 3}).status_code == 422
