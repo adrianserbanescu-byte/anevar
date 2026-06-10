@@ -89,3 +89,91 @@ def test_prop_teren_valoare_pozitiva_si_proportionala_cu_suprafata(comps, supr_s
     r2 = evaluate_land(comps, supr_subiect * Decimal("2"), cfg=_N1)
     assert r1.valoare_teren > 0
     assert r2.valoare_teren == r1.valoare_teren * Decimal("2")
+
+
+# ── #3 (dispatch A): extindere — cost, chirie M2, venit/DCF, reconcile, scale pe N=3 (config DEFAULT) ──
+from evaluare.engine.chirie import chirie_mp_corectata, evalueaza_chirie  # noqa: E402
+from evaluare.engine.cost import compute_cin  # noqa: E402
+from evaluare.engine.reconciliation import reconcile_profil  # noqa: E402
+from evaluare.engine.venit import evalueaza_dcf, evalueaza_venit  # noqa: E402
+from evaluare.models.comparable import RentComparable  # noqa: E402
+
+_fractii = st.decimals(min_value=Decimal("0"), max_value=Decimal("0.95"), places=4)
+
+
+@given(st.decimals(min_value=Decimal("1000"), max_value=Decimal("5000000"), places=2),
+       _fractii, _fractii, _fractii)
+@settings(max_examples=200, deadline=None)
+def test_prop_cost_cin_intre_zero_si_cib(cib, dfn, cnf, cex):
+    # CIN = CIB*(1-Dfn)*(1-Cnf)*(1-Cex) cu fractii in [0,1) -> 0 < CIN <= CIB (deprecierea doar reduce).
+    cin = compute_cin(cib, dfn, cnf, cex)
+    assert 0 < cin <= cib
+
+
+def _rent(chirie_mp, supr, adjs):
+    return RentComparable(chirie_mp=chirie_mp, suprafata=supr, adjustments=adjs)
+
+
+_chirii = st.builds(_rent, st.decimals(min_value=Decimal("1"), max_value=Decimal("1000"), places=2),
+                    _suprafete, _ajustari)
+
+
+@given(st.lists(_chirii, min_size=1, max_size=6),
+       st.decimals(min_value=Decimal("10"), max_value=Decimal("2000"), places=2))
+@settings(max_examples=200, deadline=None)
+def test_prop_chirie_m2_rata_in_interval(comps, supr):
+    # chiria/mp aleasa (media top-N) e in [min,max] al chiriilor corectate; vbp = chirie_lunara*12.
+    r = evalueaza_chirie(comps, supr)
+    corectate = [chirie_mp_corectata(c) for c in comps]
+    assert min(corectate) <= r.chirie_mp_aleasa <= max(corectate)
+    assert r.venit_brut_potential == (r.chirie_lunara * Decimal("12")).quantize(Decimal("0.01"))
+
+
+@given(st.decimals(min_value=Decimal("1000"), max_value=Decimal("10000000"), places=2),
+       st.decimals(min_value=Decimal("0.02"), max_value=Decimal("0.20"), places=4),
+       st.decimals(min_value=Decimal("0.02"), max_value=Decimal("0.20"), places=4))
+@settings(max_examples=150, deadline=None)
+def test_prop_venit_monoton_descrescator_in_rata(vbp, rata1, rata2):
+    # Capitalizare directa: rata de capitalizare mai MARE -> valoare mai MICA (monoton descrescator).
+    from evaluare.engine.venit import DateVenit
+    lo, hi = sorted([rata1, rata2])
+    v_lo = evalueaza_venit(DateVenit(venit_brut_potential=vbp, rata_capitalizare=lo)).valoare
+    v_hi = evalueaza_venit(DateVenit(venit_brut_potential=vbp, rata_capitalizare=hi)).valoare
+    assert v_lo >= v_hi > 0
+
+
+@given(st.lists(st.decimals(min_value=Decimal("100"), max_value=Decimal("100000"), places=2),
+                min_size=1, max_size=8),
+       st.decimals(min_value=Decimal("0.02"), max_value=Decimal("0.30"), places=4))
+@settings(max_examples=150, deadline=None)
+def test_prop_dcf_pozitiv_pt_fluxuri_pozitive(fluxuri, rata):
+    # DCF: fluxuri pozitive + rata > 0 -> valoare pozitiva.
+    assert evalueaza_dcf(fluxuri, rata) > 0
+
+
+@given(st.decimals(min_value=Decimal("1000"), max_value=Decimal("5000000"), places=2),
+       st.decimals(min_value=Decimal("1000"), max_value=Decimal("5000000"), places=2),
+       st.decimals(min_value=Decimal("0.1"), max_value=Decimal("0.9"), places=2))
+@settings(max_examples=150, deadline=None)
+def test_prop_reconcile_ponderata_in_interval(v_piata, v_cost, pondere):
+    # Valoarea ponderata e MEREU intre cele doua valori ponderate (medie convexa).
+    from evaluare.engine.abordari import RezultatAbordare
+    rez = [RezultatAbordare(abordare="comparatie", valoare=v_piata),
+           RezultatAbordare(abordare="cost", valoare=v_cost)]
+    r = reconcile_profil(rez, primara="comparatie",
+                         ponderi={"comparatie": pondere, "cost": Decimal("1") - pondere})
+    lo, hi = sorted([v_piata, v_cost])
+    assert lo <= r.valoare_finala <= hi
+
+
+@given(_liste, st.decimals(min_value=Decimal("0.01"), max_value=Decimal("1000"), places=2))
+@settings(max_examples=150, deadline=None)
+def test_prop_scale_invarianta_pe_N3_default(comps, k):
+    # Scale-invarianta si pe configul DEFAULT (N=3, media) — exacta la nivel de bani (artefactul de
+    # precizie Decimal al diviziunii mediei e sub-ulp, deci egal dupa quantize la 0.01).
+    r1 = evaluate_market(comps)                          # default N=3
+    scalate = [Comparable(pret=c.pret * k, suprafata=c.suprafata, adjustments=c.adjustments)
+               for c in comps]
+    r2 = evaluate_market(scalate)
+    q = Decimal("0.01")
+    assert r2.valoare_piata.quantize(q) == (r1.valoare_piata * k).quantize(q)
