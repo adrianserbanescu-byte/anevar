@@ -16,6 +16,7 @@ from evaluare.engine.reconciliation import aloca_constructii, reconcile_profil
 from evaluare.engine.validation import (
     Issue,
     valideaza_comparabile,
+    valideaza_comparabile_teren,
     valideaza_depreciere,
     valideaza_proprietate,
 )
@@ -111,6 +112,8 @@ def valideaza(inp: EvaluationInput, cfg: MetodologieConfig = IMPLICIT) -> list[I
     issues += valideaza_depreciere(inp.building)
     if inp.metoda in ("piata", "ponderata"):
         issues += valideaza_comparabile(inp.comparables, cfg)
+    if inp.land_comparables:   # grila de teren -> valoarea terenului: aceleasi garzi M5 ca piata
+        issues += valideaza_comparabile_teren(inp.land_comparables, cfg)
     return issues
 
 
