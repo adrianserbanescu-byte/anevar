@@ -86,6 +86,42 @@ def test_extrage_caracteristici_structurate_storia():
     assert parsed.suprafata_teren == Decimal("700")
 
 
+class _FakeResp:
+    """Raspuns HTTP fals (fara retea) pentru testele de redirect ale fetch_html."""
+
+    def __init__(self, loc=None, text="<html>ok</html>"):
+        self.is_redirect = loc is not None
+        self.headers = {"Location": loc} if loc else {}
+        self.text = text
+
+    def raise_for_status(self):
+        pass
+
+
+def test_fetch_html_redirect_intern_blocat(monkeypatch):
+    # Anti-SSRF (audit motor): un URL public care da 302 spre o adresa INTERNA (127.0.0.1 / metadata
+    # 169.254.169.254 / retea privata) trebuie BLOCAT. fetch_html re-valideaza FIECARE hop, nu urmeaza
+    # orbeste redirectul (allow_redirects=False + re-check _url_public_sigur la fiecare iteratie).
+    import pytest
+
+    from evaluare.importers import url_parser as up
+    monkeypatch.setattr(up, "_url_public_sigur", lambda u: "intern" not in u)   # 'intern' = nesigur
+    monkeypatch.setattr(up.requests, "get",
+                        lambda url, **kw: _FakeResp(loc="http://intern.local/secret"))
+    with pytest.raises(ValueError, match="SSRF|respins"):
+        up.fetch_html("http://public.example/anunt")
+
+
+def test_fetch_html_redirect_public_urmat(monkeypatch):
+    # un redirect catre alt URL PUBLIC e urmat normal pana la pagina finala
+    from evaluare.importers import url_parser as up
+    monkeypatch.setattr(up, "_url_public_sigur", lambda u: True)                # tot public
+    seq = iter([_FakeResp(loc="http://public.example/final"),
+                _FakeResp(text="<html>FINAL</html>")])
+    monkeypatch.setattr(up.requests, "get", lambda url, **kw: next(seq))
+    assert "FINAL" in up.fetch_html("http://public.example/start")
+
+
 def test_caracteristici_structurate_imobiliare_din_body():
     # imobiliare e server-side: campurile apar ca text 'Eticheta: valoare' in body
     html = ("<html><head><title>Casa Breaza</title></head><body>"

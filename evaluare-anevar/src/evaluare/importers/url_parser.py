@@ -12,7 +12,7 @@ import re
 import socket
 from collections.abc import Callable
 from decimal import Decimal, InvalidOperation
-from urllib.parse import urlparse
+from urllib.parse import urljoin, urlparse
 
 import requests
 from bs4 import BeautifulSoup
@@ -418,13 +418,28 @@ def _url_public_sigur(url: str) -> bool:
     return True
 
 
+_MAX_REDIRECTURI = 5
+
+
 def fetch_html(url: str) -> str:
-    """Descarca HTML-ul unui anunt (live). Nu se foloseste in teste."""
-    if not _url_public_sigur(url):
-        raise ValueError("URL respins: sunt permise doar adrese web publice http(s) (protecție anti-SSRF).")
-    resp = requests.get(url, headers={"User-Agent": USER_AGENT}, timeout=15, allow_redirects=True)
-    resp.raise_for_status()
-    return resp.text
+    """Descarca HTML-ul unui anunt (live). Nu se foloseste in teste.
+
+    Urmareste redirecturile MANUAL, re-validand FIECARE hop cu `_url_public_sigur` (anti-SSRF):
+    `allow_redirects=True` ar urma un 302 de la un URL public catre o adresa INTERNA (127.0.0.1 /
+    169.254.169.254 metadata / retea privata) fara re-verificare -> bypass clasic al gardei. (Audit motor.)
+    """
+    for _ in range(_MAX_REDIRECTURI + 1):
+        if not _url_public_sigur(url):
+            raise ValueError(
+                "URL respins: sunt permise doar adrese web publice http(s) (protecție anti-SSRF)."
+            )
+        resp = requests.get(url, headers={"User-Agent": USER_AGENT}, timeout=15, allow_redirects=False)
+        if resp.is_redirect and resp.headers.get("Location"):   # re-valideaza tinta la urmatoarea iteratie
+            url = urljoin(url, resp.headers["Location"])
+            continue
+        resp.raise_for_status()
+        return resp.text
+    raise ValueError("Prea multe redirecturi — anuntul nu a putut fi descarcat in siguranta.")
 
 
 def import_from_url(
