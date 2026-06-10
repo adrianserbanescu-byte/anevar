@@ -214,6 +214,23 @@ def test_raport_date_insuficiente_422(client):
     assert client.post(f"/api/dosar/{uid}/calcul", json=p).status_code == 422
 
 
+def test_raport_blocat_pe_problema_blocanta_422(client):
+    # I1 (re-audit lean — gap de testare la nivel de router): o problemă `nivel="blocheaza"`
+    # (Au>Acd) e ADVISORY în /calcul (200 + alertă; evaluatorul vede valoarea+problema), dar
+    # BLOCHEAZĂ documentul OFICIAL /raport.docx (422 „Raport blocat") — un raport SEMNABIL de
+    # garantare NU se generează pe date blocante. Regresie pt commit 7d6ed0a.
+    _cont(client)
+    uid = client.post("/api/dosar", json={"wizard": {}}).json()["uuid"]
+    p = _payload()
+    p["building"]["au"] = "200"                       # Au(200) > Acd(120) -> nivel="blocheaza"
+    # /calcul: calcul reușește, problema rămâne advisory (200 + alertă)
+    rc = client.post(f"/api/dosar/{uid}/calcul", json=p)
+    assert rc.status_code == 200 and rc.json()["alerte"]
+    # /raport.docx: ACELAȘI input -> documentul oficial e BLOCAT (422), nu generat mut
+    rr = client.post(f"/api/dosar/{uid}/raport.docx", json=p)
+    assert rr.status_code == 422 and "blocat" in rr.json()["detail"].lower()
+
+
 def test_import_docx_continut_invalid_nu_crapa(client):
     # robustețe: conținut care NU e .docx valid -> NU 500; degradează grațios la parsarea numelui.
     import base64
