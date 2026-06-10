@@ -275,3 +275,73 @@ necunoscute→raise, extragere URL-uri listing, parsare preț/supr/poză, căuta
 La crearea unui dosar se loghează **legitimația** (ID profesional), NU numele evaluatorului (PII).
 Acoperit pozitiv (`creator_legitimatie` în `test_dosare_fs`); **aserțiunea negativă** („numele NU
 apare în jurnal") e un gap de propus implementatorilor — vezi §9.
+
+## 12. Robustețe API — proces Schemathesis (fuzz pe OpenAPI) — owner: D
+
+Procesul care a închis 4× server-500 reale (audit 6→8→build #4→build #8) — folosim **Schemathesis**
+(property-based fuzzing) contra `openapi.json` LIVE; gate-ul = **zero `Server error` 500**.
+
+### 12.1 Două profile, două seturi de seed-uri
+
+| Profil | Seed | Max-examples | Timp | Scop |
+|---|---|---|---|---|
+| **Strict (DELTA istoric)** | `42` | `3` | ~2 min | Comparație bit-for-bit cu rulările anterioare (audit 6/8 baseline) |
+| **Safety net (default release)** | `1, 2, 3` (×3) | `10` | ~3 min × 3 | Edge cases STRUCTURATE: date ISO valide-dar-invalide („2026-99-99"), int extreme (`2^63`), unicode surogate, exponenți uriași |
+
+**Total: ~11 min pentru un release candidate** (1 strict + 3 safety net pe seed-uri diferite).
+NU înlocuiește testele per-feature ale autorilor; e gate-ul DE ROBUSTEȚE la marginea API.
+
+### 12.2 De ce 3 seed-uri × max=10 ca **default** la release
+
+Lecție explicită din runda 8 (re-audit adversarial ultracode): **seed=42 max-examples=3 a RATAT 2 server-500**:
+- RTN/RTS `data_tranzactie="2026-99-99"` → `date.fromisoformat()` netratat → 500
+- PEP `data_incetare_functie` invalid → `_luni_intre()` → 500
+
+Cauza: max-examples=3 = depth prea mic pentru cazuri **valide-din-Pydantic-dar-invalide-la-parse**
+(string „YYYY-MM-DD" cu lună 99). Schemathesis cu max=3 generează majoritar valori care nu se
+plimbă pe spațiul de erori structurate. **Safety net cu max=10 + 3 seed-uri** a expus apoi (build
+#4 seed=1) un **3-lea server-500 ratat** — `eid > 2^63-1` pe path-param SQLite (`OverflowError`).
+
+> **Regula 12-A:** la fiecare release candidate, owner-ul D rulează **AMBELE** profile (strict +
+> safety net) pe live-ul build-ului final și raportează la A *înainte* de RC. Zero server-500
+> obligatoriu pe TOATE 4 rulări = gate închis.
+
+### 12.3 Comenzi
+
+```pwsh
+$env:PYTHONIOENCODING="utf-8"
+$st = ".\.venv312\Scripts\schemathesis.exe"
+
+# A) strict (DELTA istoric)
+& $st run "http://127.0.0.1:8000/openapi.json" --max-examples 3 --request-timeout 5 --workers 1 --seed 42
+
+# B) safety net (× 3 seed-uri = noul default release)
+foreach ($s in 1, 2, 3) {
+    & $st run "http://127.0.0.1:8000/openapi.json" --max-examples 10 --request-timeout 5 --workers 1 --seed $s
+}
+```
+
+### 12.4 Categoriile NEgate (cosmetic, deferate de A — P1)
+
+Schemathesis raportează 80–95 unique failures *pe lângă* server-500 (categorii cosmetic, NU
+blochează RC):
+
+| Categorie | Cauză | Decizie |
+|---|---|---|
+| **Response violates schema** (~42) | 422 cu `detail: str` returnat, dar schema OpenAPI auto-gen declară array | Cosmetic — handler-ul M1 face mesaj prietenos pentru UI |
+| **Undocumented HTTP status code** (~22–35) | 4xx noi (422 de la fix-urile de robustețe) nedocumentate în OpenAPI | Cosmetic — app *offline*, zero consumatori externi ai spec-ului |
+| **Undocumented Content-Type** (~8) | text/html sau multipart returnate fără declarație în spec | Cosmetic |
+| **API rejected schema-compliant** (~8) | Pydantic strict (`Field(gt=0)` etc.) > schema OpenAPI | Cosmetic, INTĂRIRE de robustețe |
+| **Unsupported methods** (~1) | OPTIONS/HEAD pe endpoint specific | Cosmetic |
+
+Spec drift cosmetic = ramane deferat (decizia A); P0 = doar `Server error` 500.
+
+### 12.5 Limite cunoscute + ce înseamnă
+
+- **`--workers 1`**: Schemathesis pe live = serial (un singur server). Paralelizarea n-ar reduce
+  cost-ul total fiindcă live-ul devine bottleneck.
+- **Windows console**: `PYTHONIOENCODING=utf-8` obligatoriu (altfel `UnicodeEncodeError: cp1252`).
+- **Schemathesis 4.x**: flag-ul `--hypothesis-seed` (din docs vechi) **nu mai există**; folosim `--seed`.
+- **Coverage subiectiv**: Schemathesis acoperă SUPRAFAȚA API-ului, nu invariantii business
+  (cele rămân la testele property-based pe motor — `test_property_engine.py`, owner B).
+- **Mutation testing**: complementar (mutmut), dar cere **CI Linux** (nu rulează Windows nativ).
