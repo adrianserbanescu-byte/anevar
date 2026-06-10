@@ -49,9 +49,9 @@ Legendă: ✅ rezolvat+comis · ▶ în lucru A · 📨 dispatched (lane, GO imp
 | #1 fuzz pypdf pică sub `-n auto` (DeadlineExceeded → CI roșu) | P0 | ✅ `857c714` |
 | #5 pypdf inundă logul producție (mască erori + PII) | P2 | ✅ `857c714` (logger→ERROR) |
 | venit exclus TĂCUT din ponderată (probat 60k divergență nesemnalată) | MAJOR | ✅ `6a2974c` (opțiunea b transparență) |
-| #2 grila-chirii nerotunjită (chirie_mp/lunara/vbp brut → wizard localStorage) | P1 | 📨 B |
-| #3 property-tests nu acoperă cost/chirie/venit/reconcile + doar N=1 | P1 | 📨 B |
-| diacritice-export cp1252 mojibake (`Suprafata`→`Suprafa??`) | P1 | 📨 D (reassign de la C silent) |
+| #2 grila-chirii nerotunjită (chirie_mp/lunara/vbp brut → wizard localStorage) | P1 | ✅ `148d47a` (B, toate output-urile) |
+| #3 property-tests nu acoperă cost/chirie/venit/reconcile + doar N=1 | P1 | ✅ `148d47a` (B, 11 invarianți N=3) |
+| diacritice-export cp1252 mojibake (`Suprafata`→`Suprafa??`) | P1 | ✅ **FALSE POSITIVE** (backend curat, encoding=utf-8 peste tot; `9951a3e` teste regresie) |
 | #4 GEV520 `utilizator_desemnat` nesetabil prin UI (API-settable; ANAF dead) | P2 | ⏸️ defer (scop rar, default creditor corect) |
 | #6 LIVE rulează build vechi (headers absente, 60 fail schemathesis) | P3 | → build+redeploy |
 
