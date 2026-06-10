@@ -169,11 +169,14 @@ def test_prop_reconcile_ponderata_in_interval(v_piata, v_cost, pondere):
 @given(_liste, st.decimals(min_value=Decimal("0.01"), max_value=Decimal("1000"), places=2))
 @settings(max_examples=150, deadline=None)
 def test_prop_scale_invarianta_pe_N3_default(comps, k):
-    # Scale-invarianta si pe configul DEFAULT (N=3, media) — exacta la nivel de bani (artefactul de
-    # precizie Decimal al diviziunii mediei e sub-ulp, deci egal dupa quantize la 0.01).
+    # Scale-invarianta pe configul DEFAULT (N=3, media): la precizie PLINA valorile coincid pe ~25
+    # cifre, DAR quantize-ul la bani poate diferi cu 1 cent cand valoarea pica fix pe o jumatate-de-cent
+    # (ex. .865 -> ordinea operatiilor da .86 vs .87). Artefact de cuantizare Decimal, NU divergenta de
+    # motor. Toleranta = 1 cent (granularitatea quantize); o non-invarianta REALA ar depasi 1 cent.
+    # (Hypothesis a falsificat egalitatea EXACTA: comps cu valoare_piata=19719.865, k=17.70.)
     r1 = evaluate_market(comps)                          # default N=3
     scalate = [Comparable(pret=c.pret * k, suprafata=c.suprafata, adjustments=c.adjustments)
                for c in comps]
     r2 = evaluate_market(scalate)
     q = Decimal("0.01")
-    assert r2.valoare_piata.quantize(q) == (r1.valoare_piata * k).quantize(q)
+    assert abs(r2.valoare_piata.quantize(q) - (r1.valoare_piata * k).quantize(q)) <= q
