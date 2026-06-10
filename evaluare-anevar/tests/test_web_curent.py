@@ -347,6 +347,26 @@ def test_ssrf_url_guard():
     assert _url_public_sigur("file:///etc/passwd") is False         # schemă nepermisă
 
 
+def test_fetch_html_blocheaza_redirect_spre_intern(monkeypatch):
+    # SSRF prin redirect: un host PUBLIC raspunde 302 -> adresa INTERNA. Garda re-valideaza FIECARE
+    # Location si respinge (nu urmeaza orbeste). Vezi fix-ul allow_redirects=False + bucla manuala.
+    import evaluare.importers.url_parser as up
+
+    class FakeResp:
+        is_redirect = True
+        headers = {"Location": "http://169.254.169.254/latest/meta-data/"}
+
+        def raise_for_status(self):
+            pass
+
+    monkeypatch.setattr(up.requests, "get", lambda *a, **k: FakeResp())
+    try:
+        up.fetch_html("http://93.184.216.34/")              # IP public valid -> 302 -> intern
+        raise AssertionError("ar fi trebuit sa respinga redirect-ul spre adresa interna")
+    except ValueError as e:
+        assert "SSRF" in str(e)
+
+
 def test_cnp_redaction_prefix_9():
     from evaluare.ai import narrative
     rx = narrative._PII_REZIDUAL[0][0]
