@@ -40,6 +40,23 @@ def create_app(storage: Storage, client: NarrativeClient | None,
     from evaluare import __version__
     app = FastAPI(title="Evaluare ANEVAR")
 
+    # M1 (audit user-journey): o validare Pydantic eșuată (ex. `numar_cadastral`/`carte_funciara` lipsă,
+    # care-s obligatorii) întorcea un array Pydantic BRUT pe care UI-ul îl afișa evaluatorului ca
+    # „[object Object]". Acest handler formatează ORICE 422 de validare într-un `detail` STRING citibil
+    # în RO -> mesaj prietenos, nu cifrat. (Calea `_context()` rămâne pentru erorile de calcul/aritmetică.)
+    from fastapi.exceptions import RequestValidationError
+    from starlette.responses import JSONResponse
+
+    @app.exception_handler(RequestValidationError)
+    async def _eroare_validare(_request, exc):
+        def _ro(e: dict) -> str:
+            loc = [str(p) for p in e.get("loc", ()) if p != "body"]
+            camp = ".".join(loc) or "date"
+            return f"«{camp}»: {e.get('msg', 'valoare invalidă')}"
+        detalii = "; ".join(_ro(e) for e in exc.errors())
+        return JSONResponse(status_code=422,
+                            content={"detail": f"Date invalide sau incomplete — {detalii}"})
+
     # Gardă anti DNS-rebinding / cross-site: aplicația locală acceptă DOAR Host local.
     # Un site vizitat (evil.com) care rezolvă la 127.0.0.1 ar trimite Host: evil.com -> respins,
     # deci nu poate șterge dosare / exfiltra PII prin API-ul local. „testserver" = host-ul TestClient.

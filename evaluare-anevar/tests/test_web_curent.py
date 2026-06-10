@@ -231,6 +231,21 @@ def test_raport_blocat_pe_problema_blocanta_422(client):
     assert rr.status_code == 422 and "blocat" in rr.json()["detail"].lower()
 
 
+def test_validare_422_mesaj_citibil_nu_object_object(client):
+    # M1 (audit user-journey): un câmp obligatoriu lipsă (numar_cadastral, schema-required) producea
+    # un array Pydantic BRUT pe care UI-ul îl afișa evaluatorului ca „[object Object]". Handler-ul global
+    # RequestValidationError formatează în `detail` STRING citibil (numește câmpul) -> mesaj prietenos.
+    _cont(client)
+    uid = client.post("/api/dosar", json={"wizard": {}}).json()["uuid"]
+    p = _payload()
+    del p["meta"]["numar_cadastral"]                  # câmp obligatoriu lipsă -> 422 Pydantic
+    r = client.post(f"/api/dosar/{uid}/calcul", json=p)
+    assert r.status_code == 422
+    det = r.json()["detail"]
+    assert isinstance(det, str)                       # STRING, NU array (array -> „[object Object]" în UI)
+    assert "numar_cadastral" in det                   # numește câmpul-problemă, acționabil
+
+
 def test_import_docx_continut_invalid_nu_crapa(client):
     # robustețe: conținut care NU e .docx valid -> NU 500; degradează grațios la parsarea numelui.
     import base64
