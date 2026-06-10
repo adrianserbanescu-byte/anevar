@@ -11,6 +11,7 @@ from evaluare.discovery import ponderi_store
 from evaluare.discovery.orchestrator import descopera
 from evaluare.discovery.ponderi import AXA_ATRIBUT, AXE, PONDERI_PER_CATEGORIE, fuzioneaza_override
 from evaluare.discovery.scoring import metodologie
+from evaluare.geo import coordonate, distanta_km, localitate_din_url
 from evaluare.importers.url_parser import parse_listing_html
 from evaluare.logging_setup import get_logger
 from evaluare.web.deps import Deps
@@ -23,6 +24,20 @@ from evaluare.web.schemas import (
 )
 
 log = get_logger(__name__)
+
+
+def _geo_campuri(url: str, judet: str, localitate_cautata: str,
+                 subiect: tuple[float, float] | None) -> dict:
+    """lat/lng + distanta fata de subiect pt un anunt (harta P1.3 + afisaj 'la X km de subiect').
+
+    Localitatea anuntului = detectata din slug-ul URL-ului (cautarea pe judet aduce localitati
+    diferite); fallback pe localitatea cautata. Fara coordonate -> None (harta omite gratios)."""
+    loc = localitate_din_url(url, judet) or localitate_cautata
+    c = coordonate(judet, loc)
+    if c is None:
+        return {"lat": None, "lng": None, "distanta_km": None}
+    dist = round(distanta_km(subiect[0], subiect[1], c[0], c[1]), 1) if subiect else None
+    return {"lat": c[0], "lng": c[1], "distanta_km": dist}
 
 
 def build_router(d: Deps) -> APIRouter:
@@ -42,6 +57,7 @@ def build_router(d: Deps) -> APIRouter:
         except (requests.RequestException, ValueError, OSError) as e:
             raise HTTPException(502, "Portalul nu a răspuns sau conexiunea a eșuat. "
                                 "Încearcă din nou sau adaugă comparabilele manual.") from e
+        subiect_coord = coordonate(req.judet, req.localitate)   # geocoding offline (tabel bundle-uit)
         candidati = []
         for r in rez:
             candidati.append({
@@ -57,8 +73,11 @@ def build_router(d: Deps) -> APIRouter:
                 "explicatie": r.breakdown.explicatie,
                 "atribute": [a.model_dump() for a in r.breakdown.atribute],
                 "secundare": [s.model_dump() for s in r.secundare],
+                **_geo_campuri(r.url, req.judet, req.localitate, subiect_coord),   # harta + distanta
             })
-        return {"metodologie": metodologie(ponderi_cat), "candidati": candidati}
+        return {"metodologie": metodologie(ponderi_cat), "candidati": candidati,
+                "subiect_lat": subiect_coord[0] if subiect_coord else None,
+                "subiect_lng": subiect_coord[1] if subiect_coord else None}
 
     @router.post("/api/descopera-teren")
     def descopera_teren_endpoint(req: DescoperaTerenRequest) -> dict:
@@ -69,13 +88,17 @@ def build_router(d: Deps) -> APIRouter:
         except (requests.RequestException, ValueError, OSError) as e:
             raise HTTPException(502, "Portalul nu a răspuns sau conexiunea a eșuat. "
                                 "Încearcă din nou sau adaugă comparabilele manual.") from e
+        subiect_coord = coordonate(req.judet, req.localitate)
         return {"candidati": [{
             "url": r.url, "titlu": r.titlu,
             "pret": str(r.pret) if r.pret is not None else None,
             "suprafata": str(r.suprafata) if r.suprafata is not None else None,
             "pret_mp": str(r.pret_mp) if r.pret_mp is not None else None,
             "relevanta": r.relevanta, "nota": r.nota,
-        } for r in rez]}
+            **_geo_campuri(r.url, req.judet, req.localitate, subiect_coord),
+        } for r in rez],
+            "subiect_lat": subiect_coord[0] if subiect_coord else None,
+            "subiect_lng": subiect_coord[1] if subiect_coord else None}
 
     @router.post("/api/import-anunt")
     def import_anunt(req: ImportAnuntRequest) -> dict:

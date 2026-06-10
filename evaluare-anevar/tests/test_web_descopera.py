@@ -112,3 +112,25 @@ def test_pret_mp_afisat_doar_cand_teren_comparabil(tmp_path):
     c0d = client.post("/api/descopera", json=p_diff).json()["candidati"][0]
     assert c0d["pret_mp"] is None
     assert c0["pret_mp"] is not None   # pret 249900 / supr 130 -> ~1922
+
+
+def test_descopera_intoarce_coordonate_si_distanta(tmp_path):
+    # dispatch harta+distanta (B): raspunsul are subiect_lat/lng + lat/lng/distanta_km per candidat
+    # (geocoding OFFLINE din tabelul bundle-uit; localitatea anuntului din slug-ul URL, fallback cea cautata).
+    client = TestClient(_app(tmp_path))
+    payload = {"portal": "imobiliare", "judet": "ilfov", "localitate": "otopeni",
+               "subiect": {"an": 2013, "stare": 3, "finisaj": 4,
+                           "incalzire": "centrala_gaz", "teren": "500"},
+               "atribute_secundare": [], "max_candidati": 5}
+    data = client.post("/api/descopera", json=payload).json()
+    assert isinstance(data["subiect_lat"], float) and isinstance(data["subiect_lng"], float)
+    for c in data["candidati"]:
+        assert isinstance(c["lat"], float) and isinstance(c["lng"], float)
+        assert isinstance(c["distanta_km"], (int, float))    # 'la X km de subiect'
+    # teren: aceleasi campuri
+    dt = client.post("/api/descopera-teren", json={
+        "portal": "imobiliare", "judet": "ilfov", "localitate": "otopeni",
+        "suprafata_subiect": "500", "max_candidati": 5}).json()
+    assert isinstance(dt["subiect_lat"], float)
+    for c in dt["candidati"]:
+        assert "lat" in c and "distanta_km" in c
