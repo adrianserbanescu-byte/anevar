@@ -101,7 +101,17 @@ def reconcile_profil(
         if len(disponibile) >= 2 and total_pondere > 0:
             valoare = (sum(valori[a] * ponderi[a] for a in disponibile) / total_pondere
                        ).quantize(cfg.rotunjire_valoare, rounding=ROUND_HALF_UP)   # E1
-            return ReconciledResult(valoare_finala=valoare, metoda_selectata="ponderata")
+            # Transparenta (decizia Adi, optiunea b): daca o abordare a fost CALCULATA ca indicatie dar
+            # nu intra in ponderare (ex. venitul la o ponderare piata/cost), o declaram EXPLICIT in nota,
+            # ca valoarea finala sa nu diverga TACUT de indicatiile aratate in raport.
+            excluse = [a for a in valori if a not in ponderi]
+            nota = ""
+            if excluse:
+                nume_excl = ", ".join(_METODA.get(a, a) for a in excluse)
+                nume_pond = ", ".join(_METODA.get(a, a) for a in disponibile)
+                nota = (f"Abordarea prin {nume_excl} a fost calculata ca indicatie de valoare, dar NU este "
+                        f"inclusa in valoarea ponderata (ponderarea aplicata foloseste {nume_pond}).")
+            return ReconciledResult(valoare_finala=valoare, metoda_selectata="ponderata", nota=nota)
         # sub doua abordari disponibile -> ponderarea nu se aplica; selectie cu nota
         nota = "Ponderarea nu s-a putut aplica (sub doua abordari disponibile)."
         if primara in valori:
