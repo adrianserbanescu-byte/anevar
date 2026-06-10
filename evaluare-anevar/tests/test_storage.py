@@ -112,6 +112,26 @@ def test_migrare_v3_la_v4_adauga_coloane(tmp_path):
     assert db.list()[0]["nume"] == "dupa migrare"
 
 
+def test_migrare_idempotenta_dupa_crash_inainte_de_user_version(tmp_path):
+    import sqlite3
+
+    from evaluare.db.storage import SCHEMA_VERSION
+
+    # F-5 (crash-recovery): ALTER-urile v4 au rulat, dar crash INAINTE de PRAGMA user_version=4 ->
+    # la urmatorul start init() re-ruleaza ALTER pe coloane deja existente. Inainte de fix:
+    # OperationalError 'duplicate column name: nume' -> APP-UL NU MAI PORNEA (reparare manuala DB).
+    p = tmp_path / "crash.db"
+    Storage(p).init()                                      # schema completa v4...
+    with sqlite3.connect(str(p)) as conn:
+        conn.execute("PRAGMA user_version = 3")            # ...dar versiunea NU a apucat sa avanseze
+    db = Storage(p)
+    db.init()                                              # nu mai crapa: reia si avanseaza versiunea
+    with sqlite3.connect(str(p)) as conn:
+        assert conn.execute("PRAGMA user_version").fetchone()[0] == SCHEMA_VERSION
+    db.save(_ctx(), nume="dupa recuperare")                # baza ramane functionala
+    assert db.list()[0]["nume"] == "dupa recuperare"
+
+
 def test_coada_import_persista_si_deduplica(tmp_path):
     db = Storage(tmp_path / "test.db")
     db.init()

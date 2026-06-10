@@ -76,7 +76,16 @@ class Storage:
             ver = conn.execute("PRAGMA user_version").fetchone()[0]
             for v in range(ver + 1, SCHEMA_VERSION + 1):
                 for stmt in _MIGRATIONS[v]:
-                    conn.executescript(stmt)
+                    try:
+                        conn.executescript(stmt)
+                    except sqlite3.OperationalError as e:
+                        # F-5 (crash-recovery): crash INTRE un ALTER TABLE aplicat si avansarea
+                        # user_version -> la urmatorul start re-rulam ALTER-ul pe o coloana deja
+                        # existenta -> 'duplicate column name' -> app-ul NU mai pornea. Coloana
+                        # deja prezenta = migrarea era aplicata -> sigur de ignorat (CREATE TABLE
+                        # e deja IF NOT EXISTS). Orice alta eroare ramane fatala.
+                        if "duplicate column name" not in str(e).lower():
+                            raise
                 conn.execute(f"PRAGMA user_version = {v}")  # int controlat, nu input
 
     def backup(self, backups_dir: Path | str, keep: int = 10) -> Path | None:
