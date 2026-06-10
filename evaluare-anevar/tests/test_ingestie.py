@@ -18,15 +18,38 @@ def test_num_format_ro():
     assert _num("xyz") is None
 
 
-def test_text_din_pdf_digital_bytes():
-    # PDF digital real (creat cu fitz) -> text extras direct, fără OCR
-    import fitz
+def _pdf_digital(text: str) -> bytes:
+    """PDF digital minimal valid (xref + startxref corecte) cu `text` incorporat — fără dependență de
+    un generator PDF (fost fitz; pypdf citește text, nu scrie). Obiect text simplu: BT ... (text) Tj ET.
+    """
+    objs = [
+        b"<< /Type /Catalog /Pages 2 0 R >>",
+        b"<< /Type /Pages /Kids [3 0 R] /Count 1 >>",
+        b"<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792]"
+        b" /Resources << /Font << /F1 5 0 R >> >> /Contents 4 0 R >>",
+        None,
+        b"<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>",
+    ]
+    flux = b"BT /F1 12 Tf 72 720 Td (" + text.encode() + b") Tj ET"
+    objs[3] = b"<< /Length " + str(len(flux)).encode() + b" >>\nstream\n" + flux + b"\nendstream"
+    out = b"%PDF-1.4\n"
+    offsete = []
+    for i, corp in enumerate(objs, 1):
+        offsete.append(len(out))
+        out += str(i).encode() + b" 0 obj\n" + corp + b"\nendobj\n"
+    poz_xref = len(out)
+    out += b"xref\n0 " + str(len(objs) + 1).encode() + b"\n0000000000 65535 f \n"
+    for o in offsete:
+        out += ("%010d 00000 n \n" % o).encode()
+    out += (b"trailer\n<< /Root 1 0 R /Size " + str(len(objs) + 1).encode()
+            + b" >>\nstartxref\n" + str(poz_xref).encode() + b"\n%%EOF\n")
+    return out
 
+
+def test_text_din_pdf_digital_bytes():
+    # PDF digital minimal (hand-craftuit, xref valid) -> text extras direct prin pypdf, fără OCR.
     from evaluare.ingestie.ocr import text_din_pdf
-    doc = fitz.open()
-    doc.new_page().insert_text((72, 72), "Suprafata utila 120 mp")
-    data = doc.tobytes()
-    doc.close()
+    data = _pdf_digital("Suprafata utila 120 mp")
     assert "120" in text_din_pdf(data)
     assert "120" in extrage_text(data)              # happy-path prin extrage_text
 

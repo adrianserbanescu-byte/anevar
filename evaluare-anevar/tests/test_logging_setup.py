@@ -31,7 +31,7 @@ def test_configure_logging_scrie_fisier(tmp_path, monkeypatch):
 
 
 def test_extrage_text_logheaza_si_nu_arunca_la_pdf_invalid(caplog):
-    # bytes care nu sunt PDF -> fitz arunca -> extrage_text prinde, logheaza, intoarce ""
+    # bytes care nu sunt PDF -> pypdf arunca -> extrage_text prinde, logheaza, intoarce ""
     with caplog.at_level(logging.WARNING):
         rezultat = extrage_text(b"nu sunt un pdf valid")
     assert rezultat == ""
