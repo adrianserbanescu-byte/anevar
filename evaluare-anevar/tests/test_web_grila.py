@@ -99,3 +99,24 @@ def test_wizard_preia_vbp_din_grila(tmp_path):
     assert resp.status_code == 200
     assert "preiaVbpGrila" in resp.text
     assert "vbp_din_grila" in resp.text
+
+
+def test_grila_chirii_rotunjeste_toate_iesirile_monetare(tmp_path):
+    # #2 (D+A): media M2 a ratei €/mp poate avea multe zecimale -> endpoint rotunjeste la bani TOATE
+    # iesirile monetare (chirie_mp/lunara/vbp), ca sa nu ajunga brute in wizard via localStorage.
+    client = _client(tmp_path)
+    comps = [{"chirie_mp": c, "suprafata": "100"} for c in ("10", "10", "11")]   # media = 10.333...
+    d = client.post("/api/grila-chirii",
+                    json={"suprafata_subiect": "100", "comparabile": comps}).json()
+    assert d["chirie_mp_aleasa"] == "10.33"          # rotunjit, nu 10.3333...
+    for k in ("chirie_mp_aleasa", "chirie_lunara", "venit_brut_potential"):
+        assert len(d[k].split(".")[-1]) <= 2         # toate <= 2 zecimale
+
+
+def test_grila_teren_rotunjeste_pret_mp(tmp_path):
+    # #2: pret/mp mediat (M2) rotunjit la bani in API
+    client = _client(tmp_path)
+    comps = [{"pret_mp": p, "suprafata": "500"} for p in ("100", "100", "101")]   # media = 100.333...
+    d = client.post("/api/grila-teren",
+                    json={"suprafata_subiect": "500", "comparabile": comps}).json()
+    assert d["pret_mp_ales"] == "100.33" and len(d["valoare_teren"].split(".")[-1]) <= 2

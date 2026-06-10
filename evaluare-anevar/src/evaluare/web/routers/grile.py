@@ -41,7 +41,7 @@ def build_router(d: Deps) -> APIRouter:
             "ajustari_nete": [str(n) for n in r.ajustari_nete],
             "index_selectat": r.index_selectat,
             "indici_mediati": r.indici_mediati,
-            "pret_mp_ales": str(r.pret_mp_ales),
+            "pret_mp_ales": _bani(r.pret_mp_ales),   # rata €/mp mediata (M2) -> rotunjita la bani in API
             "valoare_teren": _bani(r.valoare_teren),
         }
 
@@ -74,9 +74,12 @@ def build_router(d: Deps) -> APIRouter:
             "ajustari_nete": [str(n) for n in r.ajustari_nete],
             "index_selectat": r.index_selectat,
             "indici_mediati": r.indici_mediati,
-            "chirie_mp_aleasa": str(r.chirie_mp_aleasa),
-            "chirie_lunara": str(r.chirie_lunara),
-            "venit_brut_potential": str(r.venit_brut_potential),
+            # Rotunjim TOATE iesirile monetare la bani: chirie_lunara/vbp sunt deja quantizate engine-side,
+            # dar chirie_mp_aleasa (rata €/mp mediata M2) iesea cu multe zecimale; _bani pe toate =
+            # consistent + robust (valorile ajung in wizard via localStorage 'vbp_din_grila').
+            "chirie_mp_aleasa": _bani(r.chirie_mp_aleasa),
+            "chirie_lunara": _bani(r.chirie_lunara),
+            "venit_brut_potential": _bani(r.venit_brut_potential),
         }
 
     @router.get("/grila", response_class=HTMLResponse)
