@@ -66,10 +66,11 @@ def test_grila_chirii(tmp_path):
     resp = client.post("/api/grila-chirii", json=payload)
     assert resp.status_code == 200
     data = resp.json()
-    assert data["index_selectat"] == 1
-    assert Decimal(data["chirie_mp_aleasa"]) == Decimal("10.50")
-    assert Decimal(data["chirie_lunara"]) == Decimal("1050.00")
-    assert Decimal(data["venit_brut_potential"]) == Decimal("12600.00")
+    assert data["index_selectat"] == 1                  # cel mai similar (gross 0.05 < 0.20)
+    # M2 (default = media a 3, aici limitat la 2 comparabile): media (9.60 + 10.50)/2 = 10.05 €/mp
+    assert Decimal(data["chirie_mp_aleasa"]) == Decimal("10.05")
+    assert Decimal(data["chirie_lunara"]) == Decimal("1005.00")    # 10.05 * 100
+    assert Decimal(data["venit_brut_potential"]) == Decimal("12060.00")   # * 12
 
 
 def test_grila_chirii_fara_comparabile_422(tmp_path):

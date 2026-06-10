@@ -101,3 +101,22 @@ def test_grila_casa_respecta_override_persistat(tmp_path):
     salveaza_override(storage.db_path.parent, {"nr_comparabile_medie": 1})
     assert Decimal(client.post("/api/grila-casa",
                                json=payload).json()["valoare_piata"]) == Decimal("102000.00")
+
+
+# ── M2 extins la grila de CHIRII (consistenta cu piata/teren; decizie Adi, norme SEV/GEV) ──────────
+def test_chirie_medie_top3_consistent_cu_piata():
+    from evaluare.engine.chirie import evalueaza_chirie
+    from evaluare.models.comparable import RentComparable
+
+    def _ch(adj_pct):
+        return RentComparable(chirie_mp=Decimal("10"), suprafata=Decimal("100"),
+                              adjustments=[_adj("a", adj_pct)])
+    # gross: 0.02 / 0.04 / 0.06 / 0.50 -> corectate 10.20 / 10.40 / 10.60 / 15.00
+    comps = [_ch(0.02), _ch(0.04), _ch(0.06), _ch(0.50)]
+    r = evalueaza_chirie(comps, Decimal("100"))           # default N=3
+    assert r.index_selectat == 0
+    assert sorted(r.indici_mediati) == [0, 1, 2]
+    assert r.chirie_mp_aleasa == Decimal("10.40")         # media (10.20+10.40+10.60)/3, NU 15.00
+    # N=1 -> comparabilul unic cel mai similar (comportament istoric)
+    assert evalueaza_chirie(comps, Decimal("100"),
+                            cfg=_N1).chirie_mp_aleasa == Decimal("10.20")

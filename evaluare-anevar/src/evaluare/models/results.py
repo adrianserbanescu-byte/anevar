@@ -56,7 +56,8 @@ class RentResult(BaseModel):
     chirii_mp_corectate: list[Decimal] = Field(default_factory=list)
     ajustari_brute: list[Decimal] = Field(default_factory=list)
     ajustari_nete: list[Decimal] = Field(default_factory=list)
-    index_selectat: int
-    chirie_mp_aleasa: Decimal          # chirie lunara/mp selectata
+    index_selectat: int                                      # cel mai similar (referinta)
+    indici_mediati: list[int] = Field(default_factory=list)  # M2: comparabilele incluse in medie
+    chirie_mp_aleasa: Decimal          # MEDIA chiriei/mp a celor mediate (M2)
     chirie_lunara: Decimal             # chirie_mp_aleasa * suprafata subiect
     venit_brut_potential: Decimal      # chirie_lunara * 12 (anual, intra in DateVenit)
