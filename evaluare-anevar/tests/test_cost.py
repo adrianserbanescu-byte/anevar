@@ -105,3 +105,18 @@ def test_evaluate_cost_with_no_elements_gives_zero():
     result = evaluate_cost(building, valoare_teren=None)
     assert result.cib == Decimal("0")
     assert result.cin == Decimal("0")
+
+
+def test_cost_dfn_interpoleaza_pe_vcp_exact_nu_rotunjit():
+    # Politica unica de rotunjire (#3): Dfn se interpoleaza pe vcp EXACT, nu pe vcp rotunjit la 0.01
+    # (rotunjirea inainte de interpolare introducea un mic efect de prag). vcp RAPORTAT ramane rotunjit.
+    elements = gbf_elements()
+    building = BuildingData(
+        au=Decimal("351"), acd=Decimal("351"), an_referinta=2025, elements=elements,
+        depreciation_points=[DepreciationPoint(varsta=30, depreciere=Decimal("0.30")),
+                             DepreciationPoint(varsta=40, depreciere=Decimal("0.50"))],
+    )
+    vcp_exact = compute_vcp(elements, an_referinta=2025)
+    r = evaluate_cost(building)
+    assert r.depreciere_fizica == interpolate_depreciation(vcp_exact, building.depreciation_points)
+    assert r.vcp == vcp_exact.quantize(Decimal("0.01"))   # vcp raportat = rotunjit (doar afisare)
