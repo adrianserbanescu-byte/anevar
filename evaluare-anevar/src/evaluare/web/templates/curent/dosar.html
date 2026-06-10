@@ -413,6 +413,8 @@
 <script>{% include "_helpers.js" %}</script>
 <script>
 var UID = "{{ dosar.uuid }}";
+// Marcheaza dosarul ca ACTIV -> link-ul „Dosar în lucru" din nav (populat de _nav_cross.html).
+try { localStorage.setItem("anevar_dosar_activ", JSON.stringify({uid: UID, nume: {{ dosar.nume|tojson }}})); } catch(e){}
 var WIZARD = {{ dosar.wizard|tojson }};
 var BLOCAT = {{ 'true' if blocat else 'false' }};   // ADR-003: identitate asumată = read-only
 if (BLOCAT) {

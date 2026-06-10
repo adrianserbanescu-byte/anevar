@@ -2,9 +2,27 @@
    Inclusa in antetul fiecarei pagini (prin _topbar sau direct) + in subsol. #}
 {% from "_icon.html" import icon %}
 <nav class="cross-ui" aria-label="{{ cross_label|default('Navigare') }}">
-  <a href="/incepe">Acasă</a>
+  {# „Dosar în lucru" (primul) = JS-populat din localStorage `anevar_dosar_activ` (vezi dosar.html);
+     ascuns cand nu exista dosar activ. „Toate dosarele" = home-ul UI nou (/incepe, listeaza dosarele). #}
+  <a href="#" id="nav-dosar-lucru" hidden>{{ icon("doc") }} Dosar în lucru</a>
+  <a href="/incepe">{{ icon("home") }} Toate dosarele</a>
   <a href="/flux-livrabile">{{ icon("map") }} Flux livrabile</a>
   <a href="/documente">{{ icon("doc") }} Documente</a>
   <a href="/setari">Setări</a>
   <a href="/documente/ghid-start">{{ icon("help") }} Ajutor</a>
 </nav>
+<script>
+// Populeaza „Dosar în lucru" din localStorage (setat de dosar.html cand deschizi un dosar).
+// querySelectorAll: _nav_cross e inclus de 2 ori (antet + subsol) -> id duplicat, populam toate instantele.
+document.addEventListener("DOMContentLoaded", function () {
+  try {
+    var d = JSON.parse(localStorage.getItem("anevar_dosar_activ") || "null");
+    if (!d || !d.uid) return;
+    document.querySelectorAll("#nav-dosar-lucru").forEach(function (a) {
+      a.href = "/dosar/" + encodeURIComponent(d.uid);
+      a.hidden = false;
+      a.title = d.nume || "Dosar în lucru";
+    });
+  } catch (e) {}
+});
+</script>
