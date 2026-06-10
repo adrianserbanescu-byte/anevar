@@ -18,7 +18,9 @@
 ## ✅ COMPLET (continui bucla)
 - **Coadă B + re-audit = TOATE rezolvate + verzi** (651 teste). #7 land-validation (`f6959b4`, simetrie piață/teren) · SEV450 (`5f00060`, asigurare CIB brut — sub-asigurare corectată) · I1/G1/SEV100/SEV106/sectiuni/prompt-injection/etc.
 - **✅ BUILD + REDEPLOY DONE (#6 rezolvat):** live-ul (127.0.0.1:8000) rulează acum **build-ul NOU** cu toate fix-urile — smoke HTTP 200 + CSP prezent + nosniff (verificat). Datele tale (`date/`, `dosare/`, `cont.json`, `backups/`) **intacte**; `evaluare-anevar.exe.old` = backup-ul build-ului vechi (rollback 1 pas dacă vrei).
-- **În lucru:** re-audit LEAN (verificare buclă pe ultimele integrări SEV450/#7/I1/G1 + live) · B clauza sub-asigurare SEV450 §4 (opțional, text raport).
+- **✅ Re-audit LEAN DONE:** master SOLID (SEV450 zero leakage pe alte scopuri, #7/I1/G1 curate, live fără 500). 1 finding low = lipsă test regresie router I1 → **rezolvat**. Property scale-invarianta era prea strictă (egalitate exactă) → **toleranță 1 cent** (artefact quantize Decimal, validat de B). Clauza sub-asigurare §4 integrată (`fbf7248`).
+- **✅ BUILD+REDEPLOY #2 (FINAL):** live-ul rulează acum build-ul **cu clauza** + toate fix-urile (653 teste verzi, smoke 200+CSP+nosniff). `evaluare-anevar.exe.old` = build precedent (rollback 1 pas).
+- **În lucru:** audit **USER-JOURNEY** (faza queued cerută de tine — perspectiva evaluatorului prin app; dacă găsește recomandări MAJORE → audit app-vs-lege/norme → raport; apoi audit exhaustiv comparabile).
 - **C/E** tăcuți (taskuri non-blocante deferate).
 - **🔴 De revizuit de tine:** decizia SEV450 (valoarea asigurare CIN→CIB — aplicarea standardului, dar îți schimbă valoarea pe scop asigurare; revert 1-linie dacă nu ești de acord).
 
