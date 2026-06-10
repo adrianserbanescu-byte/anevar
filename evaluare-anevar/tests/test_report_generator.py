@@ -49,6 +49,28 @@ def _all_text(path) -> str:
     return "\n".join(parts)
 
 
+def test_gev520_inregistrare_big_conditionata_de_utilizator_desemnat(tmp_path):
+    # GEV 520 ed. 2025, par. 77-78: la utilizator desemnat ANAF (garantare in reesalonarea datoriilor)
+    # raportul NU se inregistreaza in BIG. Codul afirma acum CONDITIONAT, nu neconditionat. (Cross-check E.)
+    # creditor (default): se inregistreaza in BIG
+    out_c = tmp_path / "creditor.docx"
+    genereaza_raport(_ctx(), out_c)
+    tc = _all_text(out_c)
+    assert "se inregistreaza in Baza Imobiliara de Garantii" in tc
+    assert "NU se inregistreaza" not in tc
+    assert "Raportul se inregistreaza in BIG." in tc                  # punct de checklist (creditor)
+    # ANAF: NU se inregistreaza in BIG
+    ctx = _ctx()
+    ctx.meta.utilizator_desemnat = "ANAF"
+    out_a = tmp_path / "anaf.docx"
+    genereaza_raport(ctx, out_a)
+    ta = _all_text(out_a)
+    assert "utilizatorul desemnat ANAF" in ta
+    assert "NU se inregistreaza in Baza Imobiliara de Garantii" in ta
+    assert "Raportul se inregistreaza in BIG." not in ta             # checklistul NU mai afirma inregistrarea
+    assert "NU se inregistreaza in BIG (GEV 520 par. 77-78)" in ta   # punct de checklist (ANAF)
+
+
 def test_genereaza_raport_creeaza_fisier(tmp_path):
     out = tmp_path / "raport.docx"
     genereaza_raport(_ctx(), out)

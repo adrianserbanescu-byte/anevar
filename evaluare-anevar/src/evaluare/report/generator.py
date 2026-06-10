@@ -529,10 +529,19 @@ def _adauga_risc_garantie(doc: DocxDocument, ctx: ReportContext, adnotari: bool 
         "Lichiditate si vandabilitate: se apreciaza lichiditatea pietei locale, gradul de adecvare "
         "al proprietatii ca garantie si perioada de comercializare estimata."
     )
-    doc.add_paragraph(
-        "Inregistrare BIG: raportul, avand utilizarea desemnata de garantare a imprumutului, se "
-        "inregistreaza in Baza Imobiliara de Garantii (BIG), conform reglementarilor ANEVAR."
-    )
+    # Inregistrare BIG — conditionat de utilizatorul desemnat (GEV 520 ed. 2025, par. 77-78): raportul
+    # de garantare la REESALONAREA datoriilor (utilizator desemnat ANAF) NU se inregistreaza in BIG.
+    if ctx.meta.utilizator_desemnat == "ANAF":
+        doc.add_paragraph(
+            "Inregistrare BIG: raportul are utilizatorul desemnat ANAF (garantare in procesul de "
+            "reesalonare a datoriilor, GEV 520 par. 77-78); conform Ghidului, acest tip de raport NU se "
+            "inregistreaza in Baza Imobiliara de Garantii (BIG) a ANEVAR."
+        )
+    else:
+        doc.add_paragraph(
+            "Inregistrare BIG: raportul, avand utilizarea desemnata de garantare a imprumutului, se "
+            "inregistreaza in Baza Imobiliara de Garantii (BIG), conform reglementarilor ANEVAR."
+        )
     # B4 — Valoarea de lichidare / vanzare fortata (ceruta frecvent la garantare).
     vp = ctx.reconciled.valoare_finala
     factor = Decimal("0.85")
@@ -553,6 +562,12 @@ def _adauga_risc_garantie(doc: DocxDocument, ctx: ReportContext, adnotari: bool 
         "Checklist de conformitate — de verificat si bifat de evaluator inainte de transmitere "
         "(de aliniat la Anexa 1 a GEV 520 in vigoare):"
     )
+    # Punctul de checklist BIG — conditionat de utilizatorul desemnat (GEV 520 par. 77-78).
+    big_punct = (
+        "Raportul are utilizator desemnat ANAF -> NU se inregistreaza in BIG (GEV 520 par. 77-78)."
+        if ctx.meta.utilizator_desemnat == "ANAF"
+        else "Raportul se inregistreaza in BIG."
+    )
     for punct in (
         "Valoarea estimata este valoarea de piata (SEV 102 / IVS 104), exprimata fara TVA.",
         "Data evaluarii si data raportului sunt precizate.",
@@ -567,7 +582,7 @@ def _adauga_risc_garantie(doc: DocxDocument, ctx: ReportContext, adnotari: bool 
         "Valoarea de lichidare / vanzare fortata a fost estimata.",
         "Comparabilele provenite din oferte au fost ajustate la nivel de tranzactie.",
         "Sursele de date sunt mentionate si verificabile.",
-        "Raportul se inregistreaza in BIG.",
+        big_punct,
         "Evaluatorul este autorizat ANEVAR si detine asigurare de raspundere profesionala.",
         "Declaratia de conformitate si de independenta este semnata.",
     ):
