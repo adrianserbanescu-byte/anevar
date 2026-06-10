@@ -465,3 +465,26 @@ def test_sev450_asigurare_valoare_cib_brut_nu_cin_net(tmp_path):
     genereaza_raport(ctx, out)
     text = _all_text(out)
     assert "SEV 450" in text and "reconstruc" in text.lower()
+
+
+def test_sev450_raport_asigurare_contine_clauza_subasigurare(tmp_path):
+    # SEV 450 §4: raportul de evaluare pentru asigurare contine clauza de SUBASIGURARE (proportionalitate).
+    from evaluare.assembler import EvaluationInput, construieste_context
+    inp = EvaluationInput(
+        meta={"client_nume": "Ion", "adresa": "A", "numar_cadastral": "1", "carte_funciara": "CF",
+              "evaluator_nume": "E", "evaluator_legitimatie": "1", "data_evaluarii": "2026-01-01",
+              "data_raportului": "2026-01-01", "tip_valoare": "asigurare"},
+        land={"suprafata": "500"},
+        building={"au": "100", "acd": "120", "an_referinta": 2025,
+                  "elements": [{"element": "S", "cod": "X", "um": "mp", "cantitate": "120",
+                                "cost_unitar": "2000", "an_pif": 2015}],
+                  "depreciation_points": [{"varsta": 5, "depreciere": "0.05"}]},
+        metoda="cost", scop="asigurare")
+    out = tmp_path / "asig.docx"
+    genereaza_raport(construieste_context(inp, client=None), out)
+    text = _all_text(out)
+    assert "SUBASIGURARE" in text.upper() and "proportional" in text.lower()
+    # profilul de garantare NU primeste clauza (specifica asigurarii)
+    out2 = tmp_path / "gar.docx"
+    genereaza_raport(_ctx(), out2)
+    assert "CLAUZA DE SUBASIGURARE" not in _all_text(out2)

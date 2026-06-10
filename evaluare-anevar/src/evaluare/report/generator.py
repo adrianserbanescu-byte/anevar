@@ -511,6 +511,23 @@ def _adauga_alocare(doc: DocxDocument, ctx: ReportContext, adnotari: bool = Fals
             ).bold = True
 
 
+def _adauga_clauza_subasigurare(doc: DocxDocument, ctx: ReportContext, adnotari: bool = False) -> None:
+    """Clauza de subasigurare (SEV 450, par. 4 — regula proportionalitatii). Specifica evaluarii pentru
+    asigurare: avertizeaza ca o suma asigurata sub costul de reconstructie reduce proportional despagubirea."""
+    doc.add_heading("CLAUZA DE SUBASIGURARE (SEV 450)", level=1)
+    doc.add_paragraph(
+        "Suma asigurata ar trebui sa corespunda valorii de asigurare (costul de reconstructie / de inlocuire "
+        "BRUT) estimate in prezentul raport. Daca, la data producerii unei daune, suma asigurata este mai "
+        "mica decat costul de reconstructie, despagubirea se reduce PROPORTIONAL cu raportul dintre suma "
+        "asigurata si costul de reconstructie (regula proportionalitatii / a subasigurarii), conform "
+        "conditiilor politei de asigurare."
+    )
+    doc.add_paragraph(
+        "Se recomanda actualizarea periodica a sumei asigurate, pentru a reflecta evolutia costurilor de "
+        "constructie si a evita subasigurarea."
+    )
+
+
 def _adauga_risc_garantie(doc: DocxDocument, ctx: ReportContext, adnotari: bool = False) -> None:
     doc.add_heading("RISCUL ASOCIAT GARANTIEI (GEV 520)", level=1)
     _nota(doc, "gev520", adnotari)
@@ -817,6 +834,8 @@ def genereaza_raport(
     _adauga_alocare(doc, ctx, adnotari)
     if ctx.profil.ghid == "GEV_520":   # sectiunea de risc e specifica garantarii imprumutului
         _adauga_risc_garantie(doc, ctx, adnotari)
+    if ctx.profil.ghid == "SEV_450":   # clauza de subasigurare e specifica evaluarii pentru asigurare
+        _adauga_clauza_subasigurare(doc, ctx, adnotari)
     _adauga_anexe(doc, ctx, adnotari)
     _adauga_semnatura(doc, ctx, adnotari)
 
