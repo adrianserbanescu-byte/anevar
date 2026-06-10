@@ -34,8 +34,8 @@ class Comparable(BaseModel):
     """Un comparabil de piata (proprietate intreaga)."""
 
     sursa: str = "manual"               # "manual" sau URL
-    pret: Decimal
-    suprafata: Decimal                  # mp (numitorul pentru pretul unitar)
+    pret: Decimal = Field(gt=0)
+    suprafata: Decimal = Field(gt=0)    # mp (numitorul pentru pretul unitar)
     tip_oferta: Literal["oferta", "tranzactie"] = "oferta"
     data_oferta: str | None = None
     adjustments: list[Adjustment] = Field(default_factory=list)
@@ -44,8 +44,8 @@ class Comparable(BaseModel):
 class LandComparable(BaseModel):
     """Un comparabil de teren."""
 
-    pret_mp: Decimal
-    suprafata: Decimal
+    pret_mp: Decimal = Field(gt=0)
+    suprafata: Decimal = Field(gt=0)
     localizare: str | None = None
     data: str | None = None
     adjustments: list[Adjustment] = Field(default_factory=list)
@@ -60,7 +60,7 @@ class RentComparable(BaseModel):
     """
 
     chirie_mp: Decimal = Field(gt=0)
-    suprafata: Decimal
+    suprafata: Decimal = Field(gt=0)
     localizare: str | None = None
     data: str | None = None
     adjustments: list[Adjustment] = Field(default_factory=list)

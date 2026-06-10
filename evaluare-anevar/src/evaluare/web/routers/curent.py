@@ -172,10 +172,16 @@ def build_router(d: Deps) -> APIRouter:
         except KeyError:
             raise HTTPException(404, "Dosar inexistent.") from None
         ctx = _context(inp)
+        # valideaza() era IN AFARA garzii _context -> date degenerate ridicau 500; o aducem sub
+        # aceeasi protectie 422 (audit B). gt=0 pe comparabile prinde deja suprafata/pret=0 la parsare.
+        try:
+            alerte = [a.model_dump() for a in valideaza(inp, _metodologie_cfg())]
+        except (ValueError, ArithmeticError) as e:
+            raise HTTPException(422, f"Date insuficiente sau invalide pentru calcul: {e}") from e
         return {
             "valoare_finala": str(ctx.reconciled.valoare_finala),
             "metoda": ctx.reconciled.metoda_selectata,
-            "alerte": [a.model_dump() for a in valideaza(inp, _metodologie_cfg())],
+            "alerte": alerte,
         }
 
     @router.post("/api/dosar/{uid}/audit.txt")

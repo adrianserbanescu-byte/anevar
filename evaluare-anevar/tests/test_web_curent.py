@@ -367,6 +367,21 @@ def test_fetch_html_blocheaza_redirect_spre_intern(monkeypatch):
         assert "SSRF" in str(e)
 
 
+def test_comparabile_resping_suprafata_si_pret_zero():
+    # audit B: comparabil cu suprafata/pret 0 (sau negativ) -> respins la validare (Field gt=0), nu 500
+    # din DivisionByZero in market.py / pret_unitar_brut.
+    from pydantic import ValidationError
+
+    from evaluare.models.comparable import Comparable, LandComparable, RentComparable
+    for kw in ({"pret": 100, "suprafata": 0}, {"pret": 0, "suprafata": 100}):
+        with pytest.raises(ValidationError):
+            Comparable(**kw)
+    with pytest.raises(ValidationError):
+        LandComparable(pret_mp=0, suprafata=100)
+    with pytest.raises(ValidationError):
+        RentComparable(chirie_mp=10, suprafata=0)
+
+
 def test_cnp_redaction_prefix_9():
     from evaluare.ai import narrative
     rx = narrative._PII_REZIDUAL[0][0]
