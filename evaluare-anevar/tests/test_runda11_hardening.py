@@ -47,3 +47,17 @@ def test_import_docx_nume_fisier_invalid_nu_500(tmp_path):
     continut = base64.b64encode(b"PK\x03\x04 x").decode()
     r = c.post("/api/dosar/import-docx", json={"nume_fisier": '..\\..\\<>:"|?*.docx', "continut": continut})
     assert r.status_code < 500
+
+
+def test_dcf_fluxuri_cap_anti_dos():
+    # DateDCF.fluxuri fara limita -> evalueaza_dcf factor**t O(n^2) -> hang (RUNDA 11). Cap 200.
+    from decimal import Decimal
+
+    import pytest
+    from pydantic import ValidationError
+
+    from evaluare.engine.venit import DateDCF
+    DateDCF(fluxuri=[Decimal("1")] * 200, rata_actualizare=Decimal("0.1"))          # 200 = OK
+    with pytest.raises(ValidationError):
+        DateDCF(fluxuri=[Decimal("1")] * 201, rata_actualizare=Decimal("0.1"))      # >200 -> respins
+
