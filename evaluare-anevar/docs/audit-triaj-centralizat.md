@@ -1,85 +1,53 @@
 # Triaj centralizat audituri — single source of truth (menținut de A)
 
-Scop: **nimic nu scapă.** A centralizează toate findings-urile (runde 1–2–3 + descoperire) de la toate sesiunile (A/B/C/D/E), decide owner-ul, urmărește statusul până la REZOLVAT/DISPATCHED/DEFERAT/FALSE-POSITIVE. Actualizat la fiecare buclă.
+Scop: **nimic nu scapă.** A centralizează toate findings-urile (runde 1–2–3 + descoperire) de la A/B/C/D/E, decide owner-ul + integrează tot pe master. A = punct central, decizie + integrator unic (mandat Adi). Actualizat la fiecare buclă.
 
-Legendă status: ✅ rezolvat+comis · ▶ în lucru (A) · 📨 dispatched (lane) · ⏸️ deferat (pre-launch/comercial/jurist — doar notat) · ❌ false-positive (verificat)
+Legendă: ✅ rezolvat+comis · ▶ în lucru A · 📨 dispatched (lane, GO implementare pe branch → A integrează) · ⏸️ deferat (pre-launch — notat) · ❌ false-positive
 
 ---
 
-## RUNDA 1–2 — findings & status
-
-### ✅ Rezolvate de A (comise pe master)
-| Finding | Sursă | Commit |
-|---|---|---|
-| PyMuPDF AGPL → pypdf (BSD) — deblochează distribuția | D r2 (licențe) | `382142b` |
-| SSRF prin redirect — re-validare fiecare Location | B r1 + SAST | `d21d6a1` |
-| suprafață=0/preț=0 → 500 — `Field(gt=0)` + valideaza în gardă | B r1 | `7f506eb` |
-| Security headers (CSP/nosniff/X-Frame/Referrer/Permissions) + Server | C r2 + D r2 | `eae9334` |
-| GitHub Actions checkout v5 + handler mort `la-anexe` | D r1 + C r1 | `9634937` |
-| `beneficiar`→AI anonimizat | GDPR r2 + SAST | `d5c28a0` |
-
-### 📨 Dispatched pe lane
-| Finding | Lane | Stare |
-|---|---|---|
-| Chirii M2 (mediere top-N ca piață/teren) | B | GO dat (sesiune-b) |
-| GEV 520 ed.2025 (BIG/ANAF + secțiuni noi) | B | forwardat (branch GEV_520) |
-| Rotunjire valori grilă (28 zecimale în API/snapshot) | B | de dispatchat |
-| Gardă valori negative (ajustări extreme/DCF/alocare) | B | de dispatchat |
-| ruff `_e2e.py`/`_usability_audit.py` | D | dispatchat (tooling D) |
-| Race LibreOffice xdist (UserInstallation profil partajat) | D | dispatchat (P1) |
-| Perf settings/narrative 31s (mock anthropic) | D | dispatchat (P2) |
-| Starlette httpx2 deprecation | D | dispatchat (P3) |
-
-### ▶ În coadă la A (current-state, voi rezolva)
-| Finding | Notă |
+## ✅ REZOLVAT de A pe master (8 fix-uri + 2 integrări)
+| Finding | Commit |
 |---|---|
-| 403-logging pe respingeri host/CSRF | NIT — app.py n-are logger, mic |
-| temp-files nume predictibile → `mkdtemp` | SAST L1 — hardening multi-user |
-| OCR niciodată invocat → PDF scanat = text gol silențios | quality — semnal UI |
-| feedback widget arată „✓" pe save local eșuat | quality — simbol avertizare |
+| PyMuPDF AGPL → pypdf | `382142b` |
+| SSRF redirect re-validare | `d21d6a1` |
+| suprafață/preț=0 → 422 (`gt=0`) | `7f506eb` |
+| Security headers CSP/nosniff/X-Frame/Referrer/Permissions | `eae9334` |
+| GH-Actions v5 + `la-anexe` mort | `9634937` |
+| `beneficiar`→AI anonimizat | `d5c28a0` |
+| 403-logging host/CSRF | `0e14b23` |
+| Audit clock UTC (jurnal, imun DST) | `dc3b8b0` |
+| **Integrare B**: chirii M2 + filtru localitate diacritice (sar duplicatele suprafață/SSRF) | `cc31fbf`,`ca77f83` |
+| **Integrare C**: M2 UI (alertă pe TOATE mediatele — fix integritate B) | `007c19e` |
+| **Integrare docs** E (GEV520/SEV2025/PyMuPDF/SRI) + D (strategie-testare) | `8cd3715`,`bc360ae` |
 
-### ⏸️ Deferate (pre-launch/comercial/jurist — doar NOTATE, NU blochez)
-| Finding | De ce deferat |
+## 📨 DISPATCHED — plan discovery (GO implementare pe branch, raport → A integrează)
+**B** (motor): venit în reconciliere ponderată (assembler.py:181 — divergență grilă↔valoare) · property-based Hypothesis pe engine · cost.py rotunjire prag Dfn · pyright src/ · SEV106 §30.6 test 18 elem · prompt-injection indirect AI · spec-to-code-compliance · GEV520#1 ANAF.
+**C** (UI/a11y): WCAG 2.2 delta (9 criterii) · diacritice RO round-trip export .docx/PDF (cp1252) · webapp-testing suită structurată · M14 modularizare dosar.html.
+**D** (testare/CI): job securitate CI (pip-audit+bandit+pre-commit) · a11y axe-core CI · differential-review gate diff · fuzzing parsere (Hypothesis) · mutation-testing engine/aml · reproductibilitate build + offline-guard.
+**E** (privacy): LINDDUN threat modeling · data-retention+DSAR/erasure · zeroize-audit PII memorie.
+
+## ▶ ÎN LUCRU / COADĂ A (security-infra)
+| Task | Stare |
 |---|---|
-| Rotire cheie Perplexity (`.env`) | comercial/pre-launch (app în development) |
-| Semnare cod Windows (SmartScreen) | comercial (abonament) — pre-launch |
-| DPA/SCC transfer AI | juridic — jurist |
-| CNP/KYC criptat at-rest | pre-launch hardening |
-| Adresă brută→AI la `zona.py` (extragere județ/loc) | adresa E input-ul funcției; offline=fallback; jurist notează în GDPR |
-| `/docs`/`/redoc`/`openapi` off pe build prod | pre-launch (utile în dev acum) |
-| Nota GDPR „DOAR anonimizat" (onestitate) | bucket C — jurist (doc e MODEL/DRAFT) |
-| Anexe AML `liste.json` placeholder sancțiuni/PEP | bucket C — jurist/loop |
+| SAST profund (Semgrep Pro / CodeQL taint cross-file) | agent rulează (background) |
+| SBOM cyclonedx-py în pipeline build | coadă |
+| gitleaks/trufflehog pe ISTORIA git (626 commit-uri) | coadă |
+| `--require-hashes` + NOTICE/THIRD-PARTY-LICENSES | coadă |
+| temp-files → mkdtemp · OCR signal · feedback ✓-pe-eșec | coadă (quality) |
 
-### ❌ False-positives (verificate, fără acțiune)
-- **D Semgrep SAST (8 raw → 0 TP):** SQL f-string pe int controlat (`db/storage.py:80`); subprocess listă-args shell=False (`report/pdf.py:37`); 6× Jinja `|safe` cu source hardcodat (escape complet în `md_to_html`). Cod matur.
-- Empty-catch-uri best-effort (showPicker/localStorage/sendBeacon/lock-ping) — corecte.
-- Cod mort „detectat" = routere FastAPI via include_router / IIFE-uri numite — false-positives.
+## ⏸️ DEFERAT (pre-launch — escaladat la Adi, NU blochez)
+Encryption-at-rest CNP (BitLocker/SQLCipher/disclaimer) · code-signing .exe (SmartScreen) · rotire cheie Perplexity · DPA/SCC · zona adresă→AI (jurist) · /docs-off prod · notă GDPR (jurist) · AML liste.json (jurist).
 
----
+## 🔜 QUEUED — audituri end-of-pipeline (cerință Adi, după ce TOT e implementat)
+1. **User-journey audit** (A) → dacă recomandări majore → **audit app vs lege/norme/legislație nouă** → raport Adi.
+2. **Audit exhaustiv comparabile** (descoperire online): cerințele mele directe+aprobate vs realitate → **implementez fără aprobare** (rol A).
 
-## RUNDA 3 — research A (online project-help) → dispatch pe lane
-| # | Acțiune | Lane |
-|---|---|---|
-| H1 | SEV 2025 (SEV 100/105/106 + declarație conformitate IVS + ESG) | B |
-| H2 | Factori ESG/eficiență energetică (CPE) în garanție (EBA+IVS) | B |
-| H3 | Semnare cod Windows | A (⏸️ comercial) |
-| H4 | Schemathesis (contract/fuzz pe openapi.json) | D |
-| M5 | Atheris fuzz pe parsere (pypdf/url/extractor) | D |
-| M6 | mutmut mutation testing pe `engine/` | D |
-| M7 | Hypothesis property-based pe invarianți | D |
-| M8 | Logging structurat JSON + correlation-id | A |
-| M9 | Raport diagnostic local opt-in | A |
-| M10 | Update offline semnat (tufup) | A |
-| M11 | ANAF webservice (validare CUI beneficiar) | A/B (coord AML) |
-| M12 | INS TEMPO-Online (date piață reale) | B |
-| M13 | Parser BNR regex→XML real (defusedxml) | B/A |
-| M14 | Modularizare dosar.html (1224 linii) + generator.py | C/A/B |
-| L15–L19 | exe-size, profiling, ANCPI deep-link, a11y polish, onboarding | A/C |
+## ❌ FALSE-POSITIVES (verificate)
+- Semgrep OSS 8→0 TP (SQL int controlat, subprocess listă-args, 6× Jinja |safe hardcodat).
+- **model-id `claude-sonnet-4-6` (narrative.py:252)** = VALID (Sonnet 4.6 există); workflow-ul avea cunoștințe vechi → NU se „repară".
+- Empty-catch best-effort · cod-mort = routere/IIFE.
 
----
-
-## PENDING (în zbor)
-- **Workflow descoperire A** (`w8fkqwo3m`): tipuri audit online + skills + plugins + re-run-tool-mai-bun + verificări proiect → plan dispatch + listă instalat.
-- **B/C/D/E:** re-run TOATE auditurile + tool-uri noi → raport la A.
-- Când aterizează: instalez utilul · dispatch consolidat pe lane · integrez · **build nou** · reiau bucla.
+## Buclă
+B/C/D/E implementează pe branch → raport → A integrează (cherry-pick/merge, sar duplicatele) → suită verde → push → tracker update → când TOT e gata: **build nou** + audituri end-of-pipeline → reia. Redirecționez taskuri blocate (sesiune mută) către alta — dezvoltarea nu se oprește.
 </content>
