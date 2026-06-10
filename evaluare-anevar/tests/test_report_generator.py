@@ -396,3 +396,35 @@ def test_raport_afiseaza_nota_reconciliere(tmp_path):
     genereaza_raport(ctx, out)
     text = _all_text(out)
     assert "Notă privind reconcilierea" in text and "venit" in text
+
+
+def test_sev106_raport_contine_cele_18_elemente_obligatorii(tmp_path):
+    # SEV 106 §30.6 (continutul minim al raportului de evaluare): test STRUCTURAL ca raportul contine
+    # cele 18 elemente obligatorii. Test de completitudine — prinde regresii care scot vreun element.
+    out = tmp_path / "r.docx"
+    genereaza_raport(_ctx(), out)
+    t = _all_text(out)
+    tl = t.lower()
+    elemente = {
+        "1. evaluator (nume + legitimatie)": "Maria Ionescu" in t and "19567" in t,
+        "2. client": "Ion Popescu" in t,
+        "3. scopul evaluarii": "garantarea" in tl or "scop" in tl,
+        "4. identificarea proprietatii (adresa)": "Str. Exemplu" in t,
+        "5. nr. cadastral + carte funciara": "123456" in t and "CF123456" in t,
+        "6. tipul valorii (SEV 102)": "SEV 102" in t or "valoare de piat" in tl,
+        "7. data evaluarii si a raportului": "2026-01-16" in t,
+        "8. ipoteze (generale si speciale)": "ipotez" in tl,
+        "9. abordarile / metodele aplicate": "abordare" in tl or "metodelor" in tl,
+        "10. reconcilierea rezultatelor": "reconcili" in tl,
+        "11. valoarea finala estimata": "valoarea estimata" in tl or "valoarea finala" in tl,
+        "12. declaratia de conformitate": "conformitate" in tl,
+        "13. restrictii de utilizare / utilizator desemnat": (
+            "exclusiv" in tl or "desemnat" in tl or "difuzar" in tl),
+        "14. conformitatea cu standardele SEV/IVS": "SEV" in t,
+        "15. dreptul de proprietate evaluat": "drept" in tl,
+        "16. amploarea inspectiei / investigatiei": "inspect" in tl or "investiga" in tl,
+        "17. cea mai buna utilizare (CMBU)": "cmbu" in tl or "cea mai buna utilizare" in tl,
+        "18. precizarea fara TVA": "tva" in tl,
+    }
+    lipsa = [k for k, ok in elemente.items() if not ok]
+    assert not lipsa, f"Elemente SEV 106 §30.6 lipsa din raport: {lipsa}"
