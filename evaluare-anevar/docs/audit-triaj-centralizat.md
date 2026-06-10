@@ -55,7 +55,9 @@ Legendă: ✅ rezolvat+comis · ▶ în lucru A · 📨 dispatched (lane, GO imp
 | #4 GEV520 `utilizator_desemnat` nesetabil prin UI (API-settable; ANAF dead) | P2 | ⏸️ defer (scop rar, default creditor corect) |
 | #6 LIVE rulează build vechi (headers absente, 60 fail schemathesis) | P3 | → build+redeploy |
 
-**Pending:** workflow A 8-dim (verify) + C/E re-audit → centralizez + verdict final + re-audit loop.
+**Plan-tasks + E-findings rezolvate (B/A):** SEV106 §30.6 = **18/18 elemente prezente** ✅ (`83197cb`) · `report/sectiuni.py` cod mort ȘTERS ✅ (`a05c91c`, + raportare_financiara-fără-generator) · prompt-injection indirect HARDENING ✅ (A, `8446a6c` — text scrapat încadrat untrusted + delimitat). **B continuă:** #7 spec-compliance · SEV450 · SEV100.
+**Re-audit A:** workflow 8-dim = runaway (67 agenți, over-generating) → **oprit**; înlocuit cu **agent focusat** (security/GDPR/coerență — dimensiunile neatinse de fleet) — rulează.
+**Pending:** agent focusat + B (#7/SEV450/SEV100) + C/E → verdict final + build+redeploy (#6) + re-audit lean (loop).
 
 ## 📨 DISPATCHED — plan discovery (GO implementare pe branch, raport → A integrează)
 **B** (motor): venit în reconciliere ponderată (assembler.py:181 — divergență grilă↔valoare) · property-based Hypothesis pe engine · cost.py rotunjire prag Dfn · pyright src/ · SEV106 §30.6 test 18 elem · prompt-injection indirect AI · spec-to-code-compliance · GEV520#1 ANAF.
