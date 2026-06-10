@@ -79,6 +79,13 @@ def create_app(storage: Storage, client: NarrativeClient | None,
                     log.warning("Acces respins (CSRF cross-site, posibil sondaj): %s", origin)
                     return PlainTextResponse("Acces respins: cerere cross-site blocată (CSRF).",
                                              status_code=403)
+        # Plafon global de dimensiune corp (anti-DoS, RUNDA 11): un corp de zeci/sute de MB pe campuri
+        # nemarginite (import-anunt.html, photos/documente, wizard dict) ar cauza OOM/hang la
+        # deserializare. Upload-urile dedicate au deja garda 35MB pe payload; aici plafonam corpul brut.
+        cl = request.headers.get("content-length")
+        if cl and cl.isdigit() and int(cl) > 50_000_000:        # ~50 MB (peste max-ul legitim de upload)
+            log.warning("Corp respins (prea mare, posibil DoS): %s bytes", cl)
+            return PlainTextResponse("Corp prea mare (limită ~50 MB).", status_code=413)
         resp = await call_next(request)
         # Security headers (defense-in-depth, audit C/D): nosniff + anti-clickjacking + referrer +
         # permissions + CSP. CSP = al 4-lea strat anti-XSS peste escapeHtml/urlSafe/teste; permite

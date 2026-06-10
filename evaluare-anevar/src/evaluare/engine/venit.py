@@ -27,7 +27,9 @@ class RezultatVenit(BaseModel):
 class DateDCF(BaseModel):
     """Intrari DCF: fluxuri anuale + rata de actualizare + valoare reziduala."""
 
-    fluxuri: list[Decimal]
+    # cap anti-DoS (RUNDA 11): evalueaza_dcf face factor**t in loop -> O(n^2) pe cifre Decimal;
+    # un DCF imobiliar real are <50 perioade. 200 = generos, blocheaza blowup-ul de calcul.
+    fluxuri: list[Decimal] = Field(max_length=200)
     rata_actualizare: Decimal
     valoare_reziduala: Decimal = Decimal("0")
 

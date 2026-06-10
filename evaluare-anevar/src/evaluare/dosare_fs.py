@@ -92,8 +92,15 @@ def _scrie_atomic(cale: Path, text: str) -> None:
 
 
 def _scrie(uid: str, dosar: dict) -> None:
-    _scrie_atomic(_cale(uid) / "dosar.json",
-                  json.dumps(dosar, ensure_ascii=False, indent=2))
+    # TOCTOU (F-2, hardening concurenta): intre `incarca` si `_scrie`, alta cerere poate STERGE
+    # folderul (/sterge -> rmtree). Atunci `_scrie_atomic` scrie intr-un folder inexistent ->
+    # FileNotFoundError NEHANDELAT -> 500. Il traducem in KeyError („dosar inexistent"), pe care
+    # rutele il mapeaza deja la 404 — un dosar sters concurent nu mai e o eroare de server.
+    try:
+        _scrie_atomic(_cale(uid) / "dosar.json",
+                      json.dumps(dosar, ensure_ascii=False, indent=2))
+    except FileNotFoundError as e:
+        raise KeyError(f"Dosar inexistent (sters concurent): {uid}") from e
 
 
 def incarca(uid: str) -> dict:

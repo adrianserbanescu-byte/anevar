@@ -6,6 +6,7 @@ nu în SQLite. Vezi docs/specs/1-ui-output-first.md.
 from __future__ import annotations
 
 import contextlib
+import re
 import tempfile
 import uuid
 from pathlib import Path
@@ -29,6 +30,14 @@ from evaluare.web.deps import DOCX_MIME, Deps
 from evaluare.web.schemas import ContRequest, DosarNouRequest, ImportDocxRequest
 
 log = get_logger(__name__)
+
+
+def _nume_fisier_sigur(nume: str, implicit: str) -> str:
+    """Nume de fisier sigur dintr-un nume controlat de user (.docx import/submis). `.name` taie
+    traversal-ul de director; caracterele invalide Windows/control -> '_'; cap la 150 char. Evita
+    OSError la write_bytes pe nume prea-lung (>255) sau invalid -> 500 (RUNDA 11)."""
+    baza = re.sub(r'[<>:"/\\|?*\x00-\x1f]', "_", Path(nume or "").name).strip(". ")
+    return baza[:150] or implicit
 
 
 def build_router(d: Deps) -> APIRouter:
@@ -119,7 +128,7 @@ def build_router(d: Deps) -> APIRouter:
         tmpdir = Path(tempfile.gettempdir()) / f"anevar-import-{_uuid.uuid4().hex}"
         tmpdir.mkdir(parents=True, exist_ok=True)
         try:
-            tmp = tmpdir / (Path(req.nume_fisier).name or "import.docx")
+            tmp = tmpdir / _nume_fisier_sigur(req.nume_fisier, "import.docx")
             tmp.write_bytes(raw)
             wizard = extrage_din_docx(tmp)   # robust: docx ilizibil -> degradează la parsarea numelui
             uid = fs.creeaza(cont["legitimatie"], cont["nume"], wizard,
@@ -306,7 +315,7 @@ def build_router(d: Deps) -> APIRouter:
         tmpdir = Path(tempfile.gettempdir()) / f"anevar-submis-{_uuid.uuid4().hex}"
         tmpdir.mkdir(parents=True, exist_ok=True)
         try:
-            tmp = tmpdir / (Path(req.nume_fisier).name or "submis.docx")
+            tmp = tmpdir / _nume_fisier_sigur(req.nume_fisier, "submis.docx")
             tmp.write_bytes(raw)
             versiune = fs.adauga_versiune_docx(uid, tmp, tip="submis")
         finally:
