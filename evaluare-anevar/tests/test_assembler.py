@@ -1,6 +1,12 @@
 from decimal import Decimal
 
-from evaluare.assembler import EvaluationInput, construieste_context, valideaza
+from evaluare.assembler import (
+    EvaluationInput,
+    construieste_context,
+    valideaza,
+    valideaza_din_context,
+    valoare_imposibila,
+)
 from evaluare.models.comparable import Adjustment, Comparable, LandComparable
 from evaluare.models.meta import EvaluationMeta
 from evaluare.models.property import BuildingData, CostElement, DepreciationPoint, LandData
@@ -97,3 +103,68 @@ def test_valideaza_cost_nu_cere_comparabile():
     issues = valideaza(inp)
     # fara comparabile dar metoda cost -> nu blocheaza pe numarul de comparabile
     assert not any(i.nivel == "blocheaza" and "comparabile" in i.mesaj.lower() for i in issues)
+
+
+# ── Garda de VALOARE imposibila (decizia owner 2026-06-10) ────────────────────────────────────────
+def _inp_piata(adj_pct: str) -> EvaluationInput:
+    """Grila de piata cu 3 comparabile; primul are o ajustare de proprietate `adj_pct`."""
+    return EvaluationInput(
+        meta=_meta(), land=LandData(suprafata=Decimal("500")),
+        building=BuildingData(au=Decimal("100"), acd=Decimal("120"), an_referinta=2025),
+        comparables=[
+            Comparable(pret=Decimal("100000"), suprafata=Decimal("100"),
+                       adjustments=[Adjustment(element="x", tip="procentuala",
+                                               valoare=Decimal(adj_pct), etapa="proprietate")]),
+            Comparable(pret=Decimal("100000"), suprafata=Decimal("100")),
+            Comparable(pret=Decimal("100000"), suprafata=Decimal("100")),
+        ],
+        metoda="piata",
+    )
+
+
+def test_valoare_imposibila_finala_negativa():
+    # ajustare -5.0 -> corectat = -400000; media (−400000+100000+100000)/3 = −66666.67 < 0
+    ctx = construieste_context(_inp_piata("-5.0"), client=None)
+    assert ctx.reconciled.valoare_finala < 0
+    inv = valoare_imposibila(ctx)
+    assert any("Valoarea finala" in i.mesaj and i.nivel == "blocheaza" for i in inv)
+    assert any("corectat" in i.mesaj and i.nivel == "blocheaza" for i in inv)
+
+
+def test_valoare_imposibila_pret_corectat_negativ_dar_finala_pozitiva():
+    # ajustare -1.20 -> corectat = -20000 (<=0), dar media (−20000+100000+100000)/3 = 60000 > 0
+    ctx = construieste_context(_inp_piata("-1.20"), client=None)
+    assert ctx.reconciled.valoare_finala > 0          # finala POZITIVA...
+    inv = valoare_imposibila(ctx)
+    assert any("corectat" in i.mesaj for i in inv)    # ...dar grila e poluata de un pret corectat <=0
+    assert not any("Valoarea finala" in i.mesaj for i in inv)
+
+
+def test_valoare_imposibila_goala_pe_grila_valida():
+    ctx = construieste_context(_inp_piata("0.05"), client=None)   # ajustare benigna -> totul pozitiv
+    assert valoare_imposibila(ctx) == []
+
+
+def test_valoare_imposibila_exclude_blocaje_de_date():
+    # Au>Acd e blocheaza de DATE, dar valoarea ramane pozitiva -> NU e «valoare imposibila»
+    # (ramane advisory in /calcul, decizia re-audit I1). Carve-out-ul prinde doar valori invalide.
+    inp = EvaluationInput(
+        meta=_meta(), land=LandData(suprafata=Decimal("500")),
+        building=_building_with_elements(), valoare_teren=Decimal("100000"), metoda="cost",
+    )
+    inp.building.au = Decimal("200")                  # Au(200) > Acd(120) -> blocheaza de DATE
+    ctx = construieste_context(inp, client=None)
+    assert ctx.reconciled.valoare_finala > 0
+    assert valoare_imposibila(ctx) == []              # niciun blocaj de VALOARE
+    assert any("Au" in i.mesaj and i.nivel == "blocheaza" for i in valideaza(inp))  # dar E blocaj de date
+
+
+def test_valideaza_din_context_oglindeste_valideaza():
+    # endpointul vechi nu mai are inputul brut -> valideaza_din_context(ctx) trebuie sa dea ACELASI
+    # set de blocaje ca valideaza(inp). Caz cu un blocaj de date (Au>Acd) pe grila de piata.
+    inp = _inp_piata("0.05")
+    inp.building.au = Decimal("200")                  # Au>Acd
+    ctx = construieste_context(inp, client=None)
+    din_inp = sorted(i.mesaj for i in valideaza(inp) if i.nivel == "blocheaza")
+    din_ctx = sorted(i.mesaj for i in valideaza_din_context(ctx) if i.nivel == "blocheaza")
+    assert din_inp == din_ctx and din_inp            # identice si nevide (Au>Acd prezent)

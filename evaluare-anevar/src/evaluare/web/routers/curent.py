@@ -15,7 +15,12 @@ from fastapi.responses import FileResponse, HTMLResponse
 
 from evaluare import cont as cont_mod
 from evaluare import dosare_fs as fs
-from evaluare.assembler import EvaluationInput, construieste_context, valideaza
+from evaluare.assembler import (
+    EvaluationInput,
+    construieste_context,
+    valideaza,
+    valoare_imposibila,
+)
 from evaluare.engine import metodologie_store
 from evaluare.engine.metodologie import ca_dict
 from evaluare.logging_setup import get_logger
@@ -99,7 +104,10 @@ def build_router(d: Deps) -> APIRouter:
         cont = cont_mod.incarca_cont()
         if cont is None:
             raise HTTPException(403, "Creează întâi un cont.")
-        payload = req.continut.split(",", 1)[1] if req.continut.startswith("data:") else req.continut
+        # `and "," in ...`: data-URL fara virgula ("data:") ramane intreg -> b64decode il respinge
+        # (400 clar) in loc de IndexError pe [1] -> 500 (aceeasi clasa RUNDA 9 ca /api/ingestie).
+        payload = (req.continut.split(",", 1)[1]
+                   if req.continut.startswith("data:") and "," in req.continut else req.continut)
         if len(payload) > 35_000_000:            # ~26 MB după decodare — limită anti-DoS
             raise HTTPException(413, "Fișier prea mare (limită ~25 MB).")
         try:
@@ -172,6 +180,14 @@ def build_router(d: Deps) -> APIRouter:
         except KeyError:
             raise HTTPException(404, "Dosar inexistent.") from None
         ctx = _context(inp)
+        # Garda de VALOARE imposibila (decizia owner 2026-06-10): un blocaj de DATE (Au>Acd etc.) ramane
+        # advisory aici (200 + alerta, decizia re-audit I1), DAR o valoare matematic imposibila — finala
+        # <=0 sau pret corectat <=0 care polueaza grila — NU se emite nici provizoriu (un pret negativ nu
+        # e o estimare utila). 422 peste tot, nu doar la raport. Vezi assembler.valoare_imposibila.
+        invalide = valoare_imposibila(ctx)
+        if invalide:
+            raise HTTPException(422, "Calcul invalid (valoare imposibila): "
+                                + "; ".join(i.mesaj for i in invalide))
         # valideaza() era IN AFARA garzii _context -> date degenerate ridicau 500; o aducem sub
         # aceeasi protectie 422 (audit B). gt=0 pe comparabile prinde deja suprafata/pret=0 la parsare.
         try:
@@ -242,10 +258,16 @@ def build_router(d: Deps) -> APIRouter:
         # Enforce nivel="blocheaza" (re-audit I1): un raport SEMNABIL de garantare NU se genereaza daca
         # exista probleme BLOCANTE (ex. comparabil cu pret corectat <=0). In /calcul ramane advisory
         # (evaluatorul vede valoarea+alerta); aici, la documentul OFICIAL, se BLOCHEAZA generarea.
+        # Garda blocheaza pe DOUA validatori: valideaza(inp) (date) + validarea incrucisata (ex. valoare
+        # finala <=0, pe care valideaza() NU o prinde) — altfel un raport oficial putea iesi pe o valoare
+        # negativa fara comparabil <=0. FAIL-CLOSED: daca validarea ridica, blocam raportul (422), NU il
+        # generam mut (bug-ul vechi: except -> blocante=[] -> raport emis pe validare esuata).
+        from evaluare.audit.validare_x import valideaza_incrucisat
         try:
             blocante = [i for i in valideaza(inp, _metodologie_cfg()) if i.nivel == "blocheaza"]
-        except (ValueError, ArithmeticError):
-            blocante = []
+            blocante += [i for i in valideaza_incrucisat(ctx) if i.nivel == "blocheaza"]
+        except (ValueError, ArithmeticError) as e:
+            raise HTTPException(422, f"Validare esuata; raport blocat (fail-closed): {e}") from e
         if blocante:
             raise HTTPException(422, "Raport blocat: corectati problemele blocante inainte de generare — "
                                 + "; ".join(i.mesaj for i in blocante))

@@ -16,6 +16,7 @@ from evaluare.aml.constante import (
     PRAG_NUMERAR_EUR,
     TERMEN_RTN_ZILE_LUCRATOARE,
 )
+from evaluare.aml.validare_data import verifica_an_plauzibil
 
 _AVERTISMENT_TIPPING_OFF = (
     "ATENȚIE — interdicție de divulgare (tipping-off, Legea 129/2019 art. 38): este interzisă "
@@ -109,12 +110,14 @@ def tranzactii_legate(transe: list[dict], fereastra_zile: int = 30) -> bool:
 # Structuri de raport (stocate separat de dosar)
 # --------------------------------------------------------------------------- #
 def _data_iso_obligatorie(v: str) -> str:
-    """Valideaza ca `v` e o data ISO yyyy-mm-dd. Altfel ValueError -> 422 (prin _construieste in router),
-    nu 500 cand date.fromisoformat ar crapa downstream (termen_rtn / suspendare_pana_la)."""
+    """Valideaza ca `v` e o data ISO yyyy-mm-dd cu an plauzibil. Altfel ValueError -> 422 (prin
+    _construieste in router), nu 500 cand date.fromisoformat / aritmetica de date ar crapa downstream
+    (termen_rtn / suspendare_pana_la / store._adauga_ani pe an absurd ca 9999)."""
     try:
-        date.fromisoformat((v or "").strip())
+        d = date.fromisoformat((v or "").strip())
     except (ValueError, TypeError) as e:
         raise ValueError("Data trebuie sa fie o data valida in format yyyy-mm-dd.") from e
+    verifica_an_plauzibil(d)
     return v
 
 

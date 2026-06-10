@@ -60,7 +60,10 @@ def build_router(d: Deps) -> APIRouter:
         if extractor is None:
             raise HTTPException(status_code=400,
                 detail="Tip de document necunoscut. Alege: cf, releveu, plan sau cpe.")
-        payload = req.continut.split(",", 1)[1] if req.continut.startswith("data:") else req.continut
+        # `and "," in ...`: data-URL fara virgula ("data:...") ramane intreg -> b64decode il respinge
+        # (400 clar) in loc de IndexError pe [1] -> 500 (RUNDA 9).
+        payload = (req.continut.split(",", 1)[1]
+                   if req.continut.startswith("data:") and "," in req.continut else req.continut)
         if len(payload) > 35_000_000:            # ~26 MB după decodare — limită anti-DoS
             raise HTTPException(status_code=413, detail="Document prea mare (limită ~25 MB).")
         try:

@@ -616,7 +616,9 @@ def _decode_foto(data_url: str) -> BytesIO | None:
     """Extrage bytes dintr-un data-URL base64 (sau base64 simplu). None daca e invalid."""
     if not data_url:
         return None
-    payload = data_url.split(",", 1)[1] if data_url.startswith("data:") else data_url
+    # `and "," in ...`: un data-URL fara virgula (ex. "data:") NU se desparte -> ramane intreg si
+    # cade pe b64decode care il respinge (None), in loc de IndexError pe [1] -> 500 (RUNDA 9).
+    payload = data_url.split(",", 1)[1] if data_url.startswith("data:") and "," in data_url else data_url
     try:
         raw = base64.b64decode(payload, validate=True)
     except (binascii.Error, ValueError):

@@ -228,7 +228,7 @@
       <details class="grila-det">
         <summary>{{ icon("grid") }} Grilă de ajustări — casă (pe etape + alerte prudențiale)</summary>
         <p class="hint">Completează prețul + suprafața fiecărui comparabil și ajustările. „Tranzacție" = compus (ofertă→tranzacție);
-          „proprietate" = aditiv (caracteristici). Procentual: fracție (0,05 = +5%). Valoric: lei.</p>
+          „proprietate" = aditiv (caracteristici). Procentual: puncte % (5 = +5%). Valoric: lei.</p>
         <div class="field" style="max-width:220px"><label for="g-supr">Suprafață subiect (mp)</label><input id="g-supr" placeholder="ex. 120"></div>
         <div id="grila-casa-tabel" class="grila-scroll"></div>
         <div class="btn-bar">
@@ -241,7 +241,7 @@
       <textarea id="comparabile_teren" rows="3" placeholder="50;700"></textarea>
       <details class="grila-det">
         <summary>{{ icon("grid") }} Grilă de ajustări — teren (pe etape + alerte prudențiale)</summary>
-        <p class="hint">Preț/mp + suprafața fiecărui comparabil + ajustările (procentuale, fracție 0,05 = +5%).</p>
+        <p class="hint">Preț/mp + suprafața fiecărui comparabil + ajustările (procentuale, în puncte %: 5 = +5%).</p>
         <div class="field" style="max-width:220px"><label for="gt-supr">Suprafață teren subiect (mp)</label><input id="gt-supr" placeholder="ex. 500"></div>
         <div id="grila-teren-tabel" class="grila-scroll"></div>
         <div class="btn-bar">
@@ -1038,7 +1038,9 @@ function asambleaza(){
       if(!pret||!sup) continue;
       var aj=[];
       ELEM_CASA.forEach(function(e,ei){ var v=wrap.querySelector(".g-aj[data-e='"+ei+"'][data-i='"+i+"']").value;
-        if(v&&parseFloat(v)!==0) aj.push({element:e.nume,tip:e.tip,valoare:v,etapa:e.etapa}); });
+        // procentuala: utilizatorul tasteaza puncte % (5 = +5%) sub headerul '%' -> /100 ca grila.html
+        // (L208). FARA /100, '5' ajungea +500% (bug 100x, RUNDA C-HIGH). Valorica (lei) ramane brut.
+        if(v&&parseFloat(v)!==0) aj.push({element:e.nume,tip:e.tip,valoare:(e.tip==='procentuala'?String(parseFloat(v)/100):v),etapa:e.etapa}); });
       comps.push({pret:pret,suprafata:sup,adjustments:aj});
     }
     return comps;
@@ -1092,7 +1094,8 @@ function asambleaza(){
       if(!pret||!sup) continue;
       var aj=[];
       ELEM_T.forEach(function(e,ei){ var v=wrap.querySelector(".gt-aj[data-e='"+ei+"'][data-i='"+i+"']").value;
-        if(v&&parseFloat(v)!==0) aj.push({element:e.nume,tip:"procentuala",valoare:v,etapa:e.etapa}); });
+        // toate elementele teren sunt procentuale: puncte % -> /100 (ca grila.html L208; fix bug 100x).
+        if(v&&parseFloat(v)!==0) aj.push({element:e.nume,tip:"procentuala",valoare:String(parseFloat(v)/100),etapa:e.etapa}); });
       comps.push({pret_mp:pret,suprafata:sup,adjustments:aj});
     }
     return comps;
@@ -1144,7 +1147,8 @@ function asambleaza(){
       if(!pret||!sup) continue;
       var aj=[];
       ELEM_C.forEach(function(e,ei){ var v=wrap.querySelector(".gc-aj[data-e='"+ei+"'][data-i='"+i+"']").value;
-        if(v&&parseFloat(v)!==0) aj.push({element:e.nume,tip:e.tip,valoare:v,etapa:e.etapa}); });
+        // procentuala: puncte % -> /100 (ca grila.html L208; fix bug 100x). Valorica (lei/mp) ramane brut.
+        if(v&&parseFloat(v)!==0) aj.push({element:e.nume,tip:e.tip,valoare:(e.tip==='procentuala'?String(parseFloat(v)/100):v),etapa:e.etapa}); });
       comps.push({chirie_mp:pret,suprafata:sup,adjustments:aj});
     }
     return comps;
