@@ -804,6 +804,8 @@ def genereaza_raport(
         f"Valoarea finala: {_fmt(ctx.reconciled.valoare_finala)} {meta.moneda}"
         f"{_echiv_lei(ctx)}. {_fara_tva(ctx)}"
     )
+    if ctx.reconciled.nota:   # transparenta reconciliere (ex. abordare calculata dar neponderata)
+        doc.add_paragraph(f"Notă privind reconcilierea: {ctx.reconciled.nota}")
 
     # --- Shell GBF (back matter) ---
     _adauga_alocare(doc, ctx, adnotari)

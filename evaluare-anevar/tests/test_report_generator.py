@@ -385,3 +385,14 @@ def test_anexe_corupte_logheaza_avertisment_nu_dispar_tacut(tmp_path, caplog):
     assert out.exists()                                   # raportul se generează oricum (nu crapă)
     assert "Anexa 2: fotografia 1 nu a putut fi inserată" in caplog.text
     assert "Anexa 3: documentul 1 nu a putut fi decodat" in caplog.text
+
+
+def test_raport_afiseaza_nota_reconciliere(tmp_path):
+    # Transparenta (optiunea b, decizia Adi): nota de reconciliere (ex. abordare calculata dar
+    # neponderata) apare EXPLICIT in raport, ca valoarea finala sa nu diverge tacit de indicatii.
+    ctx = _ctx()
+    ctx.reconciled.nota = "Abordarea prin venit a fost calculata dar NU este inclusa in valoarea ponderata."
+    out = tmp_path / "r.docx"
+    genereaza_raport(ctx, out)
+    text = _all_text(out)
+    assert "Notă privind reconcilierea" in text and "venit" in text
