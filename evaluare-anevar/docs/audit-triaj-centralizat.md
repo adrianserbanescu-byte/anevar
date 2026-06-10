@@ -60,7 +60,8 @@ Legendă: ✅ rezolvat+comis · ▶ în lucru A · 📨 dispatched (lane, GO imp
 - **I1** (P2): `nivel="blocheaza"` era advisory → un raport semnabil se putea genera pe preț corectat ≤0. Fix: `/raport.docx` cheamă `valideaza()` + refuză **422** pe blocant (`7d6ed0a`).
 - **G1** (P3): `sterge()` lăsa PII (nume client) tranzitoriu în `_index.json`/cache. Fix: `sterge()` curăță index+cache IMEDIAT (art.17 GDPR; `1709a8f`).
 
-**Pending:** B (#7 spec-compliance/SEV450/SEV100) + C/E (tăcut → deferat) → apoi **build+redeploy** (#6 live vechi) + re-audit lean (loop).
+**B coadă acoperită:** SEV106✅ · sectiuni✅ · prompt-injection✅(A) · **SEV100✅** (`4d46100`) · **#7** spec = motor FIDEL spec-ului documentat (GBF/depreciere/selecție/M1/M2/M5 ✓), 1 gap: comparabilele de TEREN nu-s validate M5 (asimetrie piață/teren) → GO B · **SEV450** = asigurarea folosește CIN net (depreciat) → client SUB-asigurat; corect CIB brut (reconstrucție) + ref SEV450 → GO B (**🔴 decizia MEA autonomă, schimbă valoarea pe scop asigurare — REVIEW Adi la trezire**).
+**Pending:** B (#7 land-validation + SEV450) → apoi **build+redeploy** (#6 live vechi) + re-audit lean (loop). C/E tăcut → deferat (non-blocant).
 
 ## 📨 DISPATCHED — plan discovery (GO implementare pe branch, raport → A integrează)
 **B** (motor): venit în reconciliere ponderată (assembler.py:181 — divergență grilă↔valoare) · property-based Hypothesis pe engine · cost.py rotunjire prag Dfn · pyright src/ · SEV106 §30.6 test 18 elem · prompt-injection indirect AI · spec-to-code-compliance · GEV520#1 ANAF.
