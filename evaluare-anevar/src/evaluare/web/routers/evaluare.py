@@ -6,8 +6,9 @@ import shutil
 import tempfile
 from datetime import datetime
 from pathlib import Path
+from typing import Annotated
 
-from fastapi import APIRouter, HTTPException, Request
+from fastapi import APIRouter, HTTPException, Path as PathParam, Request
 from fastapi.responses import FileResponse, HTMLResponse
 
 from evaluare.assembler import (
@@ -24,6 +25,10 @@ from evaluare.web.format import fmt_numar
 from evaluare.web.schemas import RedenumesteRequest
 
 log = get_logger(__name__)
+
+# eid e cheie INTEGER in SQLite (8 bytes); int Python e nelimitat -> input > 2^63-1
+# crapă cu OverflowError la INSERT/SELECT -> 500. Garda 422 grațioasă la marginea API.
+EvaluareId = Annotated[int, PathParam(ge=1, le=2**63 - 1)]
 
 
 def _folder_dosar(eid: int) -> Path:
@@ -62,7 +67,7 @@ def build_router(d: Deps) -> APIRouter:
         }
 
     @router.get("/api/evaluare/{eid}")
-    def citeste_evaluare(eid: int) -> dict:
+    def citeste_evaluare(eid: EvaluareId) -> dict:
         try:
             ctx = d.storage.load(eid)
         except KeyError:
@@ -78,7 +83,7 @@ def build_router(d: Deps) -> APIRouter:
         }
 
     @router.get("/api/evaluare/{eid}/raport.docx")
-    def descarca_raport(eid: int, demo: int = 0) -> FileResponse:
+    def descarca_raport(eid: EvaluareId, demo: int = 0) -> FileResponse:
         try:
             ctx = d.storage.load(eid)
         except KeyError:
@@ -113,17 +118,17 @@ def build_router(d: Deps) -> APIRouter:
         return FileResponse(str(out), media_type=DOCX_MIME, filename=f"raport_{eid}{sufix}.docx")
 
     @router.post("/api/evaluare/{eid}/redenumeste")
-    def redenumeste_dosar(eid: int, req: RedenumesteRequest) -> dict:
+    def redenumeste_dosar(eid: EvaluareId, req: RedenumesteRequest) -> dict:
         d.storage.redenumeste(eid, req.nume.strip() or "Dosar")
         return {"ok": True}
 
     @router.post("/api/evaluare/{eid}/snapshot")
-    def salveaza_snapshot(eid: int, snapshot: dict) -> dict:
+    def salveaza_snapshot(eid: EvaluareId, snapshot: dict) -> dict:
         d.storage.set_wizard_snapshot(eid, snapshot)
         return {"ok": True}
 
     @router.get("/api/evaluare/{eid}/dosar")
-    def citeste_dosar(eid: int) -> dict:
+    def citeste_dosar(eid: EvaluareId) -> dict:
         try:
             return d.storage.get_dosar(eid)
         except KeyError:
@@ -133,13 +138,13 @@ def build_router(d: Deps) -> APIRouter:
             ) from None
 
     @router.post("/api/evaluare/{eid}/sterge")
-    def sterge_dosar(eid: int) -> dict:
+    def sterge_dosar(eid: EvaluareId) -> dict:
         d.storage.sterge(eid)
         shutil.rmtree(_folder_dosar(eid), ignore_errors=True)
         return {"ok": True}
 
     @router.get("/api/evaluare/{eid}/audit.txt")
-    def audit_dosar(eid: int):
+    def audit_dosar(eid: EvaluareId):
         from fastapi.responses import PlainTextResponse
 
         from evaluare.audit.jurnal import JurnalAudit
@@ -184,7 +189,7 @@ def build_router(d: Deps) -> APIRouter:
         return FileResponse(str(copie), media_type="application/octet-stream", filename=copie.name)
 
     @router.get("/evaluare/{eid}", response_class=HTMLResponse)
-    def pagina_rezultat(request: Request, eid: int) -> HTMLResponse:
+    def pagina_rezultat(request: Request, eid: EvaluareId) -> HTMLResponse:
         try:
             ctx = d.storage.load(eid)
         except KeyError:
