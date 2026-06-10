@@ -428,3 +428,13 @@ def test_sev106_raport_contine_cele_18_elemente_obligatorii(tmp_path):
     }
     lipsa = [k for k, ok in elemente.items() if not ok]
     assert not lipsa, f"Elemente SEV 106 §30.6 lipsa din raport: {lipsa}"
+
+
+def test_sev100_declara_scepticism_si_verificare_calitate(tmp_path):
+    # SEV 100 (2025): raportul declara EXPLICIT scepticismul profesional (§10.4) + procedura de
+    # verificare a calitatii (§20) — le aplicam de-facto (validari + audit), dar trebuie DECLARATE.
+    out = tmp_path / "r.docx"
+    genereaza_raport(_ctx(), out)
+    t = _all_text(out)
+    assert "scepticism profesional" in t and "SEV 100, par. 10.4" in t
+    assert "verificare a calitatii" in t and "SEV 100, par. 20" in t
