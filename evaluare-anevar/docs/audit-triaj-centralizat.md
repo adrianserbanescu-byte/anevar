@@ -76,6 +76,13 @@ Legendă: ✅ rezolvat+comis · ▶ în lucru A · 📨 dispatched (lane, GO imp
 **Robustețe „input degenerat → 500" (D schemathesis pe live + B audit PROACTIV ultracode):** 7/7 erori 500 → 422: (a) AML `azi=''` `7dce3f3` · (b) grila-teren subnormal/Inf/NaN `b9f0e52` · (c) import-url gol `f222b25` · 4× AML `Model(**req.X)` ValidationError neprins `b690ade`. Restul suprafeței API = ROBUST (verificat B: motor prinde overflow, path-params SEC-1 solid). Master **659 teste**.
 **Next:** rebuild+redeploy #3 (cu TOT) → D re-rulează schemathesis (țintă **0 server-500**).
 
+## ✅ RUNDA 8 — re-audit adversarial FINAL (workflow ultracode: 4 dimensiuni × audit + verify)
+Lansat după build #3 (scepticismul Adi „e un cacat" + cererea de audituri repetate). Verify-agenții au **REPRODUS** findings-urile end-to-end cu `TestClient`.
+- **M1-handler:** SOLID (0 non-minor) · **coerență-securitate:** SOLID (zero regresii securitate/GDPR/integrare).
+- **robustețe-500:** **2 erori 500 AML NOI** pe care D-schemathesis + B-audit-proactiv le RATASERĂ: (1) RTN/RTS `data_tranzactie`/`data_inregistrare` nevalidate → `date.fromisoformat` → 500 (reprodus: `rtn.docx` garbage→500, `rts.docx` `2026-99-99`→500); (2) PEP `data_incetare_functie` nevalidată → `_luni_intre` (`risc.py:45`) → 500 (reprodus: `evalueaza`/`evaluare-risc.docx` PEP garbage→500, + ramura PJ/BeneficiarReal). → **GO B** (input-hardening AML, în lucru).
+- **comparabile:** GAP#4 `_marcheaza_pret_atipic` fals-pozitiv (€/mp construit include terenul → o casă pe teren premium era marcată FALS) → **rezolvat A** (prag factor 3 nu ±50%; `0c37249` + test regresie).
+**Win:** workflow-ul ultracode a prins **3 probleme reale** ratate de 2 runde anterioare de testare riguroasă — validează scepticismul + verificarea adversarială. **Next:** B 2×AML → rebuild #4 + redeploy → D re-verifică (0 server-500).
+
 ## 📨 DISPATCHED — plan discovery (GO implementare pe branch, raport → A integrează)
 **B** (motor): venit în reconciliere ponderată (assembler.py:181 — divergență grilă↔valoare) · property-based Hypothesis pe engine · cost.py rotunjire prag Dfn · pyright src/ · SEV106 §30.6 test 18 elem · prompt-injection indirect AI · spec-to-code-compliance · GEV520#1 ANAF.
 **C** (UI/a11y): WCAG 2.2 delta (9 criterii) · diacritice RO round-trip export .docx/PDF (cp1252) · webapp-testing suită structurată · M14 modularizare dosar.html.
