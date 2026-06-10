@@ -5,10 +5,11 @@ Toate campurile optionale unde legea permite „de completat de evaluator". Date
 """
 from __future__ import annotations
 
+from datetime import date
 from decimal import Decimal
 from typing import Literal
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
 
 TipAct = Literal["CI", "pasaport", "permis_sedere"]
 TipClient = Literal["PF", "PJ", "PJ_straina"]
@@ -45,6 +46,19 @@ class StatutPEP(BaseModel):
     categorie: CategoriePEP | None = None
     tip: TipPEP | None = None
     data_incetare_functie: str | None = None   # ISO; pentru calculul celor 12 luni
+
+    @field_validator("data_incetare_functie")
+    @classmethod
+    def _valideaza_data_incetare(cls, v: str | None) -> str | None:
+        # None / '' -> None (PEP curent, fara data de incetare). Non-gol -> trebuie data ISO valida,
+        # altfel ValueError -> 422 (prin _construieste), nu 500 cand pep_efectiv -> _luni_intre crapa.
+        if not v:
+            return None
+        try:
+            date.fromisoformat(v.strip())
+        except (ValueError, TypeError) as e:
+            raise ValueError("data_incetare_functie trebuie sa fie o data ISO yyyy-mm-dd.") from e
+        return v
 
 
 class BeneficiarReal(PersoanaFizica):
