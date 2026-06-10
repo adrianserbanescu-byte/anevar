@@ -67,3 +67,14 @@ def test_ponderata_declara_abordarea_calculata_dar_neponderata():
     r2 = reconcile_profil([_r("cost", "300000"), _r("comparatie", "280000")], primara="comparatie",
                           ponderi={"comparatie": Decimal("0.5"), "cost": Decimal("0.5")})
     assert r2.nota == ""
+
+
+def test_ponderata_normalizeaza_ponderile_care_nu_insumeaza_1():
+    # reconcile_profil NORMALIZEAZA (imparte la suma ponderilor) cand ponderile nu insumeaza 1.
+    # Mutation testing (lane B): fara acest test, mutatia Div->Mult la calculul ponderat supravietuieste
+    # (toate celelalte teste folosesc ponderi care insumeaza 1 -> /1 == *1 = mutant echivalent).
+    rez = [_r("comparatie", "300000"), _r("cost", "200000")]
+    r = reconcile_profil(rez, primara="comparatie",
+                         ponderi={"comparatie": Decimal("0.6"), "cost": Decimal("0.2")})  # suma = 0.8
+    # (300000*0.6 + 200000*0.2) / 0.8 = 220000 / 0.8 = 275000
+    assert r.valoare_finala == Decimal("275000.00")

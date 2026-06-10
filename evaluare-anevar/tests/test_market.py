@@ -155,3 +155,30 @@ def test_regresie_casa_busteni_grila_completa():
         assert round(got, 4) == round(exp, 4)
     # selectia foloseste regula curata (ajustare bruta minima pe etapa de proprietate)
     assert r.valoare_piata == r.preturi_unitare_corectate[r.index_selectat]
+
+
+def test_ajustari_valorice_eur_in_tranzactie_si_brut_net():
+    # Mutation testing (lane B): TOATE mutatiile pe caile ajustarilor VALORICE (EUR) supravietuiau —
+    # testele foloseau doar procentuale. Acopera: valorica in etapa tranzactie (aditiv pe pret),
+    # ajustare_bruta (abs(EUR)/baza) si ajustare_neta (EUR/baza, algebric).
+    from decimal import Decimal
+
+    from evaluare.engine.market import (
+        ajustare_bruta,
+        ajustare_neta,
+        pret_total_corectat,
+    )
+    from evaluare.models.comparable import Adjustment, Comparable
+    c = Comparable(pret=Decimal("100000"), suprafata=Decimal("100"), adjustments=[
+        Adjustment(element="negociere", tip="valorica", valoare=Decimal("-5000"),
+                   etapa="tranzactie"),                                   # baza = 95000
+        Adjustment(element="garaj", tip="valorica", valoare=Decimal("9500"),
+                   etapa="proprietate"),                                  # +9500 EUR pe baza
+        Adjustment(element="finisaj", tip="procentuala", valoare=Decimal("-0.10"),
+                   etapa="proprietate"),                                  # -10%
+    ])
+    # corectat = 95000*(1-0.10) + 9500 = 85500 + 9500 = 95000
+    assert pret_total_corectat(c) == Decimal("95000.0")
+    # bruta = |−0.10| + |9500|/95000 = 0.10 + 0.10 = 0.20 ; neta = −0.10 + 0.10 = 0
+    assert ajustare_bruta(c) == Decimal("0.2")
+    assert ajustare_neta(c) == Decimal("0.0")
