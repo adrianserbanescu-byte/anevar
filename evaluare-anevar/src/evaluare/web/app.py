@@ -58,6 +58,19 @@ def create_app(storage: Storage, client: NarrativeClient | None,
                     return PlainTextResponse("Acces respins: cerere cross-site blocată (CSRF).",
                                              status_code=403)
         resp = await call_next(request)
+        # Security headers (defense-in-depth, audit C/D): nosniff + anti-clickjacking + referrer +
+        # permissions + CSP. CSP = al 4-lea strat anti-XSS peste escapeHtml/urlSafe/teste; permite
+        # inline (app-ul are JS/CSS inline) + unpkg (MapLibre, pana la bundle-ul local) + https (tile harta).
+        resp.headers["X-Content-Type-Options"] = "nosniff"
+        resp.headers["X-Frame-Options"] = "DENY"
+        resp.headers["Referrer-Policy"] = "no-referrer"
+        resp.headers["Permissions-Policy"] = "geolocation=(), microphone=(), camera=(), payment=()"
+        resp.headers["Content-Security-Policy"] = (
+            "default-src 'self'; base-uri 'self'; object-src 'none'; frame-ancestors 'none'; "
+            "img-src 'self' data: blob: https:; font-src 'self' data:; connect-src 'self' https:; "
+            "style-src 'self' 'unsafe-inline' https://unpkg.com; "
+            "script-src 'self' 'unsafe-inline' https://unpkg.com")
+        resp.headers["Server"] = "anevar"             # nu mai expune "uvicorn" (fingerprint, audit D)
         # No-STORE pe paginile HTML: după un deploy, browserul ia INSTANT versiunea nouă, fără niciun
         # hard-refresh (no-cache singur lăsa uneori pagina veche în memoria browserului / bfcache).
         # Asset-urile statice (CSS/JS) rămân cacheabile (nu primesc acest header).

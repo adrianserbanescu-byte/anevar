@@ -382,6 +382,16 @@ def test_comparabile_resping_suprafata_si_pret_zero():
         RentComparable(chirie_mp=10, suprafata=0)
 
 
+def test_security_headers_prezente(client):
+    # audit C/D (defense-in-depth): nosniff + anti-clickjacking + CSP + referrer + permissions.
+    r = client.get("/incepe")
+    assert r.headers.get("X-Content-Type-Options") == "nosniff"
+    assert r.headers.get("X-Frame-Options") == "DENY"
+    assert "Content-Security-Policy" in r.headers
+    assert "Referrer-Policy" in r.headers
+    assert "Permissions-Policy" in r.headers
+
+
 def test_cnp_redaction_prefix_9():
     from evaluare.ai import narrative
     rx = narrative._PII_REZIDUAL[0][0]
