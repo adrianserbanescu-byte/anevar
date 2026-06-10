@@ -91,3 +91,16 @@ def test_pagina_aml_se_incarca(tmp_path):
     resp = client.get("/aml")
     assert resp.status_code == 200
     assert "AML" in resp.text
+
+
+def test_aml_evalueaza_data_invalida_da_422_nu_500(tmp_path):
+    # P0 (schemathesis/D): azi="" (sau format invalid) crapa date.fromisoformat downstream -> 500.
+    # Acum validator pe AmlEvaluareRequest.azi -> 422 clar (input hardening, NU textul juridic AML).
+    client, _ = _client(tmp_path)
+    assert client.post("/api/aml/evalueaza",
+                       json={"azi": "", "semnale_indicatori": None}).status_code == 422
+    assert client.post("/api/aml/evalueaza", json={"azi": "nu-e-data"}).status_code == 422
+    # data valida ramane 200 (fara regresie)
+    assert client.post("/api/aml/evalueaza", json={"azi": "2026-06-03"}).status_code == 200
+    # documentul AML: azi None -> fallback (200), dar non-gol invalid -> 422
+    assert client.post("/api/aml/evaluare-risc.docx", json={"azi": "xxx"}).status_code == 422

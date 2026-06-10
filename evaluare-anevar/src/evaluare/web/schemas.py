@@ -1,12 +1,23 @@
 """Modelele Pydantic pentru corpurile cererilor HTTP (request bodies)."""
 from __future__ import annotations
 
+from datetime import date
 from decimal import Decimal
 
-from pydantic import BaseModel
+from pydantic import BaseModel, field_validator
 
 from evaluare.discovery.profiles import SubjectProfile
 from evaluare.models.comparable import Comparable, LandComparable, RentComparable
+
+
+def _data_iso(v: str) -> str:
+    """Valideaza ca `v` e o data ISO yyyy-mm-dd. Altfel ValueError -> 422 clar (nu 500 downstream,
+    cand date.fromisoformat ar crapa pe '' / format invalid)."""
+    try:
+        date.fromisoformat(str(v).strip())
+    except (ValueError, TypeError) as e:
+        raise ValueError("Data trebuie sa fie o data valida in format yyyy-mm-dd.") from e
+    return v
 
 
 class ImportUrlRequest(BaseModel):
@@ -112,6 +123,11 @@ class AmlEvaluareRequest(BaseModel):
     semnale_risc: dict | None = None
     semnale_indicatori: dict | None = None
 
+    @field_validator("azi")
+    @classmethod
+    def _azi_data_valida(cls, v: str) -> str:   # azi e obligatorie + trebuie data valida (nu '' -> 500)
+        return _data_iso(v)
+
 
 class AmlDocRequest(BaseModel):
     tip_entitate: str = "PFA"
@@ -121,5 +137,10 @@ class AmlDocRequest(BaseModel):
     semnale_risc: dict | None = None
     semnale_indicatori: dict | None = None
     persoana_desemnata: dict | None = None
+
+    @field_validator("azi")
+    @classmethod
+    def _azi_data_valida(cls, v: str | None) -> str | None:   # None/'' OK (endpoint are fallback);
+        return _data_iso(v) if v else v                       # daca e dat non-gol, trebuie data valida
     rtn: dict | None = None           # {suma_eur, data_tranzactie, descriere}
     rts: dict | None = None           # {motiv, data_inregistrare, indicatori}
