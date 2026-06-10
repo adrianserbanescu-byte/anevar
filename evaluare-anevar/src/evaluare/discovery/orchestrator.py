@@ -195,8 +195,9 @@ def descopera(
 
 
 def _marcheaza_pret_atipic(rezultate: list[CandidateResult]) -> None:
-    """GAP #4 (audit comparabile): marchează — NU exclude — anunțurile cu €/mp atipic (>±50% față de
-    mediana setului). Un preț tastat greșit (ex. 1€/total absurd) ar intra altfel în grilă nesemnalat;
+    """GAP #4 (audit comparabile, calibrat la re-auditul final): marchează — NU exclude — anunțurile cu
+    €/mp PUTERNIC atipic (factor 3 sub/peste mediana setului). €/mp e construit (include terenul), deci o
+    variație ±50% e legitimă (teren premium) -> marcăm doar outlierii extremi = preț tastat greșit (ex. 1€);
     aplicația AVERTIZEAZĂ, evaluatorul decide. Nevoie de >=3 prețuri valide ca mediana să fie semnificativă."""
     eur_mp = sorted(r.pret / r.suprafata for r in rezultate
                     if r.pret and r.suprafata and r.suprafata > 0)
@@ -208,9 +209,13 @@ def _marcheaza_pret_atipic(rezultate: list[CandidateResult]) -> None:
     for r in rezultate:
         if not (r.pret and r.suprafata and r.suprafata > 0):
             continue
-        if abs(r.pret / r.suprafata - mediana) / mediana > Decimal("0.5"):
-            r.breakdown.explicatie = (f"{r.breakdown.explicatie} ⚠ Preț/mp atipic "
-                                      "(>50% față de mediana setului) — verifică prețul.").strip()
+        val = r.pret / r.suprafata
+        # Re-audit final: €/mp e CONSTRUIT (include valoarea terenului) -> o casă genuină pe teren mare/
+        # premium are €/mp legitim mai mare; un prag de ±50% o marca FALS-pozitiv. Marcăm doar outlierii
+        # EXTREMI (factor 3 sub/peste mediană) = preț tastat greșit (ex. 1€), nu variația legitimă de teren.
+        if val < mediana / 3 or val > mediana * 3:
+            r.breakdown.explicatie = (f"{r.breakdown.explicatie} ⚠ Preț/mp puternic atipic "
+                                      "(de câteva ori sub/peste mediana setului) — verifică prețul.").strip()
 
 
 def _relevanta_teren(supr, subiect_supr) -> int:

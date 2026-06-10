@@ -160,3 +160,38 @@ def test_descopera_gap2_incredere_la_coada_gap4_pret_atipic():
     # GAP #4: „ieftin" (1000€ / 125mp = 8 €/mp << mediana) e MARCAT atipic
     ieftin = next(r for r in rez if r.pret == Decimal("1000"))
     assert "atipic" in ieftin.breakdown.explicatie
+
+
+def test_gap4_calibrat_nu_marcheaza_casa_pe_teren_premium():
+    # Re-audit final: pragul ±50% marca FALS o casă genuină pe teren premium (€/mp CONSTRUIT include
+    # terenul -> mai mare legitim). Acum (factor 3) doar outlierii EXTREMI (preț tastat greșit) sunt marcați.
+    def _l(supr, pret, m):
+        return (f'<html><head><title>Casa {m}</title><script type="application/ld+json">'
+                f'{{"@type":"Offer","price":"{pret}","priceCurrency":"EUR","floorSize":{{"value":"{supr}"}}}}'
+                f'</script></head><body>{m}</body></html>')
+    # 3 case ~2000 €/mp + 1 pe teren premium la 3600 €/mp (1.8x, legitim) + 1 cu preț tastat greșit (40 €/mp)
+    L = {"casa1": _l(100, 200000, "A"), "casa2": _l(100, 210000, "B"), "casa3": _l(100, 195000, "C"),
+         "premium": _l(100, 360000, "D"), "gresit": _l(100, 4000, "E")}
+    search = '<html><body>' + ''.join(f'<a href="/oferta/{k}-1">{k}</a>' for k in L) + '</body></html>'
+
+    def fetcher(url):
+        for k, v in L.items():
+            if "/" + k + "-" in url:        # match pe segmentul de cale (evită coliziuni cu „oferta")
+                return v
+        return search
+
+    class FakeClient:
+        def complete(self, system, user):
+            return ('{"an":{"valoare":2010,"text":""},"stare":{"treapta":3,"text":""},'
+                    '"finisaj":{"treapta":3,"text":""},"incalzire":{"categorie":"centrala_gaz","text":""},'
+                    '"teren":{"valoare":500,"text":""},"secundare":[]}')
+
+    subiect = SubjectProfile(suprafata_construita=Decimal("100"), an=2010, stare=3, finisaj=3,
+                             incalzire="centrala_gaz", teren=Decimal("500"))
+    rez = descopera("imobiliare", "prahova", "breaza", subiect=subiect, atribute_secundare=[],
+                    fetcher=fetcher, client=FakeClient(), max_candidati=10)
+    by_pret = {r.pret: r for r in rez}
+    # mediană €/mp ~2000; casa premium 3600 (1.8x) e în [mediană/3, mediană*3] -> NU marcată (era FALS la ±50%)
+    assert "atipic" not in by_pret[Decimal("360000")].breakdown.explicatie
+    # prețul tastat greșit (40 €/mp = factor ~50 sub mediană) -> marcat
+    assert "atipic" in by_pret[Decimal("4000")].breakdown.explicatie
