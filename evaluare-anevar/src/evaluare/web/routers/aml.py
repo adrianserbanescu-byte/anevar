@@ -15,11 +15,22 @@ from evaluare.web.deps import DOCX_MIME, Deps
 from evaluare.web.schemas import AmlDocRequest, AmlEvaluareRequest
 
 
+def _construieste(factory, data, eticheta: str):
+    """Construieste un model AML din dict-ul user RAW, convertind erorile de validare in 422 (nu 500).
+
+    Tipare Model(**req.X): pydantic ValidationError (subclasa ValueError) pe campuri tipate gresit SAU
+    TypeError pe kwargs neasteptate la dataclass-uri -> ar deveni 500 daca nu sunt prinse aici."""
+    try:
+        return factory(**(data or {}))
+    except (ValueError, TypeError) as e:
+        raise HTTPException(status_code=422, detail=f"Date AML invalide pentru {eticheta}.") from e
+
+
 def _client_din(req) -> object:
     from evaluare.aml.models import ClientPF, ClientPJ
     if req.client_pj is not None:
-        return ClientPJ(**req.client_pj)
-    return ClientPF(**(req.client_pf or {}))
+        return _construieste(ClientPJ, req.client_pj, "client persoana juridica")
+    return _construieste(ClientPF, req.client_pf, "client persoana fizica")
 
 
 def _doc_response(doc, nume: str):
@@ -42,8 +53,10 @@ def build_router(d: Deps) -> APIRouter:
         client = _client_din(req)
         return evalueaza_relatie(
             req.tip_entitate, client, azi=req.azi,
-            semnale_risc=Semnale(**req.semnale_risc) if req.semnale_risc else None,
-            semnale_indicatori=SemnaleIndicatori(**req.semnale_indicatori) if req.semnale_indicatori else None,
+            semnale_risc=_construieste(Semnale, req.semnale_risc, "semnale de risc")
+            if req.semnale_risc else None,
+            semnale_indicatori=_construieste(SemnaleIndicatori, req.semnale_indicatori, "semnale indicatori")
+            if req.semnale_indicatori else None,
             liste=incarca_liste(),
         )
 
@@ -57,7 +70,9 @@ def build_router(d: Deps) -> APIRouter:
         from evaluare.aml.documente import genereaza_evaluare_risc
         from evaluare.aml.risc import Semnale, evalueaza_risc
         client = _client_din(req)
-        er = evalueaza_risc(client, Semnale(**req.semnale_risc) if req.semnale_risc else None,
+        er = evalueaza_risc(client,
+                            _construieste(Semnale, req.semnale_risc, "semnale de risc")
+                            if req.semnale_risc else None,
                             azi=req.azi or "2026-01-01")
         return _doc_response(genereaza_evaluare_risc(er), "aml_evaluare_risc.docx")
 
@@ -84,7 +99,7 @@ def build_router(d: Deps) -> APIRouter:
         from evaluare.aml.store import StoreAML
         if not req.rtn:
             raise HTTPException(status_code=400, detail="Lipsesc datele RTN.")
-        raport = RaportRTN(**req.rtn)
+        raport = _construieste(RaportRTN, req.rtn, "raport RTN")
         # persistat separat de dosar (tipping-off / retentie)
         StoreAML(aml_dir).salveaza("rtn", raport.model_dump(mode="json"), raport.data_tranzactie)
         return _doc_response(genereaza_rtn(raport), "aml_rtn.docx")
@@ -96,7 +111,7 @@ def build_router(d: Deps) -> APIRouter:
         from evaluare.aml.store import StoreAML
         if not req.rts:
             raise HTTPException(status_code=400, detail="Lipsesc datele RTS.")
-        raport = RaportRTS(**req.rts)
+        raport = _construieste(RaportRTS, req.rts, "raport RTS")
         StoreAML(aml_dir).salveaza("rts", raport.model_dump(mode="json"), raport.data_inregistrare)
         return _doc_response(genereaza_rts(raport), "aml_rts.docx")
 
