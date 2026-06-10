@@ -26,6 +26,20 @@ jobs:
       - name: Verifica lockfile la zi
         run: python scripts/lock.py --check
 
+      - name: Securitate — CVE pe dependente (pip-audit pe lockfile, strict)
+        # pip-audit interoghează PyPI Advisory Database. `--strict` = nu trece dacă nu poate verifica;
+        # rulează pe lock (versiuni exacte) -> determinism. NU instalează nimic.
+        run: |
+          pip install pip-audit
+          pip-audit -r requirements.lock --strict
+
+      - name: Securitate — SAST pe codul aplicatiei (bandit, severity+confidence MEDIUM+)
+        # Bandit = Python SAST clasic. -r src/ = recursiv pe sursa. Threshold MEDIUM+ filtreaza
+        # zgomotul (subprocess imports etc.); ridica la HIGH daca cresc false positives.
+        run: |
+          pip install "bandit[toml]"
+          bandit -r src --severity-level medium --confidence-level medium -q
+
       - name: Pre-compila (elimina race-ul .pyc intre workerii xdist)
         run: python -m compileall -q src tests
 
