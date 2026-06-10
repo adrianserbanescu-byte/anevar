@@ -22,6 +22,8 @@ import io
 import warnings
 
 import pytest
+
+pytest.importorskip("hypothesis")  # dep audit-only (nu in lock): suita/CI fara Hypothesis sar modulul curat
 from hypothesis import HealthCheck, given, settings
 from hypothesis import strategies as st
 
