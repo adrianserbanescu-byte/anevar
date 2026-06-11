@@ -15,7 +15,7 @@ jobs:
     steps:
       - uses: actions/checkout@v5
 
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@v6   # v5 (Node 20) e deprecat; Node 24 devine obligatoriu din 16 iun 2026
         with:
           python-version: "3.12"
 
