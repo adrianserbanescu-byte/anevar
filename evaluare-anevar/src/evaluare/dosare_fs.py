@@ -470,3 +470,71 @@ def importa_folder(src: Path, legitimatie_curenta: str, creator_nume: str) -> di
     dosar["modificat_la"] = _acum()
     _scrie(uid, dosar)
     return {"uuid": uid, "e_nou": e_nou}
+
+
+# ── Candidați salvați din «Descoperă» (puși în așteptare, separat de import) ──────────
+# Cererea Adi: candidații din descoperire pot fi SALVAȚI (lăsați în pending) per dosar — distinct de
+# importul efectiv în grilă. Stocați în `candidati_salvati.json` din folderul dosarului (același gard
+# anti path-traversal `_cale`). Dedup pe `url`. Cap rezonabil ca o listă ostilă să nu crească nelimitat.
+MAX_CANDIDATI_SALVATI = 500     # plafon per dosar (anti-DoS: o listă nemărginită nu umple discul)
+
+
+def _fisier_candidati(uid: str) -> Path:
+    """Calea fișierului de candidați salvați (uid VALIDAT ca UUID prin `_cale` — anti path-traversal)."""
+    return _cale(uid) / "candidati_salvati.json"
+
+
+def _citeste_candidati(uid: str) -> list[dict]:
+    """Citește lista de candidați salvați (listă goală dacă fișierul lipsește/e corupt — nu 500)."""
+    f = _fisier_candidati(uid)
+    if not f.exists():
+        return []
+    try:
+        date = json.loads(f.read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        return []
+    return date if isinstance(date, list) else []
+
+
+def listeaza_candidati_salvati(uid: str) -> list[dict]:
+    """Candidații puși în așteptare pentru un dosar. `_cale` validează `uid` (KeyError -> 404 la caller)."""
+    _cale(uid)                                   # gard UUID: uid invalid -> KeyError (404 la router)
+    return _citeste_candidati(uid)
+
+
+def salveaza_candidat(uid: str, candidat: dict) -> list[dict]:
+    """Adaugă un candidat din «Descoperă» la lista de așteptare a dosarului (dedup pe `url`).
+
+    `candidat` = dict-ul întreg din /api/descopera (url, titlu, pret, suprafata, teren, pret_mp, poza,
+    relevanta, localitate, distanta_km etc.). `url` e cheia de dedup (obligatorie — fără ea ValueError,
+    pe care routerul îl mapează la 422). Re-salvarea aceluiași `url` ÎNLOCUIEȘTE intrarea (date proaspete),
+    nu duplică. Cap la `MAX_CANDIDATI_SALVATI` (cel mai vechi cade). Returnează lista completă actualizată.
+    """
+    if not isinstance(candidat, dict):
+        raise ValueError("Candidatul trebuie să fie un obiect.")
+    url = candidat.get("url")
+    if not isinstance(url, str) or not url.strip():
+        raise ValueError("Candidatul trebuie să aibă un `url` (cheia de deduplicare).")
+    folder = _cale(uid)                          # gard UUID (anti path-traversal)
+    if not (folder / "dosar.json").exists():     # candidați doar pentru un dosar REAL (nu folder fantomă)
+        raise KeyError(f"Dosar inexistent: {uid}")
+    candidati = [c for c in _citeste_candidati(uid)
+                 if isinstance(c, dict) and c.get("url") != url]   # dedup: scoate vechea intrare cu același url
+    candidati.append(candidat)
+    if len(candidati) > MAX_CANDIDATI_SALVATI:   # plafon: păstrează cele mai recente
+        candidati = candidati[-MAX_CANDIDATI_SALVATI:]
+    folder.mkdir(parents=True, exist_ok=True)
+    _scrie_atomic(_fisier_candidati(uid), json.dumps(candidati, ensure_ascii=False, indent=2))
+    return candidati
+
+
+def sterge_candidat_salvat(uid: str, url: str) -> list[dict]:
+    """Scoate un candidat salvat după `url`. Returnează lista rămasă. `_cale` validează `uid`."""
+    _cale(uid)                                   # gard UUID
+    if not isinstance(url, str) or not url.strip():
+        raise ValueError("`url` e obligatoriu pentru ștergerea unui candidat salvat.")
+    candidati = [c for c in _citeste_candidati(uid)
+                 if isinstance(c, dict) and c.get("url") != url]
+    with contextlib.suppress(FileNotFoundError):   # dosar șters concurent -> nimic de rescris
+        _scrie_atomic(_fisier_candidati(uid), json.dumps(candidati, ensure_ascii=False, indent=2))
+    return candidati

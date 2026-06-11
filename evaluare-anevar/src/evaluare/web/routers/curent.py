@@ -28,7 +28,12 @@ from evaluare.engine.metodologie import ca_dict
 from evaluare.logging_setup import get_logger
 from evaluare.report.generator import genereaza_raport
 from evaluare.web.deps import DOCX_MIME, Deps
-from evaluare.web.schemas import ContRequest, DosarNouRequest, ImportDocxRequest
+from evaluare.web.schemas import (
+    ContRequest,
+    DosarNouRequest,
+    ImportDocxRequest,
+    StergeCandidatRequest,
+)
 
 log = get_logger(__name__)
 
@@ -178,6 +183,39 @@ def build_router(d: Deps) -> APIRouter:
         """Scoate un dosar DISPĂRUT (folder șters de pe disc) din indexul «ultima vedere»."""
         fs.sterge_din_index(uid)
         return {"ok": True}
+
+    # ── Candidați salvați din «Descoperă» (în așteptare, separat de import în grilă) ──────
+    @router.post("/api/dosar/{uid}/candidat-salvat")
+    def salveaza_candidat(uid: str, candidat: dict) -> dict:
+        """Salvează (lasă în așteptare) un candidat din «Descoperă» pe acest dosar. `candidat` = dict-ul
+        întreg din /api/descopera (url, titlu, pret, suprafata, teren, pret_mp, poza, relevanta,
+        localitate, distanta_km etc.). Dedup pe `url`. Candidat fără `url` -> 422 (nu 500)."""
+        try:
+            lista = fs.salveaza_candidat(uid, candidat)
+        except KeyError:
+            raise HTTPException(404, "Dosar inexistent.") from None
+        except ValueError as e:
+            raise HTTPException(422, str(e)) from e
+        return {"candidati": lista, "count": len(lista)}
+
+    @router.get("/api/dosar/{uid}/candidati-salvati")
+    def candidati_salvati(uid: str) -> dict:
+        """Candidații puși în așteptare pentru acest dosar (lista salvată din «Descoperă»)."""
+        try:
+            return {"candidati": fs.listeaza_candidati_salvati(uid)}
+        except KeyError:
+            raise HTTPException(404, "Dosar inexistent.") from None
+
+    @router.post("/api/dosar/{uid}/candidat-salvat/sterge")
+    def sterge_candidat_salvat(uid: str, req: StergeCandidatRequest) -> dict:
+        """Scoate un candidat salvat (în așteptare) după `url`. Returnează lista rămasă."""
+        try:
+            lista = fs.sterge_candidat_salvat(uid, req.url)
+        except KeyError:
+            raise HTTPException(404, "Dosar inexistent.") from None
+        except ValueError as e:
+            raise HTTPException(422, str(e)) from e
+        return {"candidati": lista}
 
     @router.post("/api/dosar/{uid}/calcul")
     def calcul(uid: str, inp: EvaluationInput) -> dict:

@@ -236,3 +236,98 @@ def test_import_folder_invalid_ridica(baza, tmp_path):
     gol.mkdir()
     with pytest.raises(ValueError):
         fs.importa_folder(gol, "8717", "Adi S")
+
+
+# ── Candidați salvați din «Descoperă» (puși în așteptare per dosar) ───────────────
+def _candidat(url="https://x.ro/anunt/1", **extra):
+    c = {"url": url, "titlu": "Casa P+1", "pret": "120000", "suprafata": "100",
+         "teren": "500", "pret_mp": "1200", "poza": "https://x.ro/p.jpg",
+         "relevanta": 0.87, "localitate": "Sinaia", "distanta_km": 3.2}
+    c.update(extra)
+    return c
+
+
+def test_candidati_salveaza_listeaza_persista(baza):
+    # Candidatul salvat = dict-ul ÎNTREG din /api/descopera; persistat în folderul dosarului.
+    from evaluare import dosare_fs as fs
+    uid = fs.creeaza("L1", "Ev", _wizard())
+    assert fs.listeaza_candidati_salvati(uid) == []
+    lista = fs.salveaza_candidat(uid, _candidat())
+    assert len(lista) == 1 and lista[0]["pret_mp"] == "1200" and lista[0]["distanta_km"] == 3.2
+    # persistat pe disc + recitit identic
+    assert (fs.baza() / uid / "candidati_salvati.json").exists()
+    assert fs.listeaza_candidati_salvati(uid) == lista
+
+
+def test_candidati_dedup_pe_url(baza):
+    # Re-salvarea aceluiași url ÎNLOCUIEȘTE (date proaspete), nu duplică.
+    from evaluare import dosare_fs as fs
+    uid = fs.creeaza("L1", "Ev", _wizard())
+    fs.salveaza_candidat(uid, _candidat(pret="120000"))
+    fs.salveaza_candidat(uid, _candidat(pret="115000"))     # același url, preț nou
+    lista = fs.listeaza_candidati_salvati(uid)
+    assert len(lista) == 1 and lista[0]["pret"] == "115000"
+    fs.salveaza_candidat(uid, _candidat(url="https://x.ro/anunt/2"))   # url nou -> al doilea
+    assert len(fs.listeaza_candidati_salvati(uid)) == 2
+
+
+def test_candidati_sterge_pe_url(baza):
+    from evaluare import dosare_fs as fs
+    uid = fs.creeaza("L1", "Ev", _wizard())
+    fs.salveaza_candidat(uid, _candidat(url="https://x.ro/a"))
+    fs.salveaza_candidat(uid, _candidat(url="https://x.ro/b"))
+    ramase = fs.sterge_candidat_salvat(uid, "https://x.ro/a")
+    assert [c["url"] for c in ramase] == ["https://x.ro/b"]
+    # ștergerea unui url inexistent = no-op (nu crapă)
+    assert len(fs.sterge_candidat_salvat(uid, "https://x.ro/zzz")) == 1
+
+
+def test_candidat_fara_url_ridica(baza):
+    from evaluare import dosare_fs as fs
+    uid = fs.creeaza("L1", "Ev", _wizard())
+    for rau in ({}, {"url": ""}, {"url": "   "}, {"titlu": "fără url"}):
+        with pytest.raises(ValueError):
+            fs.salveaza_candidat(uid, rau)
+    with pytest.raises(ValueError):                          # ștergere fără url
+        fs.sterge_candidat_salvat(uid, "")
+
+
+def test_candidati_uid_invalid_ridica_keyerror(baza):
+    # gard UUID (anti path-traversal) — uid non-UUID -> KeyError (404 la router)
+    from evaluare import dosare_fs as fs
+    for rau in ["..", "../..", "not-a-uuid", "/etc/passwd"]:
+        with pytest.raises(KeyError):
+            fs.listeaza_candidati_salvati(rau)
+        with pytest.raises(KeyError):
+            fs.salveaza_candidat(rau, _candidat())
+        with pytest.raises(KeyError):
+            fs.sterge_candidat_salvat(rau, "https://x.ro/a")
+
+
+def test_candidati_dosar_inexistent_ridica(baza):
+    # uid UUID-valid dar FĂRĂ dosar.json -> KeyError (nu creează folder fantomă cu candidați)
+    import uuid as _uuid
+
+    from evaluare import dosare_fs as fs
+    with pytest.raises(KeyError):
+        fs.salveaza_candidat(str(_uuid.uuid4()), _candidat())
+
+
+def test_candidati_cap_maxim(baza):
+    # plafon anti-DoS: lista nu crește nelimitat; cele mai recente rămân.
+    from evaluare import dosare_fs as fs
+    uid = fs.creeaza("L1", "Ev", _wizard())
+    for i in range(fs.MAX_CANDIDATI_SALVATI + 25):
+        fs.salveaza_candidat(uid, _candidat(url=f"https://x.ro/a/{i}"))
+    lista = fs.listeaza_candidati_salvati(uid)
+    assert len(lista) == fs.MAX_CANDIDATI_SALVATI
+    assert lista[-1]["url"].endswith(f"/{fs.MAX_CANDIDATI_SALVATI + 24}")   # ultimul salvat e prezent
+
+
+def test_candidati_json_corupt_degradeaza(baza):
+    # robustețe: candidati_salvati.json corupt -> tratat ca listă goală (nu crapă la listare/salvare).
+    from evaluare import dosare_fs as fs
+    uid = fs.creeaza("L1", "Ev", _wizard())
+    (fs.baza() / uid / "candidati_salvati.json").write_text("{ corupt", encoding="utf-8")
+    assert fs.listeaza_candidati_salvati(uid) == []
+    assert len(fs.salveaza_candidat(uid, _candidat())) == 1   # salvarea repară fișierul

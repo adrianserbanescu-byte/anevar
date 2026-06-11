@@ -545,6 +545,64 @@ def test_dosar_gating_descopera_markup_prezent(client):
     assert "propGata" in html and "inghetZona" in html
 
 
+# ── Candidați salvați din «Descoperă» (în așteptare per dosar) ───────────────────
+def _candidat_api(url="https://imobiliare.ro/anunt/1", **extra):
+    c = {"url": url, "titlu": "Casa P+1", "pret": "120000", "suprafata": "100",
+         "teren": "500", "pret_mp": "1200", "poza": "https://x.ro/p.jpg",
+         "relevanta": 0.87, "localitate": "Sinaia", "distanta_km": 3.2}
+    c.update(extra)
+    return c
+
+
+def test_candidat_salvat_salveaza_listeaza_sterge(client):
+    # Contract complet: POST salvează (dict întreg), GET listează, POST .../sterge scoate pe url.
+    _cont(client)
+    uid = client.post("/api/dosar", json={"wizard": {"nume_client": "X"}}).json()["uuid"]
+    assert client.get(f"/api/dosar/{uid}/candidati-salvati").json()["candidati"] == []
+    r = client.post(f"/api/dosar/{uid}/candidat-salvat", json=_candidat_api())
+    assert r.status_code == 200
+    body = r.json()
+    assert body["count"] == 1 and body["candidati"][0]["pret_mp"] == "1200"
+    # GET reflectă starea
+    assert len(client.get(f"/api/dosar/{uid}/candidati-salvati").json()["candidati"]) == 1
+    # al doilea url
+    client.post(f"/api/dosar/{uid}/candidat-salvat", json=_candidat_api(url="https://imobiliare.ro/anunt/2"))
+    assert client.post(f"/api/dosar/{uid}/candidat-salvat", json=_candidat_api()).json()["count"] == 2  # dedup
+    # ștergere pe url
+    r2 = client.post(f"/api/dosar/{uid}/candidat-salvat/sterge",
+                     json={"url": "https://imobiliare.ro/anunt/1"})
+    assert r2.status_code == 200
+    assert [c["url"] for c in r2.json()["candidati"]] == ["https://imobiliare.ro/anunt/2"]
+
+
+def test_candidat_salvat_fara_url_422(client):
+    # input gardat: candidat fără url -> 422 (nu 500).
+    _cont(client)
+    uid = client.post("/api/dosar", json={"wizard": {}}).json()["uuid"]
+    assert client.post(f"/api/dosar/{uid}/candidat-salvat",
+                       json={"titlu": "fără url"}).status_code == 422
+    assert client.post(f"/api/dosar/{uid}/candidat-salvat",
+                       json={"url": "  "}).status_code == 422
+
+
+def test_candidat_salvat_uid_invalid_404(client):
+    # gard UUID (anti path-traversal): uid non-UUID -> 404 pe toate cele trei rute.
+    assert client.get("/api/dosar/not-a-uuid/candidati-salvati").status_code == 404
+    assert client.post("/api/dosar/not-a-uuid/candidat-salvat",
+                       json=_candidat_api()).status_code == 404
+    assert client.post("/api/dosar/not-a-uuid/candidat-salvat/sterge",
+                       json={"url": "https://x.ro/a"}).status_code == 404
+
+
+def test_candidat_salvat_dosar_inexistent_404(client):
+    # uid UUID-valid dar dosar inexistent -> 404 (nu folder fantomă).
+    import uuid as _uuid
+    _cont(client)
+    fake = str(_uuid.uuid4())
+    assert client.post(f"/api/dosar/{fake}/candidat-salvat",
+                       json=_candidat_api()).status_code == 404
+
+
 def test_dosar_inexistent_404(client):
     assert client.get("/dosar/nope").status_code == 404
     assert client.get("/api/dosar/nope").status_code == 404

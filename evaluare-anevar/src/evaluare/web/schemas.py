@@ -43,6 +43,11 @@ class RedenumesteRequest(BaseModel):
     nume: str
 
 
+class StergeCandidatRequest(BaseModel):
+    """Scoate un candidat salvat (în așteptare) dintr-un dosar, după URL-ul anunțului."""
+    url: str
+
+
 class ContRequest(BaseModel):
     """Crearea contului local (UI nou)."""
     nume: str
