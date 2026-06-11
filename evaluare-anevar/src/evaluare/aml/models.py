@@ -16,6 +16,10 @@ from evaluare.aml.validare_data import verifica_an_plauzibil
 TipAct = Literal["CI", "pasaport", "permis_sedere"]
 TipClient = Literal["PF", "PJ", "PJ_straina"]
 TipControlBR = Literal["proprietate", "alte_mijloace", "senior_management"]
+# Cum a fost identificat beneficiarul real — formular KYC §1 / Norme art. 4.
+ModalitateIdentificareBR = Literal[
+    "declaratie_client", "extras_rbr", "extras_onrc", "alte_surse",
+]
 CategorieRisc = Literal["redus", "standard", "sporit"]
 NivelMasuri = Literal["simplificate", "standard", "suplimentare"]
 # Categorii functii publice importante — Legea art. 3(2) a)-h)
@@ -78,6 +82,8 @@ class BeneficiarReal(PersoanaFizica):
     pep: StatutPEP = Field(default_factory=StatutPEP)
     consultat_registru_central: bool = False
     neconcordanta_registru: bool = False
+    # I-4: cum a fost identificat BR (declaratie client / extras RBR / ONRC / alte surse) — formular KYC §1.
+    modalitate_identificare: ModalitateIdentificareBR | None = None
 
 
 class ClientPF(BaseModel):
@@ -101,6 +107,11 @@ class ClientPJ(BaseModel):
     document_imputernicire: str | None = None
     traducere_legalizata: bool = False              # obligatoriu daca PJ straina (art. 15(2))
     beneficiari_reali: list[BeneficiarReal] = Field(default_factory=list, max_length=1000)
+    # S-3: consultarea Registrului Beneficiarilor Reali (RBR) la aplicarea MDC — Legea art. 19(5);
+    # acces gratuit pentru entitati raportoare. `nr_extras_rbr`/`data_extras_rbr` = dovada consultarii.
+    consultat_rbr: bool = False
+    nr_extras_rbr: str | None = None
+    data_extras_rbr: str | None = None              # ISO yyyy-mm-dd
 
 
 class FactorRisc(BaseModel):
@@ -132,5 +143,10 @@ class DosarAML(BaseModel):
     client_pj: ClientPJ | None = None
     evaluare_risc: EvaluareRisc | None = None
     indicatori_suspiciune: list[str] = Field(default_factory=list)
+    # S-2 EDD (masuri suplimentare la risc sporit) — Legea art. 17. Optionale, completate de evaluator.
+    sursa_fonduri: str | None = None
+    sursa_avere: str | None = None
+    aprobare_conducere_superioara_pep: bool = False
+    monitorizare_sporita: bool = False
     data_creare: str | None = None
     data_retentie: str | None = None

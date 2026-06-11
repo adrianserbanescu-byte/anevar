@@ -84,3 +84,106 @@ def test_dosar_aml_se_construieste():
     assert d.client_pf is not None
     assert d.client_pj is None
     assert d.evaluare_risc.categorie == "standard"
+
+
+# ---------------------------------------------------------------------------
+# S-2 EDD — sursa fonduri/avere, aprobare conducere PEP, monitorizare sporita
+# Toate OPTIONALE (default None/False) -> backward-compatible.
+# ---------------------------------------------------------------------------
+
+def test_dosar_aml_edd_default_optionale():
+    """Campurile EDD lipsesc din constructiile vechi -> default None/False."""
+    d = DosarAML(tip_entitate_evaluator="PFA")
+    assert d.sursa_fonduri is None
+    assert d.sursa_avere is None
+    assert d.aprobare_conducere_superioara_pep is False
+    assert d.monitorizare_sporita is False
+
+
+def test_dosar_aml_edd_completat():
+    d = DosarAML(
+        tip_entitate_evaluator="PJ",
+        sursa_fonduri="Vanzare imobil anterior + economii",
+        sursa_avere="Activitate antreprenoriala 2005-2020",
+        aprobare_conducere_superioara_pep=True,
+        monitorizare_sporita=True,
+    )
+    assert d.sursa_fonduri.startswith("Vanzare")
+    assert d.sursa_avere.startswith("Activitate")
+    assert d.aprobare_conducere_superioara_pep is True
+    assert d.monitorizare_sporita is True
+
+
+# ---------------------------------------------------------------------------
+# S-3 RBR — consultat_rbr + nr/data extras, pe ClientPJ.
+# ---------------------------------------------------------------------------
+
+def test_client_pj_rbr_default_optional():
+    """ClientPJ vechi (fara RBR) ramane valid -> default False/None."""
+    c = ClientPJ(denumire="ACME SRL", cui="RO123")
+    assert c.consultat_rbr is False
+    assert c.nr_extras_rbr is None
+    assert c.data_extras_rbr is None
+
+
+def test_client_pj_rbr_completat():
+    c = ClientPJ(
+        denumire="ACME SRL", cui="RO123",
+        consultat_rbr=True,
+        nr_extras_rbr="RBR-2026-001",
+        data_extras_rbr="2026-06-11",
+    )
+    assert c.consultat_rbr is True
+    assert c.nr_extras_rbr == "RBR-2026-001"
+    assert c.data_extras_rbr == "2026-06-11"
+
+
+# ---------------------------------------------------------------------------
+# I-4 — modalitate_identificare pe BeneficiarReal (optionala).
+# ---------------------------------------------------------------------------
+
+def test_beneficiar_real_modalitate_identificare_default():
+    br = BeneficiarReal(nume="A", prenume="B")
+    assert br.modalitate_identificare is None
+
+
+def test_beneficiar_real_modalitate_identificare_setata():
+    br = BeneficiarReal(
+        nume="A", prenume="B", procent=Decimal("0.40"),
+        modalitate_identificare="extras_rbr",
+    )
+    assert br.modalitate_identificare == "extras_rbr"
+
+
+# ---------------------------------------------------------------------------
+# StatutPEP — categorie/tip/data_incetare deja exista; verificam ca nu s-a stricat.
+# ---------------------------------------------------------------------------
+
+def test_statut_pep_are_categorie_tip_data_incetare():
+    pep = StatutPEP(
+        este_pep=True, categorie="sef_stat_guvern", tip="membru_familie",
+        data_incetare_functie="2024-12-31",
+    )
+    assert pep.categorie == "sef_stat_guvern"
+    assert pep.tip == "membru_familie"
+    assert pep.data_incetare_functie == "2024-12-31"
+
+
+def test_statut_pep_default_gol_ramane_valid():
+    """Constructie minima (doar este_pep) — backward-compatible."""
+    pep = StatutPEP()
+    assert pep.este_pep is False
+    assert pep.categorie is None
+    assert pep.tip is None
+    assert pep.data_incetare_functie is None
+
+
+# ---------------------------------------------------------------------------
+# Backward-compat global: constructiile existente (fara campuri noi) neafectate.
+# ---------------------------------------------------------------------------
+
+def test_backward_compat_constructii_minime():
+    """Niciun camp nou nu e obligatoriu -> modelele se construiesc fara argumente."""
+    assert DosarAML().sursa_fonduri is None
+    assert ClientPJ().consultat_rbr is False
+    assert BeneficiarReal().modalitate_identificare is None
