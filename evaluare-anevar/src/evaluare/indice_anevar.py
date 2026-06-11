@@ -3,6 +3,11 @@
 Date publice (pagina e randata cu Google Charts; valorile sunt in JS-ul paginii, in
 `arrayToDataTable`). Utile pentru ajustarea „conditiile pietei (timp)" intre data evaluarii si
 data unei comparabile. Fetcher injectabil pentru testare offline.
+
+OFFLINE-FIRST: cand pagina live nu e disponibila (fara retea, 403, layout schimbat), modulul
+cade pe un tabel offline (`INDICE_OFFLINE`) extras dintr-un raport rezidential publicat, astfel
+incat motorul de ajustare „timp" sa functioneze si fara internet. Tabelul e o ANCORA istorica,
+nu inlocuieste datele live; vezi `SURSA_OFFLINE`.
 """
 from __future__ import annotations
 
@@ -16,6 +21,55 @@ from evaluare.importers.url_parser import fetch_html
 
 INDICE_URL = ("https://www.anevar.ro/p/informatii-din-piata/informatii-statistice-anevar/"
               "indicele-imobiliar-anevar")
+
+# --- Fallback offline ---------------------------------------------------------------------------
+# Sursa: raport „Piața imobiliară rezidențială – Trimestrul II 2021" (Analize Imobiliare /
+# Imobiliare.ro, partener oficial ANEVAR pentru datele din piață — vezi pagina „Date din piață"
+# de pe anevar.ro). Sectiunea „Situația în marile orașe - apartamente de vânzare" (p. 11).
+# Valorile sunt variatii procentuale ale pretului mediu/mp util al apartamentelor, pe cele 11
+# mari orase (>200.000 locuitori) monitorizate:
+#   - „Q1-Q2/2021" = evolutia trimestriala (T2 2021 vs T1 2021), in %;
+#   - „Q2-2020 → Q2-2021" = evolutia anuala (ultimele 12 luni), in %.
+# Pastram aceeasi forma cu cea parsata din pagina live: {"orase": [...], "perioade": [...]}.
+SURSA_OFFLINE = (
+    "Analize Imobiliare / Imobiliare.ro — „Piața imobiliară rezidențială, Trimestrul II 2021”, "
+    "secțiunea „Situația în marile orașe – apartamente de vânzare” (preț mediu/mp util)."
+)
+
+# orase in ordinea din raport (clasamentul pretului mediu/mp, T2 2021)
+_ORASE_OFFLINE = [
+    "Cluj-Napoca", "Bucuresti", "Constanta", "Brasov", "Timisoara",
+    "Craiova", "Iasi", "Oradea", "Galati", "Ploiesti", "Braila",
+]
+
+# evolutia trimestriala (T2 2021 vs T1 2021), % — raport p. 11 (prozã + grafic)
+_TRIM_2021_T2 = {
+    "Craiova": 4.8, "Brasov": 4.7, "Bucuresti": 4.0, "Constanta": 3.3,
+    "Cluj-Napoca": 2.2, "Iasi": 1.9, "Timisoara": 1.6, "Ploiesti": 1.5,
+    "Braila": 1.5, "Oradea": 1.4, "Galati": 1.2,
+}
+
+# evolutia anuala (T2 2021 vs T2 2020), % — raport p. 11 (prozã + grafic)
+_ANUAL_2021_T2 = {
+    "Brasov": 10.1, "Craiova": 9.0, "Galati": 6.5, "Constanta": 6.4,
+    "Bucuresti": 5.7, "Cluj-Napoca": 5.2, "Ploiesti": 5.2, "Oradea": 5.0,
+    "Iasi": 4.9, "Braila": 4.5, "Timisoara": 2.8,
+}
+
+
+def _tabel_offline() -> dict:
+    """Construieste fallback-ul offline in aceeasi forma ca `_parse` (orase + perioade)."""
+    return {
+        "orase": list(_ORASE_OFFLINE),
+        "perioade": [
+            {"perioada": "Q1-Q2/2021",
+             "valori": {o: _TRIM_2021_T2[o] for o in _ORASE_OFFLINE}},
+            {"perioada": "Q2-2020 → Q2-2021",
+             "valori": {o: _ANUAL_2021_T2[o] for o in _ORASE_OFFLINE}},
+        ],
+        "offline": True,
+        "sursa": SURSA_OFFLINE,
+    }
 
 
 def _parse(html: str) -> dict:
@@ -43,6 +97,20 @@ def _parse(html: str) -> dict:
 
 
 def indice_anevar(fetcher: Callable[[str], str] | None = None) -> dict:
-    """Returneaza indicele imobiliar ANEVAR (orase + variatii trimestriale %)."""
-    html = (fetcher or fetch_html)(INDICE_URL)
-    return _parse(html)
+    """Returneaza indicele imobiliar ANEVAR (orase + variatii trimestriale %).
+
+    Offline-first: incearca pagina live (prin `fetcher` injectat sau `fetch_html`); daca
+    descarcarea esueaza (fara retea / 403 / eroare) SAU pagina nu mai contine tabelul asteptat
+    (rezultat gol), cade pe `_tabel_offline()` ca fallback. Backward-compatible: cand pagina live
+    intoarce date valide, comportamentul ramane neschimbat.
+    """
+    try:
+        html = (fetcher or fetch_html)(INDICE_URL)
+        rezultat = _parse(html)
+    except Exception:
+        # retea indisponibila / 403 / orice eroare de fetch -> fallback offline, nu propaga.
+        return _tabel_offline()
+    if not rezultat.get("perioade"):
+        # pagina a raspuns, dar fara tabelul Google Charts asteptat -> fallback offline.
+        return _tabel_offline()
+    return rezultat
