@@ -49,11 +49,13 @@ def _by(checklist, cheie) -> ElementCalitate:
 
 
 # ── Structura checklist-ului ──────────────────────────────────────────────────
-def test_checklist_acopera_cele_sase_elemente_minime():
+def test_checklist_acopera_elementele_minime():
     chei = {e.cheie for e in verifica_calitate(_ctx())}
     assert chei == {
         "comparabile_minime", "cmbu_concluzionat", "tip_valoare_sursa",
         "documente_anexate", "coerenta_moneda_data", "adecvare_scop",
+        # aditiv, specifice garantarii (GEV 520 / CRR) — doar nivel ATENTIE
+        "esg_riscuri_fizice", "valoare_prudenta_considerata",
     }
 
 
@@ -195,6 +197,49 @@ def test_adecvare_valoare_nepozitiva_blocheaza():
     e = _by(chk, "adecvare_scop")
     assert e.trecut is False and e.nivel == "blocheaza"
     assert emisibil(chk) is False
+
+
+# ── Element: ESG / riscuri fizice (la garantare, GEV 520) ─────────────────────
+def test_riscuri_fizice_lipsa_la_garantare_avertizeaza():
+    # scop implicit = garantare; meta.riscuri_fizice gol -> atentie, NU blocaj
+    chk = verifica_calitate(_ctx())
+    e = _by(chk, "esg_riscuri_fizice")
+    assert e.trecut is False and e.nivel == "alerteaza"
+    assert emisibil(chk) is True
+
+
+def test_riscuri_fizice_populate_trec():
+    chk = verifica_calitate(_ctx(meta_over={"riscuri_fizice": ["inundabilitate", "seismic"]}))
+    e = _by(chk, "esg_riscuri_fizice")
+    assert e.trecut is True
+
+
+def test_riscuri_fizice_neaplicabile_in_afara_garantarii():
+    # scop "asigurare" -> profil ASIGURARE (scop != garantare_credit) -> verificarea trece (neaplicabil)
+    e = _by(verifica_calitate(_ctx(scop="asigurare")), "esg_riscuri_fizice")
+    assert e.trecut is True and e.nivel == "alerteaza"
+
+
+# ── Element: valoare prudenta considerata (la garantare, CRR) ─────────────────
+def test_valoare_prudenta_nota_la_garantare_e_atentie_nu_blocaj():
+    chk = verifica_calitate(_ctx())
+    e = _by(chk, "valoare_prudenta_considerata")
+    assert e.nivel == "alerteaza"
+    assert e.trecut is False        # nota/reminder optional la garantare
+    assert emisibil(chk) is True    # niciodata blocant
+
+
+def test_valoare_prudenta_neaplicabila_in_afara_garantarii():
+    e = _by(verifica_calitate(_ctx(scop="asigurare")), "valoare_prudenta_considerata")
+    assert e.trecut is True and e.nivel == "alerteaza"
+
+
+def test_elementele_noi_nu_introduc_blocaje():
+    # itemii aditivi (ESG + valoare prudenta) sunt mereu nivel ATENTIE — nu apar in blocaje
+    chk = verifica_calitate(_ctx())
+    chei_blocaje = {e.cheie for e in blocaje(chk)}
+    assert "esg_riscuri_fizice" not in chei_blocaje
+    assert "valoare_prudenta_considerata" not in chei_blocaje
 
 
 # ── Helpers ───────────────────────────────────────────────────────────────────

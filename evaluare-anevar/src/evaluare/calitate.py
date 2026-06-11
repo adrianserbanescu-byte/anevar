@@ -55,6 +55,11 @@ def _fara_diacritice(s: str) -> str:
     return "".join(c for c in unicodedata.normalize("NFKD", s) if not unicodedata.combining(c))
 
 
+def _e_garantare(ctx: ReportContext) -> bool:
+    """Scopul evaluarii este garantarea creditului (GEV 520)? — declanseaza verificarile specifice."""
+    return ctx.profil.scop == "garantare_credit"
+
+
 def _e_placeholder(text: str) -> bool:
     """Un capitol narativ negenerat (placeholder offline «[de completat: ...]») sau gol."""
     t = (text or "").strip().lower()
@@ -203,12 +208,61 @@ def _item_adecvare(ctx: ReportContext) -> ElementCalitate:
         referinta=referinta)
 
 
+def _item_riscuri_fizice(ctx: ReportContext) -> ElementCalitate:
+    """ESG / riscuri fizice verificate — la garantare (GEV 520 §86-88), `meta.riscuri_fizice` populat.
+
+    Reutilizeaza campul `meta.riscuri_fizice` (lista de etichete, deja pe master) si pozitia modulului
+    `esg.py`: riscurile fizice se MENTIONEAZA, nu se cuantifica. La garantare, daca lista e populata ->
+    riscurile au fost analizate (trece); altfel -> avertizare «verifica riscurile fizice» (nu blocheaza —
+    ramane decizia evaluatorului, mirror «warn before»). In afara garantarii -> neaplicabil (trece).
+    """
+    titlu = "ESG / riscuri fizice verificate (la garantare, GEV 520)"
+    referinta = "GEV 520 §86-88; pozitia ANEVAR riscuri fizice (esg.py)"
+    if not _e_garantare(ctx):
+        return ElementCalitate(
+            cheie="esg_riscuri_fizice", titlu=titlu, trecut=True, nivel="alerteaza",
+            detaliu="Scopul nu este garantarea creditului — verificarea riscurilor fizice nu este ceruta.",
+            referinta=referinta)
+    riscuri = [r for r in (ctx.meta.riscuri_fizice or []) if str(r).strip()]
+    trecut = bool(riscuri)
+    return ElementCalitate(
+        cheie="esg_riscuri_fizice", titlu=titlu, trecut=trecut, nivel="alerteaza",
+        detaliu=(f"Riscuri fizice analizate/semnalate: {', '.join(riscuri)}." if trecut
+                 else "Verifica riscurile fizice (inundabilitate, seismic, alunecari) — niciunul "
+                      "semnalat in dosar; preia documentele oficiale puse la dispozitie de client."),
+        referinta=referinta)
+
+
+def _item_valoare_prudenta(ctx: ReportContext) -> ElementCalitate:
+    """Valoare prudenta considerata — la garantare, nota optionala (valoare_prudenta.py, CRR art. 229/208).
+
+    Reaminteste evaluatorului ca, la garantarea creditului, ar trebui considerata valoarea prudenta
+    (baza de valoare distincta, ADITIONALA valorii de piata — vezi `valoare_prudenta.py`). Nivel ATENTIE,
+    niciodata blocant: interpretarea CRR e neoficializata in RO, deci ramane o optiune asumata de
+    evaluator. In afara garantarii -> neaplicabil (trece).
+    """
+    titlu = "Valoare prudenta (de garantie) considerata — nota optionala (la garantare)"
+    referinta = "CRR — Reg. (UE) 575 art. 229/208 (valoare_prudenta.py); interpretare neoficializata RO"
+    if not _e_garantare(ctx):
+        return ElementCalitate(
+            cheie="valoare_prudenta_considerata", titlu=titlu, trecut=True, nivel="alerteaza",
+            detaliu="Scopul nu este garantarea creditului — valoarea prudenta nu este relevanta.",
+            referinta=referinta)
+    return ElementCalitate(
+        cheie="valoare_prudenta_considerata", titlu=titlu, trecut=False, nivel="alerteaza",
+        detaliu="La garantare, considerati estimarea valorii prudente (de garantie) alaturi de valoarea "
+                "de piata (optional, asumat de evaluator) — vezi modulul valoare prudenta (CRR art. 229).",
+        referinta=referinta)
+
+
 def verifica_calitate(ctx: ReportContext,
                       cfg: MetodologieConfig = IMPLICIT) -> list[ElementCalitate]:
     """Checklist-ul complet de verificare interna a calitatii, bifat automat din `ctx`.
 
     Acopera (minim): min. comparabile, CMBU concluzionata, tip valoare + sursa, documente anexate,
-    coerenta moneda/date, adecvarea concluziei la scop. `cfg` = pragurile de metodologie (M5).
+    coerenta moneda/date, adecvarea concluziei la scop. La garantarea creditului adauga (aditiv, doar
+    nivel ATENTIE, niciodata blocant): ESG / riscuri fizice verificate (GEV 520) si nota «valoare
+    prudenta considerata» (CRR). `cfg` = pragurile de metodologie (M5).
     """
     return [
         _item_comparabile(ctx, cfg),
@@ -217,6 +271,8 @@ def verifica_calitate(ctx: ReportContext,
         _item_documente(ctx),
         _item_coerenta(ctx),
         _item_adecvare(ctx),
+        _item_riscuri_fizice(ctx),
+        _item_valoare_prudenta(ctx),
     ]
 
 
