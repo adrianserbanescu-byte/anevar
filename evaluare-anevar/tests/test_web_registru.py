@@ -182,6 +182,37 @@ def test_big_uid_invalid_404(client):
     assert client.get("/api/dosar/nope/big").status_code == 404
 
 
+# ── H14-1: suprafata/valoare <=0 -> checklist „lipsa", NU 500 ──────────────────
+@pytest.mark.parametrize("camp,valoare", [
+    ("suprafata_teren", "0"),
+    ("suprafata_teren", "-5"),
+    ("suprafata_teren", "0.0"),
+    ("valoare_finala", "0"),
+    ("valoare_finala", "-100"),
+])
+def test_big_suprafata_valoare_nepozitiva_nu_da_500(client, camp, valoare):
+    uid = _dosar(client, nume_client="Pop", tip_proprietate="teren", **{camp: valoare})
+    r = client.get(f"/api/dosar/{uid}/big")
+    assert r.status_code == 200, r.text          # NU mai e 500 (ValidationError prinsa)
+    j = r.json()
+    assert j["gata"] is False
+    # valoarea ne-pozitiva e tratata ca LIPSA -> apare in checklist
+    if camp == "suprafata_teren":
+        assert "Suprafața" in j["lipsuri"]
+    else:
+        assert "Valoarea de piață (concluzia evaluatorului)" in j["lipsuri"]
+
+
+def test_registru_nu_cade_din_dosar_otravit(client):
+    # Un dosar cu suprafata=0 nu trebuie sa darame pagina /registru pentru toti.
+    _dosar(client, nume_client="Bun", tip_proprietate="teren", suprafata_teren="500")
+    _dosar(client, nume_client="Otravit", tip_proprietate="teren", suprafata_teren="0",
+           valoare_finala="-1")
+    r = client.get("/registru")
+    assert r.status_code == 200                   # pagina intreaga supravietuieste
+    assert "Bun" in r.text and "Otravit" in r.text
+
+
 def test_registru_arata_pregatirea_big(client):
     _dosar(client, nume_client="Vasilescu", tip_proprietate="casa")
     r = client.get("/registru")

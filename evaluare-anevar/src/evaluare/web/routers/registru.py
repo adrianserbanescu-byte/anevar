@@ -9,8 +9,11 @@ Informativ al Garantiilor (`big.construieste_payload_big`) + ruleaza checklist-u
 """
 from __future__ import annotations
 
+from decimal import Decimal
+
 from fastapi import APIRouter, HTTPException, Request
 from fastapi.responses import HTMLResponse, PlainTextResponse, Response
+from pydantic import ValidationError
 
 from evaluare import big
 from evaluare import dosare_fs as fs
@@ -27,6 +30,24 @@ def _g(wizard: dict, *chei: str) -> str | None:
         if v not in (None, "", []):
             return str(v).strip()
     return None
+
+
+def _pozitiv(v: object) -> object | None:
+    """Pasa `v` mai departe DOAR daca se converteste la un numar strict pozitiv; altfel None.
+
+    Campurile BIG `suprafata`/`valoare_piata` au `Field(gt=0)`. O valoare <=0 (ex. `"0"`, `"-5"`,
+    `"0.0"`) ar declansa `ValidationError` (subclasa de `ValueError`) la construirea modelului si ar
+    darama pagina `/registru` + endpoint-ul. Tratam o astfel de valoare ca LIPSA (None), ca sa apara
+    in checklist-ul de lipsuri, nu sa arunce. Valorile ne-numerice raman neschimbate (BIG `_dec()` le
+    converteste tolerant la None oricum)."""
+    if v is None:
+        return None
+    try:
+        if Decimal(str(v)) > 0:
+            return v
+    except (ArithmeticError, ValueError, TypeError):
+        return v          # ne-numeric -> lasa BIG._dec() sa-l reduca tolerant la None
+    return None           # numeric, dar <=0 -> trateaza ca lipsa
 
 
 def pregateste_big(dosar: dict) -> big.CampuriMinimeBIG:
@@ -52,7 +73,8 @@ def pregateste_big(dosar: dict) -> big.CampuriMinimeBIG:
         # Numarul de identificare a raportului = numarul de lucrare alocat la creare (Procedura §6/§11).
         "nr_lucrare": dosar.get("nr_lucrare"),
         # Concluzia (valoarea de piata) — persistata pe dosar daca un calcul a fost salvat; altfel lipsa.
-        "valoare_piata": dosar.get("valoare_finala") or _g(w, "valoare_finala", "valoare_piata"),
+        # `_pozitiv`: o valoare <=0 e tratata ca LIPSA (campul BIG e `gt=0`), nu ca eroare 500.
+        "valoare_piata": _pozitiv(dosar.get("valoare_finala") or _g(w, "valoare_finala", "valoare_piata")),
     }
     profil = {"tip_activ": _g(w, "tip_proprietate")}
     localizare = {
@@ -63,7 +85,8 @@ def pregateste_big(dosar: dict) -> big.CampuriMinimeBIG:
     }
     descriere = {
         # Suprafata raportata in BIG: terenul (`suprafata_teren`) sau, pt constructii, aria utila/desfasurata.
-        "suprafata": _g(w, "suprafata_teren", "suprafata", "acd", "au"),
+        # `_pozitiv`: o suprafata <=0 e tratata ca LIPSA (campul BIG e `gt=0`), nu ca eroare 500.
+        "suprafata": _pozitiv(_g(w, "suprafata_teren", "suprafata", "acd", "au")),
         "um_suprafata": _g(w, "um_suprafata") or "mp",
         "an_constructie": _g(w, "an_referinta", "an_pif"),
     }
@@ -87,6 +110,13 @@ def build_router(d: Deps) -> APIRouter:
             try:
                 campuri = pregateste_big(fs.incarca(uid))
             except KeyError:                     # dosar disparut intre listare si citire -> sarit
+                continue
+            except (ValidationError, ValueError):
+                # dosar otravit (date care nu trec validarea BIG) -> marcheaza-l ca neGATA, NU darama
+                # pagina pentru toti. `nr_lipsuri` = toate campurile obligatorii (echivalent „nimic util").
+                big_status[uid] = {
+                    "nr_lipsuri": len(big.CAMPURI_OBLIGATORII), "gata": False, "eroare": True,
+                }
                 continue
             lipsuri = big.valideaza_campuri_minime(campuri)
             big_status[uid] = {"nr_lipsuri": len(lipsuri), "gata": not lipsuri}
@@ -123,7 +153,12 @@ def build_router(d: Deps) -> APIRouter:
             dosar = fs.incarca(uid)              # _cale() refuza uid non-UUID (anti path-traversal)
         except KeyError:
             raise HTTPException(404, "Dosar inexistent.") from None
-        campuri = pregateste_big(dosar)
+        try:
+            campuri = pregateste_big(dosar)
+        except (ValidationError, ValueError) as e:
+            # Date care nu trec validarea BIG (ex. ramase dupa o cale neacoperita de `_pozitiv`) ->
+            # 422, nu 500: un dosar otravit nu trebuie sa darame endpoint-ul.
+            raise HTTPException(422, "Dosar invalid pentru BIG.") from e
         lipsuri = big.valideaza_campuri_minime(campuri)
         return {
             "uid": uid,

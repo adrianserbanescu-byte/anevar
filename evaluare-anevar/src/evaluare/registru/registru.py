@@ -91,6 +91,9 @@ def rand(dosar: dict) -> dict:
     """Un rand de registru dintr-un dosar (`dosar.json`). Include `uid` (pt link de export, nu coloana)."""
     w = dosar.get("wizard", {}) or {}
     scop = _g(w, "scop")
+    # `risc_aml` poate fi pe dosar (top-level) sau in wizard; il stringificam INAINTE de `.get` ca o
+    # valoare nehashabila (lista/dict, dintr-un `dosar.json` fabricat/importat) sa NU arunce TypeError.
+    risc = str(dosar.get("risc_aml") or "").strip() or _g(w, "risc_aml")
     return {
         "uid": dosar.get("uuid", ""),
         "nr_lucrare": dosar.get("nr_lucrare") or "—",
@@ -106,14 +109,45 @@ def rand(dosar: dict) -> dict:
         "data_raportului": _g(w, "data_raportului"),
         "data_predarii": _g(w, "data_predarii"),
         "verificator": _verificator(w),
-        "risc_aml": _RISC_ETICHETA.get(
-            dosar.get("risc_aml") or _g(w, "risc_aml"), dosar.get("risc_aml") or _g(w, "risc_aml")),
+        "risc_aml": _RISC_ETICHETA.get(risc, risc),
         "observatii": _g(w, "observatii_registru", "inspectie_observatii"),
     }
 
 
+# Cache in-process pe semnatura de mtime-uri: pagina `/registru` + cele 3 exporturi (json/csv/xlsx)
+# apeleaza fiecare `randuri()`; fara cache = ~Nx re-citiri+parse JSON per rafala de cereri. Cache-ul
+# se invalideaza automat cand orice `dosar.json` se schimba (mtime) sau cand se adauga/sterge un dosar.
+_cache_randuri: tuple[object, list[dict]] | None = None
+
+
+def _semnatura_dosare() -> object:
+    """Semnatura ieftina a starii dosarelor pe disc: {uid: mtime_ns} pentru fiecare `dosar.json`.
+
+    Orice creare/stergere/modificare schimba semnatura -> cache miss. Daca `stat` esueaza pentru un
+    fisier, e omis (va fi reconsiderat la urmatorul apel)."""
+    b = fs.baza()
+    if not b.exists():
+        return ()
+    sig: list[tuple[str, int]] = []
+    for f in b.glob("*/dosar.json"):
+        try:
+            sig.append((f.parent.name, f.stat().st_mtime_ns))
+        except OSError:
+            continue
+    sig.sort()
+    return tuple(sig)
+
+
 def randuri() -> list[dict]:
-    """Toate randurile de registru, sortate dupa numarul de lucrare (ordinea de inregistrare)."""
+    """Toate randurile de registru, sortate dupa numarul de lucrare (ordinea de inregistrare).
+
+    Memoizat pe semnatura de mtime-uri (`_semnatura_dosare`): apeluri repetate intre care nimic nu s-a
+    schimbat pe disc reutilizeaza rezultatul (returneaza o copie, ca apelantii sa nu mute cache-ul).
+    """
+    global _cache_randuri
+    sig = _semnatura_dosare()
+    if _cache_randuri is not None and _cache_randuri[0] == sig:
+        return [dict(r) for r in _cache_randuri[1]]
     out: list[dict] = []
     for antet in fs.listeaza():
         uid = antet.get("uuid")
@@ -121,9 +155,12 @@ def randuri() -> list[dict]:
             continue
         try:
             out.append(rand(fs.incarca(uid)))
-        except KeyError:                 # dosar sters/ilizibil intre listare si citire -> sarit
+        except (KeyError, ValueError, TypeError):
+            # dosar sters/ilizibil intre listare si citire, sau `dosar.json` fabricat cu tipuri ostile
+            # (ex. `risc_aml` lista/dict) -> sarit, NU darama tot registrul pentru toti.
             continue
     out.sort(key=lambda r: r.get("nr_lucrare") or "")
+    _cache_randuri = (sig, [dict(r) for r in out])
     return out
 
 
@@ -134,9 +171,15 @@ def _matrice(rr: list[dict]) -> tuple[list[str], list[list[str]]]:
 
 
 def csv_text(rr: list[dict] | None = None) -> str:
-    """Registrul ca text CSV, cu BOM UTF-8 in fata (Excel RO il deschide corect cu diacritice)."""
+    """Registrul ca text CSV, cu BOM UTF-8 in fata (Excel RO il deschide corect cu diacritice).
+
+    Celulele care incep cu un caracter de formula (`= + - @`, TAB, CR) sunt prefixate cu apostrof
+    (`xlsx_min._neutralizeaza_formula`) ca Excel/LibreOffice sa nu le execute ca formule LIVE
+    (CSV/formula injection, CWE-1236). Antetele sunt fixe (din `COLOANE`) -> nu necesita neutralizare.
+    """
     rr = randuri() if rr is None else rr
     antete, randuri_val = _matrice(rr)
+    randuri_val = [[xlsx_min._neutralizeaza_formula(c) for c in rand] for rand in randuri_val]
     buf = io.StringIO()
     w = csv.writer(buf)
     w.writerow(antete)

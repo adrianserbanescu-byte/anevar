@@ -37,7 +37,27 @@ _WB_RELS = (
 )
 
 
+# Caractere de control interzise de XML 1.0: tot sub 0x20, mai putin TAB/LF/CR. Daca ajung RAW intr-un
+# `<t>`, fisierul `.xlsx` devine XML invalid -> Excel/LibreOffice il resping ca fiind corupt.
+_PERICULOASE_INCEPUT = ("=", "+", "-", "@")   # prefixe de formula (CSV/XLSX formula injection)
+
+
+def _curata_control(s: str) -> str:
+    """Scoate caracterele de control invalide in XML 1.0 (sub 0x20), pastrand TAB/LF/CR."""
+    return "".join(c for c in s if c in "\t\n\r" or ord(c) >= 0x20)
+
+
+def _neutralizeaza_formula(s: str) -> str:
+    """Prefixeaza cu apostrof (') o celula TEXT care incepe cu un caracter de formula (= + - @) sau cu
+    TAB/CR, ca Excel/LibreOffice sa o trateze ca text literal, nu ca formula LIVE (CSV/formula injection,
+    CWE-1236). Aplicat o singura data, centralizat, ca exporturile CSV si XLSX sa fie consistente."""
+    if s and (s[0] in _PERICULOASE_INCEPUT or s[0] in ("\t", "\r")):
+        return "'" + s
+    return s
+
+
 def _esc(s: str) -> str:
+    s = _curata_control(s)
     return (s.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
              .replace('"', "&quot;"))
 
@@ -59,6 +79,9 @@ def _celula(col: int, rand: int, val: object) -> str:
     if isinstance(val, (int, float, Decimal)):
         return f'<c r="{ref}"><v>{val}</v></c>'
     text = "" if val is None else str(val)
+    # Ordine: curata INTAI caracterele de control (altfel un `\x01=cmd` ar ramane `=cmd` dupa curatare,
+    # re-expunand prefixul de formula), apoi neutralizeaza prefixul de formula, apoi escapeaza XML.
+    text = _neutralizeaza_formula(_curata_control(text))
     return (f'<c r="{ref}" t="inlineStr"><is>'
             f'<t xml:space="preserve">{_esc(text)}</t></is></c>')
 
