@@ -13,10 +13,19 @@ from fastapi.responses import HTMLResponse, PlainTextResponse, RedirectResponse,
 
 from evaluare import __version__
 from evaluare.logging_setup import get_logger
+from evaluare.registru.xlsx_min import _curata_control, _neutralizeaza_formula
 from evaluare.web.deps import Deps
 from evaluare.web.schemas import FeedbackRequest
 
 log = get_logger(__name__)
+
+
+def _csv_sigur(val: object) -> str:
+    """Neutralizeaza un camp user inainte de `csv.writer`: curata caracterele de control INTAI
+    (altfel `\\x01=cmd` ar ramane `=cmd` dupa curatare, re-expunand prefixul), apoi prefixeaza cu
+    apostrof celulele care incep cu un caracter de formula (= + - @ TAB CR) — exact ca exportul de
+    registru (SEC-A-01, CWE-1236 / CSV-formula-injection)."""
+    return _neutralizeaza_formula(_curata_control("" if val is None else str(val)))
 
 
 def _fisier_feedback() -> Path:
@@ -40,8 +49,11 @@ def _scrie_feedback_fisier(fb: FeedbackRequest) -> str:
             w = csv.writer(fh)
             if nou:
                 w.writerow(["data", "pagina", "reactie", "mesaj", "tester", "url"])
-            w.writerow([datetime.now().strftime("%Y-%m-%d %H:%M:%S"), fb.pagina,
-                        fb.sentiment, fb.mesaj, fb.tester, fb.url])
+            # Campurile user (pagina/sentiment/mesaj/tester/url) trec prin `_csv_sigur` ca un
+            # `=`/`+`/`-`/`@` la inceput sa nu fie interpretat ca formula LIVE in Excel (SEC-A-01).
+            w.writerow([datetime.now().strftime("%Y-%m-%d %H:%M:%S"), _csv_sigur(fb.pagina),
+                        _csv_sigur(fb.sentiment), _csv_sigur(fb.mesaj),
+                        _csv_sigur(fb.tester), _csv_sigur(fb.url)])
     except OSError as e:                                    # disc plin/permisiuni -> nu blocăm
         log.warning("Nu pot scrie fișierul de feedback (%s): %s", f, e)
     return f.name
@@ -154,8 +166,9 @@ def build_router(d: Deps) -> APIRouter:
         w = csv.writer(buf)
         w.writerow(["id", "data", "pagina", "url", "reactie", "mesaj", "tester"])
         for r in rows:
-            w.writerow([r["id"], r["creat_la"], r["pagina"], r["url"],
-                        r["sentiment"], r["mesaj"], r["tester"]])
+            # Idem SEC-A-01: campurile user trec prin `_csv_sigur` (id/creat_la sunt de la server).
+            w.writerow([r["id"], r["creat_la"], _csv_sigur(r["pagina"]), _csv_sigur(r["url"]),
+                        _csv_sigur(r["sentiment"]), _csv_sigur(r["mesaj"]), _csv_sigur(r["tester"])])
         return PlainTextResponse(buf.getvalue(), media_type="text/csv",
             headers={"Content-Disposition": "attachment; filename=feedback.csv"})
 
