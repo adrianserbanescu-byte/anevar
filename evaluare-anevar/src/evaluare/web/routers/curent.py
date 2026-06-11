@@ -352,6 +352,11 @@ def build_router(d: Deps) -> APIRouter:
         out = tmp / f"raport_{uid}_{tok}.docx"
         genereaza_raport(ctx, out, adnotari=bool(adnotari))   # adnotări = note de proveniență (review)
         fs.adauga_versiune_docx(uid, out)              # versiune .docx persistentă (canonică) în folderul dosarului
+        # UJ-1: persistă concluzia (valoarea de piață) pe dosar la generarea raportului OFICIAL, ca
+        # registrul/BIG (GEV 520 §7) să nu o mai raporteze „lipsă". Aditiv; nu rupe download-ul dacă
+        # scrierea eșuează (dosar șters concurent etc.) — versionarea/PII rămân tratate separat.
+        with contextlib.suppress(KeyError, OSError):
+            fs.salveaza_valoare_finala(uid, ctx.reconciled.valoare_finala)
         from starlette.background import BackgroundTask
 
         def _sterge(*cai):   # igienă PII: copiile temporare se șterg după trimitere

@@ -4,6 +4,7 @@ from __future__ import annotations
 import os
 import shutil
 import tempfile
+import uuid
 from datetime import datetime
 from pathlib import Path
 from typing import Annotated
@@ -11,6 +12,7 @@ from typing import Annotated
 from fastapi import APIRouter, HTTPException, Request
 from fastapi import Path as PathParam
 from fastapi.responses import FileResponse, HTMLResponse
+from starlette.background import BackgroundTask
 
 from evaluare import calitate
 from evaluare.assembler import (
@@ -128,7 +130,12 @@ def build_router(d: Deps) -> APIRouter:
                                 "emitere): " + "; ".join(f"{e.titlu} — {e.detaliu}" for e in qc_blocaje))
         # ?demo=1 -> raport cu note de provenienta (calculat/extras/AI/exemplu/placeholder)
         sufix = "_demo" if demo else ""
-        out = Path(tempfile.gettempdir()) / f"raport_{eid}{sufix}.docx"
+        # EH-01 (PII): NU folosi un nume PREDICTIBIL in tempdir (raport_{eid}.docx) — alt user local
+        # ar putea citi/suprascrie un .docx cu nume/CNP/adresa. Token aleator + stergere DUPA trimitere
+        # (BackgroundTask), ca igiena PII sa fie pe cale, nu „pe veci". Numele de DESCARCARE ramane
+        # neschimbat (contractul download-ului e intact); doar calea pe disc devine ne-predictibila.
+        tok = uuid.uuid4().hex[:8]
+        out = Path(tempfile.gettempdir()) / f"raport_{eid}{sufix}_{tok}.docx"
         genereaza_raport(ctx, out, adnotari=bool(demo))
         # Versionare: salvează o copie datată în folderul dosarului (doar raportul real).
         if not demo:
@@ -138,7 +145,10 @@ def build_router(d: Deps) -> APIRouter:
                 shutil.copy(out, folder / f"raport-{datetime.now():%Y%m%d-%H%M%S}.docx")
             except OSError:
                 pass                                       # versionarea nu blochează descărcarea
-        return FileResponse(str(out), media_type=DOCX_MIME, filename=f"raport_{eid}{sufix}.docx")
+        # Sterge copia temporara cu PII dupa ce a fost trimisa (paritate cu fluxul nou /api/dosar/...).
+        sterge_tmp = BackgroundTask(lambda: Path(out).unlink(missing_ok=True))
+        return FileResponse(str(out), media_type=DOCX_MIME, filename=f"raport_{eid}{sufix}.docx",
+                            background=sterge_tmp)
 
     @router.post("/api/evaluare/{eid}/redenumeste")
     def redenumeste_dosar(eid: EvaluareId, req: RedenumesteRequest) -> dict:

@@ -155,6 +155,26 @@ def redenumeste(uid: str, nume: str) -> None:
     _scrie(uid, dosar)
 
 
+def salveaza_valoare_finala(uid: str, valoare: object) -> dict:
+    """Persistă concluzia (valoarea de piață calculată) pe dosar (`dosar.json`, top-level).
+
+    UJ-1: motorul calculează `ctx.reconciled.valoare_finala`, dar nimic nu o scria înapoi în dosar,
+    așa că `registru.pregateste_big` (care o citește din `dosar.get("valoare_finala")`) o raporta
+    mereu ca LIPSĂ pentru toate dosarele -> verificarea BIG (GEV 520 §7) nu trecea niciodată.
+
+    Aditiv (nu atinge identitatea/wizardul/versiunile): scrie doar câmpul `valoare_finala` (string,
+    forma canonică a `Decimal`) + `valoare_finala_la` (momentul ultimului calcul persistat). Valoarea
+    e stocată ca TEXT, ca tot restul concluziilor numerice. O valoare ne-pozitivă/imposibilă NU
+    ajunge aici (gardată în amonte), dar `_pozitiv` din registru o tratează oricum ca lipsă.
+    """
+    dosar = incarca(uid)
+    dosar["valoare_finala"] = str(valoare)
+    dosar["valoare_finala_la"] = _acum()
+    dosar["modificat_la"] = _acum()
+    _scrie(uid, dosar)
+    return dosar
+
+
 def sterge(uid: str) -> None:
     shutil.rmtree(_cale(uid), ignore_errors=True)
     # PII (re-audit G1): scoate IMEDIAT dosarul din index + cache (nume client) - nu astepta urmatorul

@@ -435,3 +435,26 @@ def test_manifest_uid_invalid_si_inexistent_ridica(baza):
             fs.manifest_dosar(rau)
     with pytest.raises(KeyError):                          # UUID valid dar fără dosar.json
         fs.manifest_dosar(str(_uuid.uuid4()))
+
+
+# ── UJ-1: persistarea concluziei (valoarea de piață) pe dosar ──────────────────────
+def test_salveaza_valoare_finala_persista_concluzia(baza):
+    # UJ-1: concluzia calculată se scrie pe dosar (top-level), de unde o citește registrul/BIG.
+    from decimal import Decimal
+
+    from evaluare import dosare_fs as fs
+    uid = fs.creeaza("8717", "Adi S", _wizard())
+    assert "valoare_finala" not in fs.incarca(uid)         # necalculat încă -> niciun câmp
+    fs.salveaza_valoare_finala(uid, Decimal("123456.78"))
+    d = fs.incarca(uid)
+    assert d["valoare_finala"] == "123456.78"               # stocat ca TEXT (ca restul concluziilor)
+    assert d.get("valoare_finala_la") and d.get("modificat_la")
+    # Aditiv: nu strică identitatea/wizardul existent.
+    assert d["wizard"]["nume_client"] == "Pop"
+
+
+def test_salveaza_valoare_finala_uid_invalid_ridica(baza):
+    # gard UUID (anti path-traversal) — uid invalid -> KeyError (404 la router).
+    from evaluare import dosare_fs as fs
+    with pytest.raises(KeyError):
+        fs.salveaza_valoare_finala("../evadare", "1000")

@@ -13,7 +13,10 @@ import csv
 import io
 
 from evaluare import dosare_fs as fs
+from evaluare.logging_setup import get_logger
 from evaluare.registru import xlsx_min
+
+log = get_logger(__name__)
 
 # (cheie, eticheta) — ordinea = ordinea coloanelor in pagina + CSV + XLSX. Acopera cele ~13 campuri
 # din Procedura §6 (nr. contract+data sunt comasate intr-o coloana; cele 3 date raman separate).
@@ -155,9 +158,12 @@ def randuri() -> list[dict]:
             continue
         try:
             out.append(rand(fs.incarca(uid)))
-        except (KeyError, ValueError, TypeError):
+        except (KeyError, ValueError, TypeError) as e:
             # dosar sters/ilizibil intre listare si citire, sau `dosar.json` fabricat cu tipuri ostile
             # (ex. `risc_aml` lista/dict) -> sarit, NU darama tot registrul pentru toti.
+            # EH-02: un rand OMIS din registrul oficial (Procedura §6) lasa o URMA in log — altfel
+            # un raport putea disparea TACIT din registru/exporturi fara ca evaluatorul sa stie.
+            log.warning("Dosar omis din registru (ilizibil/otravit) uid=%s: %s", uid, e)
             continue
     out.sort(key=lambda r: r.get("nr_lucrare") or "")
     _cache_randuri = (sig, [dict(r) for r in out])

@@ -166,6 +166,36 @@ def test_genereaza_cu_adnotari(client):
     assert r.status_code == 200 and len(r.content) > 1000
 
 
+def test_uj1_valoarea_se_persista_la_generarea_raportului(client):
+    # UJ-1: valoarea de piață calculată se SCRIE în dosar.json la generarea raportului OFICIAL,
+    # ca registrul/BIG (GEV 520 §7) să nu o mai raporteze „lipsă" pentru toate dosarele.
+    import json as _json
+    _cont(client)
+    uid = client.post("/api/dosar", json={"wizard": {}}).json()["uuid"]
+    # Inainte de generare: dosarul NU are inca o concluzie persistata.
+    dj = client._baza / "date" / "dosare" / uid / "dosar.json"
+    assert "valoare_finala" not in _json.loads(dj.read_text(encoding="utf-8"))
+    calc = client.post(f"/api/dosar/{uid}/calcul", json=_payload()).json()["valoare_finala"]
+    r = client.post(f"/api/dosar/{uid}/raport.docx", json=_payload())
+    assert r.status_code == 200
+    # Dupa generare: concluzia e persistata pe dosar (egala cu valoarea calculata).
+    d = _json.loads(dj.read_text(encoding="utf-8"))
+    assert d.get("valoare_finala") == calc and d.get("valoare_finala_la")
+
+
+def test_uj1_big_vede_valoarea_dupa_raport(client):
+    # UJ-1 end-to-end: dupa generarea raportului, /big NU mai listeaza valoarea de piata ca lipsa.
+    _cont(client)
+    uid = client.post("/api/dosar", json={
+        "wizard": {"nume_client": "Pop", "tip_proprietate": "casa"}}).json()["uuid"]
+    lipsa_inainte = client.get(f"/api/dosar/{uid}/big").json()["lipsuri"]
+    assert "Valoarea de piață (concluzia evaluatorului)" in lipsa_inainte
+    client.post(f"/api/dosar/{uid}/raport.docx", json=_payload())
+    big = client.get(f"/api/dosar/{uid}/big").json()
+    assert "Valoarea de piață (concluzia evaluatorului)" not in big["lipsuri"]
+    assert big["payload"]["valoare_piata"]                         # concluzia e in payload-ul BIG
+
+
 def test_audit_txt_pe_flux_foldere(client):
     # Audit in-place: urma de audit pe fluxul nou (foldere), fără SQLite
     _cont(client)
@@ -415,6 +445,33 @@ def test_raport_vechi_blocat_pe_dosar_legacy_422(client, monkeypatch):
     monkeypatch.undo()
     r = client.get(f"/api/evaluare/{eid}/raport.docx")
     assert r.status_code == 422 and "blocat" in r.json()["detail"].lower()
+
+
+def test_eh01_raport_legacy_temp_pii_nepredictibil_si_sters(client, tmp_path):
+    # EH-01 (PII): raportul .docx legacy se scrie cu nume NE-predictibil in tempdir + se sterge dupa
+    # trimitere. Nu mai ramane un .docx cu nume/CNP/adresa cu nume previzibil (raport_{eid}.docx).
+    import tempfile
+    from pathlib import Path
+    eid = client.post("/api/evaluare", json=_payload()).json()["id"]
+    tmpd = Path(tempfile.gettempdir())
+    # Numele PREDICTIBIL vechi NU trebuie sa existe (acum e cu token aleator).
+    previzibil = tmpd / f"raport_{eid}.docx"
+    previzibil.unlink(missing_ok=True)
+    r = client.get(f"/api/evaluare/{eid}/raport.docx")
+    assert r.status_code == 200 and len(r.content) > 1000
+    assert not previzibil.exists()                                  # numele predictibil nu se foloseste
+    # Copia temporara cu token (raport_{eid}_<hex>.docx) e stearsa de BackgroundTask dupa trimitere.
+    ramase = list(tmpd.glob(f"raport_{eid}_*.docx"))
+    assert ramase == [], f"temp PII nestears: {ramase}"
+
+
+def test_eh01_filename_descarcare_ramane_neschimbat(client):
+    # EH-01: contractul download-ului NU se schimba — numele de fisier oferit userului ramane
+    # `raport_{eid}.docx` (token-ul aleator e doar pe disc, nu in Content-Disposition).
+    eid = client.post("/api/evaluare", json=_payload()).json()["id"]
+    r = client.get(f"/api/evaluare/{eid}/raport.docx")
+    assert r.status_code == 200
+    assert f"raport_{eid}.docx" in r.headers.get("content-disposition", "")
 
 
 def test_lock_unlock_concurenta_endpoints(client):

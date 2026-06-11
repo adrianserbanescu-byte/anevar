@@ -187,6 +187,37 @@ def test_randuri_sare_dosar_otravit_in_loc_de_500(baza):
     assert "Bun" in nume                              # dosarul valid e tot acolo
 
 
+def test_eh02_dosar_omis_din_registru_lasa_urma_in_log(baza, monkeypatch, caplog):
+    # EH-02: un dosar care devine necitibil INTRE listare si citire (sters/corupt concurent) e sarit
+    # din registrul oficial (Procedura §6) — DAR acum lasa o URMA in log (warning cu uid + motiv).
+    # Inainte: skip TACIT (doar comentat) -> un raport putea disparea din registru fara ca evaluatorul
+    # sa stie. Simulam citirea care esueaza dupa listare via monkeypatch pe `fs.incarca`.
+    import logging
+
+    import evaluare.dosare_fs as fs
+    from evaluare.registru import registru as reg
+    uid_bun = _creeaza(nume_client="Bun")
+    uid_rau = _creeaza(nume_client="Disparut")
+    reg._cache_randuri = None                          # forteaza recitire (nu cache hit)
+    real_incarca = fs.incarca
+
+    def incarca_cu_esec(uid):
+        if uid == uid_rau:
+            raise KeyError(f"Dosar inexistent (sters concurent): {uid}")
+        return real_incarca(uid)
+
+    monkeypatch.setattr("evaluare.registru.registru.fs.incarca", incarca_cu_esec)
+    caplog.clear()
+    with caplog.at_level(logging.WARNING):
+        randuri = reg.randuri()
+    nume = {r["client"] for r in randuri}
+    assert "Bun" in nume and "Disparut" not in nume    # dosarul valid ramane; cel rupt e sarit
+    assert "omis din registru" in caplog.text          # URMA: skip-ul e logat, nu tacit
+    assert uid_rau in caplog.text                       # urma identifica dosarul concret
+    assert uid_bun not in caplog.text                   # dosarul valid NU e logat ca omis
+    reg._cache_randuri = None                          # nu lasa cache otravit pentru alte teste
+
+
 # ── H14-5: cache pe semnatura de mtime ────────────────────────────────────────
 def test_randuri_cache_invalideaza_la_dosar_nou(baza):
     from evaluare.registru import registru as reg
