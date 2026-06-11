@@ -1,3 +1,6 @@
+import pytest
+
+import evaluare.indice_anevar as ia
 from evaluare.indice_anevar import (
     _ANUAL_2021_T2,
     _ORASE_OFFLINE,
@@ -18,6 +21,14 @@ function drawChart() {
   ]);
 }
 </script></body></html>"""
+
+
+@pytest.fixture(autouse=True)
+def _indice_cache_curat():
+    """Izoleaza cache-ul indicelui live intre teste."""
+    ia._goleste_cache()
+    yield
+    ia._goleste_cache()
 
 
 def test_parse_indice_orase_si_perioade():
@@ -102,3 +113,84 @@ def test_fetcher_injectat_e_apelat_o_data():
     d = indice_anevar(fetcher=fetcher)
     assert called["n"] == 1
     assert d.get("offline") is True
+
+
+# --- PERF-3: cache TTL pe calea de retea reala -------------------------------------------------
+
+def test_indice_cacheaza_calea_reala(monkeypatch):
+    # calea reala foloseste `fetch_html` (fetcher implicit None) -> rezultatul live e cacheat:
+    # doua apeluri, o singura descarcare.
+    apeluri = {"n": 0}
+
+    def fals_fetch_html(_url):
+        apeluri["n"] += 1
+        return _HTML
+
+    monkeypatch.setattr(ia, "fetch_html", fals_fetch_html)
+    d1 = indice_anevar()
+    d2 = indice_anevar()
+    assert d1["orase"] == ["Brasov", "Bucuresti", "Cluj-Napoca"]
+    assert d2["orase"] == ["Brasov", "Bucuresti", "Cluj-Napoca"]
+    assert apeluri["n"] == 1   # al doilea apel vine din cache
+
+
+def test_indice_cache_expira_dupa_ttl(monkeypatch):
+    apeluri = {"n": 0}
+
+    def fals_fetch_html(_url):
+        apeluri["n"] += 1
+        return _HTML
+
+    ceas = {"t": 5000.0}
+    monkeypatch.setattr(ia, "fetch_html", fals_fetch_html)
+    monkeypatch.setattr(ia.time, "monotonic", lambda: ceas["t"])
+    indice_anevar()
+    assert apeluri["n"] == 1
+    ceas["t"] += ia._TTL_INDICE_SEC + 1
+    indice_anevar()
+    assert apeluri["n"] == 2
+
+
+def test_indice_fallback_offline_nu_se_cacheaza(monkeypatch):
+    # cand pagina live e goala -> fallback offline, NESTOCAT: un fetch ulterior (cu date live)
+    # trebuie sa poata reveni la datele live.
+    stare = {"html": "<html><body>schimbat layout</body></html>"}
+
+    def fals_fetch_html(_url):
+        return stare["html"]
+
+    monkeypatch.setattr(ia, "fetch_html", fals_fetch_html)
+    d_off = indice_anevar()
+    assert d_off.get("offline") is True
+    # acum pagina revine cu date live -> NU trebuie servit fallback-ul din cache
+    stare["html"] = _HTML
+    d_live = indice_anevar()
+    assert "offline" not in d_live
+    assert d_live["orase"] == ["Brasov", "Bucuresti", "Cluj-Napoca"]
+
+
+def test_indice_fetcher_injectat_ocoleste_cache():
+    # fetcher injectat (≠ fetch_html) -> fiecare apel descarca, fara cache.
+    apeluri = {"n": 0}
+
+    def fetcher(_url):
+        apeluri["n"] += 1
+        return _HTML
+
+    indice_anevar(fetcher=fetcher)
+    indice_anevar(fetcher=fetcher)
+    assert apeluri["n"] == 2
+
+
+def test_indice_goleste_cache(monkeypatch):
+    apeluri = {"n": 0}
+
+    def fals_fetch_html(_url):
+        apeluri["n"] += 1
+        return _HTML
+
+    monkeypatch.setattr(ia, "fetch_html", fals_fetch_html)
+    indice_anevar()
+    ia._goleste_cache()
+    indice_anevar()
+    assert apeluri["n"] == 2

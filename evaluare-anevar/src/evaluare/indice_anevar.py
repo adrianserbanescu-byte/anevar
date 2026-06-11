@@ -8,11 +8,19 @@ OFFLINE-FIRST: cand pagina live nu e disponibila (fara retea, 403, layout schimb
 cade pe un tabel offline (`INDICE_OFFLINE`) extras dintr-un raport rezidential publicat, astfel
 incat motorul de ajustare „timp" sa functioneze si fara internet. Tabelul e o ANCORA istorica,
 nu inlocuieste datele live; vezi `SURSA_OFFLINE`.
+
+PERF (PERF-3): indicele se publica trimestrial, dar `indice_anevar` descarca + parsa pagina live
+la fiecare apel. Cacheam rezultatul parsat al caii de retea reale (fetcher implicit `fetch_html`)
+cu un TTL de cateva ore (`_TTL_INDICE_SEC`), masurat cu `time.monotonic` (ceas monoton, fara sa
+strice determinismul testelor). Cand se injecteaza un alt `fetcher` (teste / date proaspete) se
+ocoleste cache-ul. Fallback-ul offline NU se cacheaza (ca un eveniment de retea ulterior sa poata
+reveni la datele live).
 """
 from __future__ import annotations
 
 import json
 import re
+import time
 from collections.abc import Callable
 
 from bs4 import BeautifulSoup
@@ -21,6 +29,16 @@ from evaluare.importers.url_parser import fetch_html
 
 INDICE_URL = ("https://www.anevar.ro/p/informatii-din-piata/informatii-statistice-anevar/"
               "indicele-imobiliar-anevar")
+
+# TTL: indicele e trimestrial -> cateva ore sunt amplu suficiente; pastram rezultatul parsat al
+# caii de retea reale. {url: (monotonic_expira, rezultat_parsat)}
+_TTL_INDICE_SEC = 6 * 60 * 60
+_CACHE_INDICE: dict[str, tuple[float, dict]] = {}
+
+
+def _goleste_cache() -> None:
+    """Goleste cache-ul indicelui live (pentru izolarea testelor)."""
+    _CACHE_INDICE.clear()
 
 # --- Fallback offline ---------------------------------------------------------------------------
 # Sursa: raport „Piața imobiliară rezidențială – Trimestrul II 2021" (Analize Imobiliare /
@@ -103,7 +121,16 @@ def indice_anevar(fetcher: Callable[[str], str] | None = None) -> dict:
     descarcarea esueaza (fara retea / 403 / eroare) SAU pagina nu mai contine tabelul asteptat
     (rezultat gol), cade pe `_tabel_offline()` ca fallback. Backward-compatible: cand pagina live
     intoarce date valide, comportamentul ramane neschimbat.
+
+    PERF-3: rezultatul caii de retea reale (fetcher implicit `fetch_html`) e cacheat cu TTL
+    (`_TTL_INDICE_SEC`). Un `fetcher` injectat (teste / date proaspete) ocoleste cache-ul.
     """
+    # Cache DOAR pe calea de retea reala; un fetcher injectat (teste) ocoleste cache-ul.
+    cacheabil = fetcher is None or fetcher is fetch_html
+    if cacheabil:
+        intrare = _CACHE_INDICE.get(INDICE_URL)
+        if intrare is not None and intrare[0] > time.monotonic():
+            return intrare[1]
     try:
         html = (fetcher or fetch_html)(INDICE_URL)
         rezultat = _parse(html)
@@ -112,5 +139,8 @@ def indice_anevar(fetcher: Callable[[str], str] | None = None) -> dict:
         return _tabel_offline()
     if not rezultat.get("perioade"):
         # pagina a raspuns, dar fara tabelul Google Charts asteptat -> fallback offline.
+        # NU cacheam fallback-ul: lasam un fetch ulterior sa revina la datele live.
         return _tabel_offline()
+    if cacheabil:
+        _CACHE_INDICE[INDICE_URL] = (time.monotonic() + _TTL_INDICE_SEC, rezultat)
     return rezultat
