@@ -15,6 +15,7 @@ from docx import Document
 from docx.document import Document as DocxDocument
 from docx.shared import Inches, Pt, RGBColor
 
+from evaluare import esg
 from evaluare.logging_setup import get_logger
 from evaluare.models.report_context import ReportContext
 
@@ -103,6 +104,63 @@ def _fmt(v) -> str:
     except (InvalidOperation, ValueError, OverflowError, TypeError) as e:
         log.debug("Valoare neformatabilă numeric (%r), folosesc str(): %s", v, e)
         return str(v)
+
+
+# --- Redarea valorii in litere (cuvinte) — F-01 din audit-report-completeness-2026-06-11 -------------
+# Uzanta ferma a rapoartelor de garantare: valoarea finala apare si „in litere", element asteptat la
+# verificarea bancara. Implementare RO autonoma (fara dependenta noua), pe partea intreaga a sumei.
+_UNITATI = ("", "unu", "doi", "trei", "patru", "cinci", "sase", "sapte", "opt", "noua")
+_UNITATI_F = ("", "una", "doua", "trei", "patru", "cinci", "sase", "sapte", "opt", "noua")  # acord feminin (mii)
+_DE_LA_10_LA_19 = ("zece", "unsprezece", "doisprezece", "treisprezece", "paisprezece", "cincisprezece",
+                   "saisprezece", "saptesprezece", "optsprezece", "nouasprezece")
+_ZECI = ("", "", "douazeci", "treizeci", "patruzeci", "cincizeci", "saizeci", "saptezeci", "optzeci", "nouazeci")
+
+
+def _sub_o_mie(n: int, feminin: bool = False) -> str:
+    """Un numar 0..999 in litere (RO). `feminin` -> acord pentru grupul «mii» (una/doua)."""
+    unitati = _UNITATI_F if feminin else _UNITATI
+    parti: list[str] = []
+    sute, rest = divmod(n, 100)
+    if sute == 1:
+        parti.append("o suta")
+    elif sute >= 2:
+        parti.append(f"{_UNITATI_F[sute]} sute")
+    if rest >= 20:
+        zeci, u = divmod(rest, 10)
+        parti.append(_ZECI[zeci] + (f" si {unitati[u]}" if u else ""))
+    elif rest >= 10:
+        parti.append(_DE_LA_10_LA_19[rest - 10])
+    elif rest >= 1:
+        parti.append(unitati[rest])
+    return " ".join(parti)
+
+
+def _numar_in_litere(n: int) -> str:
+    """Partea intreaga a unei sume, in litere (RO). Acopera pana la ordinul miliardelor."""
+    if n == 0:
+        return "zero"
+    grupuri: list[str] = []
+    miliarde, rest = divmod(n, 1_000_000_000)
+    milioane, rest = divmod(rest, 1_000_000)
+    mii, unitati = divmod(rest, 1_000)
+    if miliarde:
+        grupuri.append("un miliard" if miliarde == 1 else f"{_sub_o_mie(miliarde)} miliarde")
+    if milioane:
+        grupuri.append("un milion" if milioane == 1 else f"{_sub_o_mie(milioane)} milioane")
+    if mii:
+        grupuri.append("o mie" if mii == 1 else f"{_sub_o_mie(mii, feminin=True)} mii")
+    if unitati:
+        grupuri.append(_sub_o_mie(unitati))
+    return " ".join(grupuri)
+
+
+def _valoare_in_litere(v, moneda: str) -> str:
+    """Suma in litere + moneda, pentru raport. Sir gol daca valoarea nu e numerica (fail-soft)."""
+    try:
+        n = int(Decimal(str(v)).quantize(Decimal("1")))
+    except (InvalidOperation, ValueError, OverflowError, TypeError):
+        return ""
+    return f"{_numar_in_litere(abs(n))} {moneda}".strip()
 
 
 # Denumirea + SURSA/definitia tipului valorii (cerinta SEV 102 §20.4 + SEV 106 §30.6(i):
@@ -245,7 +303,10 @@ def _coperta(doc: DocxDocument, ctx: ReportContext, adnotari: bool = False) -> N
         doc.add_paragraph(f"Nr. de identificare raport: {meta.nr_lucrare}")
     p = doc.add_paragraph()
     p.add_run("Proprietate imobiliara: casa de locuit si teren aferent").bold = True
-    doc.add_paragraph(f"Adresa: {meta.adresa}")
+    adresa_txt = f"Adresa: {meta.adresa}"
+    if meta.cod_postal:   # cod postal in identificare (necesar la inregistrarea in BIG — gap S-4)
+        adresa_txt += f", cod poștal {meta.cod_postal}"
+    doc.add_paragraph(adresa_txt)
     doc.add_paragraph(f"Numar cadastral: {meta.numar_cadastral}; {meta.carte_funciara}")
     doc.add_paragraph(f"Client: {meta.client_nume} ({meta.client_tip})")
     if meta.proprietar:
@@ -265,6 +326,10 @@ def _coperta(doc: DocxDocument, ctx: ReportContext, adnotari: bool = False) -> N
         f"VALOAREA ESTIMATA: {_fmt(ctx.reconciled.valoare_finala)} {meta.moneda}"
         f"{_echiv_lei(ctx)}. {_fara_tva(ctx)}"
     ).bold = True
+    # F-01 — valoarea si „in litere" (uzanta de garantare, asteptata la verificarea bancara).
+    litere = _valoare_in_litere(ctx.reconciled.valoare_finala, meta.moneda)
+    if litere:
+        doc.add_paragraph(f"(adica: {litere})")
     doc.add_page_break()
 
 
@@ -595,6 +660,25 @@ def _adauga_clauza_subasigurare(doc: DocxDocument, ctx: ReportContext, adnotari:
     )
 
 
+def _adauga_esg(doc: DocxDocument, ctx: ReportContext, adnotari: bool = False) -> None:
+    """Sectiune ESG / riscuri fizice (GEV 520 §86-88, novatie SEV 2025) — gap S-5.1.
+
+    Regula ANEVAR: se MENTIONEAZA, NU se cuantifica. Riscurile fizice din `meta.riscuri_fizice`
+    (etichete libere introduse de evaluator, ex. „inundabilitate", „seismic") sunt redate ca atare,
+    fara scoruri/ierarhii, urmate de disclaimerul de competenta (GEV 520 §87). Plasata in blocul GEV
+    520, inaintea analizei de risc a garantiei. Daca lista e goala, sectiunea se OMITE elegant —
+    mentiunea ESG generala exista deja in termenii de referinta (SEV 101/106 m)."""
+    riscuri = [r for r in (ctx.meta.riscuri_fizice or []) if r and r.strip()]
+    if not riscuri:
+        return   # omisa elegant: fara riscuri semnalate, mentiunea ESG din termeni e suficienta
+    doc.add_heading("FACTORI ESG / RISCURI FIZICE (GEV 520)", level=1)
+    # Etichetele libere -> RiscIdentificat (fara document oficial atasat -> doar mentionare). `cheie`
+    # care nu e in catalogul esg se reda ca atare (fallback pe denumire = cheie in genereaza_sectiune_esg).
+    identificate = [esg.RiscIdentificat(cheie=r.strip()) for r in riscuri]
+    for paragraf in esg.genereaza_sectiune_esg(identificate).split("\n\n"):
+        doc.add_paragraph(paragraf)
+
+
 def _adauga_risc_garantie(doc: DocxDocument, ctx: ReportContext, adnotari: bool = False) -> None:
     doc.add_heading("RISCUL ASOCIAT GARANTIEI (GEV 520)", level=1)
     _nota(doc, "gev520", adnotari)
@@ -849,6 +933,18 @@ def genereaza_raport(
                       else "Inspectia proprietatii: amploarea si insotitorul nu au fost declarate (de completat).")
     if meta.inspectie_observatii:
         doc.add_paragraph(f"Observatii / neconcordante scriptic-faptic la inspectie: {meta.inspectie_observatii}.")
+    # F-03 — certificatul de performanta energetica (CPE/SEV 340 EVIP), obligatoriu de mentionat la
+    # garantare (GEV 520 ed. 2025). Daca lipseste, ramane o nota de completat (nu se omite tacit).
+    if meta.certificat_energetic:
+        doc.add_paragraph(
+            f"Performanta energetica: clasa / certificat energetic {meta.certificat_energetic} "
+            "(informatie preluata din certificatul de performanta energetica; SEV 340)."
+        )
+    else:
+        doc.add_paragraph(
+            "Performanta energetica: certificatul de performanta energetica nu a fost pus la "
+            "dispozitia evaluatorului; de atasat / de mentionat clasa energetica (GEV 520, SEV 340)."
+        )
     descriere = _narativ(ctx, "Descrierea juridica si fizica a proprietatii")
     if descriere:
         doc.add_paragraph(descriere)
@@ -898,16 +994,22 @@ def genereaza_raport(
         _narativ(ctx, "Reconcilierea rezultatelor si concluzia valorii")
         or "Reconcilierea metodelor [de completat]."
     )
-    doc.add_paragraph(
+    p_vf = doc.add_paragraph()
+    p_vf.add_run(
         f"Valoarea finala: {_fmt(ctx.reconciled.valoare_finala)} {meta.moneda}"
         f"{_echiv_lei(ctx)}. {_fara_tva(ctx)}"
-    )
+    ).bold = True
+    # F-01 — valoarea finala redata si in litere, langa concluzia de valoare.
+    litere_vf = _valoare_in_litere(ctx.reconciled.valoare_finala, meta.moneda)
+    if litere_vf:
+        doc.add_paragraph(f"Valoarea finala in litere: {litere_vf}.")
     if ctx.reconciled.nota:   # transparenta reconciliere (ex. abordare calculata dar neponderata)
         doc.add_paragraph(f"Notă privind reconcilierea: {ctx.reconciled.nota}")
 
     # --- Shell GBF (back matter) ---
     _adauga_alocare(doc, ctx, adnotari)
     if ctx.profil.ghid == "GEV_520":   # sectiunea de risc e specifica garantarii imprumutului
+        _adauga_esg(doc, ctx, adnotari)          # ESG / riscuri fizice (S-5.1), inaintea analizei de risc
         _adauga_risc_garantie(doc, ctx, adnotari)
     if ctx.profil.ghid == "SEV_450":   # clauza de subasigurare e specifica evaluarii pentru asigurare
         _adauga_clauza_subasigurare(doc, ctx, adnotari)

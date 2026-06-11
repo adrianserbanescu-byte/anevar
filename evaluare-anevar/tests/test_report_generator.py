@@ -504,6 +504,115 @@ def test_sev450_asigurare_valoare_cib_brut_nu_cin_net(tmp_path):
     assert "SEV 450" in text and "reconstruc" in text.lower()
 
 
+def test_esg_sectiune_apare_cand_sunt_riscuri_fizice(tmp_path):
+    # S-5.1: cu riscuri fizice in meta, raportul GEV 520 capata sectiunea ESG (MENTIONARE, nu
+    # cuantificare) + disclaimerul de competenta (GEV 520 §87).
+    from evaluare.esg import DISCLAIMER_COMPETENTA
+    ctx = _ctx()
+    ctx.meta.riscuri_fizice = ["inundabilitate", "seismic"]
+    out = tmp_path / "esg.docx"
+    genereaza_raport(ctx, out)
+    text = _all_text(out)
+    assert "FACTORI ESG / RISCURI FIZICE (GEV 520)" in text
+    # etichetele libere sunt redate ca atare (fallback pe denumire = cheie)
+    assert "inundabilitate" in text and "seismic" in text
+    # mentionare fara cuantificare + disclaimerul de competenta
+    assert "fara cuantificare" in text
+    assert DISCLAIMER_COMPETENTA in text
+    # invariant ANEVAR: corpul sectiunii nu introduce scoruri/ierarhii
+    assert "scor" not in text.lower().replace(DISCLAIMER_COMPETENTA.lower(), "")
+
+
+def test_esg_sectiune_omisa_elegant_fara_riscuri(tmp_path):
+    # Fara riscuri fizice declarate -> sectiunea ESG dedicata se omite elegant, dar raportul ramane
+    # valid (mentiunea ESG generala exista deja in termenii de referinta).
+    out = tmp_path / "fara_esg.docx"
+    genereaza_raport(_ctx(), out)              # riscuri_fizice = [] implicit
+    Document(str(out))                          # se deschide ca document valid
+    text = _all_text(out)
+    assert "FACTORI ESG / RISCURI FIZICE (GEV 520)" not in text
+    assert "ESG" in text                        # mentiunea generala din termeni ramane
+
+
+def test_esg_sectiune_doar_pe_profil_garantare(tmp_path):
+    # Sectiunea ESG e legata de blocul GEV 520; pe profil de asigurare (SEV 450) NU apare chiar
+    # daca exista riscuri in meta.
+    from evaluare.assembler import EvaluationInput, construieste_context
+    inp = EvaluationInput(
+        meta={"client_nume": "Ion", "adresa": "A", "numar_cadastral": "1", "carte_funciara": "CF",
+              "evaluator_nume": "E", "evaluator_legitimatie": "1", "data_evaluarii": "2026-01-01",
+              "data_raportului": "2026-01-01", "tip_valoare": "asigurare",
+              "riscuri_fizice": ["inundabilitate"]},
+        land={"suprafata": "500"},
+        building={"au": "100", "acd": "120", "an_referinta": 2025,
+                  "elements": [{"element": "S", "cod": "X", "um": "mp", "cantitate": "120",
+                                "cost_unitar": "2000", "an_pif": 2015}],
+                  "depreciation_points": [{"varsta": 5, "depreciere": "0.05"}]},
+        metoda="cost", scop="asigurare")
+    out = tmp_path / "asig_esg.docx"
+    genereaza_raport(construieste_context(inp, client=None), out)
+    assert "FACTORI ESG / RISCURI FIZICE (GEV 520)" not in _all_text(out)
+
+
+def test_coperta_include_cod_postal_cand_exista(tmp_path):
+    # BIG (gap S-4): codul postal al imobilului intra in identificarea proprietatii pe coperta.
+    ctx = _ctx()
+    ctx.meta.cod_postal = "077190"
+    out = tmp_path / "cp.docx"
+    genereaza_raport(ctx, out)
+    text = _all_text(out)
+    assert "cod poștal 077190" in text
+
+
+def test_coperta_fara_cod_postal_nu_adauga_text(tmp_path):
+    # Backward-compatible: fara cod postal, identificarea nu mentioneaza „cod poștal".
+    out = tmp_path / "nocp.docx"
+    genereaza_raport(_ctx(), out)               # cod_postal = None implicit
+    assert "cod poștal" not in _all_text(out)
+
+
+def test_valoarea_finala_redata_in_litere(tmp_path):
+    # F-01: valoarea finala apare si „in litere" (uzanta de garantare). 280000 LEI.
+    out = tmp_path / "litere.docx"
+    genereaza_raport(_ctx(), out)
+    text = _all_text(out)
+    assert "in litere" in text
+    assert "doua sute optzeci mii LEI" in text
+
+
+def test_numar_in_litere_cazuri():
+    from evaluare.report.generator import _numar_in_litere, _valoare_in_litere
+    assert _numar_in_litere(0) == "zero"
+    assert _numar_in_litere(1) == "unu"
+    assert _numar_in_litere(21) == "douazeci si unu"
+    assert _numar_in_litere(100) == "o suta"
+    assert _numar_in_litere(1000) == "o mie"
+    assert _numar_in_litere(2000) == "doua mii"
+    assert _numar_in_litere(1_000_000) == "un milion"
+    assert _numar_in_litere(280_000) == "doua sute optzeci mii"
+    # fail-soft pe input ne-numeric
+    assert _valoare_in_litere("abc", "LEI") == ""
+
+
+def test_certificat_energetic_redat_cand_exista(tmp_path):
+    # F-03: certificatul de performanta energetica apare in descrierea fizica (cap. 4).
+    ctx = _ctx()
+    ctx.meta.certificat_energetic = "clasa B"
+    out = tmp_path / "cpe.docx"
+    genereaza_raport(ctx, out)
+    text = _all_text(out)
+    assert "Performanta energetica" in text and "clasa B" in text
+
+
+def test_certificat_energetic_lipsa_lasa_nota(tmp_path):
+    # Fara CPE -> nota de completat (nu se omite tacit), conform GEV 520.
+    out = tmp_path / "nocpe.docx"
+    genereaza_raport(_ctx(), out)
+    text = _all_text(out)
+    assert "Performanta energetica" in text
+    assert "nu a fost pus la dispozitia evaluatorului" in text
+
+
 def test_sev450_raport_asigurare_contine_clauza_subasigurare(tmp_path):
     # SEV 450 §4: raportul de evaluare pentru asigurare contine clauza de SUBASIGURARE (proportionalitate).
     from evaluare.assembler import EvaluationInput, construieste_context
