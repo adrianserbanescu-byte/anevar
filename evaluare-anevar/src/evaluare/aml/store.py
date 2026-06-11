@@ -27,7 +27,9 @@ class StoreAML:
 
     def __init__(self, dir_baza: Path | str):
         self.dir = Path(dir_baza)
-        self.dir.mkdir(parents=True, exist_ok=True)
+        # 0o700 (owner-only) — directorul cu RTS/RTN (tipping-off) nu trebuie listabil de alti
+        # utilizatori; fisierele individuale sunt deja 0o600. Pe Windows modul e ignorat (no-op).
+        self.dir.mkdir(parents=True, exist_ok=True, mode=0o700)
 
     def _next_id(self, prefix: str) -> int:
         """Estimare a urmatorului id (len+1). DOAR un punct de plecare — alocarea reala e atomica

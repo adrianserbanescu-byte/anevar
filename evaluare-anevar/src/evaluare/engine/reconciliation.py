@@ -37,6 +37,7 @@ def reconcile(
     if metoda == "piata":
         if market_value is not None:
             return ReconciledResult(valoare_finala=market_value, metoda_selectata="piata")
+        assert cost_value is not None  # garantat de verificarea both-None de mai sus
         return ReconciledResult(
             valoare_finala=cost_value, metoda_selectata="cost",
             nota="Abordarea prin piata indisponibila; s-a folosit abordarea prin cost.",
@@ -45,6 +46,7 @@ def reconcile(
     if metoda == "cost":
         if cost_value is not None:
             return ReconciledResult(valoare_finala=cost_value, metoda_selectata="cost")
+        assert market_value is not None  # garantat de verificarea both-None de mai sus
         return ReconciledResult(
             valoare_finala=market_value, metoda_selectata="piata",
             nota="Abordarea prin cost indisponibila; s-a folosit abordarea prin piata.",
@@ -53,7 +55,8 @@ def reconcile(
     # ponderata
     if market_value is None or cost_value is None:
         disponibila = market_value if market_value is not None else cost_value
-        metoda_disp = "piata" if market_value is not None else "cost"
+        metoda_disp: Literal["piata", "cost"] = "piata" if market_value is not None else "cost"
+        assert disponibila is not None  # cel putin una e non-None (both-None deja exclus)
         return ReconciledResult(
             valoare_finala=disponibila, metoda_selectata=metoda_disp,
             nota="O abordare indisponibila; ponderarea nu s-a putut aplica.",
@@ -71,8 +74,20 @@ def aloca_constructii(
     return valoare_proprietate - valoare_teren
 
 
-# Maparea numelui de abordare la eticheta de metodă din raport.
-_METODA = {"cost": "cost", "comparatie": "piata", "venit": "venit"}
+# Eticheta de metodă întoarsă în ReconciledResult.metoda_selectata.
+MetodaSelectata = Literal["piata", "cost", "ponderata", "venit"]
+
+# Maparea numelui de abordare (cost/comparatie/venit) la eticheta de metodă din raport.
+_METODA: dict[str, MetodaSelectata] = {"cost": "cost", "comparatie": "piata", "venit": "venit"}
+
+
+def _eticheta_metoda(abordare: str) -> MetodaSelectata:
+    """Maparea sigură nume-abordare -> etichetă de metodă din literal.
+
+    `_METODA` acoperă toate valorile NumeAbordare (cost/comparatie/venit); fallback-ul "piata"
+    împiedică o etichetă în afara literalului să ajungă în API/raport pentru un nume neașteptat.
+    """
+    return _METODA.get(abordare, "piata")
 
 
 def reconcile_profil(
@@ -116,17 +131,17 @@ def reconcile_profil(
         nota = "Ponderarea nu s-a putut aplica (sub doua abordari disponibile)."
         if primara in valori:
             return ReconciledResult(valoare_finala=valori[primara],
-                                    metoda_selectata=_METODA.get(primara, primara), nota=nota)
+                                    metoda_selectata=_eticheta_metoda(primara), nota=nota)
         abordare_disp = next(iter(valori))
         return ReconciledResult(valoare_finala=valori[abordare_disp],
-                                metoda_selectata=_METODA.get(abordare_disp, abordare_disp), nota=nota)
+                                metoda_selectata=_eticheta_metoda(abordare_disp), nota=nota)
 
     if primara in valori:
         return ReconciledResult(valoare_finala=valori[primara],
-                                metoda_selectata=_METODA.get(primara, primara))
+                                metoda_selectata=_eticheta_metoda(primara))
     # fallback fara ponderi
     abordare_disp = next(iter(valori))
     return ReconciledResult(
-        valoare_finala=valori[abordare_disp], metoda_selectata=_METODA.get(abordare_disp, abordare_disp),
+        valoare_finala=valori[abordare_disp], metoda_selectata=_eticheta_metoda(abordare_disp),
         nota=f'Abordarea "{primara}" indisponibila; s-a folosit "{abordare_disp}".',
     )

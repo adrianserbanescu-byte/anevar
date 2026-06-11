@@ -1,4 +1,7 @@
 """Endpoint-uri AML — evaluare relatie + generare documente + store separat (tipping-off)."""
+import tempfile
+from pathlib import Path
+
 from fastapi.testclient import TestClient
 
 from evaluare.db.storage import Storage
@@ -84,6 +87,21 @@ def test_aml_rtn_docx_si_store(tmp_path):
     assert resp.status_code == 200
     conf = storage.db_path.parent / "aml_confidential"
     assert any(p.name.startswith("rtn_") for p in conf.iterdir())
+
+
+def test_aml_doc_temp_nu_ramane_pe_disc_si_nu_e_nume_fix(tmp_path):
+    # F-SEC-2: documentele AML (CNP/nume/serie act) nu trebuie sa ramana in temp-ul partajat cu nume
+    # predictibil. Dupa raspuns, copia temporara se sterge (BackgroundTask); nu exista 'aml_fisa_kyc.docx'
+    # cu nume FIX in temp dupa cerere.
+    client, _ = _client(tmp_path)
+    fix = Path(tempfile.gettempdir()) / "aml_fisa_kyc.docx"
+    fix.unlink(missing_ok=True)
+    resp = client.post("/api/aml/fisa-kyc.docx", json={
+        "tip_entitate": "PFA", "client_pf": {"persoana": {"nume": "Ion", "prenume": "Pop"}}})
+    assert resp.status_code == 200
+    assert resp.headers["content-type"] == DOCX_MIME
+    # filename-ul de descarcare ramane prietenos, dar fisierul de pe disc cu nume FIX nu e lasat in urma
+    assert not fix.exists()
 
 
 def test_pagina_aml_se_incarca(tmp_path):

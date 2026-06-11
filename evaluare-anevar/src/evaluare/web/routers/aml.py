@@ -6,13 +6,19 @@ evaluare (tipping-off, art. 38).
 from __future__ import annotations
 
 import tempfile
+import uuid
 from pathlib import Path
+from typing import TYPE_CHECKING
 
 from fastapi import APIRouter, HTTPException, Request
 from fastapi.responses import FileResponse, HTMLResponse
+from starlette.background import BackgroundTask
 
 from evaluare.web.deps import DOCX_MIME, Deps
 from evaluare.web.schemas import AmlDocRequest, AmlEvaluareRequest
+
+if TYPE_CHECKING:
+    from evaluare.aml.models import ClientPF, ClientPJ
 
 
 def _construieste(factory, data, eticheta: str):
@@ -26,7 +32,7 @@ def _construieste(factory, data, eticheta: str):
         raise HTTPException(status_code=422, detail=f"Date AML invalide pentru {eticheta}.") from e
 
 
-def _client_din(req) -> object:
+def _client_din(req) -> ClientPF | ClientPJ:
     from evaluare.aml.models import ClientPF, ClientPJ
     if req.client_pj is not None:
         return _construieste(ClientPJ, req.client_pj, "client persoana juridica")
@@ -34,10 +40,17 @@ def _client_din(req) -> object:
 
 
 def _doc_response(doc, nume: str):
-    out = Path(tempfile.gettempdir()) / nume
+    # Igienă PII (F-SEC-2): documentele AML conțin CNP/nume/serie act. Scriem într-un fișier temp
+    # cu token unic (nu nume predictibil, partajat) și îl ștergem după trimitere (BackgroundTask),
+    # ca PII-ul să nu rămână pe disc în temp-ul mașinii — paritate cu raportul (curent.py).
+    tok = uuid.uuid4().hex[:8]
+    out = Path(tempfile.gettempdir()) / f"{Path(nume).stem}_{tok}{Path(nume).suffix}"
     from evaluare.aml.documente import salveaza
     salveaza(doc, out)
-    return FileResponse(str(out), media_type=DOCX_MIME, filename=nume)
+    return FileResponse(
+        str(out), media_type=DOCX_MIME, filename=nume,
+        background=BackgroundTask(lambda: out.unlink(missing_ok=True)),
+    )
 
 
 def build_router(d: Deps) -> APIRouter:

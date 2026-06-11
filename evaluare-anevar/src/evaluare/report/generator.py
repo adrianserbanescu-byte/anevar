@@ -7,7 +7,7 @@ from __future__ import annotations
 
 import base64
 import binascii
-from decimal import Decimal
+from decimal import Decimal, InvalidOperation
 from io import BytesIO
 from pathlib import Path
 
@@ -100,7 +100,7 @@ def _fmt(v) -> str:
     try:
         d = Decimal(str(v)).quantize(Decimal("1"))
         return f"{int(d):,}".replace(",", ".")
-    except Exception as e:
+    except (InvalidOperation, ValueError, OverflowError, TypeError) as e:
         log.debug("Valoare neformatabilă numeric (%r), folosesc str(): %s", v, e)
         return str(v)
 
@@ -132,7 +132,7 @@ def _b2(v) -> str:
     """Rotunjeste la 2 zecimale (preturi unitare, EUR/mp)."""
     try:
         return f"{Decimal(str(v)).quantize(Decimal('0.01'))}"
-    except Exception as e:
+    except (InvalidOperation, ValueError, TypeError) as e:
         log.debug("Valoare neformatabilă numeric (%r), folosesc str(): %s", v, e)
         return str(v)
 
@@ -141,7 +141,7 @@ def _pct(v) -> str:
     """Fractie -> procent cu 2 zecimale (0.1727 -> '17.27%')."""
     try:
         return f"{(Decimal(str(v)) * 100).quantize(Decimal('0.01'))}%"
-    except Exception as e:
+    except (InvalidOperation, ValueError, TypeError) as e:
         log.debug("Valoare neformatabilă numeric (%r), folosesc str(): %s", v, e)
         return str(v)
 

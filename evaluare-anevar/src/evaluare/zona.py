@@ -5,7 +5,7 @@ import json
 import re
 import unicodedata
 
-from evaluare.ai.narrative import NarrativeClient
+from evaluare.ai.narrative import NarrativeClient, filtreaza_pii_rezidual
 from evaluare.logging_setup import get_logger
 
 log = get_logger(__name__)
@@ -40,7 +40,10 @@ def extrage_zona(
     """Intoarce (judet, localitate) din adresa. LLM daca exista client, altfel fallback."""
     if client is not None:
         try:
-            raw = client.complete(SYSTEM_ZONA, f"Adresa: {adresa}")
+            # Plasă de siguranță GDPR: maschează CNP/tel/email scăpate în adresa liberă înainte
+            # de a o trimite la furnizorul AI (paritate cu narativul — vezi ai/narrative.py:197).
+            adresa_sigura = filtreaza_pii_rezidual(adresa)
+            raw = client.complete(SYSTEM_ZONA, f"Adresa: {adresa_sigura}")
             m = re.search(r"\{.*\}", raw, re.DOTALL)
             data = json.loads(m.group(0) if m else raw)
             judet = _normalizeaza(data.get("judet"))

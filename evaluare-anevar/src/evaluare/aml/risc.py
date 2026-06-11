@@ -61,7 +61,10 @@ def pep_efectiv(statut: StatutPEP, azi: str) -> bool:
 
 def nivel_masuri(categorie: CategorieRisc) -> NivelMasuri:
     """Mapare categorie -> nivel masuri de cunoastere (Legea art. 16/17; Norme art. 12(4))."""
-    return {"redus": "simplificate", "standard": "standard", "sporit": "suplimentare"}[categorie]
+    masuri: dict[CategorieRisc, NivelMasuri] = {
+        "redus": "simplificate", "standard": "standard", "sporit": "suplimentare",
+    }
+    return masuri[categorie]
 
 
 def _adauga_luni(d: str, luni: int) -> str:

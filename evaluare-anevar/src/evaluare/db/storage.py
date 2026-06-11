@@ -119,6 +119,7 @@ class Storage:
                     datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
                 ),
             )
+            assert cur.lastrowid is not None  # setat după un INSERT reușit
             return int(cur.lastrowid)
 
     def redenumeste(self, eid: int, nume: str) -> None:
