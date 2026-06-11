@@ -19,14 +19,14 @@
 
 | Grup | ✅ Done | 🟡 În curs | ⏳ Pending | ⏸️ Parcat-jurist | Total |
 |---|---|---|---|---|---|
-| Blocante (BLOC-1..7) | 2 | 2 | 2 | 1 | 7 |
+| Blocante (BLOC-1..7) | 3 | 2 | 1 | 1 | 7 |
 | Importante | 23 | 1 | 5 | 4 | 33 |
 | Minore | 6 | — | 9 | 1 | 16 |
-| **TOTAL** | **31** | **3** | **16** | **6** | **56** |
+| **TOTAL** | **32** | **3** | **15** | **6** | **56** |
 
 > **Notă metodologică numărătoare:** totalul a crescut de la 37 la 56 pentru că au fost contabilizate explicit și piesele „motor + cablare + UI + QC" care înainte erau ascunse în câte un singur rând (ex. ESG = modul + render raport + UI dosar + item QC = 4 livrabile distincte, toate ✅). Frame-ul de gap-uri normative e același; granularitatea e mai fină.
 >
-> **Interpretare:** Față de prima versiune (15 done), s-au mai închis **~16 livrabile**: cablarea ESG+CPE în raport+UI (BLOC-1 ✅), valoarea prudentă end-to-end (✅), structura per-tip de imobil (✅), scopul ca factor de risc AML (BLOC-7 ✅), indicatorii suplimentari de suspiciune (I-5 ✅), bonitarea agricolă (✅), cele 3 forme de depreciere + clamp (✅), valoarea în litere F-01 (✅), itemii QC ESG/prudentă (✅), plus scheletul de date+UI pentru EDD/RBR (BLOC-6 / S-3 — model+UI ✅, dar TEXTUL legal rămâne parcat-jurist). Ce rămâne **cu adevărat blocant**: garda cost≠principal (BLOC-3), expunerea „comercial" în dropdown (BLOC-4), integrarea online BIG + recipisa ca anexă (BLOC-2), și deciziile legale (BLOC-5 + corpul normativ AML/GDPR).
+> **Interpretare:** Față de prima versiune (15 done), s-au mai închis **~17 livrabile**: cablarea ESG+CPE în raport+UI (BLOC-1 ✅), valoarea prudentă end-to-end (✅), structura per-tip de imobil (✅), scopul ca factor de risc AML (BLOC-7 ✅), expunerea „comercial" în dropdown + maparea la profilul de venit (BLOC-4 ✅, închis azi), indicatorii suplimentari de suspiciune (I-5 ✅), bonitarea agricolă (✅), cele 3 forme de depreciere + clamp (✅), valoarea în litere F-01 (✅), itemii QC ESG/prudentă (✅), plus scheletul de date+UI pentru EDD/RBR (BLOC-6 / S-3 — model+UI ✅, dar TEXTUL legal rămâne parcat-jurist). Ce rămâne **cu adevărat blocant**: garda cost≠principal (BLOC-3), integrarea online BIG + recipisa ca anexă (BLOC-2), și deciziile legale (BLOC-5 + corpul normativ AML/GDPR).
 
 ---
 
@@ -51,6 +51,7 @@
 | **G7 / F-03 (CPE)** | **Certificat energetic (CPE) + cod_postal + riscuri_fizice** — câmpuri model **ȘI randate**: CPE în cap.4 descriere fizică, cod poștal pe copertă (necesar BIG) | mediu | `models/meta.py`; `report/generator.py:319,1030`; `dosar.html:143,186` | ✅ IMPLEMENTAT |
 | **S-5-VP / CRR** | **Valoare prudentă (de garanție) — END-TO-END.** Modul `valoare_prudenta.py` (CRR art. 229/208, plafonare ≤ valoare de piață) **CABLAT** ca secțiune OPȚIONALĂ la garantare (omis elegant fără parametri) | important | `valoare_prudenta.py` (`estimeaza_valoare_prudenta`, `genereaza_nota_valoare_prudenta`); `report/generator.py:808,831,1121`; commit `8ab1d0f`/`e8d93f5` | ✅ IMPLEMENTAT |
 | **PER-TIP** | **Structura livrabilului PER TIP de imobil** (teren/agricol fără construcție; apartament fără teren standalone + notă cotă indiviză; comercial venit-principal + fără cost) | mediu | `profil.SECTIUNI_PER_TIP`, `profil.sectiuni_pentru_tip`; `report/generator._sectiuni` (folosit la 560/597/613/651/1000/1060); commit `a9a52d0` | ✅ IMPLEMENTAT |
+| **BLOC-4 / G2** | **Tip „comercial" în UI + abordarea prin venit accesibilă.** Dropdown-ul `tip_proprietate` expune opțiunea „comercial" (generator de venit), iar la selectare metoda comută automat pe „venit"; `assembler.PROFIL_DUPA_TIP["comercial"]` mapează la profilul `COMERCIAL_INCHIRIAT` (venit principal în raport). Motor venit/DCF + structură per-tip deja DONE. | **B** (pt. comercial) | `dosar.html:142` (`<option value="comercial">`) + `dosar.html:929` (comutare metodă→venit); `assembler.py:50` (`"comercial": COMERCIAL_INCHIRIAT`); commits `fcdd173` (UI) + `400da88` (mapare profil) | ✅ IMPLEMENTAT (BLOC-4 închis) |
 | **AGRICOL** | **Bonitare agricol** — comparația vânzărilor cu nota de bonitare a solului ca ELEMENT DE COMPARAȚIE (NU formula PMB), conform poziției ANEVAR / GEV 630 §86 | important | `engine/land.py` (`evaluate_land_agricol`, `aplica_bonitare`, `ajustare_bonitare`); commit `09bc39d` | ✅ IMPLEMENTAT |
 | **COST-3D** | **Cele 3 forme de depreciere** (fizică interpolare/liniară, funcțională supradimensionare, externă/economică) aplicate multiplicativ + **clamp [0,1]** pe interpolare | mediu | `engine/cost.py` (`depreciere_fizica_liniara`, `depreciere_functionala_supradimensionare`, `depreciere_externa_din_pierdere`, clamp în `interpolate_depreciation`); commit `db66a7e`/`cd5ae14` | ✅ IMPLEMENTAT |
 | **F-01** | **Valoarea finală redată în litere (cuvinte)** — pe copertă + lângă concluzia de valoare (uzanță fermă la verificarea bancară) | mediu | `report/generator.py` (`_valoare_in_litere`, `_numar_in_litere`, folosit la 343, 1108); commit `327f9ca` | ✅ IMPLEMENTAT |
@@ -69,7 +70,7 @@
 | **BLOC-1** = G1 / S-5 / F-02 / F-03 | **Cablarea ESG + CPE în RAPORT și UI.** | **B** | ✅ **ÎNCHIS.** `esg` importat în `generator.py:18`, randat de `_adauga_esg` (apelat la 1117); CPE+cod_postal randate (319/1030); dosar.html are 8 checkbox-uri + CPE + JS payload (1295–1298). | ✅ IMPLEMENTAT |
 | **BLOC-2** = S-4 / G5 / F-09 | **Cablarea BIG în flux + integrare online + recipisă ca anexă.** Modul `big.py` (payload + recipisă) + **acțiune „pregătește pentru BIG" CABLATĂ** (router registru: `pregateste_big`, status per-rând pe `/registru`, endpoint `/api/dosar/{uid}/big` cu checklist lipsuri). LIPSEȘTE: integrarea online cu portalul BIG + atașarea recipisei ca anexă obligatorie în raportul .docx. | **B** | `big` importat în `web/routers/registru.py:18`; flux + checklist DONE (commit `7c97341`). Online + recipisă-anexă = NU (necesită manualul ANEVAR-BIG — vezi §6). | 🟡 ÎN CURS (flux ✅) + ⏳ PENDING (online + anexă, blocat pe manual) |
 | **BLOC-3** = G3 | **Garda „cost ≠ abordare principală la garantare".** `assembler.py` acceptă tăcut `metoda="cost"` ca primară pe profil `GEV_520`, fără alertă (GEV 520 §31/§34 cer accept scris al creditorului). | **B** | `engine/validation.py` n-are `valideaza_metoda_vs_ghid`; `assembler.py` default `metoda="cost"` fără gardă. Neimplementat. | ⏳ PENDING |
-| **BLOC-4** = G2 | **Tip „comercial" + abordarea prin venit accesibile din UI.** Motorul de venit/DCF e DONE (§1) și `profil.SECTIUNI_PER_TIP["comercial"]` există (venit-principal), DAR dropdown-ul `tip_proprietate` din `dosar.html` NU expune „comercial" (are doar casa/apartament/industrial/agricol/special). | **B** (pt. comercial) | Motor ✅ + structură per-tip ✅ / dropdown UI ⏳ (lipsește opțiunea „comercial" la `dosar.html:128–130`). | ⏳ PENDING (doar expunere UI) |
+| **BLOC-4** = G2 | **Tip „comercial" + abordarea prin venit accesibile din UI.** | **B** (pt. comercial) | ✅ **ÎNCHIS** — vezi §1 (BLOC-4/G2): dropdown-ul `tip_proprietate` expune „comercial" (`dosar.html:142`, comutare auto metodă→venit la `:929`) + `assembler.PROFIL_DUPA_TIP["comercial"] = COMERCIAL_INCHIRIAT` (`assembler.py:50`); commits `fcdd173` + `400da88`. Motor venit/DCF + structură per-tip deja DONE. | ✅ IMPLEMENTAT |
 | **BLOC-5** = G4 / F-07 / S-2 | **Declarație conflict de interese tip EBA + plata necondiționată** (GEV 520 §81–82). Text de conformitate cu implicații legale. | **B** | Neimplementat în `generator.py`. | ⏸️ PARCAT-JURIST (text legal) |
 | **BLOC-6** = S-2 / I-3 | **EDD risc ridicat: sursa fondurilor + a averii + aprobarea conducerii pentru PEP + monitorizare sporită.** **Scheletul de DATE + UI există** (`DosarAML.sursa_fonduri/sursa_avere/aprobare_conducere_superioara_pep/monitorizare_sporita` + câmpuri în `aml.html`). RĂMÂNE parcat: textul de declarație pe proprie răspundere a clientului + validarea juridică a fluxului EDD (Legea 129/2019 art. 17). | **B** | Model `aml/models.py:151–155` ✅; UI `aml.html:85–93` ✅ (commit `29639a1`). Text legal + validare jurist = parcat (AML = bucket C). | 🟡 ÎN CURS (model+UI ✅) / ⏸️ text-jurist |
 | **BLOC-7** = S-1 | **Scopul evaluării ca factor de risc AML.** | **B** | ✅ **ÎNCHIS** — vezi §1 (S-1/BLOC-7): `risc.ScopEvaluare` + `serviciu.scop_aml_din_dosar`. | ✅ IMPLEMENTAT |
@@ -139,12 +140,27 @@
 
 ## 7. ORDINEA RECOMANDATĂ (ce urmează)
 
-1. **BLOC-3** (gardă cost≠principal) + **BLOC-4** (expune „comercial" în dropdown) — garduri/UI, motor + structură per-tip deja DONE; efort mic.
+1. **BLOC-3** (gardă cost≠principal) — gardă de validare, motor deja DONE; efort mic. *(BLOC-4 „comercial" în dropdown = ✅ închis azi — vezi §1.)*
 2. **F-08** (randare structura/finisaje/deschidere în cap.4) — quick win, efort mic.
 3. **BLOC-2** (BIG): atașarea recipisei ca anexă acum; integrarea online după descărcarea manualului ANEVAR.
 4. **G6/F-06** (re-desemnare utilizator), **I-16** (structură dosar 4 secțiuni), **G8** (analiză piață structurată completă în raport).
 5. **Parcat-jurist** (BLOC-5; finalizarea TEXTULUI EDD/RBR pe scheletul deja construit; AML HCD 62/CFH 74; GDPR): pe măsură ce Adi + juristul deblochează; NU autonom.
 6. Minore (§5): oportunist, low-risk.
+
+---
+
+## 8. Funcționalități produs livrate (dincolo de conformitate)
+
+> Piese de **valoare-produs** (UX / motor de descoperire) construite în paralel cu gap-urile normative. Nu apar în numărătoarea de conformitate (§0), dar sunt parte din livrabilul real verificat în cod.
+
+| Funcționalitate | Descriere | Dovadă în cod |
+|---|---|---|
+| **Candidați salvați per-dosar** | Salvarea comparabilelor descoperite în „shortlist"-ul dosarului, înainte de importul în grilă; deduplicare + plafon anti-DoS (cele mai vechi cad). Disponibilă **inline în `dosar.html`** ȘI **standalone la `/descoperire`**. | `dosare_fs.py` (`salveaza_candidat`, `listeaza_candidati_salvati`, `_cale_candidati`, `MAX_CANDIDATI_SALVATI=500`); endpoint-uri `POST /api/dosar/{uid}/candidat-salvat` + `GET /api/dosar/{uid}/candidati-salvati`; `descoperire.html:597,725` |
+| **50+50 la descoperire (fetch + paginare)** | Descoperirea aduce până la `max_candidati=50` per cerere, cu paginare în UI pentru a parcurge loturi suplimentare (50+50). Plafonul e mărginit server-side (`le=50`). | `web/schemas.py:95,125` (`max_candidati: Field(default=50, ge=1, le=50)`); `web/routers/descoperire.py:55,87`; `descoperire.html:534,539,546` (paginare) |
+| **Extracție etaj apartament** | Etajul apartamentului extras din anunț (câmp structurat `Floor_no` sau regex „etaj 3"/„parter"/„3/5") și folosit ca driver de scoring la apartamente. | `discovery/orchestrator.py:209–213`; `discovery/ponderi.py:26` (`"etaj": 5`); `discovery/scoring.py:29` (`PRAG_ETAJ`) |
+| **Hint-uri precompletare /grila** | Câmpurile grilei se precompletează din contextul dosarului (ex. suprafață teren subiect) cu hint vizual „precompletat cu…". | `web/templates/grila.html:48` (`supr-teren-hint` „precompletat cu suprafața teren”) |
+| **Scoring recență / proximitate / segment** | Ajustări metodologice ADITIVE peste similaritatea de atribute (operaționalizează G7 / articole-piață): recența anunțului (grație 180z, prag 540z, penalizare max 30%), proximitatea (grație <1 km, prag ≥15 km) și segmentul de piață — calibrabile (euristici SEV 103 A10.7). | `discovery/scoring.py:32–42` (`RECENTA_*`, `PROXIMITATE_*`, `ScoreBreakdown.explicatie`) |
+| **RUNDA 16 — robustețe** | Garde anti-DoS pe inputuri attacker-controlled: `RecursionError` prins la parsarea blob-urilor adânc imbricate (`__NEXT_DATA__` / JSON-LD), regex mărginite anti-**ReDoS** (truncare înainte de regex, cuantificatori mărginiți), plafon `max_candidati` (server-side `le=50`). | `importers/url_parser.py:30,109,175,377,404,422,436`; `web/schemas.py:95,125` |
 
 ---
 
