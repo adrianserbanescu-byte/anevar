@@ -10,6 +10,7 @@ from __future__ import annotations
 
 import json
 import unicodedata
+from datetime import date
 from difflib import SequenceMatcher
 from pathlib import Path
 
@@ -17,6 +18,8 @@ from pydantic import BaseModel
 
 _DATA_DIR = Path(__file__).parent / "data"
 _PRAG_SIMILARITATE = 0.86
+# Listele oficiale se reimprospateaza manual; peste acest prag le consideram potential expirate.
+_ZILE_VALABILITATE_LISTE = 30
 # Plafon defensiv pentru intrarile comparate cu SequenceMatcher (O(n*m)): nume reale sunt scurte,
 # dar `screening` poate primi un `nume` arbitrar (nu doar din modele marginite) -> trunchiem ca sa
 # nu transformam o comparare intr-un DoS de CPU (~10s la 500K caractere).
@@ -87,3 +90,39 @@ def este_tara_risc(tara: str, liste: Liste) -> dict:
         "risc_inalt": _pe_lista(liste.tari_risc_inalt),
         "necooperanta": _pe_lista(liste.tari_necooperante),
     }
+
+
+def avertisment_liste(liste: Liste, azi: str | None = None) -> str | None:
+    """Semnaleaza cand listele de screening NU sunt utilizabile (evita un fals negativ tacut).
+
+    `screening` consulta `sanctiuni` + `pep_functii`. Daca ambele sunt goale (ex.: `liste.json`
+    lipseste -> `incarca_liste` intoarce liste goale) screening-ul da 0 potriviri *fara sa fi
+    verificat nimic* — un evaluator poate crede ca „a verificat". La fel, liste fara data de
+    actualizare ori mai vechi de ~30 de zile nu mai reflecta sursele oficiale. Returneaza None cand
+    listele par utilizabile; altfel un mesaj orientativ (NU blocheaza fluxul — om-in-bucla).
+    """
+    if not liste.sanctiuni and not liste.pep_functii:
+        return (
+            "Liste de sancțiuni/PEP neîncărcate (goale) — screening neconcludent; reîmprospătați "
+            "manual din sursele oficiale înainte de a vă baza pe rezultat."
+        )
+    if not liste.actualizat:
+        return (
+            "Listele de screening nu au dată de actualizare — vechime necunoscută; verificați "
+            "reîmprospătarea din sursele oficiale."
+        )
+    if azi:
+        try:
+            zile = (date.fromisoformat(azi) - date.fromisoformat(liste.actualizat)).days
+        except ValueError:
+            return (
+                "Data de actualizare a listelor de screening este invalidă — verificați "
+                "reîmprospătarea din sursele oficiale."
+            )
+        if zile > _ZILE_VALABILITATE_LISTE:
+            return (
+                f"Liste de screening expirate (actualizate {liste.actualizat}, peste "
+                f"{_ZILE_VALABILITATE_LISTE} de zile) — reîmprospătați din sursele oficiale; "
+                "screening neconcludent."
+            )
+    return None

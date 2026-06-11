@@ -176,6 +176,8 @@ def _coperta(doc: DocxDocument, ctx: ReportContext, adnotari: bool = False) -> N
     doc.add_heading("RAPORT DE EVALUARE", level=0)
     _nota(doc, "legenda", adnotari)
     _nota(doc, "coperta", adnotari)
+    if meta.nr_lucrare:        # numar de identificare a raportului (Procedura §6: recomandat pe coperta)
+        doc.add_paragraph(f"Nr. de identificare raport: {meta.nr_lucrare}")
     p = doc.add_paragraph()
     p.add_run("Proprietate imobiliara: casa de locuit si teren aferent").bold = True
     doc.add_paragraph(f"Adresa: {meta.adresa}")

@@ -37,8 +37,11 @@ def _antet(doc: DocxDocument, antet: dict | None) -> None:
         "consultant/jurist AML înainte de utilizare. Verificarea și răspunderea pentru conținut revin "
         "evaluatorului/entității raportoare; aplicația nu poartă nicio răspundere pentru datele "
         "introduse sau pentru rezultate. Legea nr. 129/2019, art. 43/44/49, prevede sancțiuni "
-        "(inclusiv penale) pentru raportarea cu rea-credință sau neglijență gravă. Aplicația NU "
-        "efectuează verificări automate pe listele de sancțiuni/PEP."
+        "(inclusiv penale) pentru raportarea cu rea-credință sau neglijență gravă. Aplicația "
+        "efectuează doar un screening orientativ pe listele de sancțiuni/PEP încărcate LOCAL (care "
+        "necesită reîmprospătare manuală din sursele oficiale); orice rezultat este o «posibilă "
+        "potrivire» ce trebuie verificată manual pe sursa oficială — NU o decizie automată și NU un "
+        "substitut al verificării pe sursa oficială."
     ).bold = True
     p = doc.add_paragraph()
     p.add_run(f"Entitate raportoare: {entitate}").bold = True

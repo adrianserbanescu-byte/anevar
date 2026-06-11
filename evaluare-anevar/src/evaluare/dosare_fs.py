@@ -19,6 +19,7 @@ from datetime import datetime
 from pathlib import Path
 
 from evaluare.master_config import nume_dosar
+from evaluare.registru import numar
 
 # Câmpurile de IDENTITATE (blocate după creare; schimbarea lor → dosar nou). Setul exact se
 # rafinează la #1; minim: scop + tip + client + id_client (+ județ/localitate dacă-s în titlu).
@@ -43,6 +44,12 @@ def _cale(uid: str) -> Path:
     except (ValueError, AttributeError, TypeError):
         raise KeyError(f"Dosar inexistent (uid invalid): {uid!r}") from None
     return baza() / canonic
+
+
+def folder_dosar(uid: str) -> Path:
+    """Calea (VALIDATA ca UUID) a folderului unui dosar — pentru export/pachet de audit per dosar.
+    Wrapper public peste `_cale` (acelasi gard anti path-traversal)."""
+    return _cale(uid)
 
 
 def _acum() -> str:
@@ -71,6 +78,9 @@ def creeaza(creator_legitimatie: str, creator_nume: str, wizard: dict,
     ident = _identitate(wizard)
     dosar = {
         "uuid": uid,
+        # Numar de lucrare secvential pe an (`AAAA/NNNN`) = numarul de identificare a raportului
+        # (Procedura §6/§11). Alocat ATOMIC la creare; ramane stabil, apare pe coperta + in registru.
+        "nr_lucrare": numar.aloca(),
         "nume": nume_dosar(format_dosar, wizard),
         "format_dosar": list(format_dosar) if format_dosar else None,
         "creator_legitimatie": str(creator_legitimatie),
@@ -440,6 +450,7 @@ def importa_folder(src: Path, legitimatie_curenta: str, creator_nume: str) -> di
         except (ValueError, AttributeError, TypeError):
             uid = str(_uuid.uuid4())
         dosar["uuid"] = uid
+        dosar.setdefault("nr_lucrare", numar.aloca())  # dosar vechi fara numar -> aloca acum
         e_nou = False
     else:
         uid = str(_uuid.uuid4())                       # dosar nou pentru userul curent
@@ -447,6 +458,8 @@ def importa_folder(src: Path, legitimatie_curenta: str, creator_nume: str) -> di
         dosar["creator_legitimatie"] = str(legitimatie_curenta)
         dosar["creator_nume"] = creator_nume
         dosar["creat_la"] = _acum()
+        # Dosar NOU pentru userul curent -> numar PROPRIU (cel original apartine registrului altui evaluator).
+        dosar["nr_lucrare"] = numar.aloca()
         e_nou = True
     dest = _cale(uid)
     dest.mkdir(parents=True, exist_ok=True)

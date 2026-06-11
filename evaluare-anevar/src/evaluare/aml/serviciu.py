@@ -7,7 +7,7 @@ from __future__ import annotations
 
 from evaluare.aml.incadrare import necesita_persoana_desemnata
 from evaluare.aml.indicatori import SemnaleIndicatori, evalueaza_indicatori, propune_rts
-from evaluare.aml.liste import Liste, screening
+from evaluare.aml.liste import Liste, avertisment_liste, screening
 from evaluare.aml.models import ClientPF, ClientPJ, EvaluareRisc
 from evaluare.aml.risc import Semnale, evalueaza_risc
 
@@ -45,8 +45,11 @@ def evalueaza_relatie(
 
     potriviri = []
     if liste is not None:
+        screening_avertisment = avertisment_liste(liste, azi=azi)
         for nume in _nume_screening(client):
             potriviri.extend(p.model_dump() for p in screening(nume, liste))
+    else:
+        screening_avertisment = "Screening pe liste neefectuat (liste neinjectate)."
 
     documente = ["norme_interne", "evaluare_risc", "fisa_kyc"]
     if necesita_persoana_desemnata(tip_entitate):
@@ -62,6 +65,7 @@ def evalueaza_relatie(
         "indicatori": [i.model_dump() for i in indicatori],
         "propune_rts": rts,
         "screening": potriviri,
+        "screening_avertisment": screening_avertisment,
         "necesita_persoana_desemnata": necesita_persoana_desemnata(tip_entitate),
         "documente_necesare": documente,
     }

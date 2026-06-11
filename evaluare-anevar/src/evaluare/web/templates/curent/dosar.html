@@ -181,6 +181,27 @@
         </div>
       </fieldset>
 
+      <fieldset class="grup"><legend>Administrativ &amp; registru</legend>
+        <small class="hint grup-nota">Câmpuri pentru Registrul rapoartelor de evaluare (Procedura de arhivare ANEVAR §6). Numărul de lucrare e alocat automat și apare pe coperta raportului.</small>
+        <div class="field-row">
+          <div class="field"><label for="nr_lucrare_afis">Nr. de identificare (lucrare)</label>
+            <output id="nr_lucrare_afis" style="font-weight:600">{{ dosar.nr_lucrare or '—' }}</output></div>
+          <div class="field"><label for="nr_contract">Nr. contract / comandă</label><input id="nr_contract" placeholder="ex. 123/2026"></div>
+          <div class="field"><label for="data_contract">Data contractului</label><input type="date" id="data_contract"></div>
+        </div>
+        <div class="field-row">
+          <div class="field"><label for="onorariu">Onorariu</label><input id="onorariu" inputmode="decimal" placeholder="ex. 1500"></div>
+          <div class="field"><label for="data_predarii">Data predării</label><input type="date" id="data_predarii"></div>
+          <div class="field"><label for="risc_aml">Risc AML client</label>
+            <select id="risc_aml"><option value="">—</option><option value="redus">scăzut (redus)</option><option value="standard">mediu (standard)</option><option value="sporit">ridicat (sporit)</option></select></div>
+        </div>
+        <div class="field-row">
+          <div class="field"><label for="verificator_intern_nume">Verificare internă — nume</label><input id="verificator_intern_nume" placeholder="cine a verificat calitatea raportului"></div>
+          <div class="field"><label for="data_verificare_interna">Verificare internă — data</label><input type="date" id="data_verificare_interna"></div>
+          <div class="field field--wide"><label for="observatii_registru">Observații (registru)</label><input id="observatii_registru" placeholder="ex. note de control / reutilizare"></div>
+        </div>
+      </fieldset>
+
       <h3>Date fizice</h3>
       {# Sub-secțiuni cu titlu (audit R1): fieldset-urile type-specific primesc .grup (aer + ritm
          uniform). Ramân hidden/afișate de _show() după tip — id-urile wrapper NU se schimbă. #}
@@ -397,6 +418,14 @@
       <p class="hint">Generează raportul .docx; fiecare generare se salvează ca versiune în folderul dosarului.
        Textul AI e doar <b>proză narativă</b> (draft); <b>toate valorile numerice sunt deterministe</b>
        (motorul de calcul), nu produse de AI.</p>
+      <div class="callout" id="qc-box">
+        <h3 style="margin:0 0 4px;font-size:1em;">Verificare internă a calității <span class="hint">(înainte de emitere — SEV 100 par. 20)</span></h3>
+        <p class="hint" style="margin:0 0 8px;">Control automat al dosarului conform recomandărilor ANEVAR de asigurare a calității.
+         Elementele marcate <b>blocant</b> opresc generarea până la corectare; cele marcate <b>atenție</b> doar avertizează.</p>
+        <button type="button" class="ghost" id="qc-verifica">{{ icon("audit") }} Verifică calitatea</button>
+        <ul id="qc-lista" style="list-style:none;padding:0;margin:8px 0 0;"></ul>
+        <p id="qc-rezumat" class="hint" role="status" aria-live="polite" style="margin:6px 0 0;"></p>
+      </div>
       <div class="callout" id="asumare-info">
         <label class="chk"><input type="checkbox" id="asumare">
           Înțeleg că documentul generat de aplicație este un <b>draft</b>. Îmi asum, ca evaluator autorizat
@@ -1208,6 +1237,9 @@ if($("audit-gen")) $("audit-gen").addEventListener("click", function(){
         var map={norme_interne:"/api/aml/norme-interne.docx",evaluare_risc:"/api/aml/evaluare-risc.docx",fisa_kyc:"/api/aml/fisa-kyc.docx",decizie_desemnare:"/api/aml/decizie.docx",rts:"/api/aml/rts.docx"};
         h+="<p>Documente <span class='hint'>(.docx — verifică-le și salvează-le ca PDF local)</span>:</p><div>"+(d.documente_necesare||[]).map(function(doc){ return "<button type='button' class='ghost' data-url='"+map[doc]+"'>"+doc+"</button> "; }).join("")+"</div><p id='aml-doc-status' class='hint' role='status' aria-live='polite'></p></div>";
         $("aml-rez").innerHTML=h; window._amlBody=body;
+        // Pre-completează clasificarea de risc din registru cu categoria calculată (G-LNP-8): evaluatorul
+        // nu re-tastează „redus/standard/sporit" — apare automat în Registrul rapoartelor (§6).
+        var rs=$("risc_aml"); if(rs&&d.categorie){ rs.value=d.categorie; if(typeof salveaza==="function") salveaza(); }
         document.querySelectorAll("#aml-rez button[data-url]").forEach(function(b){ b.addEventListener("click", function(){ amlDescarca(b.dataset.url); }); });
       })
       .catch(function(e){ var p=document.createElement("p"); p.className="hint";
@@ -1511,6 +1543,31 @@ function genereazaRaport(adnotari, btn){
 }
 $("genereaza").addEventListener("click", function(){ genereazaRaport(false, this); });
 if($("genereaza-demo")) $("genereaza-demo").addEventListener("click", function(){ genereazaRaport(true, this); });
+// G-Q1: verificarea internă a calității live — checklist bifat automat din dosar (DOM-safe, fără innerHTML).
+function refreshQC(){
+  var lista=$("qc-lista"), rez=$("qc-rezumat"); if(!lista||!rez) return;
+  rez.className="hint"; rez.textContent="… se verifică calitatea";
+  fetch("/api/dosar/"+UID+"/calitate",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(asambleaza())})
+    .then(function(r){ if(r.ok) return r.json(); return r.json().catch(function(){return{};}).then(function(j){ throw (j.detail||("Verificarea a eșuat (cod "+r.status+").")); }); })
+    .then(function(d){
+      lista.textContent="";
+      (d.checklist||[]).forEach(function(e){
+        var li=document.createElement("li"); li.style.margin="3px 0";
+        li.className = e.trecut ? "hint" : (e.nivel==="blocheaza" ? "field-error" : "alerta");
+        var mark=document.createElement("b"); mark.textContent=(e.trecut?"✓":(e.nivel==="blocheaza"?"✗":"⚠"))+" ";
+        li.appendChild(mark); li.appendChild(document.createTextNode(e.titlu));
+        if(!e.trecut){ var tag=document.createElement("b"); tag.textContent=(e.nivel==="blocheaza"?" [blocant]":" [atenție]"); li.appendChild(tag); }
+        if(e.detaliu){ var sp=document.createElement("span"); sp.className="hint"; sp.textContent=" — "+e.detaliu; li.appendChild(sp); }
+        lista.appendChild(li);
+      });
+      if(d.emisibil){ rez.className="hint"; rez.textContent="✓ Verificarea calității e trecută — raportul poate fi emis"+(d.avertismente?(" ("+d.avertismente+" atenționări)"):"")+"."; }
+      else { rez.className="field-error"; rez.textContent="✗ "+d.blocaje+(d.blocaje===1?" element blocant":" elemente blocante")+" — corectează înainte de generare."; }
+    })
+    .catch(function(e){ rez.className="hint"; rez.textContent=(typeof e==="string"?e:"Verificarea calității nu a putut rula — calculează întâi."); });
+}
+if($("qc-verifica")) $("qc-verifica").addEventListener("click", refreshQC);
+// reverifică automat la intrarea în sub-tabul «Generează» (checklist mereu sincron cu datele curente)
+if($("s-genereaza")) $("s-genereaza").addEventListener("click", function(){ setTimeout(refreshQC, 0); });
 if($("submis-incarca")) $("submis-incarca").addEventListener("click", function(){   // ADR-003 trigger #3
   var f=$("submis-fisier").files[0]; if(!f){ $("submis-status").textContent="Alege un fișier .docx."; return; }
   this.disabled=true; $("submis-status").textContent="Se înregistrează…";

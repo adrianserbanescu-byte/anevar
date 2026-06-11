@@ -14,6 +14,7 @@ from pathlib import Path
 from fastapi import APIRouter, HTTPException, Request
 from fastapi.responses import FileResponse, HTMLResponse
 
+from evaluare import calitate
 from evaluare import cont as cont_mod
 from evaluare import dosare_fs as fs
 from evaluare.assembler import (
@@ -209,6 +210,18 @@ def build_router(d: Deps) -> APIRouter:
             "alerte": alerte,
         }
 
+    @router.post("/api/dosar/{uid}/calitate")
+    def calitate_dosar(uid: str, inp: EvaluationInput) -> dict:
+        """Verificarea interna a calitatii (QC) live — checklist bifat automat din datele dosarului
+        (gap G-Q1; Asig. calitatii §5; SEV 100 par. 20). Mereu 200 (informativ); emiterea raportului
+        e gardata separat in /raport.docx pe blocajele de calitate."""
+        try:
+            fs.incarca(uid)
+        except KeyError:
+            raise HTTPException(404, "Dosar inexistent.") from None
+        ctx = _context(inp)
+        return calitate.rezumat(calitate.verifica_calitate(ctx, _metodologie_cfg()))
+
     @router.post("/api/dosar/{uid}/audit.txt")
     def audit_dosar(uid: str, inp: EvaluationInput):
         """Urma de audit (jurnal hash + validare încrucișată) pt fluxul pe foldere (fără SQLite)."""
@@ -240,6 +253,10 @@ def build_router(d: Deps) -> APIRouter:
                                            "metoda": ctx.reconciled.metoda_selectata})
         for issue in valideaza_incrucisat(ctx):
             j.inregistreaza("validare_incrucisata", {"nivel": issue.nivel, "mesaj": issue.mesaj})
+        # G-Q1 §5.e: documentarea verificarii interne a calitatii in urma de audit.
+        for e in calitate.verifica_calitate(ctx, _metodologie_cfg()):
+            j.inregistreaza("verificare_calitate", {"element": e.cheie, "trecut": e.trecut,
+                                                    "nivel": e.nivel, "detaliu": e.detaliu})
         for v in fs.verifica_integritate(uid):   # ADR-003: integritatea versiunilor .docx asumate
             j.inregistreaza("integritate_versiune", {"fisier": v["fisier"], "asumat_la": v["la"],
                                                      "tip": v["tip"], "integru": v["ok"]})
@@ -258,11 +275,16 @@ def build_router(d: Deps) -> APIRouter:
         clar prin _context. Single source of truth: nu poți genera raport fără calcul valid.
         """
         try:
-            fs.incarca(uid)
+            dosar = fs.incarca(uid)
         except KeyError:
             log.warning("genereaza: dosar inexistent uid=%s", uid)
             raise HTTPException(404, "Dosar inexistent.") from None
         log.info("genereaza raport uid=%s adnotari=%s", uid, bool(adnotari))
+        # Numarul de identificare a raportului e ALOCAT SERVER-SIDE la crearea dosarului (autoritar):
+        # il injectam in meta indiferent ce trimite clientul, ca sa apara corect pe coperta (Procedura §6).
+        nr_lucrare = dosar.get("nr_lucrare")
+        if nr_lucrare:
+            inp.meta = inp.meta.model_copy(update={"nr_lucrare": nr_lucrare})
         ctx = _context(inp)  # 422 daca calcul nu poate fi facut (decizia #14)
         # Enforce nivel="blocheaza" (re-audit I1): un raport SEMNABIL de garantare NU se genereaza daca
         # exista probleme BLOCANTE (ex. comparabil cu pret corectat <=0). In /calcul ramane advisory
@@ -280,6 +302,13 @@ def build_router(d: Deps) -> APIRouter:
         if blocante:
             raise HTTPException(422, "Raport blocat: corectati problemele blocante inainte de generare — "
                                 + "; ".join(i.mesaj for i in blocante))
+        # G-Q1: verificarea interna a calitatii INAINTE de emitere (Asig. calitatii §5; SEV 100 par. 20).
+        # «Autorizeaza emiterea raportului doar dupa efectuarea ajustarilor necesare»: un blocaj de
+        # calitate (ex. tip valoare nedeclarat, data raport < data evaluare) opreste documentul oficial.
+        qc_blocaje = calitate.blocaje(calitate.verifica_calitate(ctx, _metodologie_cfg()))
+        if qc_blocaje:
+            raise HTTPException(422, "Verificarea interna a calitatii nu a trecut (corectati inainte de "
+                                "emitere): " + "; ".join(f"{e.titlu} — {e.detaliu}" for e in qc_blocaje))
         tmp = Path(tempfile.gettempdir())
         tok = uuid.uuid4().hex[:8]          # token unic: evită coliziuni la generări concurente pe același dosar
         out = tmp / f"raport_{uid}_{tok}.docx"
@@ -377,6 +406,45 @@ def build_router(d: Deps) -> APIRouter:
         buf.seek(0)
         return StreamingResponse(buf, media_type="application/zip",
             headers={"Content-Disposition": "attachment; filename=backup-dosare.zip"})
+
+    @router.get("/api/dosar/{uid}/export.zip")
+    def export_dosar(uid: str):
+        """Pachet de inspectie pentru un SINGUR dosar (audit ANEVAR — Procedura §12): dosar.json +
+        versiunile .docx + raportul de verificare a integritatii (`verifica_integritate`). Spre deosebire
+        de /api/backup-dosare.zip (TOATA arhiva), la un control nu expui PII-ul celorlalti clienti."""
+        import io
+        import zipfile
+
+        from fastapi.responses import StreamingResponse
+        try:
+            dosar = fs.incarca(uid)
+        except KeyError:
+            raise HTTPException(404, "Dosar inexistent.") from None
+        folder = fs.folder_dosar(uid)          # cale validata ca UUID (anti path-traversal)
+        integ = fs.verifica_integritate(uid)
+        linii = [
+            "RAPORT DE VERIFICARE A INTEGRITATII (ADR-003 / tamper-evidence SEV 2025)",
+            f"Dosar: {dosar.get('nr_lucrare') or uid}  (uuid {uid})",
+            f"Creat: {dosar.get('creat_la', '?')}; Asumat: {dosar.get('asumat_la') or '—'}",
+            "",
+        ]
+        if not integ:
+            linii.append("Nicio versiune .docx asumata inca.")
+        for v in integ:
+            stare = "INTEGRU" if v["ok"] else ("LIPSA" if not v["exista"] else "ALTERAT")
+            linii.append(f"- {v['fisier']} | asumat {v['la']} | tip {v['tip']} | {stare}")
+        raport = "\r\n".join(linii) + "\r\n"
+        buf = io.BytesIO()
+        with zipfile.ZipFile(buf, "w", zipfile.ZIP_DEFLATED) as z:
+            for p in sorted(folder.glob("*")):
+                # .lock = stare tranzitorie de deschidere, nu document de arhiva -> exclus din pachet
+                if p.is_file() and p.name != ".lock":
+                    z.write(p, p.name)
+            z.writestr("verifica_integritate.txt", raport)
+        buf.seek(0)
+        nume = (dosar.get("nr_lucrare") or uid[:8]).replace("/", "-")
+        return StreamingResponse(buf, media_type="application/zip",
+            headers={"Content-Disposition": f"attachment; filename=dosar-{nume}.zip"})
 
     @router.get("/api/metodologie-config")
     def get_metodologie_config() -> dict:

@@ -26,9 +26,21 @@ class EvaluationMeta(BaseModel):
     sarcini: str | None = None                         # ipoteci/servituți din CF (SEV 230 §140; critic la garantare)
     scop: str = "Garantarea creditului ipotecar"
     tip_valoare: str = "Valoarea de piață (SEV 102)"
+    # Numarul de identificare a raportului = nr. de lucrare `AAAA/NNNN` (Procedura de arhivare §6/§11).
+    # Alocat la crearea dosarului si stocat in dosar.json; injectat in meta de endpointul de raport
+    # (autoritar server-side) si afisat pe coperta. Vezi registru/numar.py si registru/registru.py.
+    nr_lucrare: str | None = None
     data_evaluarii: str                 # ISO sau text, ex. "2026-01-16"
     data_raportului: str
+    data_predarii: str | None = None    # data predarii raportului catre client (registru §6)
     data_inspectiei: str | None = None
+    # Verificarea interna a calitatii (Procedura §6 + SEV 100, anterioara predarii; control intern AML
+    # la PJ — HCD 58 art. 5): cine a verificat raportul si cand. Intra in registru.
+    verificator_intern_nume: str | None = None
+    data_verificare_interna: str | None = None
+    # Onorariul lucrarii (registru §6). Marginit >=0; gol -> necompletat. Decimal pentru consecventa cu
+    # restul sumelor (acelasi tipar ca `curs_valutar`).
+    onorariu: Decimal | None = Field(default=None, ge=0)
     inspectie_amploare: str | None = None     # interior+exterior / doar exterior / limitată (GEV 630 §24)
     inspectie_insotitor: str | None = None    # cine a însoțit la inspecție (§44)
     inspectie_observatii: str | None = None   # neconcordanțe scriptic↔faptic / limitări (§111.a.3)

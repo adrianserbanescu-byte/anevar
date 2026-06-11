@@ -13,7 +13,16 @@ from evaluare.importers.url_parser import fetch_html
 from evaluare.logging_setup import get_logger
 from evaluare.report.pdf import docx_to_pdf
 from evaluare.web.deps import Deps
-from evaluare.web.routers import aml, curent, descoperire, evaluare, grile, pagini, piata
+from evaluare.web.routers import (
+    aml,
+    curent,
+    descoperire,
+    evaluare,
+    grile,
+    pagini,
+    piata,
+    registru,
+)
 
 log = get_logger(__name__)
 
@@ -121,7 +130,7 @@ def create_app(storage: Storage, client: NarrativeClient | None,
     deps = Deps(storage=storage, client=client, fetcher=fetcher, templates=templates,
                 pdf_converter=pdf_converter)
 
-    for modul in (evaluare, grile, descoperire, piata, aml, curent, pagini):
+    for modul in (evaluare, grile, descoperire, piata, aml, curent, registru, pagini):
         app.include_router(modul.build_router(deps))
 
     return app

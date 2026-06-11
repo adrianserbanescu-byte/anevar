@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head><meta charset="utf-8"><title>Registrul rapoartelor de evaluare</title>
+<style>{% include "_design.css" %}</style>
+<style>
+  table th{ background:var(--paper-sunk); color:var(--ink); border-bottom:2px solid var(--line-2); font-weight:600; }
+  .reg-wrap{ overflow-x:auto; }                 /* registrul are multe coloane -> scroll orizontal pe ecrane mici */
+  table.reg{ font-size:.86rem; }
+  table.reg td, table.reg th{ white-space:nowrap; }
+  table.reg td.wrap{ white-space:normal; min-width:14ch; }
+  .reg-actiuni{ display:flex; gap:8px; flex-wrap:wrap; margin:0 0 14px; }
+  .empty-state h2{ margin:0 0 6px; font-family:var(--serif); color:var(--ink); font-size:1.15rem; font-weight:600; }
+</style></head>
+<body>
+{% from "_icon.html" import icon %}
+<a class="skip-link" href="#continut">Sari la conținut</a>
+{% set pagina = "registru" %}{% include "_topbar.html" %}
+{% set kicker = "Procedura de arhivare ANEVAR §6" %}{% set titlu = "Registrul rapoartelor de evaluare" %}
+{% set subtitlu = "Evidența obligatorie a lucrărilor — număr de identificare, client, scop, onorariu, date, verificare internă, risc AML." %}
+{% include "_cartus.html" %}
+<main id="continut">
+  <div class="reg-actiuni">
+    <a class="btn" href="/api/registru.csv">{{ icon("download") }} Export CSV</a>
+    <a class="btn ghost" href="/api/registru.xlsx">{{ icon("download") }} Export XLSX</a>
+    <a class="btn ghost" href="/api/backup-dosare.zip">{{ icon("download") }} Backup arhivă (.zip)</a>
+  </div>
+  {% if not randuri %}
+    <div class="empty-state">
+      <span class="es-icon">{{ icon("folder") }}</span>
+      <h2>Niciun raport în registru încă</h2>
+      <p>Fiecare dosar nou primește automat un număr de lucrare (AAAA/NNNN) și apare aici, gata de export pentru auditul ANEVAR.</p>
+      <a class="btn" href="/incepe">Începe un dosar nou →</a>
+    </div>
+  {% else %}
+  <p class="hint">{{ randuri|length }} lucrare(i) înregistrată(e). Numărul de identificare apare și pe coperta raportului.</p>
+  <div class="reg-wrap">
+  <table class="reg">
+    <caption class="sr-only">Registrul rapoartelor de evaluare, cu cele ~13 câmpuri cerute de Procedura de arhivare ANEVAR §6 și un export de audit per dosar.</caption>
+    <thead><tr>
+      {% for cheie, eticheta in coloane %}<th scope="col">{{ eticheta }}</th>{% endfor %}
+      <th scope="col">Audit</th>
+    </tr></thead>
+    <tbody>
+    {% for r in randuri %}
+    <tr>
+      {% for cheie, eticheta in coloane %}
+        <td class="{{ 'wrap' if cheie in ('obiect', 'observatii', 'utilizatori') else '' }}">{{ r[cheie] or '—' }}</td>
+      {% endfor %}
+      <td>{% if r.uid %}<a class="btn ghost" href="/api/dosar/{{ r.uid }}/export.zip" title="Pachet de inspecție (dosar.json + .docx + integritate)">{{ icon("download") }} .zip</a>{% endif %}</td>
+    </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+  </div>
+  {% endif %}
+</main>
+{% include "_footer.html" %}
+</body></html>

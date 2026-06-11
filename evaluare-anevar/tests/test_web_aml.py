@@ -27,6 +27,7 @@ def test_aml_evalueaza_pf_standard(tmp_path):
     assert d["categorie"] == "standard"
     assert d["necesita_persoana_desemnata"] is False
     assert "decizie_desemnare" not in d["documente_necesare"]
+    assert "screening_avertisment" in d  # campul de transparenta privind starea listelor
 
 
 def test_aml_evalueaza_pep_sporit_si_rts(tmp_path):

@@ -32,4 +32,8 @@ def test_documente_aml_contin_disclaimer_juridic():
     assert "DRAFT GENERAT AUTOMAT" in text
     assert "art. 43/44/49" in text  # sancțiuni corecte: contravenții (43/44) + infracțiune SB (49)
     assert "art. 33" not in text  # regresie: art. 33 = solicitări info (15 zile), NU sancțiuni — vezi docs/conformitate/F-lege-norme-aml.md rând 33
-    assert "NU efectuează verificări automate" in text
+    # disclaimer screening: reflectă realitatea (aplicația CHIAR face screening orientativ pe liste
+    # locale), dar rezultatul = „posibilă potrivire" de verificat manual, NU o decizie automată
+    assert "screening orientativ" in text
+    assert "verificată manual" in text
+    assert "NU efectuează verificări automate" not in text  # regresie: textul vechi era fals

@@ -12,6 +12,7 @@ from fastapi import APIRouter, HTTPException, Request
 from fastapi import Path as PathParam
 from fastapi.responses import FileResponse, HTMLResponse
 
+from evaluare import calitate
 from evaluare.assembler import (
     EvaluationInput,
     construieste_context,
@@ -83,6 +84,21 @@ def build_router(d: Deps) -> APIRouter:
             "metoda": ctx.reconciled.metoda_selectata,
         }
 
+    @router.get("/api/evaluare/{eid}/calitate")
+    def calitate_evaluare(eid: EvaluareId) -> dict:
+        """Verificarea interna a calitatii (QC) live pe un dosar persistat (gap G-Q1). Mereu 200;
+        emiterea raportului e gardata separat pe blocajele de calitate in /raport.docx."""
+        from evaluare.engine import metodologie_store
+        try:
+            ctx = d.storage.load(eid)
+        except KeyError:
+            raise HTTPException(
+                status_code=404,
+                detail="Dosarul nu există sau a fost șters (cod 404). Verifică ID-ul în lista de dosare la /dosare.",
+            ) from None
+        cfg = metodologie_store.config_efectiv(d.storage.db_path.parent)
+        return calitate.rezumat(calitate.verifica_calitate(ctx, cfg))
+
     @router.get("/api/evaluare/{eid}/raport.docx")
     def descarca_raport(eid: EvaluareId, demo: int = 0) -> FileResponse:
         try:
@@ -104,6 +120,12 @@ def build_router(d: Deps) -> APIRouter:
         if blocante:
             raise HTTPException(422, "Raport blocat: corectati problemele blocante inainte de generare — "
                                 + "; ".join(i.mesaj for i in blocante))
+        # G-Q1: verificarea interna a calitatii INAINTE de emitere (paritate cu fluxul nou). Apara si
+        # dosarele LEGACY persistate fara verificare (ex. tip valoare nedeclarat). Vezi evaluare.calitate.
+        qc_blocaje = calitate.blocaje(calitate.verifica_calitate(ctx, cfg))
+        if qc_blocaje:
+            raise HTTPException(422, "Verificarea interna a calitatii nu a trecut (corectati inainte de "
+                                "emitere): " + "; ".join(f"{e.titlu} — {e.detaliu}" for e in qc_blocaje))
         # ?demo=1 -> raport cu note de provenienta (calculat/extras/AI/exemplu/placeholder)
         sufix = "_demo" if demo else ""
         out = Path(tempfile.gettempdir()) / f"raport_{eid}{sufix}.docx"
