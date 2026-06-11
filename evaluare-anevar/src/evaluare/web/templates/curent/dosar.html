@@ -10,8 +10,19 @@
      între toate rândurile; min 200px => dropdown-urile (Drept evaluat etc.) nu mai sunt înghesuite. */
   main .field-row{ display:grid; grid-template-columns:repeat(auto-fill, minmax(200px, 1fr));
     gap:0 18px; align-items:start; }
+  /* câmp „lat": ocupă 2 coloane. Clasa .field--wide e canonică; păstrăm și selectorul vechi
+     pe style="flex:2" pt. câmpurile din alte sub-taburi (Comparabile/Anexe) care încă îl folosesc. */
+  main .field-row .field--wide,
   main .field-row .field[style*="flex:2"]{ grid-column:span 2; }
   @media (max-width:560px){ main .field-row{ grid-template-columns:1fr; } }
+
+  /* Grupare logică (audit UX 2026-06-11, R1/R4): fieldset-urile din „Proprietate" devin
+     „secțiuni" cu titlu propriu + aer între ele. Aceeași cutie (legend) ca restul, ca să nu
+     amestecăm 2 stiluri de container. Rândul intern e plafonat la 3 coloane => label-urile
+     lungi nu se mai trunchiază pe rânduri de 4. */
+  main .grup{ margin-top:24px; }
+  main .grup > .field-row{ grid-template-columns:repeat(auto-fill, minmax(220px, 1fr)); }
+  main .grup .grup-nota{ margin:2px 0 0; }   /* notă atașată grupului, nu text orfan între rânduri */
 </style></head>
 <body>
 <a class="skip-link" href="#continut">Sari la conținut</a>
@@ -73,57 +84,80 @@
         <button type="button" class="ghost" id="btn-clone">{{ icon("add") }} Dosar nou (altă identitate)</button>
       </div>
       {% endif %}
-      <div class="field-row">
-        <div class="field"><label for="id_client">ID client</label><input id="id_client" autocomplete="off"></div>
-        <div class="field"><label for="nume_client">Nume client</label><input id="nume_client" autocomplete="name"></div>
-      </div>
-      <div class="field-row">
-        <div class="field"><label for="scop">Scop</label>
-          <select id="scop"><option value="garantare">Garantare credit</option>
-            <option value="raportare_financiara">Raportare financiară</option>
-            <option value="asigurare">Asigurare</option><option value="impozitare">Impozitare</option>
-            <option value="litigii">Litigiu</option></select></div>
-        <div class="field"><label for="tip_proprietate">Tip proprietate</label>
-          <select id="tip_proprietate"><option value="casa">Casă + teren</option>
-            <option value="apartament">Apartament</option><option value="industrial">Industrial</option>
-            <option value="agricol">Teren agricol</option><option value="special">Specială</option></select></div>
-      </div>
-      <div class="field-row">
-        <div class="field"><label for="judet">Județ</label><select id="judet"><option value="">— județ —</option></select></div>
-        <div class="field"><label for="localitate">Localitate</label>
-          <select id="localitate"><option value="">— localitate —</option></select>
-          <input id="localitate_alt" aria-label="Altă localitate" placeholder="altă localitate (scriu)" hidden></div>
-        <div class="field"><label for="adresa_strada">Stradă, nr.</label><input id="adresa_strada"></div>
-      </div>
-      <div class="field-row">
-        <div class="field"><label for="numar_cadastral">Nr. cadastral</label><input id="numar_cadastral"></div>
-        <div class="field"><label for="carte_funciara">Carte funciară</label><input id="carte_funciara"></div>
-        <div class="field"><label for="proprietar">Proprietar <span class="hint">(dacă diferă de client)</span></label><input id="proprietar"></div>
-        <div class="field"><label for="beneficiar">Beneficiar <span class="hint" id="beneficiar-hint">(banca finanțatoare)</span></label><input id="beneficiar"></div>
-      </div>
-      <div class="field-row">
-        <div class="field"><label for="tip_drept">Dreptul evaluat</label>
-          <select id="tip_drept"><option value="drept de proprietate deplină">Proprietate deplină</option>
-            <option value="drept de proprietate în cotă">Proprietate în cotă</option>
-            <option value="drept de superficie">Superficie</option><option value="drept de uzufruct">Uzufruct</option></select></div>
-        <div class="field"><label for="act_proprietate">Act de proprietate</label><input id="act_proprietate" placeholder="ex. contract vânzare nr. 123/2015"></div>
-        <div class="field" style="flex:2"><label for="sarcini">Sarcini / grevări (extras CF) <span class="hint">(ipoteci, servituți — relevant la garantare)</span></label><input id="sarcini" placeholder="ex. ipotecă în favoarea Băncii X / fără sarcini"></div>
-      </div>
-      <div class="field-row">
-        <div class="field"><label for="data_raportului">Data raport</label><input type="date" id="data_raportului"></div>
-        <div class="field"><label for="data_evaluarii">Data evaluării</label><input type="date" id="data_evaluarii"></div>
-        <div class="field"><label for="data_inspectiei">Data vizită</label><input type="date" id="data_inspectiei"></div>
-      </div>
-      <small class="hint">ℹ️ Data evaluării: dacă o lași goală, generarea AML folosește data de azi.</small>
-      <div class="field-row">
-        <div class="field"><label for="inspectie_amploare">Amploare inspecție</label>
-          <select id="inspectie_amploare"><option value="">—</option><option value="interior și exterior">Interior și exterior</option>
-            <option value="doar exterior">Doar exterior</option><option value="limitată">Limitată</option></select></div>
-        <div class="field"><label for="inspectie_insotitor">Însoțit la inspecție de</label><input id="inspectie_insotitor" placeholder="ex. proprietarul"></div>
-        <div class="field" style="flex:2"><label for="inspectie_observatii">Observații / neconcordanțe la inspecție</label><input id="inspectie_observatii" placeholder="ex. concordanță cu actele; fără neconcordanțe"></div>
-      </div>
+
+      {# Grupare logică (audit UX 2026-06-11, R1): „Identificare" spartă în 5 secțiuni cu titlu propriu,
+         fiecare un <fieldset class="grup"> (aceeași cutie ca restul, + aer între ele). Doar regrupare
+         în DOM — TOATE id-urile câmpurilor rămân neschimbate (snapshot()/restore le caută după id). #}
+      <fieldset class="grup"><legend>Client &amp; scop</legend>
+        <div class="field-row">
+          <div class="field"><label for="id_client">ID client</label><input id="id_client" autocomplete="off"></div>
+          <div class="field"><label for="nume_client">Nume client</label><input id="nume_client" autocomplete="name"></div>
+          <div class="field"><label for="scop">Scop</label>
+            <select id="scop"><option value="garantare">Garantare credit</option>
+              <option value="raportare_financiara">Raportare financiară</option>
+              <option value="asigurare">Asigurare</option><option value="impozitare">Impozitare</option>
+              <option value="litigii">Litigiu</option></select></div>
+          <div class="field"><label for="tip_proprietate">Tip proprietate</label>
+            <select id="tip_proprietate"><option value="casa">Casă + teren</option>
+              <option value="apartament">Apartament</option><option value="industrial">Industrial</option>
+              <option value="agricol">Teren agricol</option><option value="special">Specială</option></select></div>
+        </div>
+      </fieldset>
+
+      <fieldset class="grup"><legend>Localizare</legend>
+        <div class="field-row">
+          <div class="field"><label for="judet">Județ</label><select id="judet"><option value="">— județ —</option></select></div>
+          <div class="field"><label for="localitate">Localitate</label>
+            <select id="localitate"><option value="">— localitate —</option></select>
+            <input id="localitate_alt" aria-label="Altă localitate" placeholder="altă localitate (scriu)" hidden></div>
+          <div class="field"><label for="adresa_strada">Stradă, nr.</label><input id="adresa_strada"></div>
+        </div>
+      </fieldset>
+
+      <fieldset class="grup"><legend>Identificare cadastrală &amp; părți</legend>
+        {# audit P5/R4: rândul de 4 câmpuri spart în 2+2 ca să nu se trunchieze label-urile #}
+        <div class="field-row">
+          <div class="field"><label for="numar_cadastral">Nr. cadastral</label><input id="numar_cadastral"></div>
+          <div class="field"><label for="carte_funciara">Carte funciară</label><input id="carte_funciara"></div>
+        </div>
+        <div class="field-row">
+          <div class="field"><label for="proprietar">Proprietar <span class="hint">(dacă diferă de client)</span></label><input id="proprietar"></div>
+          <div class="field"><label for="beneficiar">Beneficiar <span class="hint" id="beneficiar-hint">(banca finanțatoare)</span></label><input id="beneficiar"></div>
+        </div>
+      </fieldset>
+
+      <fieldset class="grup"><legend>Regim juridic</legend>
+        <div class="field-row">
+          <div class="field"><label for="tip_drept">Dreptul evaluat</label>
+            <select id="tip_drept"><option value="drept de proprietate deplină">Proprietate deplină</option>
+              <option value="drept de proprietate în cotă">Proprietate în cotă</option>
+              <option value="drept de superficie">Superficie</option><option value="drept de uzufruct">Uzufruct</option></select></div>
+          <div class="field"><label for="act_proprietate">Act de proprietate</label><input id="act_proprietate" placeholder="ex. contract vânzare nr. 123/2015"></div>
+          <div class="field field--wide"><label for="sarcini">Sarcini / grevări (extras CF) <span class="hint">(ipoteci, servituți — relevant la garantare)</span></label><input id="sarcini" placeholder="ex. ipotecă în favoarea Băncii X / fără sarcini"></div>
+        </div>
+      </fieldset>
+
+      <fieldset class="grup"><legend>Date &amp; inspecție</legend>
+        <div class="field-row">
+          <div class="field"><label for="data_raportului">Data raport</label><input type="date" id="data_raportului"></div>
+          <div class="field"><label for="data_evaluarii">Data evaluării</label><input type="date" id="data_evaluarii"></div>
+          <div class="field"><label for="data_inspectiei">Data vizită</label><input type="date" id="data_inspectiei"></div>
+        </div>
+        {# audit P4/R4: nota „goală→azi" e acum atașată grupului, nu text orfan între rânduri. #}
+        <small class="hint grup-nota">Data evaluării: dacă o lași goală, generarea AML folosește data de azi.</small>
+        <div class="field-row">
+          <div class="field"><label for="inspectie_amploare">Amploare inspecție</label>
+            <select id="inspectie_amploare"><option value="">—</option><option value="interior și exterior">Interior și exterior</option>
+              <option value="doar exterior">Doar exterior</option><option value="limitată">Limitată</option></select></div>
+          <div class="field"><label for="inspectie_insotitor">Însoțit la inspecție de</label><input id="inspectie_insotitor" placeholder="ex. proprietarul"></div>
+          <div class="field field--wide"><label for="inspectie_observatii">Observații / neconcordanțe la inspecție</label><input id="inspectie_observatii" placeholder="ex. concordanță cu actele; fără neconcordanțe"></div>
+        </div>
+      </fieldset>
+
       <h3>Date fizice</h3>
-      <fieldset id="ap-fields" hidden><legend>Apartament</legend>
+      {# Sub-secțiuni cu titlu (audit R1): fieldset-urile type-specific primesc .grup (aer + ritm
+         uniform). Ramân hidden/afișate de _show() după tip — id-urile wrapper NU se schimbă. #}
+      <fieldset id="ap-fields" class="grup" hidden><legend>Apartament</legend>
         <div class="field-row">
           <div class="field"><label for="etaj">Etaj</label><input id="etaj" type="number"></div>
           <div class="field"><label for="nr_niveluri_bloc">Niveluri bloc</label><input id="nr_niveluri_bloc" type="number"></div>
@@ -131,10 +165,10 @@
           <div class="field"><label for="cota_teren_indiviza">Cotă teren indiviză (mp)</label><input id="cota_teren_indiviza"></div>
         </div>
       </fieldset>
-      <fieldset id="ind-fields" hidden><legend>Industrial / hală</legend>
+      <fieldset id="ind-fields" class="grup" hidden><legend>Industrial / hală</legend>
         <div class="field-row"><div class="field"><label for="inaltime_libera">Înălțime liberă (m)</label><input id="inaltime_libera"></div></div>
       </fieldset>
-      <fieldset id="agr-fields" hidden><legend>Teren agricol</legend>
+      <fieldset id="agr-fields" class="grup" hidden><legend>Teren agricol</legend>
         <div class="field-row">
           <div class="field"><label for="categorie_folosinta">Categorie folosință</label>
             <select id="categorie_folosinta"><option value="">—</option><option value="arabil">Arabil</option>
@@ -143,14 +177,27 @@
           <div class="field"><label for="clasa_calitate">Clasă calitate (1–5)</label><input id="clasa_calitate" type="number"></div>
         </div>
       </fieldset>
+
+      {# wrapper-ul #grup-teren e toggle-uit de _show() (apartamentul nu are teren) — id PĂSTRAT;
+         interiorul e regrupat într-un <fieldset class="grup"> cu titlu „Teren". #}
       <div id="grup-teren">
-        <div class="field-row">
-          <div class="field"><label for="suprafata_teren">Suprafață teren (mp)</label><input id="suprafata_teren" placeholder="ex. 500"></div>
-          <div class="field"><label for="categorie_teren">Regim</label>
-            <select id="categorie_teren"><option value="intravilan">Intravilan</option><option value="extravilan">Extravilan</option></select></div>
-          <div class="field"><label for="valoare_teren">Valoare teren (lei) <span class="hint">(opțional — manual; sau din grila de teren dacă ai comparabile)</span></label><input id="valoare_teren" placeholder="ex. 100000"></div>
-        </div>
-        <fieldset><legend>Utilități (GEV 630)</legend>
+        <fieldset class="grup"><legend>Teren</legend>
+          <div class="field-row">
+            <div class="field"><label for="suprafata_teren">Suprafață teren (mp)</label><input id="suprafata_teren" placeholder="ex. 500"></div>
+            <div class="field"><label for="categorie_teren">Regim</label>
+              <select id="categorie_teren"><option value="intravilan">Intravilan</option><option value="extravilan">Extravilan</option></select></div>
+            <div class="field"><label for="valoare_teren">Valoare teren (lei) <span class="hint">(opțional — manual; sau din grila de teren dacă ai comparabile)</span></label><input id="valoare_teren" placeholder="ex. 100000"></div>
+          </div>
+          {# audit P4/R4: „Cale de acces" + „Regim urbanistic" erau câmpuri libere (nu în .field-row) =>
+             marginile săreau. Acum în .field-row, aliniate cu restul. #}
+          <div class="field-row">
+            <div class="field"><label for="acces">Cale de acces <span class="hint">(afectează valoarea)</span></label>
+              <input id="acces" placeholder="ex. drum asfaltat / pietruit / servitute de trecere"></div>
+            <div class="field field--wide"><label for="restrictii_urbanism">Regim urbanistic / restricții <span class="hint">(opțional, din certificatul de urbanism: POT/CUT, servituți, interdicții)</span></label>
+              <input id="restrictii_urbanism" placeholder="ex. POT 40%, CUT 1.2, fără restricții"></div>
+          </div>
+        </fieldset>
+        <fieldset class="grup"><legend>Utilități (GEV 630)</legend>
           {# fiecare checkbox are id => snapshot()/restore le persistă (bug pierdere date: fără id erau sărite) #}
           <label class="chk"><input type="checkbox" id="util_apa" class="util" value="apă"> Apă</label>
           <label class="chk"><input type="checkbox" id="util_canalizare" class="util" value="canalizare"> Canalizare</label>
@@ -158,24 +205,25 @@
           <label class="chk"><input type="checkbox" id="util_curent" class="util" value="energie electrică"> Curent</label>
           <label class="chk"><input type="checkbox" id="util_internet" class="util" value="internet"> Internet</label>
         </fieldset>
-        <div class="field"><label for="acces">Cale de acces <span class="hint">(afectează valoarea)</span></label>
-          <input id="acces" placeholder="ex. drum asfaltat / pietruit / servitute de trecere"></div>
-        <label for="restrictii_urbanism">Regim urbanistic / restricții <span class="hint">(opțional, din certificatul de urbanism: POT/CUT, servituți, interdicții)</span></label>
-        <input id="restrictii_urbanism" placeholder="ex. POT 40%, CUT 1.2, fără restricții">
       </div>
+
+      {# wrapper-ul #grup-constructie e toggle-uit de _show() (terenul agricol n-are construcție) — id PĂSTRAT. #}
       <div id="grup-constructie">
-        <div class="field-row">
-          <div class="field"><label for="au">Arie utilă (mp)</label><input id="au" placeholder="ex. 100"></div>
-          <div class="field"><label for="acd">Arie construită desfășurată (mp)</label><input id="acd" placeholder="ex. 120"></div>
-          <div class="field"><label for="an_referinta">An referință</label><input id="an_referinta" type="number" placeholder="ex. 2025"></div>
-        </div>
-        <div id="grup-cost">
-          <label for="elemente">Elemente de cost (abordarea prin cost)</label>
-          <textarea id="elemente" rows="2" aria-describedby="h-elemente" placeholder="Structura;X;mp;120;2000;2015"></textarea>
-          <small id="h-elemente" class="hint">Necesare doar pentru abordarea prin cost (casă/industrial/special).</small>
-          <label for="depreciere">Depreciere fizică <span class="hint">(vârstă în ani → fracție 0–1)</span></label>
-          <textarea id="depreciere" rows="2" placeholder="5;0.05"></textarea>
-        </div>
+        <fieldset class="grup"><legend>Construcție</legend>
+          <div class="field-row">
+            <div class="field"><label for="au">Arie utilă (mp)</label><input id="au" placeholder="ex. 100"></div>
+            <div class="field"><label for="acd">Arie construită desfășurată (mp)</label><input id="acd" placeholder="ex. 120"></div>
+            <div class="field"><label for="an_referinta">An referință</label><input id="an_referinta" type="number" placeholder="ex. 2025"></div>
+          </div>
+        </fieldset>
+        {# #grup-cost e toggle-uit de _show() (doar abordarea prin cost) — id PĂSTRAT. #}
+        <fieldset id="grup-cost" class="grup"><legend>Date de cost (abordarea prin cost)</legend>
+          <div class="field"><label for="elemente">Elemente de cost</label>
+            <textarea id="elemente" rows="2" aria-describedby="h-elemente" placeholder="Structura;X;mp;120;2000;2015"></textarea>
+            <small id="h-elemente" class="hint">Necesare doar pentru abordarea prin cost (casă/industrial/special).</small></div>
+          <div class="field"><label for="depreciere">Depreciere fizică <span class="hint">(vârstă în ani → fracție 0–1)</span></label>
+            <textarea id="depreciere" rows="2" placeholder="5;0.05"></textarea></div>
+        </fieldset>
       </div>
     </section>
 
@@ -564,25 +612,15 @@ function sincronAsumare(){ if(genBtn0) genBtn0.disabled = !(asumareBox && asumar
 if(asumareBox){ asumareBox.addEventListener("change", sincronAsumare); sincronAsumare(); }
 
 // Ajutor contextual „?" (ce înseamnă câmpul) — re-adăugat lângă „!" (mapare vechi→nou).
+// audit UX 2026-06-11 (R2): popovere „?" reduse drastic. Am scos cheile tautologice (label clar
+// = fără popover): id_client, nume_client, scop, tip_proprietate, judet, localitate, adresa_strada,
+// numar_cadastral, carte_funciara, beneficiar (are hint dinamic pe scop), data_raportului,
+// data_inspectiei, suprafata_teren, valoare_teren (are hint inline), an_referinta.
+// Rămân DOAR câmpurile cu format/calcul/regulă ne-evidentă.
 var AJUTOR = {
-  id_client:"Identificatorul tău intern pentru client (free-text). Intră în numele dosarului.",
-  nume_client:"Numele clientului/proprietarului. Anonimizat la AI.",
-  scop:"Scopul evaluării — determină tipul valorii + ghidul GEV aplicat.",
-  tip_proprietate:"Tipul activului — determină câmpurile cerute + abordările aplicabile.",
-  judet:"Județul proprietății (zona de căutare a comparabilelor).",
-  localitate:"Localitatea proprietății.",
-  adresa_strada:"Strada și numărul; apar în raport.",
-  numar_cadastral:"Numărul cadastral din extrasul CF. Anonimizat la AI.",
-  carte_funciara:"Numărul cărții funciare. Anonimizat la AI.",
-  beneficiar:"Banca finanțatoare / utilizatorul desemnat al raportului.",
-  data_raportului:"Data întocmirii raportului.",
   data_evaluarii:"Data la care e valabilă valoarea (de regulă data inspecției). Dacă o lași goală, generarea AML folosește data de azi.",
-  data_inspectiei:"Data vizitei/inspecției proprietății.",
-  suprafata_teren:"Suprafața terenului (mp).",
-  valoare_teren:"Valoarea terenului (manual; sau calculată din grila de teren dacă ai comparabile).",
   au:"Aria utilă (mp). Verificare: Au ≤ Acd.",
   acd:"Aria construită desfășurată (mp). Numitorul pentru CIN.",
-  an_referinta:"Anul de referință al evaluării (vârsta = an referință − an PIF).",
   elemente:"Elementele de cost (catalog IROVAL): element;cod;um;cantitate;cost_unitar;an_pif, una pe linie.",
   depreciere:"Punctele de depreciere fizică: vârstă;fracție, una pe linie (interpolate).",
   comparabile:"Comparabile de proprietate: preț;suprafață, una pe linie.",
