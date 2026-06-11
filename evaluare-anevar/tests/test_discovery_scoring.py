@@ -78,3 +78,98 @@ def test_incredere_scazuta_cand_3_din_5_lipsesc():
     b = scor_candidat(subiect, candidat)
     assert b.incredere_scazuta is True
     assert b.atribute_cunoscute == 2
+
+
+# ── Ajustari metodologice ADITIVE (recenta / proximitate / segment) ──────────────────────────
+
+def _perfect():
+    """Subiect+candidat identici pe atribute → relevanta de atribute = 100 (baza de la care
+    se vad ajustarile in clar)."""
+    s = SubjectProfile(suprafata_construita=Decimal("120"), an=2013, stare=3, finisaj=4,
+                       incalzire="centrala_gaz", teren=Decimal("500"))
+    c = CandidateProfile(suprafata_construita=Decimal("120"), an=2013, stare=3, finisaj=4,
+                         incalzire="centrala_gaz", teren=Decimal("500"))
+    return s, c
+
+
+def test_fara_semnale_relevanta_identica_si_relevanta_atribute_egala():
+    """BACKWARD-COMPAT: fara recenta/proximitate/segment, scorul e identic cu cel istoric."""
+    s, c = _perfect()
+    b = scor_candidat(s, c)
+    assert b.relevanta == 100
+    assert b.relevanta_atribute == 100      # campul nou e populat, dar egal cu relevanta
+    assert b.ajustari == []                  # nicio ajustare aplicata
+
+
+def test_recenta_anunt_proaspat_nu_penalizeaza():
+    s, c = _perfect()
+    c.vechime_zile = 90                      # sub pragul de gratie (~6 luni)
+    b = scor_candidat(s, c)
+    assert b.relevanta == 100
+    assert b.ajustari == []
+
+
+def test_recenta_anunt_vechi_penalizeaza_relevanta():
+    s, c = _perfect()
+    c.vechime_zile = 540                     # la pragul maxim → penalizare maxima (30%)
+    b = scor_candidat(s, c)
+    assert b.relevanta_atribute == 100
+    assert b.relevanta == 70                 # 100 * (1 - 0.30)
+    assert any("recență" in a for a in b.ajustari)
+    assert "Ajustări metodologice" in b.explicatie
+
+
+def test_proximitate_aproape_nu_penalizeaza_departe_da():
+    s, c = _perfect()
+    c.distanta_km = 0.5                      # <1 km: aceeasi micro-piata
+    assert scor_candidat(s, c).relevanta == 100
+    c.distanta_km = 15.0                     # la pragul maxim → penalizare maxima (35%)
+    b = scor_candidat(s, c)
+    assert b.relevanta == 65                 # 100 * (1 - 0.35)
+    assert any("proximitate" in a for a in b.ajustari)
+
+
+def test_segment_exact_da_bonus_capat_la_100():
+    s, c = _perfect()
+    s.segment = "rezidential_premium"
+    c.segment = "Rezidential_Premium"        # match exact (case-insensitive)
+    b = scor_candidat(s, c)
+    # bonus +5% dar relevanta de atribute deja 100 → plafonata la 100
+    assert b.relevanta == 100
+    assert any("segment exact" in a for a in b.ajustari)
+
+
+def test_segment_exact_bonus_vizibil_sub_100():
+    s = SubjectProfile(an=2013, stare=3, segment="rezidential")
+    c = CandidateProfile(an=2008, stare=3, segment="rezidential")   # an difera putin
+    b = scor_candidat(s, c)
+    assert b.relevanta == min(100, round(b.relevanta_atribute * 1.05))
+    assert b.relevanta >= b.relevanta_atribute
+
+
+def test_segment_diferit_penalizeaza():
+    s, c = _perfect()
+    s.segment = "rezidential"
+    c.segment = "comercial"                  # alta sub-piata (capcana (d))
+    b = scor_candidat(s, c)
+    assert b.relevanta == 80                 # 100 * (1 - 0.20)
+    assert any("segment diferit" in a for a in b.ajustari)
+
+
+def test_ajustari_se_combina_multiplicativ():
+    s, c = _perfect()
+    c.vechime_zile = 540                     # factor 0.70 (recenta maxima)
+    c.distanta_km = 15.0                     # factor 0.65 (proximitate maxima)
+    b = scor_candidat(s, c)
+    # 100 * 0.70 * 0.65 = 45.5 → ~45 (rotunjire la limita de .5; ambii factori se aplica)
+    assert b.relevanta in (45, 46)
+    assert b.relevanta < 70                  # strict mai mic decat o singura ajustare de recenta
+    assert len(b.ajustari) == 2
+
+
+def test_ajustari_nu_scad_sub_zero():
+    s = SubjectProfile(an=1900, stare=1, finisaj=1, segment="rezidential")
+    c = CandidateProfile(an=2024, stare=5, finisaj=4, segment="comercial",
+                         vechime_zile=540, distanta_km=15.0)
+    b = scor_candidat(s, c)
+    assert 0 <= b.relevanta <= 100

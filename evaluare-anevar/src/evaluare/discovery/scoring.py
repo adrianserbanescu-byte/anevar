@@ -29,6 +29,60 @@ TREPTE_FINISAJ = 3           # 4 trepte -> diferenta maxima 3
 PRAG_ETAJ = 4                # diferenta de etaje peste care e maxima (apartament)
 PRAG_INCREDERE_LIPSA = 3     # >= 3 atribute lipsa -> incredere scazuta
 
+# ── Ajustari metodologice ADITIVE (recenta / proximitate / segment) ───────────────────────────
+# Operationalizeaza garda G7 (articole-piata-2 §1.3 + GAP-B din articole-piata-1): proximitatea si
+# RECENTA sunt principii de selectie a comparabilelor, distincte de similaritatea de atribute. Le
+# aplicam ca FACTOR multiplicativ pe relevanta (post-atribute), NU ca atribut in formula — ca sa nu
+# alteram contractul ScoreBreakdown.atribute si formula auditabila. Pragurile = EURISTICI (SEV 103
+# A10.7 prefera recenta/proximitate dar NU fixeaza cifre) → calibrabile de Adi (bucket B).
+RECENTA_GRATIE_ZILE = 180        # ~6 luni: pana aici, comparabila e „proaspata" (fara penalizare)
+RECENTA_PRAG_ZILE = 540          # ~18 luni: la/peste acest prag se aplica penalizarea maxima de recenta
+RECENTA_PENALIZARE_MAX = 0.30    # taie cel mult 30% din relevanta pt. anunturi foarte vechi
+PROXIMITATE_GRATIE_KM = 1.0      # <1 km: aceeasi micro-piata (fara penalizare) — articol „raza <1 km"
+PROXIMITATE_PRAG_KM = 15.0       # >=15 km: penalizare maxima (alta sub-piata, risc de eroare de segment)
+PROXIMITATE_PENALIZARE_MAX = 0.35  # taie cel mult 35% din relevanta pt. comparabile foarte departate
+SEGMENT_BONUS = 0.05             # +5% (cap la 100) cand candidatul e pe EXACT acelasi segment/sub-piata
+SEGMENT_PENALIZARE = 0.20        # −20% cand segmentul difera explicit (capcana (d): alta sub-piata)
+
+
+def _factor_recenta(vechime_zile: int | None) -> tuple[float, str | None]:
+    """Factor de recenta in [1−RECENTA_PENALIZARE_MAX, 1]. None/proaspata → 1.0 (niciun efect).
+
+    Liniar intre gratie (~6 luni) si prag (~18 luni); plafonat. Garanteaza backward-compat: lipsa
+    datei (None) NU schimba scorul.
+    """
+    if vechime_zile is None or vechime_zile <= RECENTA_GRATIE_ZILE:
+        return 1.0, None
+    span = max(RECENTA_PRAG_ZILE - RECENTA_GRATIE_ZILE, 1)
+    frac = min((vechime_zile - RECENTA_GRATIE_ZILE) / span, 1.0)
+    factor = 1.0 - RECENTA_PENALIZARE_MAX * frac
+    return factor, f"recență −{round((1 - factor) * 100)}%"
+
+
+def _factor_proximitate(distanta_km: float | None) -> tuple[float, str | None]:
+    """Factor de proximitate in [1−PROXIMITATE_PENALIZARE_MAX, 1]. None/aproape → 1.0 (niciun efect)."""
+    if distanta_km is None or distanta_km <= PROXIMITATE_GRATIE_KM:
+        return 1.0, None
+    span = max(PROXIMITATE_PRAG_KM - PROXIMITATE_GRATIE_KM, 0.001)
+    frac = min((distanta_km - PROXIMITATE_GRATIE_KM) / span, 1.0)
+    factor = 1.0 - PROXIMITATE_PENALIZARE_MAX * frac
+    return factor, f"proximitate −{round((1 - factor) * 100)}%"
+
+
+def _factor_segment(segment_subiect: str | None, segment_candidat: str | None) -> tuple[float, str | None]:
+    """Bonus/penalizare de segment. Match exact → +SEGMENT_BONUS; segment explicit diferit → −penalizare.
+
+    Daca oricare segment lipseste (None) → factor 1.0 (niciun efect = backward-compatible).
+    Normalizam case/spatii ca sa nu ratam un match doar din formatare.
+    """
+    if not segment_subiect or not segment_candidat:
+        return 1.0, None
+    s = segment_subiect.strip().lower()
+    c = segment_candidat.strip().lower()
+    if s == c:
+        return 1.0 + SEGMENT_BONUS, f"segment exact +{round(SEGMENT_BONUS * 100)}%"
+    return 1.0 - SEGMENT_PENALIZARE, f"segment diferit −{round(SEGMENT_PENALIZARE * 100)}%"
+
 
 def d_an(s: int, c: int) -> float:
     return min(abs(s - c) / PRAG_AN, 1.0)
@@ -171,7 +225,7 @@ def scor_candidat(subiect: SubjectProfile, candidat: CandidateProfile,
         dissim = 1.0
     else:
         dissim = suma_contributii / suma_ponderi
-    relevanta = round(100 * (1 - dissim))
+    relevanta_atribute = round(100 * (1 - dissim))
     cunoscute = len(ponderi) - necunoscute
     incredere_scazuta = necunoscute >= PRAG_INCREDERE_LIPSA
 
@@ -181,9 +235,25 @@ def scor_candidat(subiect: SubjectProfile, candidat: CandidateProfile,
                if getattr(subiect, n) is None or getattr(candidat, n) is None]
     nota_excluse = (f" {', '.join(excluse)}: nementionat (exclus din calcul)."
                     if excluse else "")
+
+    # ── Ajustari metodologice (recenta / proximitate / segment) ───────────────────────────────
+    # Aplicate MULTIPLICATIV pe relevanta de atribute. Fiecare factor e 1.0 cand semnalul lipseste
+    # (None) → daca NICIUN semnal nu e prezent, `relevanta == relevanta_atribute` (backward-compat).
+    f_rec, et_rec = _factor_recenta(getattr(candidat, "vechime_zile", None))
+    f_prox, et_prox = _factor_proximitate(getattr(candidat, "distanta_km", None))
+    f_seg, et_seg = _factor_segment(
+        getattr(subiect, "segment", None), getattr(candidat, "segment", None))
+    ajustari = [e for e in (et_rec, et_prox, et_seg) if e]
+    factor_total = f_rec * f_prox * f_seg
+    relevanta = relevanta_atribute if not ajustari else max(
+        0, min(100, round(relevanta_atribute * factor_total)))
+
+    nota_ajustari = (f" Ajustări metodologice: {', '.join(ajustari)} "
+                     f"(relevanță pe atribute {relevanta_atribute}% → {relevanta}%)."
+                     if ajustari else "")
     explicatie = (
-        f"Relevanță {relevanta}% = 100 × (1 − ({numarator}) / ({numitor})) "
-        f"= 100 × (1 − {dissim:.3f}).{nota_excluse}"
+        f"Relevanță {relevanta_atribute}% = 100 × (1 − ({numarator}) / ({numitor})) "
+        f"= 100 × (1 − {dissim:.3f}).{nota_excluse}{nota_ajustari}"
     )
 
     # Scor pe fiecare axă (0-100); None dacă axa n-are atribute cunoscute (ex. „locatie" pâna la geocoding).
@@ -194,6 +264,7 @@ def scor_candidat(subiect: SubjectProfile, candidat: CandidateProfile,
         relevanta=relevanta, dissimilaritate=round(dissim, 4), atribute=atribute,
         atribute_cunoscute=cunoscute, incredere_scazuta=incredere_scazuta,
         explicatie=explicatie, axe=axe,
+        relevanta_atribute=relevanta_atribute, ajustari=ajustari,
     )
 
 
