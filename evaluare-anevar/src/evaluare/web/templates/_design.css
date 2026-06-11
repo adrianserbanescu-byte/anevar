@@ -14,7 +14,7 @@
   --ink-faint:#5a6270;       /* contrast ≥4.5:1 pe hârtie (WCAG AA) */
   --line:#d7cdb4;            /* hairline cald (alamă pal) */
   --line-2:#bcae8c;
-  --field-border:#9c8a62;    /* bordură control: contrast ≥3:1 pe card (WCAG 1.4.11) */
+  --field-border:#8f7d54;    /* bordură control: contrast ≥3:1 pe paper(3.46)/card(3.78)/sunk(3.11) — WCAG 1.4.11. Era #9c8a62 (2.91 pe paper, pica) */
   --sienna:#9d4a25;          /* roșu-brun de topograf (acțiuni, accent) */
   --sienna-deep:#7c3a1b;
   --green:#2f6b4f;           /* verde cadastral (succes / relevanță) */
@@ -36,7 +36,8 @@
   --serif:"Constantia","Cambria","Sitka Text","Iowan Old Style","Palatino Linotype","Georgia",serif;
   --sans:"Segoe UI","Selawik",-apple-system,system-ui,"Liberation Sans",sans-serif;
   --mono:"Consolas","Cascadia Mono","SFMono-Regular","Liberation Mono",monospace;
-  --brass:#b08d57;           /* alamă (rigle, cartuș, sigiliu) */
+  --brass:#b08d57;           /* alamă DECORATIVĂ (rigle, cartuș, sigiliu) — NU pe borduri de control */
+  --brass-edge:#9a7640;      /* alamă pentru borduri de CONTROL interactiv: ≥3:1 pe paper(3.59)/card(3.93) — WCAG 1.4.11 */
   --brass-hi:#d9c08a;        /* reflexie de alamă */
   --tricolor-blue:#27408b;   /* bandă tricoloră (drapel) */
   --tricolor-yellow:#d7a92b;
@@ -169,7 +170,7 @@ select{ cursor:pointer; appearance:none; -webkit-appearance:none; padding-right:
   background-repeat:no-repeat; background-position:right 11px center; background-size:12px 8px; }
 
 input[type=file]{
-  background:transparent; border:1px dashed var(--line-2); padding:6px;
+  background:transparent; border:1px dashed var(--field-border); padding:6px;  /* bordură control ≥3:1 — era --line-2 (1.89, pica 1.4.11) */
   font-size:.85rem; color:var(--ink-2);
 }
 input[type=file]::file-selector-button{
@@ -205,7 +206,7 @@ legend{
 .hint-wrap{ position:relative; display:inline-block; font-weight:400; }
 .hint-toggle{
   display:inline-grid; place-items:center; width:24px; height:24px; padding:0; margin:0 0 0 6px;  /* WCAG 2.5.8: target >=24px (era 17px) */
-  border-radius:50%; border:1px solid var(--brass); background:var(--paper); color:var(--sienna);
+  border-radius:50%; border:1px solid var(--brass-edge); background:var(--paper); color:var(--sienna);  /* bordură ≥3:1 (control interactiv) */
   font:700 .8rem var(--sans); cursor:pointer; vertical-align:middle; line-height:1; box-shadow:none;
 }
 .hint-toggle:hover{ background:var(--sienna); color:#fff; transform:none; box-shadow:none; }
@@ -445,11 +446,13 @@ button.is-loading::after{
 .grid-edit tbody tr:last-child td{ border-bottom:0; }
 .grid-edit input{ width:100%; box-sizing:border-box; border:0; background:transparent; padding:6px 4px; font:inherit; color:var(--ink); }
 .grid-edit input:focus{ outline:2px solid var(--sienna); outline-offset:-2px; border-radius:3px; background:#fff; }
-.grid-edit td.ge-rm{ width:32px; text-align:center; padding:0; }
-.grid-edit td.ge-rm button{ border:0; background:none; color:var(--danger); font-size:14px; line-height:1; cursor:pointer; padding:4px 6px; border-radius:4px; opacity:.5; }
+.grid-edit td.ge-rm{ width:34px; text-align:center; padding:0; }
+.grid-edit td.ge-rm button{ border:0; background:none; color:var(--danger); font-size:14px; line-height:1; cursor:pointer;
+  min-width:24px; min-height:24px; padding:4px 6px; border-radius:4px; opacity:.5; }  /* WCAG 2.5.8: target >=24px (era ~22px) */
 .grid-edit td.ge-rm button:hover{ opacity:1; background:var(--danger-soft); }
-.grid-add{ display:inline-flex; align-items:center; gap:.35em; margin:3px 0 10px; padding:.35em .85em;
-  border:1px dashed var(--line-2); border-radius:var(--radius-pill); background:var(--paper-sunk);
+.grid-add{ display:inline-flex; align-items:center; gap:.35em; margin:3px 0 10px; padding:.4em .9em;
+  min-height:24px;  /* WCAG 2.5.8: target >=24px (era ~23px) */
+  border:1px dashed var(--field-border); border-radius:var(--radius-pill); background:var(--paper-sunk);
   color:var(--ink-2); font:600 .82rem/1 inherit; cursor:pointer; }
 .grid-add:hover{ border-color:var(--gold); color:var(--ink); background:var(--paper-card); }
 
