@@ -7,6 +7,7 @@ import requests
 from fastapi import APIRouter, HTTPException, Request
 from fastapi.responses import HTMLResponse
 
+from evaluare.cod_postal import cauta_cod_postal
 from evaluare.discovery import ponderi_store
 from evaluare.discovery.orchestrator import descopera
 from evaluare.discovery.ponderi import AXA_ATRIBUT, AXE, PONDERI_PER_CATEGORIE, fuzioneaza_override
@@ -194,6 +195,23 @@ def build_router(d: Deps) -> APIRouter:
                     422, f"Ponderile efective ale categoriei '{cat}' ar însuma 0 (invalid).")
         ponderi_store.salveaza_override(date_dir, curat)
         return {"ok": True, **_config_ponderi_payload()}
+
+    @router.get("/api/cod-postal")
+    def cod_postal_endpoint(judet: str = "", localitate: str = "",
+                            strada: str = "", nr: str = "") -> dict:
+        """Cod poștal din adresă, via Poșta Română (Lot A1). Robust: NICIODATĂ 500.
+
+        Sursa serviciului întoarce mereu `{cod, sursa, mesaj, ambiguu, candidati}`; la
+        eroare/timeout/offline/„not found" -> `cod=None` + mesaj (câmpul rămâne manual în UI).
+        Plasă de siguranță suplimentară aici: orice excepție neașteptată -> tot un payload `cod=None`,
+        ca pagina să nu se rupă (paritate cu gardele de robustețe ale celorlalte endpointuri)."""
+        try:
+            return cauta_cod_postal(judet, localitate, strada, nr)
+        except Exception as e:   # noqa: BLE001 — contract: lookup-ul de cod poștal nu rupe niciodată pagina
+            log.warning("cod-postal: eroare neașteptată (judet=%s, loc=%s): %s", judet, localitate, e)
+            return {"cod": None, "sursa": "posta-romana",
+                    "mesaj": "Eroare la căutarea codului poștal. Completează manual.",
+                    "ambiguu": False, "candidati": []}
 
     @router.get("/descoperire", response_class=HTMLResponse)
     def pagina_descoperire(request: Request) -> HTMLResponse:
