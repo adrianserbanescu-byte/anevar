@@ -6,6 +6,10 @@ from typing import Literal
 
 from pydantic import BaseModel, Field
 
+# Parametrii valorii prudente (CRR III art. 229/208). Import direct sigur — fara ciclu:
+# `valoare_prudenta` depinde doar de `evaluare.money` (stdlib), nu de `models.meta`.
+from evaluare.valoare_prudenta import ParametriValoarePrudenta
+
 
 class EvaluationMeta(BaseModel):
     """Identificarea lucrarii: client, scop, date, evaluator."""
@@ -68,3 +72,9 @@ class EvaluationMeta(BaseModel):
     # obligatoriu la garantare (GEV 520 §46, gap G7). Optional (default None). max_length:
     # clasa energetica / referinta scurta de document (F-15-3) — opreste balonarea docx.
     certificat_energetic: str | None = Field(default=None, max_length=120)
+    # Parametrii prudentiali pentru valoarea prudenta (valoarea de garantie) — CRR III art. 229/208
+    # (gap B2-RV1/RV2). OPTIONAL (default None) -> sectiunea de valoare prudenta din raport ramane
+    # OMISA (backward-compatible). Populat -> generator._adauga_valoare_prudenta activeaza sectiunea
+    # (DOAR pe profil de garantare GEV 520). Acceptat ca instanta validata `ParametriValoarePrudenta`
+    # sau ca dict (ex. din JSON-ul lucrarii) — generatorul citeste ambele forme prin getattr.
+    valoare_prudenta_params: ParametriValoarePrudenta | dict | None = None

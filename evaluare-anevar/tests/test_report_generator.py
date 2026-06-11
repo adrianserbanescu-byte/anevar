@@ -637,18 +637,11 @@ def test_sev450_raport_asigurare_contine_clauza_subasigurare(tmp_path):
 
 
 # ── Valoarea prudenta (CRR III) — sectiune OPTIONALA, doar la garantare cu parametri ───────────────
-class _MetaCuPrudenta(EvaluationMeta):
-    """Subtip de meta care poarta parametrii prudentiali (modelul de baza nu are camp dedicat).
-
-    Reproduce cazul real „exista parametri prudentiali pe meta": helperul `_parametri_valoare_prudenta`
-    ii citeste prin getattr (fail-soft), fara sa fie nevoie de un camp obligatoriu in EvaluationMeta."""
-    valoare_prudenta_params: object | None = None
-
-
 def _ctx_cu_params_prudenta(params):
-    """_ctx() (profil GEV_520, garantare) cu parametri prudentiali atasati pe meta (instanta sau dict)."""
+    """_ctx() (profil GEV_520, garantare) cu parametri prudentiali pe campul real `valoare_prudenta_params`
+    din EvaluationMeta (instanta sau dict — generatorul citeste ambele forme)."""
     ctx = _ctx()
-    ctx.meta = _MetaCuPrudenta(**ctx.meta.model_dump(), valoare_prudenta_params=params)
+    ctx.meta.valoare_prudenta_params = params
     return ctx
 
 
