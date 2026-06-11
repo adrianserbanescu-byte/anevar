@@ -1,9 +1,16 @@
-# Instrucțiuni bootstrap Mac — pentru sesiunea Claude Code autonomă
+# Instrucțiuni bootstrap Mac — pentru sesiunea Claude Code autonomă (NU pentru om)
 
-> **Cum se folosește (Adi):** pe Mac, deschide Claude Code/Desktop, pornește o sesiune cu
-> bypass permissions și dă-i ca prim mesaj conținutul acestui fișier (sau: „citește și
-> execută ~/claude/anevar/instructiuni-bootstrap-mac.md" dacă repo-ul e deja clonat).
-> Sesiunea execută Partea A integral singură; Partea B doar când îi dai arhiva de transfer.
+> **Cum se folosește (Adi) — singurii 2 pași umani:**
+> 1. Instalează Claude Code pe Mac și loghează-te: `curl -fsSL https://claude.ai/install.sh | bash`
+>    apoi `claude` (se deschide browserul → login cu contul Max). Atât.
+> 2. Pornește o sesiune cu bypass permissions (`claude --dangerously-skip-permissions`, sau
+>    echivalentul din Claude Desktop) și dă-i ca PRIM MESAJ întreg conținutul acestui fișier
+>    (copy-paste; repo-ul e privat, sesiunea nu-l poate citi de pe GitHub înainte de `gh auth`).
+>
+> De aici încolo totul e treaba sesiunii: execută Partea A integral singură (inclusiv restul
+> instalărilor — brew, unelte, aplicații), te strigă doar la pașii marcați 🙋; Partea B doar
+> când îi dai arhiva de transfer. Ghidul explicativ pentru tine (ce e brew/gh/venv):
+> `instructiuni-instalare-aplicatii-mac.md`.
 
 ---
 
