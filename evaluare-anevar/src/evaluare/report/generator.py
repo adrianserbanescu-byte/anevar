@@ -198,6 +198,27 @@ def _tip_valoare_txt(t: str) -> str:
     return f"{raw} (conform SEV 102 — Tipuri ale valorii)"
 
 
+# Eticheta SCURTA a tipului valorii, pentru fraze in care apare inline (ex. scrisoarea de transmitere:
+# „...valoarea de piata estimata a proprietatii este de..."). Cheia = slug-ul canonic din profil
+# (`ProfilEvaluare.tip_valoare`, sursa de adevar), NU textul liber din meta. Slug necunoscut / absent
+# -> „valoarea de piata" (comportamentul istoric, backward-compatible cu profilul de garantare).
+_TIP_VALOARE_ETICHETA = {
+    "piata": "valoarea de piata",
+    "investitie": "valoarea de investitie",
+    "justa": "valoarea justa",
+    "lichidare": "valoarea de lichidare",
+    "asigurare": "valoarea de asigurare (cost de reconstructie)",
+    "chirie": "valoarea chiriei de piata",
+}
+
+
+def _tip_valoare_eticheta(ctx: ReportContext) -> str:
+    """Eticheta scurta a tipului valorii pentru fraze inline, derivata din profil (sursa de adevar).
+    Necunoscut/absent -> „valoarea de piata" (comportamentul istoric)."""
+    slug = (getattr(ctx.profil, "tip_valoare", "") or "").strip().lower()
+    return _TIP_VALOARE_ETICHETA.get(slug, "valoarea de piata")
+
+
 def _b2(v) -> str:
     """Rotunjeste la 2 zecimale (preturi unitare, EUR/mp)."""
     try:
@@ -406,10 +427,14 @@ def _scrisoare_transmitere(doc: DocxDocument, ctx: ReportContext, adnotari: bool
     _nota(doc, "scrisoare", adnotari)
     catre = meta.client_nume + (f" / {meta.beneficiar}" if meta.beneficiar else "")
     doc.add_paragraph(f"Catre: {catre}")
+    # CONF-01: tipul valorii e derivat din profil (sursa de adevar), nu hardcodat „valoarea de piata".
+    # Pe profil de garantare/piata ramane „valoarea de piata" (backward-compatible); pe asigurare/justa/
+    # lichidare etc. scrisoarea afiseaza tipul corect, evitand contradictia cu restul raportului.
+    eticheta_valoare = _tip_valoare_eticheta(ctx)
     doc.add_paragraph(
         f"Va transmitem raportul de evaluare a proprietatii imobiliare situate in "
         f"{meta.adresa}, intocmit in scopul: {meta.scop}. In urma analizelor efectuate, "
-        f"valoarea de piata estimata a proprietatii este de {_fmt(ctx.reconciled.valoare_finala)} "
+        f"{eticheta_valoare} estimata a proprietatii este de {_fmt(ctx.reconciled.valoare_finala)} "
         f"{meta.moneda}, la data evaluarii ({meta.data_evaluarii}). {_fara_tva(ctx)}"
     )
     conformitate = (
