@@ -47,6 +47,10 @@
       <button type="button" role="tab" id="s-anexe" aria-controls="sp-anexe" aria-selected="false" tabindex="-1">Anexe</button>
       <button type="button" role="tab" id="s-genereaza" aria-controls="sp-genereaza" aria-selected="false" tabindex="-1">Generează</button>
     </div>
+    <!-- Gating «Descoperă/Comparabile»: atenționare când județul+localitatea nu sunt completate pe Proprietate. -->
+    <div class="avert-warn" id="gate-descopera" role="alert" hidden>
+      {{ icon("lock") }} Completează județul și localitatea pe tabul Proprietate mai întâi.
+    </div>
 
     <section role="tabpanel" id="sp-proprietate" aria-labelledby="s-proprietate" tabindex="0">
       <details class="grila-det">
@@ -177,14 +181,17 @@
 
     <section role="tabpanel" id="sp-comparabile" aria-labelledby="s-comparabile" tabindex="0" hidden>
       <h3>{{ icon("search") }} Descoperă comparabile</h3>
+      <!-- Județ + localitate propagate din Proprietate; afișate fix (read-only), nu se schimbă de aici. -->
+      <p class="hint" id="d-zona-fix" hidden>{{ icon("lock") }} Zona căutării (din tabul Proprietate):
+        <b id="d-zona-judet"></b> · <b id="d-zona-localitate"></b></p>
       <div class="field-row">
         <div class="field"><label for="d-tip">Caut</label>
           <select id="d-tip"><option value="casa">Casă + teren</option><option value="apartament">Apartament</option><option value="teren">Teren</option></select></div>
         <div class="field"><label for="d-portal">Portal</label>
           <select id="d-portal"><option value="toate" selected>Toate portalurile</option>
             <option value="imobiliare">imobiliare.ro</option><option value="storia">storia.ro</option></select></div>
-        <div class="field"><label for="d-judet">Județ</label><select id="d-judet"><option value="">— județ —</option></select></div>
-        <div class="field"><label for="d-localitate">Localitate</label><select id="d-localitate"><option value="">— localitate —</option></select></div>
+        <div class="field" id="d-judet-field"><label for="d-judet">Județ</label><select id="d-judet"><option value="">— județ —</option></select></div>
+        <div class="field" id="d-localitate-field"><label for="d-localitate">Localitate</label><select id="d-localitate"><option value="">— localitate —</option></select></div>
         <div class="field"><label for="d-vecine">Localități vecine <span class="hint">(opțional, separate prin virgulă)</span></label><input id="d-vecine" placeholder="Băicoi, Blejoi"></div>
       </div>
       <div class="field-row">
@@ -640,6 +647,75 @@ function wireTabs(sel){
 }
 wireTabs(".tabs"); wireTabs(".subtabs");
 function subtab(id){ var b=document.getElementById(id); if(b) b.click(); }
+
+// ── GATING «Descoperă» (sub-tabul Comparabile) ───────────────────────────────
+// Cerința Adi: sub-tabul „Descoperă comparabile" (= Comparabile) NU e accesibil până nu sunt
+// completate AMBELE: județ + localitate pe Proprietate. Odată completate, ele se propagă pe
+// Descoperă (afișate fix) și NU mai sunt editabile NICĂIERI pe dosar (read-only).
+(function(){
+  var btnComp = $("s-comparabile"), gate = $("gate-descopera");
+  if(!btnComp) return;
+  function _val(id){ var e=$(id); return e ? (e.value||"").trim() : ""; }
+  // Gata = ambele câmpuri de identitate-zonă (județ + localitate) completate pe Proprietate.
+  function propGata(){ return !!(_val("judet") && _val("localitate")); }
+
+  // Propagă județ+localitate → Descoperă și îngheață câmpurile (read-only) peste tot pe dosar.
+  var inghetat = false;
+  function inghetZona(){
+    if(inghetat) return; inghetat = true;
+    // 1) propagă valorile (slug) către selecturile de descoperire (payload-ul căutării le folosește)
+    ["d-judet","d-localitate"].forEach(function(d, i){
+      var src = i===0 ? $("judet") : $("localitate"), dst = $(d);
+      if(src && dst && !dst.value) dst.value = src.value;
+    });
+    // 2) afișaj fix pe Descoperă (numele lizibil, nu slug-ul) + ascunde selecturile redundante
+    if($("d-zona-judet")) $("d-zona-judet").textContent = numeLoc("judet") || "—";
+    if($("d-zona-localitate")) $("d-zona-localitate").textContent = numeLoc("localitate") || "—";
+    if($("d-zona-fix")) $("d-zona-fix").hidden = false;
+    if($("d-judet-field")) $("d-judet-field").hidden = true;
+    if($("d-localitate-field")) $("d-localitate-field").hidden = true;
+    // 3) read-only NICĂIERI editabile: pe Proprietate ȘI pe Descoperă (disabled + aria + titlu)
+    ["judet","localitate","d-judet","d-localitate"].forEach(function(id){
+      var e=$(id); if(!e) return;
+      e.disabled = true; e.setAttribute("aria-disabled","true");
+      e.title = "Județul și localitatea sunt fixate odată ce ai folosit «Descoperă» — pentru altă zonă, creează un dosar nou.";
+    });
+  }
+
+  // Permite intrarea în Comparabile? (true) sau afișează atenționarea + blochează (false).
+  function poateIntra(){
+    if(propGata()){ if(gate) gate.hidden = true; return true; }
+    if(gate) gate.hidden = false;                 // atenționare clară, vizibilă lângă sub-tab-uri
+    var j=$("judet"); if(j && !j.disabled){ try{ j.focus(); }catch(e){} }   // ghidează userul înapoi
+    return false;
+  }
+
+  // Interceptează activarea sub-tabului Comparabile ÎNAINTE de wireTabs (faza de capture).
+  function paznic(e){
+    if(propGata()){ if(gate) gate.hidden = true; inghetZona(); return; }   // OK → propagă+îngheață
+    if(e){ e.preventDefault(); e.stopImmediatePropagation(); }            // blochează switch-ul de tab
+    poateIntra();
+  }
+  btnComp.addEventListener("click", paznic, true);
+  btnComp.addEventListener("keydown", function(e){
+    // activare prin tastatură (Enter/Space) — săgețile de navigare ARIA sunt gestionate de wireTabs
+    if((e.key==="Enter"||e.key===" "||e.key==="Spacebar") && !propGata()){
+      e.preventDefault(); e.stopImmediatePropagation(); poateIntra();
+    }
+  }, true);
+
+  // Dacă județul/localitatea se schimbă pe Proprietate, ascunde atenționarea când devin complete.
+  ["judet","localitate"].forEach(function(id){ var e=$(id);
+    if(e) e.addEventListener("change", function(){ if(propGata() && gate) gate.hidden = true; }); });
+
+  // La încărcare, dacă zona e deja completă (dosar reluat care a folosit Descoperă), îngheț-o.
+  // Heuristic: dacă a fost deja folosită descoperirea (sunt comparabile importate) SAU dosarul e
+  // blocat (identitate asumată), fixăm zona din start. Altfel rămâne editabilă până la primul click.
+  if(propGata() && (BLOCAT || ($("comparabile") && ($("comparabile").value||"").trim()))) inghetZona();
+
+  // Expune pentru bara de jos (nav „Înainte") + alte apeluri programatice.
+  window._gateDescopera = { propGata: propGata, poateIntra: poateIntra, inghet: inghetZona };
+})();
 
 // arată câmpurile de venit/DCF doar la metoda corespunzătoare
 function sincronMetoda(){ var m=$("metoda").value;

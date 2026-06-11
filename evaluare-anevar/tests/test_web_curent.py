@@ -528,6 +528,21 @@ def test_cnp_redaction_prefix_9():
     assert rx.search("1800101123456")    # cetățean (prefix 1) — în continuare prins
 
 
+def test_dosar_gating_descopera_markup_prezent(client):
+    # Gating «Descoperă» (sub-tabul Comparabile): pagina dosarului include atenționarea de gating
+    # + afișajul fix al zonei + paznicul JS care propagă județ+localitate și le îngheață read-only.
+    _cont(client)
+    uid = client.post("/api/dosar", json={"wizard": {"nume_client": "X"}}).json()["uuid"]
+    html = client.get(f"/dosar/{uid}").text
+    # atenționarea cu mesajul exact cerut de Adi
+    assert 'id="gate-descopera"' in html
+    assert "Completează județul și localitatea pe tabul Proprietate mai întâi." in html
+    # afișajul fix (read-only) al zonei propagate pe Descoperă
+    assert 'id="d-zona-fix"' in html and 'id="d-zona-judet"' in html and 'id="d-zona-localitate"' in html
+    # logica de gating: paznicul + funcția care verifică dacă ambele câmpuri sunt completate
+    assert "propGata" in html and "inghetZona" in html
+
+
 def test_dosar_inexistent_404(client):
     assert client.get("/dosar/nope").status_code == 404
     assert client.get("/api/dosar/nope").status_code == 404
