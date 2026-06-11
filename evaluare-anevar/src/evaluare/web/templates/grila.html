@@ -47,7 +47,7 @@ Pentru ajustarea <b>„Condițiile pieței (timp)"</b> poți folosi <b>Indicele 
 <h2>Grilă teren — valoare = preț/mp corectat × suprafață subiect</h2>
 <p><label for="supr-teren">Suprafață teren subiect (mp):</label> <input id="supr-teren" class="base" value="1000"></p>
 <div id="tabel-teren"></div>
-<button onclick="calcul('teren')">Calculează grila teren</button>
+<button type="button" onclick="calcul('teren')">Calculează grila teren</button>
 <div id="rez-teren" role="status" aria-live="polite"></div>
 
 <div class="callout">
@@ -74,7 +74,7 @@ Pentru ajustarea <b>„Condițiile pieței (timp)"</b> poți folosi <b>Indicele 
  (rămâne pentru referință).</p>
 <p><label for="supr-casa">Suprafață subiect (mp):</label> <input id="supr-casa" class="base" value="120"></p>
 <div id="tabel-casa"></div>
-<button onclick="calcul('casa')">Calculează grila casă</button>
+<button type="button" onclick="calcul('casa')">Calculează grila casă</button>
 <div id="rez-casa" role="status" aria-live="polite"></div>
 
 </section>
@@ -87,7 +87,7 @@ Pentru ajustarea <b>„Condițiile pieței (timp)"</b> poți folosi <b>Indicele 
  12 = <b>venitul brut potențial anual</b>, care intră în capitalizarea directă (abordarea prin venit).</p>
 <p><label for="supr-chirii">Suprafață închiriabilă subiect (mp):</label> <input id="supr-chirii" class="base" value="100"></p>
 <div id="tabel-chirii"></div>
-<button onclick="calcul('chirii')">Calculează grila chirii</button>
+<button type="button" onclick="calcul('chirii')">Calculează grila chirii</button>
 <div id="rez-chirii" role="status" aria-live="polite"></div>
 </section>
 
@@ -250,7 +250,7 @@ async function incarcaIndice(){
     if(!r.ok){ $("indice-status").textContent=" indisponibil."; return; }
     const d=await r.json();
     if(!d.orase.length){ $("indice-status").textContent=" fără date."; return; }
-    let h='<table><tr><th>Perioadă</th>'+d.orase.map(o=>`<th>${o}</th>`).join('')+'</tr>';
+    let h='<table><caption class="sr-only">Indicele imobiliar ANEVAR: variația procentuală a valorii de piață pe mp, pe trimestre și orașe.</caption><tr><th scope="col">Perioadă</th>'+d.orase.map(o=>`<th scope="col">${escapeHtml(String(o))}</th>`).join('')+'</tr>';
     d.perioade.forEach(p=>{ h+='<tr><td>'+p.perioada+'</td>'+
       d.orase.map(o=>{const v=p.valori[o]; return `<td>${v>0?'+':''}${v}%</td>`}).join('')+'</tr>'; });
     $("indice-rez").innerHTML=h+'</table><p class="hint">Variația % a valorii de piață/mp pe trimestre (ANEVAR). '
@@ -292,9 +292,10 @@ async function descoperaTeren(){
     const d=await r.json();
     $("t-status").textContent=d.candidati.length+" terenuri"; gata();
     if(!d.candidati.length){ emptyState($("t-rez"),'🗺','Niciun teren găsit','Pentru zona aleasă nu există anunțuri. Încearcă doar județul, fără localitate.'); return; }
-    let h='<table><tr><th>Rel.</th><th>Preț</th><th>Supr.</th><th>€/mp</th><th>Anunț</th><th></th></tr>';
+    let h='<table><caption class="sr-only">Terenuri găsite în zonă: relevanță, preț, suprafață, preț pe mp, link la anunț și acțiune de adăugare în grilă.</caption>'
+      +'<tr><th scope="col">Rel.</th><th scope="col">Preț</th><th scope="col">Supr.</th><th scope="col">€/mp</th><th scope="col">Anunț</th><th scope="col"><span class="sr-only">Acțiune</span></th></tr>';
     d.candidati.forEach(c=>{
-      const add = c.pret_mp ? `<button class="t-add" data-mp="${c.pret_mp}">➕ grilă</button>` : '';
+      const add = c.pret_mp ? `<button type="button" class="t-add" data-mp="${escapeHtml(String(c.pret_mp))}">➕ grilă</button>` : '';
       h+=`<tr><td>${c.relevanta}%</td><td>${c.pret?(+c.pret).toLocaleString('ro-RO')+' €':'?'}</td>`
         +`<td>${c.suprafata||'?'} mp</td><td><b>${c.pret_mp||'?'}</b></td>`
         +`<td><a href="${urlSafe(c.url)}" target="_blank" rel="noopener">Vezi anunțul <span aria-hidden="true">↗</span></a>${c.nota?' <span class="err">'+escapeHtml(c.nota)+'</span>':''}</td>`
@@ -339,8 +340,9 @@ function afiseaza(grid, d, div){
    ? d.indici_mediati : [d.index_selectat];
  const inMed = new Set(mediati);
  const N = mediati.length;
- let t = '<div class="rez"><table><tr><th>Comparabil</th><th>'+unitLbl
-       + '</th><th>Ajustare brută</th><th>Selecție</th></tr>';
+ let t = '<div class="rez"><table><caption class="sr-only">Rezultatul grilei de ajustări: pentru fiecare comparabil, '+unitLbl.toLowerCase()+', ajustarea brută și selecția.</caption>'
+       + '<tr><th scope="col">Comparabil</th><th scope="col">'+unitLbl
+       + '</th><th scope="col">Ajustare brută</th><th scope="col">Selecție</th></tr>';
  preturi.forEach((p,i) => {
    const sel = i===d.index_selectat;
    const med = inMed.has(i);

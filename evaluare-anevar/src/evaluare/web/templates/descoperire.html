@@ -536,8 +536,8 @@ document.getElementById('f').addEventListener('submit', async (e)=>{
     + (truncat ? ` — mărește «Câte comparabile» pentru și mai multe.` : ``) + `</p>`
     + '<div id="lista-rezultate" role="list" aria-label="Comparabile găsite"></div>'
     + '<div id="cr-paginare" class="cr-paginare"></div>'
-    + '<div class="rez-actiuni"><button id="copiaza">Copiază comparabilele bifate (pret;suprafata)</button> '
-    + '<button id="laGrila"><span aria-hidden="true">➜</span> Trimite bifatele la grila casă</button></div><pre id="out"></pre>';
+    + '<div class="rez-actiuni"><button type="button" id="copiaza">Copiază comparabilele bifate (pret;suprafata)</button> '
+    + '<button type="button" id="laGrila"><span aria-hidden="true">➜</span> Trimite bifatele la grila casă</button></div><pre id="out" role="status" aria-live="polite"></pre>';
   const contLista = document.getElementById('lista-rezultate');
   const contPag = document.getElementById('cr-paginare');
   function maiMulte(){

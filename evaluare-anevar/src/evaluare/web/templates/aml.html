@@ -24,6 +24,7 @@
 <a class="skip-link" href="#continut">Sari la conținut</a>
 {% set pagina = "aml" %}{% include "_topbar.html" %}
 {% set kicker = "Conformitate" %}{% set titlu = "Conformitate AML — Legea 129/2019" %}{% set subtitlu = "KYC · evaluare de risc · documente de raportare." %}{% include "_cartus.html" %}
+<main id="continut">
 <p class="hint">Asistă obligațiile evaluatorului ca <b>entitate raportoare</b>: cunoașterea clientelei (KYC),
 beneficiar real, evaluarea de risc, indicatorii de suspiciune și pragul de numerar (10.000 €).
 Datele rămân <b>local</b>; rapoartele suspecte se păstrează separat (interdicție de divulgare, art. 38).
@@ -37,7 +38,6 @@ Modulul propune — <b>evaluatorul decide și transmite</b> (rapoarte.onpcsb.ro)
   înainte de transmitere (Legea 129/2019, art. 43/44/49).
 </div>
 
-<main id="continut">
 <fieldset>
  <legend>Entitate evaluator</legend>
  <label for="tip_entitate">Tip</label>
@@ -138,7 +138,7 @@ async function evalueaza(){
   h+=`<p>Documente de generat <span class="hint">(.docx — verifică-le și salvează-le ca PDF local)</span>:</p><ul>`+d.documente_necesare.map(doc=>{
      const map={norme_interne:'/api/aml/norme-interne.docx',evaluare_risc:'/api/aml/evaluare-risc.docx',
        fisa_kyc:'/api/aml/fisa-kyc.docx',decizie_desemnare:'/api/aml/decizie.docx',rts:'/api/aml/rts.docx'};
-     return `<li><button onclick='descarca("${map[doc]}")'>${doc}</button></li>`;}).join('')+`</ul><p id="aml-doc-status" class="hint" role="status" aria-live="polite"></p></div>`;
+     return `<li><button type="button" onclick='descarca("${map[doc]}")'>${doc}</button></li>`;}).join('')+`</ul><p id="aml-doc-status" class="hint" role="status" aria-live="polite"></p></div>`;
   document.getElementById('rez').innerHTML=h;
   window._amlBody=body;
   }finally{ btn.classList.remove('is-loading'); btn.disabled=false; }
