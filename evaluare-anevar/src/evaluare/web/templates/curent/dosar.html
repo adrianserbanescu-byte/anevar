@@ -287,7 +287,7 @@
         <div class="field" style="max-width:220px"><label for="g-supr">Suprafață subiect (mp)</label><input id="g-supr" placeholder="ex. 120"></div>
         <div id="grila-casa-tabel" class="grila-scroll"></div>
         <div class="btn-bar">
-          <button type="button" id="g-calc">Calculează grila</button>
+          <button type="button" id="g-calc">Calculează grila casă</button>
           <button type="button" class="ghost" id="g-import">{{ icon("upload") }} Trimite prețurile în Comparabile</button>
         </div>
         <div id="g-rezultat" role="status" aria-live="polite"></div>
@@ -1143,7 +1143,7 @@ function asambleaza(){
   var i, h="<table class='grid-aj'><tr><th scope='col'>Element</th>";
   for(i=0;i<NC;i++) h+="<th scope='col'>Comp "+(i+1)+"</th>"; h+="</tr>";
   h+="<tr><th scope='row'>Preț ofertă (EUR)</th>"; for(i=0;i<NC;i++) h+="<td><input class='g-pret' data-i='"+i+"' aria-label='Preț comp "+(i+1)+"'></td>"; h+="</tr>";
-  h+="<tr><th scope='row'>Suprafață (mp)</th>"; for(i=0;i<NC;i++) h+="<td><input class='g-sup' data-i='"+i+"' aria-label='Suprafață comp "+(i+1)+"'></td>"; h+="</tr>";
+  h+="<tr><th scope='row'>Suprafață comp (mp)</th>"; for(i=0;i<NC;i++) h+="<td><input class='g-sup' data-i='"+i+"' aria-label='Suprafață comp "+(i+1)+"'></td>"; h+="</tr>";
   ELEM_CASA.forEach(function(e,ei){ h+="<tr><th scope='row'>"+e.nume+" <small class='hint'>("+(e.tip==='valorica'?'lei':'%')+", "+e.etapa+")</small></th>";
     for(i=0;i<NC;i++) h+="<td><input class='g-aj' data-e='"+ei+"' data-i='"+i+"' aria-label='"+e.nume+" comp "+(i+1)+"'></td>"; h+="</tr>"; });
   wrap.innerHTML=h+"</table>";
@@ -1199,7 +1199,7 @@ function asambleaza(){
   var i, h="<table class='grid-aj'><tr><th scope='col'>Element</th>";
   for(i=0;i<NC;i++) h+="<th scope='col'>Comp "+(i+1)+"</th>"; h+="</tr>";
   h+="<tr><th scope='row'>Preț (EUR/mp)</th>"; for(i=0;i<NC;i++) h+="<td><input class='gt-pret' data-i='"+i+"' aria-label='Preț/mp comp "+(i+1)+"'></td>"; h+="</tr>";
-  h+="<tr><th scope='row'>Suprafață (mp)</th>"; for(i=0;i<NC;i++) h+="<td><input class='gt-sup' data-i='"+i+"' aria-label='Suprafață comp "+(i+1)+"'></td>"; h+="</tr>";
+  h+="<tr><th scope='row'>Suprafață comp (mp)</th>"; for(i=0;i<NC;i++) h+="<td><input class='gt-sup' data-i='"+i+"' aria-label='Suprafață comp "+(i+1)+"'></td>"; h+="</tr>";
   ELEM_T.forEach(function(e,ei){ h+="<tr><th scope='row'>"+e.nume+" <small class='hint'>(%, "+e.etapa+")</small></th>";
     for(i=0;i<NC;i++) h+="<td><input class='gt-aj' data-e='"+ei+"' data-i='"+i+"' aria-label='"+e.nume+" comp "+(i+1)+"'></td>"; h+="</tr>"; });
   wrap.innerHTML=h+"</table>";
@@ -1252,7 +1252,7 @@ function asambleaza(){
   var i, h="<table class='grid-aj'><tr><th scope='col'>Element</th>";
   for(i=0;i<NC;i++) h+="<th scope='col'>Comp "+(i+1)+"</th>"; h+="</tr>";
   h+="<tr><th scope='row'>Chirie (EUR/mp/lună)</th>"; for(i=0;i<NC;i++) h+="<td><input class='gc-pret' data-i='"+i+"' aria-label='Chirie/mp comp "+(i+1)+"'></td>"; h+="</tr>";
-  h+="<tr><th scope='row'>Suprafață (mp)</th>"; for(i=0;i<NC;i++) h+="<td><input class='gc-sup' data-i='"+i+"' aria-label='Suprafață comp "+(i+1)+"'></td>"; h+="</tr>";
+  h+="<tr><th scope='row'>Suprafață comp (mp)</th>"; for(i=0;i<NC;i++) h+="<td><input class='gc-sup' data-i='"+i+"' aria-label='Suprafață comp "+(i+1)+"'></td>"; h+="</tr>";
   ELEM_C.forEach(function(e,ei){ h+="<tr><th scope='row'>"+e.nume+" <small class='hint'>("+(e.tip==='valorica'?'lei':'%')+", "+e.etapa+")</small></th>";
     for(i=0;i<NC;i++) h+="<td><input class='gc-aj' data-e='"+ei+"' data-i='"+i+"' aria-label='"+e.nume+" comp "+(i+1)+"'></td>"; h+="</tr>"; });
   wrap.innerHTML=h+"</table>";

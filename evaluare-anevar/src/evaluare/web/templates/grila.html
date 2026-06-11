@@ -45,8 +45,8 @@ Pentru ajustarea <b>„Condițiile pieței (timp)"</b> poți folosi <b>Indicele 
 <!-- ================= TEREN ================= -->
 <section role="tabpanel" id="panel-teren" aria-labelledby="tab-teren" tabindex="0">
 <h2>Grilă teren — valoare = preț/mp corectat × suprafață subiect</h2>
-<div id="tabel-teren"></div>
 <p><label for="supr-teren">Suprafață teren subiect (mp):</label> <input id="supr-teren" class="base" value="1000"></p>
+<div id="tabel-teren"></div>
 <button onclick="calcul('teren')">Calculează grila teren</button>
 <div id="rez-teren" role="status" aria-live="polite"></div>
 
@@ -70,10 +70,10 @@ Pentru ajustarea <b>„Condițiile pieței (timp)"</b> poți folosi <b>Indicele 
 <section role="tabpanel" id="panel-casa" aria-labelledby="tab-casa" tabindex="0" hidden>
 <h2>Grilă casă — pe preț total; valoare = prețul total corectat al comparabilei alese</h2>
 <p class="hint">Diferența de suprafață se tratează ca ajustare valorică (arie utilă: EUR/mp × Δ), deci
- fiecare comparabilă e adusă la subiect. „Suprafața subiect" de mai jos nu mai intră în formulă
+ fiecare comparabilă e adusă la subiect. „Suprafața subiect" de mai sus nu mai intră în formulă
  (rămâne pentru referință).</p>
+<p><label for="supr-casa">Suprafață subiect (mp):</label> <input id="supr-casa" class="base" value="120"></p>
 <div id="tabel-casa"></div>
-<p><label for="supr-casa">Suprafață subiect ACD (mp):</label> <input id="supr-casa" class="base" value="120"></p>
 <button onclick="calcul('casa')">Calculează grila casă</button>
 <div id="rez-casa" role="status" aria-live="polite"></div>
 
@@ -85,8 +85,8 @@ Pentru ajustarea <b>„Condițiile pieței (timp)"</b> poți folosi <b>Indicele 
 <p class="hint">Prețul de pornire este <b>chiria lunară pe mp</b> (ex. EUR/mp/lună) a fiecărui comparabil de
  închiriere. Se alege comparabilul cu ajustarea brută minimă; chiria/mp aleasă × suprafața subiectului ×
  12 = <b>venitul brut potențial anual</b>, care intră în capitalizarea directă (abordarea prin venit).</p>
-<div id="tabel-chirii"></div>
 <p><label for="supr-chirii">Suprafață închiriabilă subiect (mp):</label> <input id="supr-chirii" class="base" value="100"></p>
+<div id="tabel-chirii"></div>
 <button onclick="calcul('chirii')">Calculează grila chirii</button>
 <div id="rez-chirii" role="status" aria-live="polite"></div>
 </section>
