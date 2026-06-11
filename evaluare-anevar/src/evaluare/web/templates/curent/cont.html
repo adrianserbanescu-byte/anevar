@@ -20,15 +20,17 @@
       <input id="legitimatie" type="text" inputmode="numeric" autocomplete="off" required aria-required="true"
              value="{{ cont.legitimatie if cont else '' }}"></div>
   </div>
-  <h3>Format nume dosar (minim 3 câmpuri, în ordine)</h3>
-  <p class="hint">Toate dosarele tale vor folosi acest format. „ID client" e free-text la dosar nou,
-   needitabil ulterior.</p>
-  <div id="campuri">
-    {% for cheie, c in campuri.items() %}
-    <label class="chk"><input type="checkbox" class="fmt" value="{{ cheie }}"
-      {% if cont and cheie in cont.format_dosar %}checked{% endif %}> {{ c.eticheta }}</label>
-    {% endfor %}
-  </div>
+  <fieldset aria-describedby="campuri-instr">
+    <legend>Format nume dosar</legend>
+    <p class="hint" id="campuri-instr">Minim 3 câmpuri, în ordine. Toate dosarele tale vor folosi acest
+     format. „ID client" e free-text la dosar nou, needitabil ulterior.</p>
+    <div id="campuri">
+      {% for cheie, c in campuri.items() %}
+      <label class="chk"><input type="checkbox" class="fmt" value="{{ cheie }}"
+        {% if cont and cheie in cont.format_dosar %}checked{% endif %}> {{ c.eticheta }}</label>
+      {% endfor %}
+    </div>
+  </fieldset>
   <p class="hint">Previzualizare nume: <b id="preview">—</b></p>
   <button type="button" id="salveaza" aria-describedby="status">Salvează contul</button>
   <span id="status" class="hint" role="status" aria-live="polite"></span>

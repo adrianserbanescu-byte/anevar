@@ -30,14 +30,17 @@
              value="{{ cont.legitimatie if cont else '' }}"></div>
   </div>
 
-  <h2 style="font-size:1.15rem;margin:18px 0 4px;">Format nume dosar <span class="hint">(minim 3 câmpuri, în ordine)</span></h2>
-  <p class="hint">Toate dosarele tale folosesc acest format. „ID client" e free-text la dosar nou, needitabil ulterior.</p>
-  <div id="campuri">
-    {% for cheie, c in campuri.items() %}
-    <label class="chk"><input type="checkbox" class="fmt" value="{{ cheie }}"
-      {% if cont and cheie in cont.format_dosar %}checked{% endif %}> {{ c.eticheta }}</label>
-    {% endfor %}
-  </div>
+  <fieldset aria-describedby="campuri-instr">
+    <legend>Format nume dosar</legend>
+    <p class="hint" id="campuri-instr">Minim 3 câmpuri, în ordine. Toate dosarele tale folosesc acest
+     format. „ID client" e free-text la dosar nou, needitabil ulterior.</p>
+    <div id="campuri">
+      {% for cheie, c in campuri.items() %}
+      <label class="chk"><input type="checkbox" class="fmt" value="{{ cheie }}"
+        {% if cont and cheie in cont.format_dosar %}checked{% endif %}> {{ c.eticheta }}</label>
+      {% endfor %}
+    </div>
+  </fieldset>
   <p class="hint">Previzualizare nume: <b id="preview">—</b></p>
   <button type="button" id="salveaza" aria-describedby="status">Salvează setările</button>
   <span id="status" class="hint" role="status" aria-live="polite"></span>

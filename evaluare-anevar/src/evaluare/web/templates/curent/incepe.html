@@ -74,6 +74,7 @@
   <h2 id="salvate">Dosare salvate</h2>
   {% if diff.existente or diff.noi %}
     <table>
+      <caption class="sr-only">Dosarele salvate, cu nume, data ultimei modificări și acțiunea de deschidere.</caption>
       <tr><th scope="col">Nume</th><th scope="col">Modificat</th><th scope="col">Acțiuni</th></tr>
       {% for x in diff.noi %}
       <tr><td>{{ x.nume }} <span class="badge b-mid">nou</span></td><td>{{ x.modificat_la }}</td>
