@@ -413,6 +413,26 @@ def valideaza_depreciere(building: BuildingData) -> list[Issue]:
     return issues
 
 
+# Avertisment GEV 520 §31/§34 — abordarea prin COST ca abordare PRINCIPALA la garantare cere
+# acordul SCRIS al creditorului. Non-blocant, aditiv: doar se anexeaza la nota reconcilierii.
+_AVERT_COST_GARANTARE = (
+    "Abordarea prin cost ca abordare principala la garantare necesita acordul scris al "
+    "creditorului (GEV 520 §31/§34)."
+)
+
+
+def valideaza_metoda_vs_ghid(metoda, profil) -> str | None:
+    """Garda non-blocanta: metoda/abordarea PRINCIPALA = cost SI ghidul profilului = GEV_520.
+
+    GEV 520 §31/§34 cer ACORDUL SCRIS al creditorului pentru a folosi abordarea prin cost ca
+    abordare principala la garantare. Intoarce un AVERTISMENT (text) in acest caz, altfel None.
+    Aditiv / backward-compatible: orice alta metoda sau orice alt ghid -> None (comportament neschimbat).
+    """
+    if metoda == "cost" and getattr(profil, "ghid", None) == "GEV_520":
+        return _AVERT_COST_GARANTARE
+    return None
+
+
 def valideaza_profil(profil) -> list[Issue]:
     """Avertismente de consistenta a profilului de evaluare."""
     issues: list[Issue] = []

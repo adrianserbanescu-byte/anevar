@@ -19,6 +19,7 @@ from evaluare.engine.validation import (
     valideaza_comparabile,
     valideaza_comparabile_teren,
     valideaza_depreciere,
+    valideaza_metoda_vs_ghid,
     valideaza_proprietate,
 )
 from evaluare.engine.venit import DateDCF, DateVenit, evalueaza_dcf, evalueaza_venit
@@ -238,6 +239,13 @@ def construieste_context(
         primara = "comparatie"
         ponderi = {"comparatie": inp.pondere_piata, "cost": Decimal("1") - inp.pondere_piata}
     reconciled = reconcile_profil(rezultate, primara=primara, ponderi=ponderi, cfg=cfg)
+
+    # Garda non-blocanta GEV 520 §31/§34 — abordarea prin cost ca abordare principala la garantare
+    # cere acordul scris al creditorului. Aditiv: doar se anexeaza la nota existenta (vezi generator.py
+    # «Notă privind reconcilierea»), nu blocheaza emiterea, nu schimba valoarea. None -> nimic de adaugat.
+    avert_metoda = valideaza_metoda_vs_ghid(inp.metoda, profil)
+    if avert_metoda:
+        reconciled.nota = " ".join(p for p in (reconciled.nota, avert_metoda) if p)
 
     alocare = None
     if valoare_teren is not None:
