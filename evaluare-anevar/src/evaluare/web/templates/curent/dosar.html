@@ -23,6 +23,33 @@
   main .grup{ margin-top:24px; }
   main .grup > .field-row{ grid-template-columns:repeat(auto-fill, minmax(220px, 1fr)); }
   main .grup .grup-nota{ margin:2px 0 0; }   /* notă atașată grupului, nu text orfan între rânduri */
+
+  /* Descoperire inline — paritate cu pagina /descoperire (port C): afișaj COMPACT (un comparabil
+     = un rând scanabil), distanță față de subiect, paginare câte 20, scorul ascuns sub „?". */
+  #d-rezultate .cand-row{ display:flex; align-items:center; gap:8px 14px; flex-wrap:wrap;
+    background:var(--paper-card); border:1px solid var(--line); border-radius:var(--radius);
+    box-shadow:var(--shadow); padding:8px 12px; margin:0 0 6px; }
+  #d-rezultate .cr-sel{ display:flex; align-items:center; }
+  #d-rezultate .cr-badge{ white-space:nowrap; }
+  #d-rezultate .cr-pret{ font-family:var(--serif); font-size:1rem; font-weight:600; color:var(--ink); white-space:nowrap; }
+  #d-rezultate .cr-fapt{ font-size:.85rem; color:var(--ink-faint); white-space:nowrap; }
+  #d-rezultate .cr-loc{ font-size:.85rem; color:var(--ink-2); white-space:nowrap; }
+  #d-rezultate .cr-loc::before{ content:"📍 "; }
+  #d-rezultate .cr-km{ font-size:.82rem; color:var(--ink-faint); white-space:nowrap; }
+  #d-rezultate .cr-vezi{ font-size:.85rem; margin-left:auto; white-space:nowrap; }
+  #d-rezultate .cr-portal{ font-size:.78rem; color:var(--ink-faint); white-space:nowrap; }
+  #d-rezultate .alerta{ color:var(--danger-ink); font-weight:600; font-size:.8rem; }
+  #d-rezultate .scor-sec{ opacity:.7; font-weight:400; }
+  #d-rezultate .cr-paginare{ text-align:center; margin:12px 0; }
+  #d-rezultate .rez-actiuni{ margin:12px 0 0; }
+  /* Scorul detaliat (explicație) ascuns sub „?" — același comportament ca .hint-toggle/.hint-pop. */
+  #d-rezultate .cr-scor-wrap{ position:relative; display:inline-block; }
+  #d-rezultate .cr-scor-pop{ position:absolute; top:calc(100% + 6px); left:0; z-index:60;
+    width:max-content; max-width:320px; padding:9px 12px; display:none;
+    background:var(--paper-card); color:var(--ink-2); border:1px solid var(--brass);
+    border-radius:var(--radius-sm); box-shadow:var(--shadow); font-size:.82rem; font-weight:400;
+    line-height:1.5; white-space:normal; }
+  #d-rezultate .cr-scor-pop.hint-open{ display:block; }
 </style></head>
 <body>
 <a class="skip-link" href="#continut">Sari la conținut</a>
@@ -588,9 +615,16 @@ function numeLoc(id){ var e=$(id); if(!e) return ""; if(e.tagName!=="SELECT") re
       js.addEventListener("change", function(){ popL(); salveaza&&salveaza(); });
       if(altId&&$(altId)) ls.addEventListener("change", function(){ $(altId).hidden = ls.value!=="__alt__"; });
       popL(savedL);
+      // Expun re-popularea localităților pt sincronizare programatică (#7): când inghetZona setează
+      // d-judet din Proprietate, trebuie să încarce localitățile județului ÎNAINTE de a seta d-localitate
+      // (altfel dropdown-ul rămâne gol). resyncLoc(judetSlug, locSlug) face exact asta.
+      js._resyncLoc=function(judetSlug, locSlug){ if(judetSlug) js.value=judetSlug; popL(locSlug); };
     }
     wire("judet","localitate","localitate_alt", W.judet, W.localitate);
     wire("d-judet","d-localitate", null, $("judet")?$("judet").value:"", $("localitate")?$("localitate").value:"");
+    // Dacă zona a fost deja înghețată ÎNAINTE ca lista să se încarce (ordinea de execuție: gating-ul
+    // rulează la click, fetch-ul e async), re-sincronizează d-localitate acum (umple dropdown-ul gol).
+    if(window._gateDescopera && window._gateDescopera.resyncDescoperire) window._gateDescopera.resyncDescoperire();
   }).catch(function(){
     // Lista indisponibilă: NU lăsa selecturile goale (auto-save ar suprascrie județ/localitate salvate cu "").
     // Restaurează valorile salvate ca opțiune unică + avertizează; userul își păstrează datele.
@@ -656,7 +690,10 @@ document.querySelectorAll("main label[for]").forEach(function(lbl){
   // popover „!" (mapping vechi→nou) eliminat 2026-06-07 — mapping-ul a fost validat, era patch tranzitiv.
 });
 function inchideMap(){ document.querySelectorAll(".hint-pop.hint-open").forEach(function(o){ o.classList.remove("hint-open");
-  var t=o.parentNode.querySelector(".hint-toggle"); if(t) t.setAttribute("aria-expanded","false"); }); }
+  var t=o.parentNode.querySelector(".hint-toggle"); if(t) t.setAttribute("aria-expanded","false"); });
+  // închide și popoverele de scor din descoperire (#6) la click în afară / Escape — același comportament.
+  document.querySelectorAll(".cr-scor-pop.hint-open").forEach(function(o){ o.classList.remove("hint-open");
+    var t=o.parentNode.querySelector(".d-scor-q"); if(t) t.setAttribute("aria-expanded","false"); }); }
 document.addEventListener("click", inchideMap);
 document.addEventListener("keydown", function(e){ if(e.key==="Escape") inchideMap(); });
 
@@ -699,13 +736,20 @@ function subtab(id){ var b=document.getElementById(id); if(b) b.click(); }
 
   // Propagă județ+localitate → Descoperă și îngheață câmpurile (read-only) peste tot pe dosar.
   var inghetat = false;
+  // Propagarea slug-urilor către d-judet/d-localitate (#7): NU mai setez d-localitate.value direct
+  // (dropdown-ul ar fi gol — opțiunile nu sunt încărcate pt județul propagat). Folosesc _resyncLoc
+  // (expus de wire()) care încarcă localitățile județului ȘI apoi setează valoarea. Dacă lista încă
+  // nu s-a încărcat (_resyncLoc lipsește), wire IIFE re-apelează resyncDescoperire() când termină.
+  function propagaZona(){
+    var jSrc=$("judet"), lSrc=$("localitate"), jDst=$("d-judet");
+    if(!jSrc||!jDst) return;
+    if(jDst._resyncLoc){ jDst._resyncLoc(jSrc.value, lSrc?lSrc.value:""); }
+    else { jDst.value=jSrc.value; }   // fallback: lista nu s-a încărcat încă (resync-ul vine ulterior)
+  }
   function inghetZona(){
     if(inghetat) return; inghetat = true;
-    // 1) propagă valorile (slug) către selecturile de descoperire (payload-ul căutării le folosește)
-    ["d-judet","d-localitate"].forEach(function(d, i){
-      var src = i===0 ? $("judet") : $("localitate"), dst = $(d);
-      if(src && dst && !dst.value) dst.value = src.value;
-    });
+    // 1) propagă valorile (slug) către selecturile de descoperire + încarcă localitățile (vezi propagaZona)
+    propagaZona();
     // 2) afișaj fix pe Descoperă (numele lizibil, nu slug-ul) + ascunde selecturile redundante
     if($("d-zona-judet")) $("d-zona-judet").textContent = numeLoc("judet") || "—";
     if($("d-zona-localitate")) $("d-zona-localitate").textContent = numeLoc("localitate") || "—";
@@ -719,6 +763,8 @@ function subtab(id){ var b=document.getElementById(id); if(b) b.click(); }
       e.title = "Județul și localitatea sunt fixate odată ce ai folosit «Descoperă» — pentru altă zonă, creează un dosar nou.";
     });
   }
+  // Re-sincronizează d-localitate când lista de localități se încarcă DUPĂ înghețare (race fix #7).
+  function resyncDescoperire(){ if(inghetat) propagaZona(); }
 
   // Permite intrarea în Comparabile? (true) sau afișează atenționarea + blochează (false).
   function poateIntra(){
@@ -752,7 +798,9 @@ function subtab(id){ var b=document.getElementById(id); if(b) b.click(); }
   if(propGata() && (BLOCAT || ($("comparabile") && ($("comparabile").value||"").trim()))) inghetZona();
 
   // Expune pentru bara de jos (nav „Înainte") + alte apeluri programatice.
-  window._gateDescopera = { propGata: propGata, poateIntra: poateIntra, inghet: inghetZona };
+  // resyncDescoperire: apelat de wire IIFE când lista de localități se încarcă după înghețare (#7).
+  window._gateDescopera = { propGata: propGata, poateIntra: poateIntra, inghet: inghetZona,
+    resyncDescoperire: resyncDescoperire };
 })();
 
 // arată câmpurile de venit/DCF doar la metoda corespunzătoare
@@ -915,23 +963,97 @@ if($("ing-fisier")) $("ing-fisier").addEventListener("change", function(){
   var cauta=$("d-cauta"); if(!cauta) return;
   if($("d-judet")&&!$("d-judet").value&&$("judet")) $("d-judet").value=$("judet").value;
   if($("d-localitate")&&!$("d-localitate").value&&$("localitate")) $("d-localitate").value=$("localitate").value;
+  // CONSTRANGERE TIP CAUTARE (paritate /descoperire #1): #d-tip nu mai e liber — vine din tipul
+  // proprietății din dosar (#tip_proprietate, wizard). casă/industrial/specială -> [Casă+teren, Teren];
+  // apartament -> [Apartament]; teren agricol -> [Teren].
+  var CONSTRANGERI_TIP={ casa:["casa","teren"], casa_teren:["casa","teren"], industrial:["casa","teren"],
+    special:["casa","teren"], 'specială':["casa","teren"], apartament:["apartament"], garsoniera:["apartament"],
+    'garsonieră':["apartament"], teren:["teren"], agricol:["teren"], teren_agricol:["teren"] };
+  // Setul canonic de opțiuni #d-tip (rebuild idempotent — re-constrângerea la schimbarea tipului
+  // de proprietate trebuie să poată RE-adăuga opțiuni, nu doar să le scoată).
+  var TIP_OPTIUNI=[["casa","Casă + teren"],["apartament","Apartament"],["teren","Teren"]];
+  function constrangeTipDescoperire(){
+    var sel=$("d-tip"), src=$("tip_proprietate"); if(!sel||!src) return;
+    var cheie=(src.value||"").trim().toLowerCase().replace(/[\s-]+/g,"_");
+    var permise=CONSTRANGERI_TIP[cheie];
+    var lista=(permise&&permise.length) ? TIP_OPTIUNI.filter(function(o){ return permise.indexOf(o[0])>=0; }) : TIP_OPTIUNI;
+    var pastrez=sel.value;
+    sel.innerHTML=lista.map(function(o){ return "<option value='"+o[0]+"'>"+o[1]+"</option>"; }).join("");
+    sel.value = lista.some(function(o){ return o[0]===pastrez; }) ? pastrez : (lista[0]?lista[0][0]:"");
+    var h=$("d-tip-lock-hint");   // semnal vizual că tipul vine din dosar (NU disabled: ar lipsi la submit)
+    if(!h){ h=document.createElement("span"); h.className="hint"; h.id="d-tip-lock-hint"; sel.insertAdjacentElement("afterend", h); }
+    h.textContent = (permise&&permise.length) ? (lista.length<=1?" (fixat din dosar)":" (limitat de tipul din dosar)") : "";
+  }
+  constrangeTipDescoperire();
+  if($("tip_proprietate")) $("tip_proprietate").addEventListener("change", constrangeTipDescoperire);
   // SEC-2 (audit): date scrape-uite (titlu/url/explicatie) -> escapate inainte de innerHTML/href (anti-XSS).
   function esc(x){ return String(x==null?"":x).replace(/[&<>"']/g,function(m){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m];}); }
   function urlSig(u){ u=String(u==null?"":u); return /^https?:\/\//i.test(u)?u:""; }
-  function badge(r){ return r>=80?"b-high":"b-mid"; }
+  // Badge pe 3 trepte (paritate /descoperire): date insuficiente sau scor scăzut -> b-low.
+  function badge(c){ if(c.incredere_scazuta) return "b-low"; if(c.relevanta>=80) return "b-high";
+    return c.relevanta>=60?"b-mid":"b-low"; }
+  // Scor PRIMAR ca text calitativ (numărul rămâne secundar) — D3, cererea Adi.
+  function relevantaText(c){ if(c.incredere_scazuta) return "Date insuficiente";
+    if(c.relevanta>=80) return "Foarte relevant"; return c.relevanta>=60?"Relevant":"Slab relevant"; }
+  // Localitate + distanță km — câmpuri opționale (vin din /api/descopera dacă geocoding-ul reușește).
+  // Distanța = DOAR afișare informativă (NU intră în scor).
+  function celulaLoc(c){ return c.localitate ? "<span class='cr-loc' title='Localitate'>"+esc(String(c.localitate))+"</span>" : ""; }
+  function celulaKm(c){ return (typeof c.distanta_km==="number")
+    ? "<span class='cr-km' title='Distanță față de subiect (informativ)'>la "+c.distanta_km+" km de subiect</span>" : ""; }
   var PORTALURI=["imobiliare","storia"];
-  function randCand(cand, teren){
+  var PAGINA=20;   // PAGINARE (paritate /descoperire #3): primele 20, apoi câte 20 la cerere
+  // Display COMPACT (#4): un comparabil = UN rând (checkbox/scor/preț/mp/teren/localitate/km/vezi);
+  // detalierea scorului (explicația lungă) ascunsă sub „?" (#6) — același comportament ca .hint-toggle.
+  function randCand(c, teren){
+    var val=teren?(c.pret_mp||""):(c.pret||"");
+    var pretTxt = teren
+      ? (c.pret_mp?esc(fmtRo(c.pret_mp))+" EUR/mp":"preț/mp ?")
+      : (c.pret?esc(fmtRo(c.pret))+" "+esc(c.moneda||"EUR"):"preț ?");
+    var detaliu=c.explicatie||c.nota||"";
+    var scorPop = detaliu
+      ? "<span class='cr-scor-wrap'><button type='button' class='hint-toggle d-scor-q' aria-label='Detaliere scor' aria-expanded='false'>?</button>"
+        + "<small class='cr-scor-pop hint'>"+esc(detaliu)+"</small></span>" : "";
+    var avert=c.incredere_scazuta?"<span class='alerta'>⚠ date insuficiente</span>":"";
+    return "<div class='cand-row' role='listitem'>"+
+      "<label class='cr-sel'><input type='checkbox' class='d-bif' data-pret='"+esc(val)+"' data-supr='"+esc(c.suprafata||"")+"' aria-label='Selectează comparabilul'></label>"+
+      "<span class='badge "+badge(c)+" cr-badge' title='Scor de relevanță: "+esc(c.relevanta)+"%'>"+relevantaText(c)+" <span class='scor-sec'>"+esc(c.relevanta)+"%</span></span>"+scorPop+
+      "<span class='cr-pret'>"+pretTxt+"</span>"+
+      "<span class='cr-fapt'>"+esc(c.suprafata||"?")+" mp</span>"+
+      (!teren&&c.teren?"<span class='cr-fapt'>teren "+esc(c.teren)+" mp</span>":"")+
+      celulaLoc(c)+celulaKm(c)+
+      (c._portal?"<span class='cr-portal'>"+esc(c._portal)+"</span>":"")+avert+
+      "<a class='cr-vezi' href='"+esc(urlSig(c.url))+"' target='_blank' rel='noopener'>vezi ↗</a>"+
+      "</div>";
+  }
+  function randRezultate(cand, teren){
     if(!cand.length){ $("d-rezultate").innerHTML="<p class='hint'>Niciun comparabil. Încearcă doar județul sau altă localitate.</p>"; return; }
-    $("d-rezultate").innerHTML="<p class='hint'>"+cand.length+" anunțuri găsite (sortate după scor de relevanță):</p>"+
-      cand.map(function(c){ var val=teren?(c.pret_mp||""):(c.pret||"");
-        return "<div class='callout' style='margin:6px 0'>"+
-        "<label class='chk'><input type='checkbox' class='d-bif' data-pret='"+esc(val)+"' data-supr='"+esc(c.suprafata||"")+"'> "+
-        "<span class='badge "+badge(c.relevanta)+"'>scor "+esc(c.relevanta)+"%</span> <b>"+
-        (teren?(c.pret_mp?esc(fmtRo(c.pret_mp))+" EUR/mp":"preț/mp ?"):(c.pret?esc(fmtRo(c.pret))+" "+esc(c.moneda||"EUR"):"preț ?"))+"</b> · "+
-        esc(c.suprafata||"?")+" mp"+(!teren&&c.teren?" · teren "+esc(c.teren)+" mp":"")+(c._portal?" · <small class='hint'>"+esc(c._portal)+"</small>":"")+"</label> "+
-        "<a href='"+esc(urlSig(c.url))+"' target='_blank' rel='noopener'>vezi ↗</a>"+
-        ((c.explicatie||c.nota)?"<br><small class='hint'>"+esc(c.explicatie||c.nota)+"</small>":"")+"</div>"; }).join("")+
-      "<button type='button' id='d-importa'>Importă bifate</button>";
+    var total=cand.length, afisate=0;
+    $("d-rezultate").innerHTML=
+      "<p class='hint' role='status'><b>"+total+"</b> comparabile găsite (sortate după scor de relevanță). "
+        +"Mărește «Localități vecine» sau caută în tot județul pentru și mai multe.</p>"+
+      "<div id='d-lista' role='list' aria-label='Comparabile găsite'></div>"+
+      "<div id='d-paginare' class='cr-paginare'></div>"+
+      "<div class='rez-actiuni'><button type='button' id='d-importa'>Importă bifate</button></div>";
+    var lista=$("d-lista"), pag=$("d-paginare");
+    function maiMulte(){
+      var lot=cand.slice(afisate, afisate+PAGINA);
+      lista.insertAdjacentHTML("beforeend", lot.map(function(c){ return randCand(c, teren); }).join(""));
+      afisate+=lot.length;
+      var ramase=total-afisate;
+      if(ramase>0){ pag.innerHTML="<button type='button' id='d-mai-multe'>Arată încă "+Math.min(PAGINA,ramase)+" (rămân "+ramase+")</button>";
+        $("d-mai-multe").addEventListener("click", maiMulte);
+      } else { pag.innerHTML = afisate>PAGINA ? "<p class='hint'>Toate cele "+afisate+" comparabile sunt afișate.</p>" : ""; }
+    }
+    maiMulte();   // primele 20
+    // Scor ascuns sub „?" — toggle exclusiv (același pattern ca popoverele „?" din formular).
+    $("d-rezultate").querySelectorAll(".d-scor-q").forEach(function(b){
+      b.addEventListener("click", function(e){ e.stopPropagation();
+        var pop=b.parentNode.querySelector(".cr-scor-pop"), deschis=pop.classList.contains("hint-open");
+        $("d-rezultate").querySelectorAll(".cr-scor-pop.hint-open").forEach(function(o){ o.classList.remove("hint-open");
+          var t=o.parentNode.querySelector(".d-scor-q"); if(t) t.setAttribute("aria-expanded","false"); });
+        if(!deschis){ pop.classList.add("hint-open"); b.setAttribute("aria-expanded","true"); }
+      });
+    });
     $("d-importa").addEventListener("click", function(){
       var linii=[]; document.querySelectorAll(".d-bif:checked").forEach(function(b){ if(b.dataset.pret&&b.dataset.supr) linii.push(b.dataset.pret+";"+b.dataset.supr); });
       if(!linii.length){ $("d-status").textContent="Bifează cel puțin un candidat."; return; }
@@ -941,13 +1063,13 @@ if($("ing-fisier")) $("ing-fisier").addEventListener("change", function(){
   }
   function cerePortal(portal, tip, loc){
     var teren=(tip==="teren"), url, payload;
-    if(teren){ url="/api/descopera-teren"; payload={portal:portal, judet:$("d-judet").value, localitate:loc, suprafata_subiect:$("d-teren").value||null, max_candidati:8}; }
+    if(teren){ url="/api/descopera-teren"; payload={portal:portal, judet:$("d-judet").value, localitate:loc, suprafata_subiect:$("d-teren").value||null, max_candidati:20}; }
     else { url="/api/descopera"; payload={portal:portal, judet:$("d-judet").value, localitate:loc, tip_activ:tip,
       subiect:{suprafata_construita:(($("acd")&&$("acd").value)||($("au")&&$("au").value))||null,
         an:parseInt($("d-an").value)||null, stare:parseInt($("d-stare").value)||null,
         finisaj:parseInt($("d-finisaj").value)||null, incalzire:$("d-incalzire").value||null,
         teren:($("d-teren").value||($("suprafata_teren")&&$("suprafata_teren").value))||null},
-      atribute_secundare:($("d-secundare")&&$("d-secundare").value||"").split("\n").filter(Boolean), max_candidati:8}; }
+      atribute_secundare:($("d-secundare")&&$("d-secundare").value||"").split("\n").filter(Boolean), max_candidati:20}; }
     return fetch(url,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(payload)})
       .then(function(r){ if(!r.ok){ cerePortal._erori++; return {candidati:[]}; } return r.json(); })
       .then(function(res){ return (res.candidati||[]).map(function(c){ c._portal=portal; return c; }); })
@@ -969,7 +1091,7 @@ if($("ing-fisier")) $("ing-fisier").addEventListener("change", function(){
       var cand=[].concat.apply([], lists).sort(function(a,b){ return (b.relevanta||0)-(a.relevanta||0); });
       if(!cand.length && cerePortal._erori){ $("d-status").textContent="Portalul nu a răspuns sau conexiunea a eșuat — încearcă din nou sau adaugă comparabilele manual."; return; }
       $("d-status").textContent=cand.length+" candidați"+(loc?"":" (tot județul)")+(sel==="toate"?" · toate portalurile":"");
-      randCand(cand, teren);
+      randRezultate(cand, teren);
     });
   }
   cauta.addEventListener("click", function(){ cautaCu(localitatiCautare()); });
