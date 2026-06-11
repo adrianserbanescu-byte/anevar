@@ -634,3 +634,78 @@ def test_sev450_raport_asigurare_contine_clauza_subasigurare(tmp_path):
     out2 = tmp_path / "gar.docx"
     genereaza_raport(_ctx(), out2)
     assert "CLAUZA DE SUBASIGURARE" not in _all_text(out2)
+
+
+# ── Valoarea prudenta (CRR III) — sectiune OPTIONALA, doar la garantare cu parametri ───────────────
+class _MetaCuPrudenta(EvaluationMeta):
+    """Subtip de meta care poarta parametrii prudentiali (modelul de baza nu are camp dedicat).
+
+    Reproduce cazul real „exista parametri prudentiali pe meta": helperul `_parametri_valoare_prudenta`
+    ii citeste prin getattr (fail-soft), fara sa fie nevoie de un camp obligatoriu in EvaluationMeta."""
+    valoare_prudenta_params: object | None = None
+
+
+def _ctx_cu_params_prudenta(params):
+    """_ctx() (profil GEV_520, garantare) cu parametri prudentiali atasati pe meta (instanta sau dict)."""
+    ctx = _ctx()
+    ctx.meta = _MetaCuPrudenta(**ctx.meta.model_dump(), valoare_prudenta_params=params)
+    return ctx
+
+
+def test_valoare_prudenta_apare_la_garantare_cu_parametri_instanta(tmp_path):
+    # Wiring CRR III: cu parametri prudentiali (instanta) pe meta, raportul de garantare (GEV 520)
+    # capata sectiunea de valoare prudenta — baza DISTINCTA, ALATURI de valoarea de piata, nu in locul ei.
+    from evaluare.valoare_prudenta import (
+        TEXT_EXPLICATIV_VALOARE_PRUDENTA,
+        ParametriValoarePrudenta,
+    )
+    ctx = _ctx_cu_params_prudenta(
+        ParametriValoarePrudenta(discount_crestere_pct=Decimal("10"))
+    )
+    out = tmp_path / "prud.docx"
+    genereaza_raport(ctx, out)
+    text = _all_text(out)
+    assert "VALOAREA PRUDENTA (VALOAREA DE GARANTIE) — CRR III" in text
+    assert TEXT_EXPLICATIV_VALOARE_PRUDENTA in text
+    # clarificarea de baza distincta, prezentata ALATURI de valoarea de piata, NU o inlocuieste
+    assert "DISTINCTA de valoarea de piata" in text
+    assert "ALATURI de valoarea de piata" in text and "NU o inlocuieste" in text
+    # cifrele auditabile: 280000 (valoare de piata / finala) -> 252000 (prudenta, -10%)
+    assert "252000" in text and "280000" in text
+
+
+def test_valoare_prudenta_accepta_parametri_ca_dict(tmp_path):
+    # Parametrii pot veni si ca dict (ex. din JSON-ul lucrarii) — validati intern, sectiunea apare.
+    ctx = _ctx_cu_params_prudenta({"haircut_sustenabilitate_pct": Decimal("5")})
+    out = tmp_path / "prud_dict.docx"
+    genereaza_raport(ctx, out)
+    assert "VALOAREA PRUDENTA (VALOAREA DE GARANTIE) — CRR III" in _all_text(out)
+
+
+def test_valoare_prudenta_omisa_fara_parametri(tmp_path):
+    # Aditiv / backward-compatible: fara parametri prudentiali, sectiunea NU apare, raport neschimbat.
+    out = tmp_path / "fara_prud.docx"
+    genereaza_raport(_ctx(), out)              # meta de baza, fara valoare_prudenta_params
+    assert "VALOAREA PRUDENTA" not in _all_text(out)
+
+
+def test_valoare_prudenta_parametri_invalizi_omisa_elegant(tmp_path):
+    # Parametri invalizi (procent in afara 0..100) -> sectiunea se omite elegant, raportul nu crapa.
+    ctx = _ctx_cu_params_prudenta({"discount_crestere_pct": Decimal("150")})
+    out = tmp_path / "prud_invalid.docx"
+    genereaza_raport(ctx, out)
+    Document(str(out))                          # se deschide ca document valid
+    assert "VALOAREA PRUDENTA" not in _all_text(out)
+
+
+def test_valoare_prudenta_doar_pe_profil_garantare(tmp_path):
+    # Sectiunea e legata de blocul GEV 520; pe profil de asigurare (SEV 450) NU apare nici cu parametri.
+    from evaluare.profil import ProfilEvaluare
+    from evaluare.valoare_prudenta import ParametriValoarePrudenta
+    ctx = _ctx_cu_params_prudenta(
+        ParametriValoarePrudenta(discount_crestere_pct=Decimal("10"))
+    )
+    ctx.profil = ProfilEvaluare(ghid="SEV_450")
+    out = tmp_path / "asig_prud.docx"
+    genereaza_raport(ctx, out)
+    assert "VALOAREA PRUDENTA" not in _all_text(out)

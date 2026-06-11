@@ -15,7 +15,7 @@ from docx import Document
 from docx.document import Document as DocxDocument
 from docx.shared import Inches, Pt, RGBColor
 
-from evaluare import esg
+from evaluare import esg, valoare_prudenta
 from evaluare.logging_setup import get_logger
 from evaluare.models.report_context import ReportContext
 
@@ -805,6 +805,54 @@ def _adauga_risc_garantie(doc: DocxDocument, ctx: ReportContext, adnotari: bool 
         doc.add_paragraph(f"☐ {punct}", style="List Bullet")
 
 
+def _parametri_valoare_prudenta(ctx: ReportContext):
+    """Extrage (fail-soft) parametrii prudentiali de pe meta sau context, daca exista.
+
+    Aditiv si backward-compatible: NU exista un camp obligatoriu in modele. Cautam, prin getattr,
+    un atribut `valoare_prudenta_params` (sau `parametri_valoare_prudenta`) pe `ctx.meta` apoi pe `ctx`.
+    Acceptam fie o instanta `ParametriValoarePrudenta`, fie un dict (-> validat). Daca nu gasim parametri
+    sau nu se pot valida, intoarcem None -> sectiunea de valoare prudenta se OMITE elegant (raport neschimbat)."""
+    for sursa in (getattr(ctx, "meta", None), ctx):
+        for nume in ("valoare_prudenta_params", "parametri_valoare_prudenta"):
+            raw = getattr(sursa, nume, None)
+            if raw is None:
+                continue
+            if isinstance(raw, valoare_prudenta.ParametriValoarePrudenta):
+                return raw
+            if isinstance(raw, dict):
+                try:
+                    return valoare_prudenta.ParametriValoarePrudenta(**raw)
+                except Exception as e:   # parametri invalizi -> omitem sectiunea, nu blocam raportul
+                    log.warning("Parametri valoare prudenta invalizi (%r) — sectiune omisa: %s", raw, e)
+                    return None
+    return None
+
+
+def _adauga_valoare_prudenta(doc: DocxDocument, ctx: ReportContext, adnotari: bool = False) -> None:
+    """Sectiune OPTIONALA de valoare prudenta (valoare de garantie, CRR III art. 229/208) — DOAR la garantare.
+
+    Apare numai daca exista parametri prudentiali (pe meta/context) — vezi `_parametri_valoare_prudenta`.
+    Fara parametri -> sectiunea se omite elegant si raportul ramane NESCHIMBAT (aditiv, backward-compatible).
+    Valoarea prudenta este o baza de valoare DISTINCTA, prezentata ALATURI de valoarea de piata (SEV 102),
+    pe care NU o inlocuieste. Estimarea porneste de la valoarea finala (de piata) si aplica criteriile
+    prudente CRR; nota + cifrele auditabile vin din `valoare_prudenta.genereaza_nota_valoare_prudenta`."""
+    parametri = _parametri_valoare_prudenta(ctx)
+    if parametri is None:
+        return   # omisa elegant: fara parametri prudentiali, raportul ramane neschimbat
+    rezultat = valoare_prudenta.estimeaza_valoare_prudenta(
+        ctx.reconciled.valoare_finala, parametri
+    )
+    doc.add_heading("VALOAREA PRUDENTA (VALOAREA DE GARANTIE) — CRR III", level=1)
+    p = doc.add_paragraph()
+    p.add_run(
+        "Baza de valoare DISTINCTA de valoarea de piata, estimata pentru garantarea creditului. "
+        "Se prezinta ALATURI de valoarea de piata (SEV 102) si NU o inlocuieste — valoarea de piata "
+        "ramane baza de valoare a raportului."
+    ).bold = True
+    for paragraf in valoare_prudenta.genereaza_nota_valoare_prudenta(rezultat).split("\n\n"):
+        doc.add_paragraph(paragraf)
+
+
 def _decode_foto(data_url: str) -> BytesIO | None:
     """Extrage bytes dintr-un data-URL base64 (sau base64 simplu). None daca e invalid."""
     if not data_url:
@@ -1068,6 +1116,9 @@ def genereaza_raport(
     if ctx.profil.ghid == "GEV_520":   # sectiunea de risc e specifica garantarii imprumutului
         _adauga_esg(doc, ctx, adnotari)          # ESG / riscuri fizice (S-5.1), inaintea analizei de risc
         _adauga_risc_garantie(doc, ctx, adnotari)
+        # Valoarea prudenta (CRR III) — OPTIONALA, doar daca exista parametri prudentiali pe meta/context.
+        # Fara parametri -> omisa elegant, raportul ramane neschimbat (aditiv, backward-compatible).
+        _adauga_valoare_prudenta(doc, ctx, adnotari)
     if ctx.profil.ghid == "SEV_450":   # clauza de subasigurare e specifica evaluarii pentru asigurare
         _adauga_clauza_subasigurare(doc, ctx, adnotari)
     _adauga_anexe(doc, ctx, adnotari)
