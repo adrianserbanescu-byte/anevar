@@ -2,11 +2,17 @@
 
 Reguli HARD (Legea art. 17(1)): anumite semnale forteaza automat categoria „sporit" (EDD),
 indiferent de scor. PEP efectiv = PEP sau in primele 12 luni de la incetarea functiei (art. 3(6)).
+
+Scopul evaluarii (Ghidul de evaluare a riscurilor SB/FT, cap. 2) este un factor de risc de
+sine statator pe dimensiunea „produs/serviciu": lichidare/insolventa/executare silita si vanzare
+pe piata libera ridica riscul (subevaluare/supraevaluare frauduloasa); garantare credit bancar,
+impozitare si raportare financiara il scad (DD dublata de banca / scop fiscal cu risc redus).
 """
 from __future__ import annotations
 
 from datetime import date
 from decimal import Decimal
+from typing import Literal
 
 from pydantic import BaseModel
 
@@ -24,6 +30,26 @@ from evaluare.aml.models import (
 # Cate luni inainte trebuie reevaluata relatia, pe categorie de risc (politica interna uzuala).
 _LUNI_REEVALUARE = {"redus": 36, "standard": 24, "sporit": 12}
 
+# Scopul/tipul evaluarii (Ghidul SB/FT, cap. 2). Domeniul app-ului = garantare_credit.
+ScopEvaluare = Literal[
+    "garantare_credit",            # banca dubleaza DD -> risc redus (atentie la presiunea „valoare mare")
+    "impozitare",                  # scop fiscal -> risc redus
+    "raportare_financiara",        # raportare contabila -> risc redus
+    "vanzare_piata",               # vanzare/cumparare piata libera -> risc mai mare
+    "mna",                         # fuziuni & achizitii -> risc
+    "lichidare_insolventa_executare",  # lichidare/insolventa/executare silita -> risc (subevaluare)
+]
+
+# Maparea scopului pe factorul „produs/serviciu" (1=coboara, 3=ridica, None=neutru).
+_SCOP_FACTOR: dict[str, int] = {
+    "garantare_credit": 1,
+    "impozitare": 1,
+    "raportare_financiara": 1,
+    "vanzare_piata": 3,
+    "mna": 3,
+    "lichidare_insolventa_executare": 3,
+}
+
 
 class Semnale(BaseModel):
     """Semnale de risc culese de evaluator pentru o relatie (toate optionale, implicit neutru)."""
@@ -38,6 +64,8 @@ class Semnale(BaseModel):
     pe_lista_sanctiuni: bool = False
     tranzactie_complexa: bool = False      # complexa / neobisnuit de mare / fara scop economic
     canal_la_distanta: bool = False        # relatie fara prezenta fizica (art. 17(2))
+    # scopul/tipul evaluarii ca factor de risc (Ghidul SB/FT, cap. 2) — optional, implicit neutru
+    scop: ScopEvaluare | None = None
 
 
 def _luni_intre(d1: str, d2: str) -> int:
@@ -87,25 +115,53 @@ def _client_pep_efectiv(client, azi: str) -> bool:
     return False
 
 
+def _beneficiar_real_lipsa(client) -> bool:
+    """PJ fara beneficiar real identificat = factor de risc (Legea art. 4/art. 17; Planul I.3).
+
+    „Lipsa" = niciun beneficiar real consultat in registrul central. O lista goala sau cu BR
+    nedovediti (fara `consultat_registru_central`) este un semnal de alarma (Ghidul SB/FT, cap. 3).
+    Aici doar ridicam factorul „client" (aditiv, om-in-bucla); nu fortam categoria „sporit".
+    """
+    if not isinstance(client, ClientPJ):
+        return False
+    return not any(br.consultat_registru_central for br in client.beneficiari_reali)
+
+
+def _factor_produs(semnale: Semnale) -> int:
+    """Factorul „produs/serviciu": combina tranzactia (uzuala/complexa) cu scopul evaluarii.
+
+    Precedenta: orice semnal care ridica (tranzactie complexa SAU scop cu risc) -> 3; altfel,
+    daca exista un semnal care coboara (tranzactie uzuala SAU scop cu risc redus) -> 1; restul 2.
+    Aditiv si compatibil cu vechiul comportament (cand `scop is None`, ramane tranzactia).
+    """
+    scop_factor = _SCOP_FACTOR.get(semnale.scop) if semnale.scop else None
+    ridica = semnale.tranzactie_complexa or scop_factor == 3
+    coboara = semnale.tranzactie_uzuala or scop_factor == 1
+    if ridica:
+        return 3
+    if coboara:
+        return 1
+    return 2
+
+
 def evalueaza_risc(client, semnale: Semnale | None = None, *, azi: str) -> EvaluareRisc:
     """Calculeaza categoria de risc a relatiei (Norme art. 12-14) + reguli HARD (Legea art. 17)."""
     semnale = semnale or Semnale()
 
+    br_lipsa = _beneficiar_real_lipsa(client)
+
     # ---- factor: client (1=redus,2=standard,3=sporit) ----
-    if _client_pep_efectiv(client, azi) or semnale.pe_lista_sanctiuni:
+    # BR neidentificat la PJ ridica factorul (semnal de alarma — Legea art. 4/art. 17; Planul I.3),
+    # dar nu forteaza „sporit": decizia ramane la evaluator (om-in-bucla).
+    if _client_pep_efectiv(client, azi) or semnale.pe_lista_sanctiuni or br_lipsa:
         f_client = 3
     elif semnale.client_cunoscut:
         f_client = 1
     else:
         f_client = 2
 
-    # ---- factor: produs/serviciu (tranzactia) ----
-    if semnale.tranzactie_complexa:
-        f_produs = 3
-    elif semnale.tranzactie_uzuala:
-        f_produs = 1
-    else:
-        f_produs = 2
+    # ---- factor: produs/serviciu (tranzactia + scopul evaluarii) ----
+    f_produs = _factor_produs(semnale)
 
     # ---- factor: canal de distributie ----
     if semnale.canal_la_distanta:
@@ -154,6 +210,14 @@ def evalueaza_risc(client, semnale: Semnale | None = None, *, azi: str) -> Evalu
         categorie = "sporit"
     else:
         categorie = "standard"
+
+    # BR neidentificat la PJ: ridica factorul (mai sus), iar daca relatia ajunge „sporit"
+    # documentam si acest motiv (aditiv — nu forteaza singur categoria).
+    if br_lipsa and categorie == "sporit":
+        motive.append(
+            "Beneficiar real neidentificat la PJ (neconsultat în registrul central) "
+            "— Legea art. 4/art. 17; Planul I.3"
+        )
 
     return EvaluareRisc(
         factori=factori,
