@@ -2,7 +2,7 @@
 
 > **Cum se folosește (Adi):** pe Mac, deschide Claude Code/Desktop, pornește o sesiune cu
 > bypass permissions și dă-i ca prim mesaj conținutul acestui fișier (sau: „citește și
-> execută ~/Projects/anevar/instructiuni-bootstrap-mac.md" dacă repo-ul e deja clonat).
+> execută ~/claude/anevar/instructiuni-bootstrap-mac.md" dacă repo-ul e deja clonat).
 > Sesiunea execută Partea A integral singură; Partea B doar când îi dai arhiva de transfer.
 
 ---
@@ -19,7 +19,7 @@ Misiunea ta: **execută tot ce se poate fără datele de pe Windows (Partea A), 
 dacă primești arhiva de transfer, Partea B.** Windows-ul rămâne sursa de adevăr.
 
 Deciziile D1–D4 sunt deja LUATE (vezi secțiunea „Decizii" din `plan-migrare-mac.md`):
-calea de lucru e `~/Projects/anevar`; build-ul .exe merge prin GitHub Actions
+calea de lucru e `~/claude/anevar`; build-ul .exe merge prin GitHub Actions
 (`.github/workflows/release-exe.yml`, la rădăcină) cu PC-ul Windows ca fallback;
 FĂRĂ worktree-uri suplimentare (D3 anulată — sesiunile B–F și worktree-urile lor au fost
 desființate pe 2026-06-11; A lucrează cu agenți); sesiuni — decide pilotul (B5).
@@ -32,7 +32,7 @@ desființate pe 2026-06-11; A lucrează cu agenți); sesiuni — decide pilotul 
    notează în jurnal, continuă cu restul, raportează la final.
 4. **NU seta `ANTHROPIC_API_KEY`** nicăieri (ar suprascrie abonamentul Max cu facturare API).
 5. **NU atinge Faza 6** (migrarea în masă a sesiunilor) — doar Adi decide ziua cutover.
-6. **Jurnal:** ține progresul în `~/bootstrap-log.md` (mută-l în `~/Projects/anevar/` după clonare):
+6. **Jurnal:** ține progresul în `~/bootstrap-log.md` (mută-l în `~/claude/anevar/` după clonare):
    pas, comandă, rezultat, gate trecut/picat.
 7. Întreabă-l pe Adi DOAR la pașii marcați 🙋 (restul — autonom, fără pauze).
 
@@ -73,16 +73,16 @@ GATE A2: `python3 -c "import json,pathlib;print(json.loads((pathlib.Path.home()/
 ```bash
 gh auth login --web      # 🙋 cere browserul — anunță-l pe Adi că trebuie să confirme în browser
 gh auth setup-git
-mkdir -p ~/Projects
-gh repo clone adrianserbanescu-byte/anevar ~/Projects/anevar
-cd ~/Projects/anevar && git log --oneline -3   # sanity
+mkdir -p ~/claude
+gh repo clone adrianserbanescu-byte/anevar ~/claude/anevar
+cd ~/claude/anevar && git log --oneline -3   # sanity
 ```
 NU crea worktree-uri suplimentare (anevar-b/c/d au fost desființate pe 2026-06-11 odată cu
 sesiunile B–F; A lucrează pe agent work style, cu worktrees automate sub `.claude/worktrees/`).
 
 ### A4. Mediu Python + GATE-ul principal
 ```bash
-cd ~/Projects/anevar/evaluare-anevar
+cd ~/claude/anevar/evaluare-anevar
 python3.12 -m venv .venv && source .venv/bin/activate
 pip install -r requirements.lock && pip install -e . --no-deps && pip install -e .[dev]
 pytest -n auto
@@ -136,7 +136,7 @@ suprascrie) — Claude Code va propune instalarea la următoarea pornire:
 (Ultimele 5 trailofbits = recomandările find-skills din 2026-06-10/11 — se instalează direct aici.)
 Plugin-urile project-scope (agentic-actions-auditor, site-audit, zeroize-audit, gh-cli,
 audit-context-building, static-analysis, differential-review @trailofbits/easier-life-skills):
-scrie-le în `~/Projects/anevar/.claude/settings.local.json` → `enabledPlugins` (fp-check = `false`).
+scrie-le în `~/claude/anevar/.claude/settings.local.json` → `enabledPlugins` (fp-check = `false`).
 
 ### A7. claude-mem
 ```bash
@@ -146,7 +146,7 @@ npx claude-mem status    # GATE A7: worker running
 NU restaura încă DB-ul de pe Windows (asta e Partea B / Faza 6).
 
 ### A8. Raport final Partea A
-Tabel în `~/Projects/anevar/bootstrap-log.md`: fiecare gate (A1–A7) cu ✅/❌ + detalii la ❌.
+Tabel în `~/claude/anevar/bootstrap-log.md`: fiecare gate (A1–A7) cu ✅/❌ + detalii la ❌.
 Mesaj sumar către Adi cu ce a trecut, ce a picat, ce așteaptă (arhiva pt. Partea B).
 
 ---
@@ -157,21 +157,21 @@ B1. **Skills:** `cp -R <arhiva>/claude-skills/* ~/.claude/skills/` (creează dir
 B2. **live-up.py — DOAR el** (restul `anevar-mailbox/` = sistem istoric A–F, desființat 2026-06-11,
     NU se repune în funcțiune): ia `live-up.py` din arhivă sau din repo (dacă a fost mutat în
     `evaluare-anevar/scripts/`). Dacă mai are `ROOT = Path(r"C:\Users\adyse...")` hardcodat →
-    rescrie pentru Mac: ROOT din env `ANEVAR_ROOT` (default `~/Projects/anevar/evaluare-anevar`)
+    rescrie pentru Mac: ROOT din env `ANEVAR_ROOT` (default `~/claude/anevar/evaluare-anevar`)
     și pornire `python -m evaluare` (nu `.exe`) cu env `OUTPUT_DIR`, `DB_PATH`, `ANEVAR_NO_BROWSER=1`.
-B3. **Date aplicație:** `cp -R <arhiva>/app-date/* ~/Projects/anevar/evaluare-anevar/live/date/`;
-    apoi `sqlite3 ~/Projects/anevar/evaluare-anevar/live/date/evaluari.db "PRAGMA integrity_check;"` → ok.
+B3. **Date aplicație:** `cp -R <arhiva>/app-date/* ~/claude/anevar/evaluare-anevar/live/date/`;
+    apoi `sqlite3 ~/claude/anevar/evaluare-anevar/live/date/evaluari.db "PRAGMA integrity_check;"` → ok.
 B4. **Hooks:** global (`~/.claude/settings.json`) — recreează echivalentele Windows cu căi Mac:
     Stop+SubagentStop → `python3 ~/.claude/plugins/cache/easier-life-skills/cost-tracker/*/hooks/cost-tracker.py`;
     PreToolUse → memplan `pretooluse-start.py` + (matcher Edit|Write|MultiEdit) security-guidance
     `security_reminder_hook.py`; PostToolUse → memplan `memplan-post-tooluse.py`.
     Folosește căile REALE din cache după instalarea plugin-urilor (glob, nu ghici).
-    Proiect (`~/Projects/anevar/.claude/settings.local.json`) — UserPromptSubmit:
+    Proiect (`~/claude/anevar/.claude/settings.local.json`) — UserPromptSubmit:
     DOAR `python3 <cale>/live-up.py` (vezi B2). NU recrea hook-ul `mailbox.py` (sistem desființat).
 B5. **PILOT sesiune (capcana nr. 2):**
-    `mkdir -p ~/.claude/projects/-Users-$(whoami)-Projects-anevar` și copiază din arhivă UN singur
+    `mkdir -p ~/.claude/projects/-Users-$(whoami)-claude-anevar` și copiază din arhivă UN singur
     `.jsonl` + subfolderul `<session-id>/` aferent. Apoi cere-i lui Adi 🙋 să verifice în
-    Claude Desktop (proiectul ~/Projects/anevar → istoricul de sesiuni) dacă sesiunea pilot apare și
+    Claude Desktop (proiectul ~/claude/anevar → istoricul de sesiuni) dacă sesiunea pilot apare și
     se deschide. Raportează rezultatul — decide strategia Fazei 6 (D4).
 B6. **claude-mem restore (doar test, dacă arhiva conține un snapshot):**
     `npx claude-mem stop` → copiază `claude-mem.db` + `chroma/` → `sqlite3 ... "PRAGMA integrity_check;"`
