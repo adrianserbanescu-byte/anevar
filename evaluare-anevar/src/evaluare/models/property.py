@@ -41,6 +41,9 @@ class BuildingData(BaseModel):
     an_referinta: int                   # anul datei de referinta a evaluarii
     elements: list[CostElement] = Field(default_factory=list)
     depreciation_points: list[DepreciationPoint] = Field(default_factory=list)
+    # Metoda LINIARA de depreciere fizica (alternativa la tabelul de interpolare):
+    # daca e setata si NU exista depreciation_points, Dfn = Vcp / durata_viata_totala.
+    durata_viata_totala: Decimal | None = Field(default=None, gt=0)  # ani (durata de viata fizica)
     functional_depreciation: Decimal = Decimal("0")   # C_nf (0 implicit; >0 la credit cu justificare)
     external_depreciation: Decimal = Decimal("0")      # C_ex
     justificare_depreciere: str = ""

@@ -1,9 +1,14 @@
 from decimal import Decimal
 
+import pytest
+
 from evaluare.engine.cost import (
     compute_cib,
     compute_cin,
     compute_vcp,
+    depreciere_externa_din_pierdere,
+    depreciere_fizica_liniara,
+    depreciere_functionala_supradimensionare,
     evaluate_cost,
     interpolate_depreciation,
 )
@@ -105,6 +110,129 @@ def test_evaluate_cost_with_no_elements_gives_zero():
     result = evaluate_cost(building, valoare_teren=None)
     assert result.cib == Decimal("0")
     assert result.cin == Decimal("0")
+
+
+# ---------------------------------------------------------------------------
+# Depreciere fizica LINIARA pe durata de viata (Bazele evaluarii 2024)
+# ---------------------------------------------------------------------------
+
+
+def test_depreciere_liniara_la_jumatatea_vietii():
+    # 30 ani din 60 = 50% depreciere fizica.
+    assert depreciere_fizica_liniara(Decimal("30"), Decimal("60")) == Decimal("0.5")
+
+
+def test_depreciere_liniara_zero_la_constructie_noua():
+    assert depreciere_fizica_liniara(Decimal("0"), Decimal("60")) == Decimal("0")
+
+
+def test_depreciere_liniara_clamp_la_1_peste_durata():
+    # O constructie care si-a depasit durata de viata e depreciata fizic 100%, nu peste.
+    assert depreciere_fizica_liniara(Decimal("80"), Decimal("60")) == Decimal("1")
+
+
+def test_depreciere_liniara_durata_invalida_arunca():
+    with pytest.raises(ValueError):
+        depreciere_fizica_liniara(Decimal("10"), Decimal("0"))
+
+
+def test_depreciere_liniara_varsta_negativa_arunca():
+    with pytest.raises(ValueError):
+        depreciere_fizica_liniara(Decimal("-1"), Decimal("60"))
+
+
+def test_evaluate_cost_metoda_liniara_fara_tabel():
+    # Fara depreciation_points, dar cu durata_viata_totala -> metoda liniara.
+    building = BuildingData(
+        au=Decimal("322.75"), acd=Decimal("351.46"), an_referinta=2025,
+        elements=gbf_elements(),
+        durata_viata_totala=Decimal("80"),
+    )
+    result = evaluate_cost(building, valoare_teren=None)
+    vcp_exact = compute_vcp(gbf_elements(), an_referinta=2025)
+    dfn_asteptat = depreciere_fizica_liniara(vcp_exact, Decimal("80"))
+    assert result.depreciere_fizica == dfn_asteptat
+    # CIN = CIB * (1 - Dfn) cu C_nf = C_ex = 0.
+    assert result.cin == compute_cin(result.cib, dfn_asteptat, Decimal("0"), Decimal("0"))
+
+
+def test_evaluate_cost_tabelul_are_prioritate_fata_de_liniar():
+    # Daca exista AMBELE, tabelul (metoda implicita) castiga — comportament neschimbat.
+    points = [DepreciationPoint(varsta=30, depreciere=Decimal("0.31")),
+              DepreciationPoint(varsta=35, depreciere=Decimal("0.36"))]
+    building = BuildingData(
+        au=Decimal("322.75"), acd=Decimal("351.46"), an_referinta=2025,
+        elements=gbf_elements(), depreciation_points=points,
+        durata_viata_totala=Decimal("80"),
+    )
+    vcp_exact = compute_vcp(gbf_elements(), an_referinta=2025)
+    result = evaluate_cost(building)
+    assert result.depreciere_fizica == interpolate_depreciation(vcp_exact, points)
+
+
+def test_evaluate_cost_fara_metoda_de_depreciere_arunca():
+    building = BuildingData(
+        au=Decimal("100"), acd=Decimal("100"), an_referinta=2025,
+        elements=gbf_elements(),
+    )
+    with pytest.raises(ValueError):
+        evaluate_cost(building)
+
+
+# ---------------------------------------------------------------------------
+# Depreciere FUNCTIONALA din supradimensionare (cost reproducere - inlocuire)
+# ---------------------------------------------------------------------------
+
+
+def test_depreciere_functionala_supradimensionare():
+    # Reproducere 1000, inlocuire 800 -> 20% depreciere functionala.
+    c_nf = depreciere_functionala_supradimensionare(Decimal("1000"), Decimal("800"))
+    assert c_nf == Decimal("0.2")
+
+
+def test_depreciere_functionala_zero_fara_supradimensionare():
+    assert depreciere_functionala_supradimensionare(Decimal("1000"), Decimal("1000")) == Decimal("0")
+
+
+def test_depreciere_functionala_inlocuire_peste_reproducere_arunca():
+    with pytest.raises(ValueError):
+        depreciere_functionala_supradimensionare(Decimal("800"), Decimal("1000"))
+
+
+def test_depreciere_functionala_reproducere_invalida_arunca():
+    with pytest.raises(ValueError):
+        depreciere_functionala_supradimensionare(Decimal("0"), Decimal("0"))
+
+
+# ---------------------------------------------------------------------------
+# Depreciere EXTERNA / economica din pierdere de utilitate
+# ---------------------------------------------------------------------------
+
+
+def test_depreciere_externa_din_pierdere():
+    # Pierdere 50.000 dintr-o referinta de 500.000 -> 10% depreciere externa.
+    c_ex = depreciere_externa_din_pierdere(Decimal("50000"), Decimal("500000"))
+    assert c_ex == Decimal("0.1")
+
+
+def test_depreciere_externa_clamp_la_1():
+    assert depreciere_externa_din_pierdere(Decimal("600"), Decimal("500")) == Decimal("1")
+
+
+def test_depreciere_externa_referinta_invalida_arunca():
+    with pytest.raises(ValueError):
+        depreciere_externa_din_pierdere(Decimal("100"), Decimal("0"))
+
+
+def test_cele_trei_forme_se_combina_in_cin():
+    # Toate cele trei forme alimenteaza compute_cin, multiplicativ (in cascada).
+    cib = Decimal("1000000")
+    dfn = depreciere_fizica_liniara(Decimal("20"), Decimal("80"))           # 0.25
+    c_nf = depreciere_functionala_supradimensionare(Decimal("1000"), Decimal("900"))  # 0.10
+    c_ex = depreciere_externa_din_pierdere(Decimal("30000"), Decimal("300000"))       # 0.10
+    cin = compute_cin(cib, dfn, c_nf, c_ex)
+    # 1.000.000 * 0.75 * 0.90 * 0.90 = 607.500
+    assert cin == Decimal("607500.00") or abs(cin - Decimal("607500")) < Decimal("1")
 
 
 def test_cost_dfn_interpoleaza_pe_vcp_exact_nu_rotunjit():
