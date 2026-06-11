@@ -15,6 +15,7 @@ def client(tmp_path, monkeypatch):
     s.init()
     c = TestClient(create_app(storage=s, client=None))
     c._baza = tmp_path
+    c.storage = s
     return c
 
 
@@ -38,10 +39,17 @@ def _creeaza(client) -> int:
 
 def test_nume_implicit_si_redenumire(client):
     eid = _creeaza(client)
-    r = client.get("/dosare")
-    assert r.status_code == 200 and "Ion Pop — 777" in r.text
+    # Numele implicit + redenumirea se verifică pe sursa de adevăr (storage), nu pe pagina HTML:
+    # ruta legacy /dosare e acum un redirect către /incepe (gap UX F1-1, audit 2026-06-11).
+    assert client.storage.list()[0]["nume"] == "Ion Pop — 777"
     client.post(f"/api/evaluare/{eid}/redenumeste", json={"nume": "Apartament X"})
-    assert "Apartament X" in client.get("/dosare").text
+    assert client.storage.list()[0]["nume"] == "Apartament X"
+
+
+def test_dosare_redirect_la_incepe(client):
+    # Gap UX F1-1: /dosare (lista SQLite legacy, dead-end) -> redirect la lista canonică /incepe#salvate.
+    r = client.get("/dosare", follow_redirects=False)
+    assert r.status_code in (302, 307) and r.headers["location"] == "/incepe#salvate"
 
 
 def test_snapshot_si_redeschidere(client):

@@ -126,10 +126,12 @@ def build_router(d: Deps) -> APIRouter:
         """Hartă de proces: ce livrabile produce un dosar, pe 3 niveluri legale (firmă/client/eveniment)."""
         return d.templates.TemplateResponse(request, "flux_livrabile.html", {})
 
-    @router.get("/dosare", response_class=HTMLResponse)
-    def pagina_dosare(request: Request) -> HTMLResponse:
-        return d.templates.TemplateResponse(request, "dosare.html",
-            {"dosare": d.storage.list()})
+    @router.get("/dosare", include_in_schema=False)
+    def pagina_dosare() -> RedirectResponse:
+        # Gap UX F1-1 (audit 2026-06-11): pagina legacy „Dosare salvate" (lista SQLite) era un dead-end —
+        # butonul „Deschide" nu deschidea nimic și duplica lista canonică din /incepe („Toate dosarele").
+        # O singură sursă de adevăr: redirect către /incepe#salvate (ancora secțiunii „Dosare salvate").
+        return RedirectResponse("/incepe#salvate")
 
     # ── Feedback de la testeri (local, offline; opțional și Google Forms din widget) ──
     @router.post("/api/feedback")

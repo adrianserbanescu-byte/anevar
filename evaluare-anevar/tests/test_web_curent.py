@@ -23,6 +23,7 @@ def client(tmp_path, monkeypatch):
     s.init()
     c = TestClient(create_app(storage=s, client=None, pdf_converter=_fake_pdf))
     c._baza = tmp_path
+    c.storage = s
     return c
 
 
@@ -113,13 +114,14 @@ def test_calcul_fara_persistenta_sqlite(client):
     # «Calculează» din UI-ul nou NU trebuie să scrie rânduri orfane în SQLite (folder=adevăr)
     _cont(client)
     uid = client.post("/api/dosar", json={"wizard": {}}).json()["uuid"]
-    n_inainte = len(client.get("/dosare").text.split("Deschide"))
+    # Numărăm direct în SQLite (sursa de adevăr); /dosare e acum redirect (gap UX F1-1).
+    n_inainte = len(client.storage.list())
     r = client.post(f"/api/dosar/{uid}/calcul", json=_payload())
     assert r.status_code == 200
     d = r.json()
     assert d["valoare_finala"] and d["metoda"] == "cost"
     assert "id" not in d                                    # calc-only: nu persistă în SQLite
-    assert len(client.get("/dosare").text.split("Deschide")) == n_inainte   # zero dosare noi
+    assert len(client.storage.list()) == n_inainte          # zero dosare noi în SQLite
     assert client.post("/api/dosar/nope/calcul", json=_payload()).status_code == 404
 
 
