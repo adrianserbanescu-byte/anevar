@@ -8,6 +8,7 @@ from __future__ import annotations
 import hashlib
 import json
 from collections.abc import Callable
+from datetime import UTC
 
 from pydantic import BaseModel, Field
 
@@ -17,9 +18,9 @@ GENESIS = "0" * 64
 def _acum() -> str:
     # UTC tz-aware (audit): timestamp neambiguu, reproductibil intre masini, imun la fusul local/DST.
     # Lantul ramane verificabil oricum (verifica() re-hashuieste timestamp-ul stocat, nu ceasul curent).
-    from datetime import datetime, timezone
+    from datetime import datetime
 
-    return datetime.now(timezone.utc).isoformat(timespec="seconds")
+    return datetime.now(UTC).isoformat(timespec="seconds")
 
 
 def _hash(index: int, timestamp: str, tip: str, detalii: str, hash_anterior: str) -> str:

@@ -5,7 +5,6 @@ from pathlib import Path
 
 from evaluare.audit.jurnal import JurnalAudit
 
-
 # Disclaimer al aplicatiei catre evaluator — pe ORICE document generat (cerinta Adi).
 _DISCLAIMER = (
     "NOTĂ — Document generat de aplicație ca instrument de asistență (DRAFT). Verificarea și "

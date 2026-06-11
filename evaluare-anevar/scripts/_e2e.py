@@ -155,7 +155,7 @@ def main(argv: list[str]) -> int:
             marca = "✓ OK" if ok else "✗ FAIL"
             info(f"  {marca}  ({dt:.1f}s)")
             if not ok and ultim and not quiet and not json_mode:
-                print(f"  ultimele linii:\n    " + ultim.replace("\n", "\n    "))
+                print("  ultimele linii:\n    " + ultim.replace("\n", "\n    "))
             rezultate.append((sc, ok, dt, ultim))
             if fail_fast and not ok:
                 info("  → --fail-fast: oprire la primul fail.")

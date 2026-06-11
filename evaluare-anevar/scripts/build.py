@@ -138,10 +138,10 @@ def smoke_offline() -> int:
     try:
         for _ in range(20):
             time.sleep(1)
-            with contextlib.suppress(OSError):
-                with urllib.request.urlopen(f"{base}/api/status", timeout=2) as r:
-                    if r.status == 200:
-                        break
+            with contextlib.suppress(OSError), \
+                    urllib.request.urlopen(f"{base}/api/status", timeout=2) as r:
+                if r.status == 200:
+                    break
         else:
             print("✗ Smoke offline: serverul nu a raspuns in 20s.")
             return 1

@@ -40,7 +40,7 @@ def _pdf_digital(text: str) -> bytes:
     poz_xref = len(out)
     out += b"xref\n0 " + str(len(objs) + 1).encode() + b"\n0000000000 65535 f \n"
     for o in offsete:
-        out += ("%010d 00000 n \n" % o).encode()
+        out += (f"{o:010d} 00000 n \n").encode()
     out += (b"trailer\n<< /Root 1 0 R /Size " + str(len(objs) + 1).encode()
             + b" >>\nstartxref\n" + str(poz_xref).encode() + b"\n%%EOF\n")
     return out

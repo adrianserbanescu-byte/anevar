@@ -6,8 +6,8 @@ from typing import Literal
 
 from pydantic import BaseModel, Field
 
-from evaluare.audit.validare_x import valideaza_incrucisat
 from evaluare.ai.narrative import NarrativeClient, generate_narrative
+from evaluare.audit.validare_x import valideaza_incrucisat
 from evaluare.engine.abordari import RezultatAbordare
 from evaluare.engine.cost import evaluate_cost
 from evaluare.engine.land import evaluate_land, pret_mp_corectat

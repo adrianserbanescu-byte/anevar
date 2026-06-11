@@ -8,7 +8,8 @@ from datetime import datetime
 from pathlib import Path
 from typing import Annotated
 
-from fastapi import APIRouter, HTTPException, Path as PathParam, Request
+from fastapi import APIRouter, HTTPException, Request
+from fastapi import Path as PathParam
 from fastapi.responses import FileResponse, HTMLResponse
 
 from evaluare.assembler import (

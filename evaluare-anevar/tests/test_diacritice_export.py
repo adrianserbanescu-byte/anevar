@@ -62,8 +62,8 @@ def test_aml_salveaza_pastreaza_diacriticele(tmp_path):
 
 # ─── 3. Conversie docx → PDF cu LibreOffice (skip dacă nu există) ─────────────
 @pytest.mark.skipif(
-    True if __import__("evaluare.report.pdf", fromlist=["_gaseste_soffice"])._gaseste_soffice() is None
-    else False, reason="LibreOffice indisponibil pe această stație")
+    __import__("evaluare.report.pdf", fromlist=["_gaseste_soffice"])._gaseste_soffice() is None,
+    reason="LibreOffice indisponibil pe această stație")
 def test_docx_to_pdf_pastreaza_diacriticele_in_pdf(tmp_path):
     """Pipeline-ul docx → PDF (soffice) trebuie să păstreze diacriticele în text-ul PDF.
 

@@ -37,7 +37,8 @@ with sync_playwright() as p:
             pg.goto(BASE + path, wait_until="networkidle", timeout=15000)
         except Exception as ex:  # noqa: BLE001
             add(name, "HIGH", "load", f"pagina nu s-a incarcat: {ex}")
-            pg.close(); continue
+            pg.close()
+            continue
         pg.wait_for_timeout(700)
 
         for e in errs[:5]:
@@ -67,7 +68,8 @@ with sync_playwright() as p:
 
         pg.screenshot(path=f"{OUT}/ux-{name}-1280.png", full_page=True)
         for w in (768, 390):
-            pg.set_viewport_size({"width": w, "height": 900}); pg.wait_for_timeout(350)
+            pg.set_viewport_size({"width": w, "height": 900})
+            pg.wait_for_timeout(350)
             ov = pg.evaluate("() => ({d: document.documentElement.scrollWidth, w: window.innerWidth})")
             if ov["d"] > ov["w"] + 2:
                 add(name, "MED", "responsive", f"overflow orizontal la {w}px (continut {ov['d']}px > ecran {ov['w']}px) -> scroll lateral")

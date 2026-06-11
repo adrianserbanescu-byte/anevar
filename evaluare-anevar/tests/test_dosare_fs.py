@@ -199,6 +199,7 @@ def test_sterge_curata_index_si_cache_pii(baza):
     # re-audit G1: app-sterge scoate dosarul (PII: nume client) din _index.json + _cache_antete.json
     # IMEDIAT, nu la următorul listeaza()/diff() (înainte rămânea PII tranzitoriu pe disc după ștergere).
     import json
+
     from evaluare import dosare_fs as fs
     uid = fs.creeaza("8717", "Adi S", _wizard())
     fs.listeaza()                                      # populează _cache_antete.json
