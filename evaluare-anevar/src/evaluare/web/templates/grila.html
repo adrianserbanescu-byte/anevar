@@ -20,6 +20,12 @@
 {% set pagina = "grila" %}{% include "_topbar.html" %}
 {% set kicker = "Registru de evaluare" %}{% set titlu = "Grile de ajustări" %}{% set subtitlu = "Grile de comparabile: teren · casă · chirii." %}{% include "_cartus.html" %}
 <main id="continut">
+{# „Înapoi la dosar" (SUS) — duce la workspace-ul dosarului activ, sub-tabul „Proprietate"
+   (= sub-tabul implicit al /dosar/{uid}). Href setat din JS din localStorage `anevar_dosar_activ`
+   (cheia setată de dosar.html cand deschizi un dosar); fără context => „Toate dosarele" (/incepe). #}
+<div class="btn-bar">
+  <a class="btn ghost" id="inapoi-dosar-sus" href="/incepe">◀ Înapoi la dosar</a>
+</div>
 <p class="hint">Completează prețul de pornire și ajustările pe fiecare element, pentru fiecare comparabil.
 Ajustările <span class="pct">procentuale</span> se introduc în <b>puncte %</b> (ex. <code>-10</code> = −10%);
 cele <span class="eur">valorice</span> în <b>EUR</b> (ex. <code>-5000</code>). Gol = neaplicat (0).
@@ -84,6 +90,11 @@ Pentru ajustarea <b>„Condițiile pieței (timp)"</b> poți folosi <b>Indicele 
 <button onclick="calcul('chirii')">Calculează grila chirii</button>
 <div id="rez-chirii" role="status" aria-live="polite"></div>
 </section>
+
+{# „Înapoi la dosar" (JOS) — aceeași destinație ca butonul de sus; .btn-bar-jos = bordură + spațiere. #}
+<div class="btn-bar btn-bar-jos">
+  <a class="btn ghost" id="inapoi-dosar-jos" href="/incepe">◀ Înapoi la dosar</a>
+</div>
 </main>
 
 <script>{% include "_helpers.js" %}</script>
@@ -94,6 +105,18 @@ function escapeHtml(s){ return String(s==null?'':s).replace(/[&<>"']/g, c=>(
   {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
 function urlSafe(u){ try{ var x=new URL(u, location.origin); return (x.protocol==='http:'||x.protocol==='https:')?x.href:'#'; }catch(e){ return '#'; } }
 const NCOMP = 3;
+
+// „Înapoi la dosar": dacă /grila e deschis dintr-un dosar, întoarcem userul la /dosar/{uid}
+// (care se încarcă pe sub-tabul „Proprietate", cel implicit). Contextul de dosar = localStorage
+// `anevar_dosar_activ` ({uid, nume}), aceeași cheie folosită de _nav_cross.html. Fără uid => /incepe
+// („Toate dosarele"). Nu folosim referrer/query: localStorage e sursa unică, persistă și în tab nou.
+(function setBackToDosar(){
+  let uid = null;
+  try{ const d = JSON.parse(localStorage.getItem("anevar_dosar_activ") || "null");
+       if(d && d.uid) uid = String(d.uid); }catch(e){}
+  const href = uid ? "/dosar/" + encodeURIComponent(uid) : "/incepe";
+  ["inapoi-dosar-sus","inapoi-dosar-jos"].forEach(id => { const a = document.getElementById(id); if(a) a.href = href; });
+})();
 
 // Catalog elemente. tip: "procentuala" sau "valorica".
 const ELEM = {
