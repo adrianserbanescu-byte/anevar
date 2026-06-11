@@ -11,7 +11,6 @@ from evaluare.ai.narrative import NarrativeClient
 from evaluare.db.storage import Storage
 from evaluare.importers.url_parser import fetch_html
 from evaluare.logging_setup import get_logger
-from evaluare.report.pdf import docx_to_pdf
 from evaluare.web.deps import Deps
 from evaluare.web.routers import (
     aml,
@@ -40,8 +39,7 @@ def _build_data() -> str:
 
 
 def create_app(storage: Storage, client: NarrativeClient | None,
-               fetcher: Callable[[str], str] = fetch_html,
-               pdf_converter: Callable[[Path], Path] = docx_to_pdf) -> FastAPI:
+               fetcher: Callable[[str], str] = fetch_html) -> FastAPI:
     """Construieste aplicatia cu storage si client AI injectate."""
     from fastapi.middleware.cors import CORSMiddleware
     from starlette.responses import PlainTextResponse
@@ -127,8 +125,7 @@ def create_app(storage: Storage, client: NarrativeClient | None,
     templates = Jinja2Templates(directory=str(Path(__file__).parent / "templates"))
     templates.env.globals["versiune"] = __version__
     templates.env.globals["build_data"] = _build_data()
-    deps = Deps(storage=storage, client=client, fetcher=fetcher, templates=templates,
-                pdf_converter=pdf_converter)
+    deps = Deps(storage=storage, client=client, fetcher=fetcher, templates=templates)
 
     for modul in (evaluare, grile, descoperire, piata, aml, curent, registru, pagini):
         app.include_router(modul.build_router(deps))

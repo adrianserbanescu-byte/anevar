@@ -8,20 +8,12 @@ from evaluare.db.storage import Storage
 from evaluare.web.app import create_app
 
 
-def _fake_pdf(docx):
-    """Convertor PDF fals (deterministic, fără LibreOffice) pentru teste."""
-    from pathlib import Path
-    p = Path(docx).with_suffix(".pdf")
-    p.write_bytes(b"%PDF-1.4 fake\n%%EOF")
-    return p
-
-
 @pytest.fixture
 def client(tmp_path, monkeypatch):
     monkeypatch.setenv("OUTPUT_DIR", str(tmp_path / "date"))
     s = Storage(tmp_path / "d.db")
     s.init()
-    c = TestClient(create_app(storage=s, client=None, pdf_converter=_fake_pdf))
+    c = TestClient(create_app(storage=s, client=None))
     c._baza = tmp_path
     c.storage = s
     return c

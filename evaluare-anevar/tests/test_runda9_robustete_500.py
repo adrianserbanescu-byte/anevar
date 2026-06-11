@@ -27,14 +27,7 @@ P = {"nume": "Ion", "prenume": "Pop"}
 def _client(tmp_path):
     s = Storage(tmp_path / "t.db")
     s.init()
-
-    def fake_pdf(docx):
-        from pathlib import Path
-        p = Path(docx).with_suffix(".pdf")
-        p.write_bytes(b"%PDF-1.4 fake\n%%EOF")
-        return p
-
-    return TestClient(create_app(storage=s, client=None, pdf_converter=fake_pdf))
+    return TestClient(create_app(storage=s, client=None))
 
 
 def _eval_payload() -> dict:

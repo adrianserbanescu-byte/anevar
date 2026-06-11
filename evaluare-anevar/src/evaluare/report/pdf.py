@@ -4,6 +4,10 @@ Aplicația generează NATIV `.docx` (python-docx, editabil). PDF-ul e OPȚIONAL 
 convertor instalat local: **LibreOffice** (recomandat, gratuit, headless) sau **Microsoft Word**.
 Nu se bundle-ază niciun motor PDF în `.exe` (ar dubla mărimea). Dacă niciun convertor nu e
 prezent, se ridică `PdfIndisponibil` cu mesaj clar — userul primește oricum `.docx`.
+
+DORMANT (audit CQ-01, 2026-06-11): app-ul NU mai produce PDF din 2026-06-08 — `create_app`/`Deps`
+nu mai injectează acest convertor și niciun router nu îl apelează. Modulul rămâne în cod (acoperit
+de `tests/test_report_pdf.py` + `tests/test_diacritice_export.py`) ca să poată fi re-cablat ușor.
 """
 from __future__ import annotations
 
