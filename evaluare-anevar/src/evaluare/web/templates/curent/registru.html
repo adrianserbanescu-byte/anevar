@@ -48,18 +48,23 @@
     </tr></thead>
     <tbody>
     {% for r in randuri %}
+    {% set nr_lucrare = r.nr_lucrare or '—' %}
     <tr>
       {% for cheie, eticheta in coloane %}
+        {% if loop.first %}
+        <th scope="row" class="{{ 'wrap' if cheie in ('obiect', 'observatii', 'utilizatori') else '' }}">{{ r[cheie] or '—' }}</th>
+        {% else %}
         <td class="{{ 'wrap' if cheie in ('obiect', 'observatii', 'utilizatori') else '' }}">{{ r[cheie] or '—' }}</td>
+        {% endif %}
       {% endfor %}
       <td>
         {% set bs = big_status.get(r.uid) if r.uid else none %}
-        {% if bs is none %}—
-        {% elif bs.gata %}<a class="big-pill gata" href="/api/dosar/{{ r.uid }}/big" title="Toate câmpurile minime BIG sunt completate — gata de înregistrare">✓ gata</a>
-        {% else %}<a class="big-pill lipsa" href="/api/dosar/{{ r.uid }}/big" title="Câmpuri minime BIG lipsă — vezi lista înainte de înregistrare">⚠ {{ bs.nr_lipsuri }} lipsă</a>
+        {% if bs is none %}<span aria-hidden="true">—</span><span class="sr-only">Pregătire BIG indisponibilă pentru lucrarea {{ nr_lucrare }}</span>
+        {% elif bs.gata %}<a class="big-pill gata" href="/api/dosar/{{ r.uid }}/big" aria-label="Pregătire BIG, lucrarea {{ nr_lucrare }}: gata de înregistrare — vezi câmpurile minime"><span aria-hidden="true">✓ </span>gata</a>
+        {% else %}<a class="big-pill lipsa" href="/api/dosar/{{ r.uid }}/big" aria-label="Pregătire BIG, lucrarea {{ nr_lucrare }}: {{ bs.nr_lipsuri }} câmp(uri) minim(e) lipsă — vezi lista"><span aria-hidden="true">⚠ </span>{{ bs.nr_lipsuri }} lipsă</a>
         {% endif %}
       </td>
-      <td>{% if r.uid %}<a class="btn ghost" href="/api/dosar/{{ r.uid }}/export.zip" title="Pachet de inspecție (dosar.json + .docx + integritate)">{{ icon("download") }} .zip</a>{% endif %}</td>
+      <td>{% if r.uid %}<a class="btn ghost" href="/api/dosar/{{ r.uid }}/export.zip" aria-label="Descarcă pachetul de inspecție (.zip) pentru lucrarea {{ nr_lucrare }} — dosar.json, .docx și verificarea de integritate">{{ icon("download") }} .zip</a>{% endif %}</td>
     </tr>
     {% endfor %}
     </tbody>
