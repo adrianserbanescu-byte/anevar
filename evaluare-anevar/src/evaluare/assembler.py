@@ -31,6 +31,7 @@ from evaluare.profil import (
     APARTAMENT_GARANTARE,
     ASIGURARE,
     CASA_TEREN_GARANTARE,
+    COMERCIAL_INCHIRIAT,
     IMPOZITARE,
     INDUSTRIAL,
     LITIGII,
@@ -46,6 +47,7 @@ from evaluare.report.anonymizer import build_anonymizer
 PROFIL_DUPA_TIP: dict[str, ProfilEvaluare] = {
     "casa": CASA_TEREN_GARANTARE,
     "apartament": APARTAMENT_GARANTARE,
+    "comercial": COMERCIAL_INCHIRIAT,
     "industrial": INDUSTRIAL,
     "agricol": AGRICOL,
     "special": SPECIAL,
