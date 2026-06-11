@@ -24,7 +24,7 @@
 | settings + hooks | `~/.claude/settings.json`, `anevar/.claude/settings.local.json` | — | rescriere căi (5 hook-uri globale + 2 proiect) |
 
 **Encoding sesiuni (verificat empiric pe 3 cazuri):** orice caracter non-alfanumeric → `-`.
-`C:\Users\adyse\anevar` → `C--Users-adyse-anevar`; pe Mac `/Users/<user>/anevar` → `-Users-<user>-anevar`.
+`C:\Users\adyse\anevar` → `C--Users-adyse-anevar`; pe Mac `/Users/<user>/anevar` → `-Users-<user>-Projects-anevar`.
 
 **Căi Windows hardcodate în cod (doar 3):**
 - `anevar-mailbox/live-up.py:14` — `ROOT = Path(r"C:\Users\adyse\anevar\evaluare-anevar")` + pornește `.exe`
@@ -40,11 +40,11 @@
 4. claude-mem: oprește worker-ul înainte de copierea DB (altfel copie ruptă din `-wal`); NU copia `settings.json` (căi Windows); restore cross-OS nedocumentat → păstrează Windows-ul ca sursă de adevăr până la validare.
 5. **`.exe` se construiește DOAR pe Windows** (PyInstaller nu cross-compilează). Produsul livrat evaluatorilor e Windows .exe.
 
-### Decizii de luat (Adi) înainte de Faza 2
-- [ ] **D1 — Build .exe după migrare:** (a) GitHub Actions `windows-latest` (recomandat: CI există deja pe windows-latest, doar se adaugă job de packaging PyInstaller + artifact) sau (b) păstrezi PC-ul Windows doar pentru build.
-- [ ] **D2 — Calea proiectului pe Mac:** recomandat `~/anevar` (adică `/Users/<user>/anevar`). Numele de utilizator Mac determină folderul de sesiuni — fixează-l înainte de Faza 6.
-- [ ] **D3 — Worktree-urile b/c/d:** se recreează pe Mac sau se consolidează întâi (merge/cherry-pick la A) și migrezi doar `anevar`?
-- [ ] **D4 — Sesiunile A–F:** continuare prin transcripturi copiate (dacă pilotul din 3.5 merge) sau re-pornire cu handoff-uri scrise + memorie/claude-mem (fallback sigur).
+### Decizii — LUATE 2026-06-11 (grill cu Adi)
+- [x] **D1 — Build .exe:** GitHub Actions (`windows-latest`) ca pipeline principal **+ PC-ul Windows păstrat ca fallback** până la 2-3 release-uri reușite. Job creat: `.github/workflows/release-exe.yml` la **rădăcina** repo-ului. ⚠️ Descoperire: `evaluare-anevar/.github/workflows/ci.yml` NU rulează pe GitHub (Actions citește doar `.github/` de la rădăcină) — mutarea CI-ului e task separat.
+- [x] **D2 — Calea proiectului pe Mac:** `~/Projects/anevar` → folder sesiuni encodat `-Users-<user>-Projects-anevar`; worktree-urile și mailbox-ul rămân frați sub `~/Projects/`.
+- [x] **D3 — Worktree-urile b/c/d:** se migrează TOATE, dar **peste câteva zile** (nu în ziua 1); pașii condiționați din bootstrap rămân valabili.
+- [x] **D4 — Sesiunile A–F:** **decide pilotul** (Faza 3.5): dacă transcriptul copiat se deschide corect → copiere în masă la cutover; altfel → sesiuni noi din handoff-uri. Handoff-urile se scriu oricum (plasă de siguranță).
 
 ---
 
@@ -96,14 +96,14 @@ curl -fsSL https://claude.ai/install.sh | bash
 claude    # primul start → login browser cu contul Max; NU seta ANTHROPIC_API_KEY
 
 # 3. Clonare proiect (cale conform D2)
-git clone https://github.com/adrianserbanescu-byte/anevar.git ~/anevar
-cd ~/anevar
+git clone https://github.com/adrianserbanescu-byte/anevar.git ~/Projects/anevar
+cd ~/Projects/anevar
 git worktree add ../anevar-b mutation-testing          # conform D3
 git worktree add ../anevar-c feat-descoperire-comparabile
 git worktree add ../anevar-d strategie-safety-net
 
 # 4. Mediu Python reproductibil (exact ca în README)
-cd ~/anevar/evaluare-anevar
+cd ~/Projects/anevar/evaluare-anevar
 python3.12 -m venv .venv && source .venv/bin/activate
 pip install -r requirements.lock && pip install -e . --no-deps
 pip install -e .[dev]
@@ -157,11 +157,11 @@ Notă: `sqlite3` și `git` vin deja cu macOS/Xcode CLT; UPX NU e necesar pe Mac 
    /plugin marketplace add trailofbits/skills
    /plugin marketplace add jeremylongshore/claude-code-plugins-plus-skills
    ```
-   apoi transferă blocurile `enabledPlugins` + `extraKnownMarketplaces` din settings-ul Windows (din arhivă, `claude-settings/`) și acceptă prompturile de instalare; plugin-urile locale (trailofbits etc.) se reinstalează din proiect (`~/anevar`).
+   apoi transferă blocurile `enabledPlugins` + `extraKnownMarketplaces` din settings-ul Windows (din arhivă, `claude-settings/`) și acceptă prompturile de instalare; plugin-urile locale (trailofbits etc.) se reinstalează din proiect (`~/Projects/anevar`).
 3. **Skills:** copiază `transfer/claude-skills/` → `~/.claude/skills/`.
 4. **Hooks — rescriere pentru macOS** (echivalentele celor 5 globale + 2 de proiect):
    - global (Stop, SubagentStop, PreToolUse×2, PostToolUse): `python3` + căile noi din `~/.claude/plugins/cache/...` (apar după reinstalarea plugin-urilor cost-tracker/memplan/security-guidance);
-   - proiect (`~/anevar/.claude/settings.local.json`, UserPromptSubmit): `python3 ~/anevar-mailbox/mailbox.py hook` și `python3 ~/anevar-mailbox/live-up.py` (după portarea din Faza 1.3).
+   - proiect (`~/Projects/anevar/.claude/settings.local.json`, UserPromptSubmit): `python3 ~/Projects/anevar-mailbox/mailbox.py hook` și `python3 ~/Projects/anevar-mailbox/live-up.py` (după portarea din Faza 1.3).
 5. **claude-mem:**
    ```bash
    npx claude-mem install        # Node 20+; Bun/uv se instalează automat
@@ -176,9 +176,9 @@ Notă: `sqlite3` și `git` vin deja cu macOS/Xcode CLT; UPX NU e necesar pe Mac 
 ### Faza 3.5 — PILOT de portabilitate sesiuni (de-riscarea Fazei 6) ⚠️ critic
 Portabilitatea transcripturilor pe CLI e nedocumentată — testăm cu O sesiune înainte de cutover:
 ```bash
-mkdir -p ~/.claude/projects/-Users-<user>-anevar
+mkdir -p ~/.claude/projects/-Users-<user>-Projects-anevar
 # copiază UN .jsonl (+ subfolderul <session-id>/ aferent) din transfer/sesiuni/
-cd ~/anevar && claude --resume    # sesiunea pilot trebuie să apară în picker și să se deschidă
+cd ~/Projects/anevar && claude --resume    # sesiunea pilot trebuie să apară în picker și să se deschidă
 ```
 - Dacă merge → Faza 6 = copiere în masă.
 - Dacă nu merge / se deschide degradat (cwd Windows înăuntru) → activezi fallback-ul D4: handoff-uri scrise per sesiune + memorie + claude-mem (cunoștințele tot migrează, doar istoricul conversațional rămâne arhivat).
@@ -193,19 +193,20 @@ cd ~/anevar && claude --resume    # sesiunea pilot trebuie să apară în picker
 
 **Ce se face:**
 1. **Server live pe 8000:** pe Mac nu există `.exe` → serverul live rulează din sursă:
-   `cd ~/anevar/evaluare-anevar && OUTPUT_DIR=live/date DB_PATH=live/date/evaluari.db ANEVAR_NO_BROWSER=1 python -m evaluare` (detașat).
+   `cd ~/Projects/anevar/evaluare-anevar && OUTPUT_DIR=live/date DB_PATH=live/date/evaluari.db ANEVAR_NO_BROWSER=1 python -m evaluare` (detașat).
    `live-up.py` portat (Faza 1.3) îl supraveghează din hook-ul UserPromptSubmit, ca acum. Opțional: `launchd` plist pentru pornire la boot (echivalentul „LIVE permanent").
-2. **Date aplicație:** copiază `transfer/app-date/` → `~/anevar/evaluare-anevar/live/date/` (+ `date/` în worktree dacă folosit). Verifică `PRAGMA integrity_check` pe `evaluari.db`.
-3. **Mailbox:** copiază `transfer/anevar-mailbox/` → `~/anevar-mailbox/`; `sessions.json` (UUID→literă) e portabil ca atare; hook-ul citește cwd din payload JSON (fix-ul din 2026-06-08) deci funcționează cross-OS după actualizarea căilor din settings (Faza 3.4).
+2. **Date aplicație:** copiază `transfer/app-date/` → `~/Projects/anevar/evaluare-anevar/live/date/` (+ `date/` în worktree dacă folosit). Verifică `PRAGMA integrity_check` pe `evaluari.db`.
+3. **Mailbox:** copiază `transfer/anevar-mailbox/` → `~/Projects/anevar-mailbox/`; `sessions.json` (UUID→literă) e portabil ca atare; hook-ul citește cwd din payload JSON (fix-ul din 2026-06-08) deci funcționează cross-OS după actualizarea căilor din settings (Faza 3.4).
 
-**Verificare:** kill server → următorul prompt în Claude îl repornește automat (hook live-up); dosarele vechi vizibile în UI pe Mac; `python ~/anevar-mailbox/mailbox.py send A "test"` → apare în inbox.
+**Verificare:** kill server → următorul prompt în Claude îl repornește automat (hook live-up); dosarele vechi vizibile în UI pe Mac; `python ~/Projects/anevar-mailbox/mailbox.py send A "test"` → apare în inbox.
 
 ---
 
 ## Faza 5 — Pipeline build .exe (conform deciziei D1)
 
-**Varianta recomandată (a) — GitHub Actions:** extinde `.github/workflows/ci.yml` (deja pe `windows-latest`) cu un job de release: `pip install pyinstaller` + `python scripts/build.py --clean` + upload artifact `dist/evaluare-anevar.exe`. Declanșare pe tag. Checklist-ul din `docs/deploy-checklist-exe.md` rămâne valabil (smoke test pe 8155 e deja în build.py).
-**Varianta (b):** păstrezi PC-ul Windows doar pentru `python scripts/build.py --clean --upx` la release-uri.
+**IMPLEMENTAT (D1, 2026-06-11):** job nou `.github/workflows/release-exe.yml` la **rădăcina repo-ului** (nu în `evaluare-anevar/.github/` — acela NU e citit de GitHub): declanșare pe tag `v*` sau manual (`workflow_dispatch`), runner `windows-latest`, `requirements.lock` + PyInstaller, `python scripts/build.py --clean --smoke-offline`, artifact `evaluare-anevar.exe` (fără UPX în CI → ~40,6 MB; diferența e ~3 MB). Test: declanșează manual din GitHub → Actions → „Release exe" → Run workflow, apoi compară artifact-ul cu un build local de pe PC.
+**Fallback (D1):** PC-ul Windows rămâne disponibil pentru `python scripts/build.py --clean --upx` până la 2-3 release-uri reușite prin Actions.
+**Task separat (descoperit la D1):** `ci.yml` trebuie mutat și el la rădăcină (`.github/workflows/`) cu `defaults.run.working-directory: evaluare-anevar`, altfel CI-ul nu rulează deloc pe GitHub.
 
 **Verificare:** un build complet produce `.exe` (~37-40 MB) care trece smoke testul; documentează în `docs/build.md` noua procedură.
 
@@ -225,12 +226,12 @@ cd ~/anevar && claude --resume    # sesiunea pilot trebuie să apară în picker
 
 **Pe Mac:**
 5. `git pull` pe toate worktree-urile.
-6. Transcripturi: conținutul folderului Windows → `~/.claude/projects/-Users-<user>-anevar/` (numele NOU encodat — nu păstra numele `C--Users-adyse-anevar`!). Inclusiv `memory/`. Pentru worktree-uri: `C--Users-adyse-anevar-b` → `-Users-<user>-anevar-b` etc.
+6. Transcripturi: conținutul folderului Windows → `~/.claude/projects/-Users-<user>-Projects-anevar/` (numele NOU encodat — nu păstra numele `C--Users-adyse-anevar`!). Inclusiv `memory/`. Pentru worktree-uri: `C--Users-adyse-anevar-b` → `-Users-<user>-Projects-anevar-b` etc.
 7. claude-mem: restore final DB+chroma (procedura din Faza 3.5, cu workerul oprit), restart, `claude-mem search` pe un termen recent.
 8. Mailbox: suprascrie `inbox/` cu varianta finală; repornește sesiunile pe litere (A întâi, apoi B–F pe worktree-urile lor), fiecare citindu-și handoff-ul + memoria.
 9. Repornește serverul live; repornește loop-ul autonom dacă e cazul.
 
-**Verificare (gate final):** `/resume` în `~/anevar` listează sesiunile vechi; memoria auto se încarcă (MEMORY.md vizibil în context la sesiune nouă); claude-mem regăsește observații pre-migrare; mailbox-ul livrează mesaje; serverul live servește dosarele vechi; suita de teste verde.
+**Verificare (gate final):** `/resume` în `~/Projects/anevar` listează sesiunile vechi; memoria auto se încarcă (MEMORY.md vizibil în context la sesiune nouă); claude-mem regăsește observații pre-migrare; mailbox-ul livrează mesaje; serverul live servește dosarele vechi; suita de teste verde.
 
 **Rollback:** Windows-ul rămâne NEATINS (sursă de adevăr) minim 1-2 săptămâni. Orice eșec pe Mac → continui pe Windows fără pierderi.
 
@@ -240,7 +241,7 @@ cd ~/anevar && claude --resume    # sesiunea pilot trebuie să apară în picker
 
 - [ ] Toate fluxurile critice exersate pe Mac: dosar nou → evaluare → raport .docx → PDF (soffice) → AML; export `_md2pdf.py` (PDF + DOCX conform regulii proiectului).
 - [ ] Un release `.exe` produs prin noul pipeline (D1) și verificat pe un Windows real (poate chiar PC-ul vechi, ultima lui sarcină).
-- [ ] `grep -rn "C:\\\\Users\|adyse" ~/anevar ~/anevar-mailbox --include="*.py" --include="*.json"` — fără rămășițe Windows neintenționate.
+- [ ] `grep -rn "C:\\\\Users\|adyse" ~/Projects/anevar ~/Projects/anevar-mailbox --include="*.py" --include="*.json"` — fără rămășițe Windows neintenționate.
 - [ ] Memoria auto actualizată: regulile legate de Windows (build Win7 parcat, PowerShell) marcate ca istorice; calea proiectului nouă.
 - [ ] Abia apoi: decomisionare/ștergere date de pe Windows.
 
