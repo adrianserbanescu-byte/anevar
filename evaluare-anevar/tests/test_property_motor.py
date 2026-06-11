@@ -126,22 +126,15 @@ if HAS_HYPOTHESIS:
     def test_prop_depreciere_in_zero_unu(pts, vcp):
         """interpolate_depreciation NU arunca pe vcp arbitrar; rezultatul ramane in [0,1] PRACTIC.
 
-        Toleranta 1e-9: vezi BUG-ul documentat in test_prop_depreciere_in_zero_unu_STRICT_xfail —
-        formula de interpolare poate iesi cu ~1e-31 sub 0 / peste 1 din coada de precizie Decimal."""
+        Toleranta 1e-9 (istorica): inainte de fix formula de interpolare putea iesi cu ~1e-31 sub 0 /
+        peste 1 din coada de precizie Decimal. Acum invariantul tine STRICT — vezi
+        test_prop_depreciere_in_zero_unu_STRICT; toleranta de aici e doar o plasa de siguranta."""
         d = interpolate_depreciation(vcp, pts)
         assert Decimal("-1e-9") <= d <= Decimal("1") + Decimal("1e-9")
 
-    @pytest.mark.xfail(reason=(
-        "BUG (minor, raportat): interpolate_depreciation poate intoarce o valoare microscopic in "
-        "AFARA intervalului [0,1] (ex. -1E-31 la un nod unde tabelul da 0.0000), din coada de precizie "
-        "Decimal a formulei d1+(d2-d1)/(v2-v1)*(vcp-v1) cand panta (d2-d1)/(v2-v1) e ne-terminanta. "
-        "Reproductibil si la precizia IMPLICITA (28), nu doar la prec=60. Magnitudine ~1e-31 = "
-        "imateriala monetar (productia foloseste 1-Dfn in CIN), DAR incalca strict invariantul Dfn in "
-        "[0,1]. Fix sugerat (alt scope): clamp rezultatul la [0,1] sau scurtcircuit cand vcp == un nod."),
-        strict=True)
-    @example(  # trigger DETERMINIST (gasit de Hypothesis, redus): panta 0.0003/22 e ne-terminanta,
-               # iar la nodul vcp=22 formula da -1E-31 < 0. Forteaza bug-ul la FIECARE rulare (nu doar
-               # cand Hypothesis nimereste tabelul) -> xfail strict, stabil.
+    @example(  # regresie DETERMINISTA (gasit de Hypothesis, redus): panta 0.0003/22 e ne-terminanta,
+               # iar la nodul vcp=22 formula NEclampata dadea -1E-63 < 0. Dupa fix (clamp [0,1] +
+               # scurtcircuit pe nod) rezultatul e EXACT 0. Forteaza cazul la FIECARE rulare.
         pts=[DepreciationPoint(varsta=0, depreciere=Decimal("0.0003")),
              DepreciationPoint(varsta=22, depreciere=Decimal("0")),
              DepreciationPoint(varsta=23, depreciere=Decimal("0"))],
@@ -150,9 +143,12 @@ if HAS_HYPOTHESIS:
            st.decimals(min_value=Decimal("-50"), max_value=Decimal("300"),
                        places=2, allow_nan=False, allow_infinity=False))
     @settings(max_examples=400, deadline=None)
-    def test_prop_depreciere_in_zero_unu_STRICT_xfail(pts, vcp):
-        """STRICT (xfail): deprecierea interpolata trebuie sa fie EXACT in [0,1], fara toleranta.
-        Picata de exemplul determinist din @example -> vezi reason. NU e reparat aici (scope = testul nou)."""
+    def test_prop_depreciere_in_zero_unu_STRICT(pts, vcp):
+        """STRICT: deprecierea interpolata trebuie sa fie EXACT in [0,1], fara toleranta.
+
+        Anterior xfail (BUG: interpolate_depreciation scotea ~1e-31/1e-63 in afara [0,1] din coada de
+        precizie Decimal a formulei d1+(d2-d1)/(v2-v1)*(vcp-v1)). REPARAT: clamp [0,1] + scurtcircuit pe
+        nod in interpolate_depreciation -> invariantul Dfn in [0,1] tine STRICT (exemplul determinist trece)."""
         d = interpolate_depreciation(vcp, pts)
         assert Decimal("0") <= d <= Decimal("1")
 

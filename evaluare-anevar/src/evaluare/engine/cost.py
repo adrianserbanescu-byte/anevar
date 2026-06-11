@@ -41,6 +41,10 @@ def interpolate_depreciation(
 
     Dfn = D1 + (D2 - D1) / (V2 - V1) * (Vcp - V1)
     Sub/peste limitele tabelului se foloseste primul/ultimul punct (clamp).
+    Rezultatul interpolat se clampeaza in [0, 1]: panta (D2-D1)/(V2-V1) poate fi o
+    zecimala Decimal ne-terminanta, iar coada de precizie poate scoate valoarea
+    microscopic in afara intervalului (ex. -1E-63 la un nod unde tabelul da 0) —
+    Dfn TREBUIE sa ramana o fractie valida in [0, 1] (intra ca 1-Dfn in compute_cin).
     """
     if not points:
         raise ValueError("Tabelul de depreciere este gol.")
@@ -51,9 +55,15 @@ def interpolate_depreciation(
         return ordered[-1].depreciere
     for low, high in zip(ordered, ordered[1:], strict=False):  # perechi consecutive (lungimi diferite intentionat)
         if low.varsta <= vcp <= high.varsta:
+            if vcp == low.varsta:  # scurtcircuit pe nod: valoarea tabulata exacta, fara reziduu de panta
+                return low.depreciere
+            if vcp == high.varsta:
+                return high.depreciere
             v1, d1 = Decimal(low.varsta), low.depreciere
             v2, d2 = Decimal(high.varsta), high.depreciere
-            return d1 + (d2 - d1) / (v2 - v1) * (vcp - v1)
+            dfn = d1 + (d2 - d1) / (v2 - v1) * (vcp - v1)
+            # Clamp [0,1]: coada de precizie Decimal a interpolarii poate iesi cu ~1e-31 in afara.
+            return min(max(dfn, Decimal("0")), Decimal("1"))
     raise AssertionError("interpolare: caz logic neatins")
 
 
