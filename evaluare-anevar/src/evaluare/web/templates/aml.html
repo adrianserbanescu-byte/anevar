@@ -51,33 +51,36 @@ Modulul propune — <b>evaluatorul decide și transmite</b> (rapoarte.onpcsb.ro)
 <fieldset>
  <legend>Client</legend>
  <label for="tip_client">Tip client</label>
- <select id="tip_client" onchange="document.getElementById('pj').style.display=this.value=='PJ'?'block':'none'">
+ <select id="tip_client" aria-controls="pj" aria-expanded="false" onchange="var _pj=this.value=='PJ';document.getElementById('pj').style.display=_pj?'block':'none';this.setAttribute('aria-expanded',_pj)">
    <option value="PF">Persoană fizică</option>
    <option value="PJ">Persoană juridică</option>
  </select>
  <div class="row">
-   <div><label for="nume">Nume</label><input type="text" id="nume"></div>
-   <div><label for="prenume">Prenume</label><input type="text" id="prenume"></div>
-   <div><label for="cnp">CNP</label><input type="text" id="cnp"></div>
+   <div><label for="nume">Nume</label><input type="text" id="nume" autocomplete="family-name"></div>
+   <div><label for="prenume">Prenume</label><input type="text" id="prenume" autocomplete="given-name"></div>
+   <div><label for="cnp">CNP</label><input type="text" id="cnp" inputmode="numeric" autocomplete="off"></div>
  </div>
  <div class="chk"><label><input type="checkbox" id="pep"> Client / beneficiar real este PEP (persoană expusă public)</label></div>
- <div id="pj" style="display:none">
-   <label for="denumire">Denumire PJ</label><input type="text" id="denumire">
-   <label for="cui">CUI</label><input type="text" id="cui">
+ <div id="pj" role="group" aria-label="Date persoană juridică" style="display:none">
+   <label for="denumire">Denumire PJ</label><input type="text" id="denumire" autocomplete="organization">
+   <label for="cui">CUI</label><input type="text" id="cui" autocomplete="off">
    <p class="hint">Beneficiarii reali (&gt;25%) se completează în fișa generată.</p>
-   <label for="br_modalitate_identificare">Beneficiar real — modalitate de identificare</label>
-   <select id="br_modalitate_identificare">
-     <option value="">— neprecizat —</option>
-     <option value="declaratie_client">Declarație a clientului</option>
-     <option value="extras_rbr">Extras din Registrul Beneficiarilor Reali (RBR)</option>
-     <option value="extras_onrc">Extras ONRC</option>
-     <option value="alte_surse">Alte surse</option>
-   </select>
-   <div class="chk"><label><input type="checkbox" id="consultat_rbr"> S-a consultat Registrul Beneficiarilor Reali (RBR) — Legea art. 19(5)</label></div>
-   <div class="row">
-     <div><label for="nr_extras_rbr">Nr. extras RBR</label><input type="text" id="nr_extras_rbr"></div>
-     <div><label for="data_extras_rbr">Data extras RBR</label><input type="date" id="data_extras_rbr"></div>
-   </div>
+   <fieldset>
+     <legend>Beneficiar real (RBR)</legend>
+     <label for="br_modalitate_identificare">Beneficiar real — modalitate de identificare</label>
+     <select id="br_modalitate_identificare">
+       <option value="">— neprecizat —</option>
+       <option value="declaratie_client">Declarație a clientului</option>
+       <option value="extras_rbr">Extras din Registrul Beneficiarilor Reali (RBR)</option>
+       <option value="extras_onrc">Extras ONRC</option>
+       <option value="alte_surse">Alte surse</option>
+     </select>
+     <div class="chk"><label><input type="checkbox" id="consultat_rbr"> S-a consultat Registrul Beneficiarilor Reali (RBR) — Legea art. 19(5)</label></div>
+     <div class="row">
+       <div><label for="nr_extras_rbr">Nr. extras RBR</label><input type="text" id="nr_extras_rbr"></div>
+       <div><label for="data_extras_rbr">Data extras RBR</label><input type="date" id="data_extras_rbr"></div>
+     </div>
+   </fieldset>
  </div>
 </fieldset>
 
@@ -117,8 +120,9 @@ Modulul propune — <b>evaluatorul decide și transmite</b> (rapoarte.onpcsb.ro)
  <label class="chk"><input type="checkbox" class="ind" value="antecedente_penale"> Antecedente penale</label>
 </fieldset>
 
-<button type="button" id="eval-btn" onclick="evalueaza()" aria-describedby="rez">Evaluează relația</button>
-<div id="rez" role="status" aria-live="polite"></div>
+<button type="button" id="eval-btn" onclick="evalueaza()">Evaluează relația</button>
+<div id="rez" role="status" aria-live="polite" aria-atomic="false"></div>
+<p id="aml-doc-status" class="hint" role="status" aria-live="polite"></p>
 
 <fieldset>
  <legend>Documente GDPR (model)</legend>
@@ -179,8 +183,10 @@ async function evalueaza(){
   h+=`<p>Documente de generat <span class="hint">(.docx — verifică-le și salvează-le ca PDF local)</span>:</p><ul>`+d.documente_necesare.map(doc=>{
      const map={norme_interne:'/api/aml/norme-interne.docx',evaluare_risc:'/api/aml/evaluare-risc.docx',
        fisa_kyc:'/api/aml/fisa-kyc.docx',decizie_desemnare:'/api/aml/decizie.docx',rts:'/api/aml/rts.docx'};
-     return `<li><button type="button" onclick='descarca("${map[doc]}")'>${doc}</button></li>`;}).join('')+`</ul><p id="aml-doc-status" class="hint" role="status" aria-live="polite"></p></div>`;
+     return `<li><button type="button" onclick='descarca("${map[doc]}")'>${doc}</button></li>`;}).join('')+`</ul></div>`;
   document.getElementById('rez').innerHTML=h;
+  // status descarcare = regiune live separata, in afara lui #rez (evita regiuni live imbricate)
+  document.getElementById('aml-doc-status').textContent='';
   window._amlBody=body;
   }finally{ btn.classList.remove('is-loading'); btn.disabled=false; }
 }
