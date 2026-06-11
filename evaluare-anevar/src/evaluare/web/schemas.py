@@ -4,7 +4,7 @@ from __future__ import annotations
 from datetime import date
 from decimal import Decimal
 
-from pydantic import BaseModel, field_validator
+from pydantic import BaseModel, Field, field_validator
 
 from evaluare.aml.validare_data import verifica_an_plauzibil
 from evaluare.discovery.profiles import SubjectProfile
@@ -87,18 +87,22 @@ class DescoperaTerenRequest(BaseModel):
     max_candidati: int = 20             # default ridicat (era 8); configurabil din request (control UI)
 
 
+# N4 (audit nealiniat-consistenta): suprafata subiect <=0 era respinsa de /api/grila-chirii (engine
+# evalueaza_chirie ridica ValueError -> 422) dar acceptata tacut de grila-casa (suprafata ignorata) si
+# grila-teren (producea valoare_teren <=0). Aliniem la comportamentul STRICT (chirii) prin gard la
+# nivel de schema -> 422 consistent pentru toate 3 grilele inainte de a ajunge in motor.
 class GrilaTerenRequest(BaseModel):
-    suprafata_subiect: Decimal
+    suprafata_subiect: Decimal = Field(gt=0)
     comparabile: list[LandComparable]
 
 
 class GrilaCasaRequest(BaseModel):
-    suprafata_subiect: Decimal
+    suprafata_subiect: Decimal = Field(gt=0)
     comparabile: list[Comparable]
 
 
 class GrilaChiriiRequest(BaseModel):
-    suprafata_subiect: Decimal
+    suprafata_subiect: Decimal = Field(gt=0)
     comparabile: list[RentComparable]
 
 

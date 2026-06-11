@@ -122,6 +122,23 @@ def test_grila_teren_rotunjeste_pret_mp(tmp_path):
     assert d["pret_mp_ales"] == "100.33" and len(d["valoare_teren"].split(".")[-1]) <= 2
 
 
+def test_grila_suprafata_subiect_invalida_422_paritate(tmp_path):
+    # N4 (audit nealiniat-consistenta): suprafata subiect <=0 trebuie respinsa CONSISTENT de toate cele
+    # 3 grile (paritate). Inainte: grila-chirii -> 422, dar grila-casa accepta tacut (suprafata ignorata)
+    # si grila-teren intorcea valoare_teren <=0. Acum toate 3 dau 422 (comportamentul STRICT castiga).
+    client = _client(tmp_path)
+    comp_teren = [{"pret_mp": "100", "suprafata": "500"}] * 2
+    comp_casa = [{"pret": "500000", "suprafata": "100"}] * 2
+    comp_chirii = [{"chirie_mp": "10", "suprafata": "100"}] * 2
+    for supr in ("0", "-50"):
+        assert client.post("/api/grila-teren", json={
+            "suprafata_subiect": supr, "comparabile": comp_teren}).status_code == 422
+        assert client.post("/api/grila-casa", json={
+            "suprafata_subiect": supr, "comparabile": comp_casa}).status_code == 422
+        assert client.post("/api/grila-chirii", json={
+            "suprafata_subiect": supr, "comparabile": comp_chirii}).status_code == 422
+
+
 def test_grila_input_degenerat_da_422_nu_500(tmp_path):
     # P0 (schemathesis/D): input numeric degenerat (valori uriase ~1e308 -> overflow la quantize, sau
     # "Infinity"/"NaN" string) -> 422 clar, NU 500. Toate 3 grilele.
