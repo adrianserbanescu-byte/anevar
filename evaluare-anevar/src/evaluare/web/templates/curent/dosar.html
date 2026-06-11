@@ -284,7 +284,7 @@
         <summary>{{ icon("grid") }} Grilă de ajustări — casă (pe etape + alerte prudențiale)</summary>
         <p class="hint">Completează prețul + suprafața fiecărui comparabil și ajustările. „Tranzacție" = compus (ofertă→tranzacție);
           „proprietate" = aditiv (caracteristici). Procentual: puncte % (5 = +5%). Valoric: lei.</p>
-        <div class="field" style="max-width:220px"><label for="g-supr">Suprafață subiect (mp)</label><input id="g-supr" placeholder="ex. 120"></div>
+        <div class="field" style="max-width:220px"><label for="g-supr">Suprafață subiect (mp)</label><input id="g-supr" placeholder="ex. 120"><small class="hint" id="g-supr-hint" hidden>precompletat cu ACD — aria construită desfășurată</small></div>
         <div id="grila-casa-tabel" class="grila-scroll"></div>
         <div class="btn-bar">
           <button type="button" id="g-calc">Calculează grila casă</button>
@@ -297,7 +297,7 @@
       <details class="grila-det">
         <summary>{{ icon("grid") }} Grilă de ajustări — teren (pe etape + alerte prudențiale)</summary>
         <p class="hint">Preț/mp + suprafața fiecărui comparabil + ajustările (procentuale, în puncte %: 5 = +5%).</p>
-        <div class="field" style="max-width:220px"><label for="gt-supr">Suprafață teren subiect (mp)</label><input id="gt-supr" placeholder="ex. 500"></div>
+        <div class="field" style="max-width:220px"><label for="gt-supr">Suprafață teren subiect (mp)</label><input id="gt-supr" placeholder="ex. 500"><small class="hint" id="gt-supr-hint" hidden>precompletat cu suprafața teren</small></div>
         <div id="grila-teren-tabel" class="grila-scroll"></div>
         <div class="btn-bar">
           <button type="button" id="gt-calc">Calculează grila teren</button>
@@ -308,7 +308,7 @@
       <details class="grila-det">
         <summary>{{ icon("grid") }} Grilă de chirii — pentru abordarea prin venit (chirie/mp + ajustări → VBP)</summary>
         <p class="hint">Chiria lunară/mp + suprafața fiecărui comparabil + ajustările. Rezultă venitul brut potențial anual (VBP).</p>
-        <div class="field" style="max-width:220px"><label for="gc-supr">Suprafață închiriabilă subiect (mp)</label><input id="gc-supr" placeholder="ex. 100"></div>
+        <div class="field" style="max-width:220px"><label for="gc-supr">Suprafață închiriabilă subiect (mp)</label><input id="gc-supr" placeholder="ex. 100"><small class="hint" id="gc-supr-hint" hidden>precompletat cu AU — aria utilă</small></div>
         <div id="grila-chirii-tabel" class="grila-scroll"></div>
         <div class="btn-bar">
           <button type="button" id="gc-calc">Calculează grila chirii</button>
@@ -1290,6 +1290,37 @@ function asambleaza(){
     if($("vbp")) $("vbp").value=_vbp;
     if($("metoda")){ $("metoda").value="venit"; if(typeof sincronMetoda==="function") sincronMetoda(); }
     salveaza(); $("gc-rezultat").textContent="✓ VBP preluat la metoda Venit ("+fmtRo(_vbp)+"/an). Vezi tab-ul Calcul.";
+  });
+})();
+// ── PRECOMPLETARE „Suprafață subiect" în cele 3 grile (din datele de pe Proprietate) ──────────
+// Cerința Adi: câmpul „Suprafață subiect" al fiecărei grile pornește din ce a introdus userul pe
+// tabul Proprietate (DOAR dacă e gol — nu suprascriem ce a tastat în grilă; rămâne editabil după).
+//   casă  #g-supr  ← #acd (arie construită desfășurată)
+//   teren #gt-supr ← #suprafata_teren
+//   chirii #gc-supr ← #au (arie utilă)
+// Rulează la init + la fiecare deschidere a grilei (toggle) — ca să prindă și valorile tastate pe
+// Proprietate DUPĂ încărcarea paginii. Hint-ul se afișează doar când chiar am precompletat.
+(function(){
+  var GRILE=[
+    {dst:"g-supr",  src:"acd",            hint:"g-supr-hint"},
+    {dst:"gt-supr", src:"suprafata_teren",hint:"gt-supr-hint"},
+    {dst:"gc-supr", src:"au",             hint:"gc-supr-hint"}
+  ];
+  function precompleteaza(g){
+    var d=$(g.dst), s=$(g.src), h=$(g.hint);
+    if(!d || !s) return;
+    var sv=(s.value||"").trim();
+    // doar dacă grila e goală ȘI sursa are valoare → copiem + arătăm hint-ul.
+    if(!(d.value||"").trim() && sv){ d.value=sv; if(h) h.hidden=false; }
+  }
+  function toate(){ GRILE.forEach(precompleteaza); }
+  // 1) la init (sursele sunt deja populate din WIZARD mai sus în script)
+  toate();
+  // 2) la deschiderea fiecărei grile (<details> care conține câmpul) — prinde valori tastate ulterior
+  GRILE.forEach(function(g){
+    var d=$(g.dst); if(!d) return;
+    var det=d.closest && d.closest("details");
+    if(det) det.addEventListener("toggle", function(){ if(det.open) precompleteaza(g); });
   });
 })();
 $("calc").addEventListener("click", async function(){
