@@ -63,7 +63,9 @@ def test_ponderata_declara_abordarea_calculata_dar_neponderata():
                          ponderi={"comparatie": Decimal("0.5"), "cost": Decimal("0.5")})
     assert r.valoare_finala == Decimal("290000.00")        # media cost+comparatie (venitul exclus)
     assert "venit" in r.nota.lower() and "nu este inclusa" in r.nota.lower()
-    # fara abordari excluse -> nota goala (comportament nemodificat)
+    # fara abordari excluse -> nu mai exista nota de EXCLUDERE (comportament nemodificat); ramane DOAR
+    # avertismentul GEV 630 §107 (media ponderata interzisa ca CONCLUZIE), adaugat aditiv.
     r2 = reconcile_profil([_r("cost", "300000"), _r("comparatie", "280000")], primara="comparatie",
                           ponderi={"comparatie": Decimal("0.5"), "cost": Decimal("0.5")})
-    assert r2.nota == ""
+    assert "nu este inclusa" not in r2.nota.lower()        # nicio abordare exclusa
+    assert "§107" in r2.nota                               # avertismentul de medie ponderata
