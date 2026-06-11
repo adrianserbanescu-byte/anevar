@@ -185,7 +185,7 @@
         <div class="field-row">
           <div class="field"><label for="data_raportului">Data raport</label><input type="date" id="data_raportului"></div>
           <div class="field"><label for="data_evaluarii">Data evaluării</label><input type="date" id="data_evaluarii"></div>
-          <div class="field"><label for="data_inspectiei">Data vizită</label><input type="date" id="data_inspectiei"></div>
+          <div class="field"><label for="data_inspectiei">Data inspecției</label><input type="date" id="data_inspectiei"></div>
         </div>
         {# audit P4/R4: nota „goală→azi" e acum atașată grupului, nu text orfan între rânduri. #}
         <small class="hint grup-nota">Data evaluării: dacă o lași goală, generarea AML folosește data de azi.</small>
@@ -210,6 +210,8 @@
          îl persistă individual; clasa .risc-fizic îi adună într-o listă `riscuri_fizice` la build payload
          (același pattern ca Utilități/.util). #}
       <fieldset class="grup"><legend>Riscuri fizice (ESG, GEV 520)</legend>
+      <details class="grila-det">
+        <summary>Riscuri fizice identificate (opțional — minimizat)</summary>
         <small class="hint grup-nota">Bifează riscurile fizice identificate; sursa de verificare (autorități: ISU, ANM, INHGA, MMAP, ISC) se preia ca atare în raport. Încadrarea pe scală de probabilitate excede competența evaluatorului — riscurile se menționează, nu se cuantifică.</small>
         <label class="chk"><input type="checkbox" id="risc_cutremure" class="risc-fizic" value="cutremure"> Cutremure</label>
         <label class="chk"><input type="checkbox" id="risc_alunecari_teren" class="risc-fizic" value="alunecari_teren"> Alunecări de teren</label>
@@ -219,6 +221,7 @@
         <label class="chk"><input type="checkbox" id="risc_inundatii" class="risc-fizic" value="inundatii"> Inundații</label>
         <label class="chk"><input type="checkbox" id="risc_grindina_precipitatii" class="risc-fizic" value="grindina_precipitatii"> Grindină / precipitații extreme</label>
         <label class="chk"><input type="checkbox" id="risc_incendii" class="risc-fizic" value="incendii"> Incendii</label>
+      </details>
       </fieldset>
 
       <fieldset class="grup"><legend>Administrativ &amp; registru</legend>
@@ -274,15 +277,26 @@
             <div class="field"><label for="suprafata_teren">Suprafață teren (mp)</label><input id="suprafata_teren" placeholder="ex. 500"></div>
             <div class="field"><label for="categorie_teren">Regim</label>
               <select id="categorie_teren"><option value="intravilan">Intravilan</option><option value="extravilan">Extravilan</option></select></div>
-            <div class="field"><label for="valoare_teren">Valoare teren (lei) <span class="hint">(opțional — manual; sau din grila de teren dacă ai comparabile)</span></label><input id="valoare_teren" placeholder="ex. 100000"></div>
           </div>
           {# audit P4/R4: „Cale de acces" + „Regim urbanistic" erau câmpuri libere (nu în .field-row) =>
              marginile săreau. Acum în .field-row, aliniate cu restul. #}
           <div class="field-row">
             <div class="field"><label for="acces">Cale de acces <span class="hint">(afectează valoarea)</span></label>
-              <input id="acces" placeholder="ex. drum asfaltat / pietruit / servitute de trecere"></div>
+              <select id="acces">
+                <option value="Drum asfaltat">Drum asfaltat</option>
+                <option value="Drum pietruit">Drum pietruit</option>
+                <option value="Drum de pământ">Drum de pământ</option>
+                <option value="Servitute de trecere">Servitute de trecere</option>
+                <option value="Altul">Altul</option>
+              </select>
+              <input id="acces_alt" aria-label="Altă cale de acces" placeholder="descrie calea de acces" hidden></div>
             <div class="field field--wide"><label for="restrictii_urbanism">Regim urbanistic / restricții <span class="hint">(opțional, din certificatul de urbanism: POT/CUT, servituți, interdicții)</span></label>
               <input id="restrictii_urbanism" placeholder="ex. POT 40%, CUT 1.2, fără restricții"></div>
+          </div>
+          {# Valoare teren — mutată jos (langă grila de teren / la finalul secțiunii teren). Se poate
+             completa manual sau se preia din grila de teren (Lot C). Id-ul rămâne #valoare_teren. #}
+          <div class="field-row">
+            <div class="field"><label for="valoare_teren">Valoare teren (lei) <span class="hint">(opțional — manual; sau din grila de teren dacă ai comparabile)</span></label><input id="valoare_teren" placeholder="ex. 100000"></div>
           </div>
         </fieldset>
         <fieldset class="grup"><legend>Utilități (GEV 630)</legend>
@@ -292,6 +306,9 @@
           <label class="chk"><input type="checkbox" id="util_gaze" class="util" value="gaze naturale"> Gaze</label>
           <label class="chk"><input type="checkbox" id="util_curent" class="util" value="energie electrică"> Curent</label>
           <label class="chk"><input type="checkbox" id="util_internet" class="util" value="internet"> Internet</label>
+          <label class="chk"><input type="checkbox" id="util_fosa" class="util" value="fosă septică"> Fosă septică</label>
+          <div class="field" style="margin-top:6px"><label for="util_altele">Alte utilități <span class="hint">(opțional, free-text)</span></label>
+            <input id="util_altele" placeholder="ex. panouri fotovoltaice, puț forat"></div>
         </fieldset>
       </div>
 
@@ -300,17 +317,13 @@
         <fieldset class="grup"><legend>Construcție</legend>
           <div class="field-row">
             <div class="field"><label for="au">Arie utilă (mp)</label><input id="au" placeholder="ex. 100"></div>
-            <div class="field"><label for="acd">Arie construită desfășurată (mp)</label><input id="acd" placeholder="ex. 120"></div>
-            <div class="field"><label for="an_referinta">An referință</label><input id="an_referinta" type="number" placeholder="ex. 2025"></div>
+            <div class="field"><label for="acd">Arie construită desfășurată (mp) <span class="hint">(AU ÷ 0,80)</span></label><input id="acd" placeholder="ex. 120"></div>
           </div>
-        </fieldset>
-        {# #grup-cost e toggle-uit de _show() (doar abordarea prin cost) — id PĂSTRAT. #}
-        <fieldset id="grup-cost" class="grup"><legend>Date de cost (abordarea prin cost)</legend>
-          <div class="field"><label for="elemente">Elemente de cost</label>
-            <textarea id="elemente" rows="2" aria-describedby="h-elemente" placeholder="Structura;X;mp;120;2000;2015"></textarea>
-            <small id="h-elemente" class="hint">Necesare doar pentru abordarea prin cost (casă/industrial/special).</small></div>
-          <div class="field"><label for="depreciere">Depreciere fizică <span class="hint">(vârstă în ani → fracție 0–1)</span></label>
-            <textarea id="depreciere" rows="2" placeholder="5;0.05"></textarea></div>
+          <div class="field-row">
+            <div class="field"><label for="an_referinta">An referință</label><input id="an_referinta" type="number" placeholder="ex. 2025"></div>
+            <div class="field"><label for="an_pif">An PIF (punere în funcțiune)</label><input id="an_pif" type="number" placeholder="ex. 2010"></div>
+          </div>
+          <small class="hint grup-nota">vârsta = referință − PIF</small>
         </fieldset>
       </div>
     </section>
@@ -432,6 +445,15 @@
           <input id="curs_valutar" placeholder="ex. 4,9750">
           <small id="curs-info" class="hint" role="status" aria-live="polite"></small></div>
       </div>
+      {# #grup-cost mutat din Proprietate → Calcul (Lot B #7). E toggle-uit de _show() (doar abordarea
+         prin cost) — id-urile #grup-cost / #elemente / #depreciere PĂSTRATE pentru asambleaza(). #}
+      <fieldset id="grup-cost" class="grup"><legend>Date de cost (abordarea prin cost)</legend>
+        <div class="field"><label for="elemente">Elemente de cost</label>
+          <textarea id="elemente" rows="2" aria-describedby="h-elemente" placeholder="Structura;X;mp;120;2000;2015"></textarea>
+          <small id="h-elemente" class="hint">Necesare doar pentru abordarea prin cost (casă/industrial/special).</small></div>
+        <div class="field"><label for="depreciere">Depreciere fizică <span class="hint">(vârstă în ani → fracție 0–1)</span></label>
+          <textarea id="depreciere" rows="2" placeholder="5;0.05"></textarea></div>
+      </fieldset>
       <div id="grup-venit" hidden>
         <h3>Date venit (capitalizare directă)</h3>
         <div class="field-row">
@@ -655,6 +677,34 @@ Object.keys(WIZARD||{}).forEach(function(k){ var e=$(k); if(!e) return;
 ["tip_proprietate","scop"].forEach(function(k){ var e=$(k);
   if(e && WIZARD && WIZARD[k]){ e.disabled=true; e.setAttribute("aria-disabled","true");
     e.title="Stabilit la crearea dosarului — pentru altul, creează un dosar nou."; } });
+
+// Lot B #3: An referință precompletat cu anul curent (editabil) — doar dacă nu a fost restaurat.
+(function(){ var ar=$("an_referinta"); if(ar && !ar.value) ar.value=new Date().getFullYear(); })();
+
+// Lot B #2: AU ↔ ACD bidirecțional, coeficient 0.80 (ACD = AU / 0.80; AU = ACD * 0.80).
+// Ambele rămân editabile; ultima editare câștigă. Guard `busy` previne bucla infinită
+// (când setăm programatic celălalt câmp, listener-ul lui nu re-declanșează recalculul).
+(function(){
+  var au=$("au"), acd=$("acd"); if(!au||!acd) return;
+  var COEF=0.80, busy=false;
+  function num(v){ var n=parseFloat(String(v).replace(",",".")); return isFinite(n)?n:null; }
+  au.addEventListener("input", function(){
+    if(busy) return; var n=num(au.value);
+    busy=true; acd.value = (n!=null && n>0) ? Math.round(n/COEF*100)/100 : ""; busy=false;
+  });
+  acd.addEventListener("input", function(){
+    if(busy) return; var n=num(acd.value);
+    busy=true; au.value = (n!=null && n>0) ? Math.round(n*COEF*100)/100 : ""; busy=false;
+  });
+})();
+
+// Lot B #4: „Cale de acces" dropdown — la „Altul" arată câmpul free-text #acces_alt.
+(function(){
+  var sel=$("acces"), alt=$("acces_alt"); if(!sel||!alt) return;
+  function syncAcces(){ alt.hidden = (sel.value!=="Altul"); }
+  sel.addEventListener("change", function(){ syncAcces(); salveaza&&salveaza(); });
+  syncAcces();
+})();
 
 // M2 (B): valoarea de piață/teren/chirie = MEDIA celor mai similare N comparabile (default 3).
 // Helper de fallback safe pre-integrare: dacă indici_mediati lipsește din payload (motor M1) →
@@ -1442,6 +1492,7 @@ function asambleaza(){
   if(curs) meta.curs_valutar=curs;
   var faraConstr=($("tip_proprietate").value==="agricol");
   var building={au:$("au").value||"0",acd:$("acd").value||"0",an_referinta:parseInt($("an_referinta").value)||2025,elements:faraConstr?[]:elements,depreciation_points:faraConstr?[]:dp};
+  if($("an_pif")&&$("an_pif").value) building.an_pif=parseInt($("an_pif").value);  // Lot B #3 (contract A2): vârsta = an_referinta − an_pif la nivel de clădire
   if($("etaj")&&$("etaj").value) building.etaj=parseInt($("etaj").value);
   if($("nr_niveluri_bloc")&&$("nr_niveluri_bloc").value) building.nr_niveluri_bloc=parseInt($("nr_niveluri_bloc").value);
   if($("an_bloc")&&$("an_bloc").value) building.an_bloc=parseInt($("an_bloc").value);
@@ -1450,8 +1501,12 @@ function asambleaza(){
   var land={suprafata:$("suprafata_teren").value||"0"};
   if($("categorie_teren")&&$("categorie_teren").value) land.categorie=$("categorie_teren").value;
   var util=[]; document.querySelectorAll(".util:checked").forEach(function(c){ util.push(c.value); });
+  if($("util_altele")&&$("util_altele").value.trim()) util.push($("util_altele").value.trim());  // Lot B #5: free-text „Altele"
   if(util.length) land.utilitati=util;
-  if($("acces")&&$("acces").value) land.acces=$("acces").value;
+  // Lot B #4: cale de acces = valoarea aleasă din dropdown, sau free-textul când e „Altul".
+  if($("acces")){ var acc=$("acces").value;
+    if(acc==="Altul" && $("acces_alt")) acc=$("acces_alt").value.trim();
+    if(acc) land.acces=acc; }
   if($("restrictii_urbanism")&&$("restrictii_urbanism").value) land.restrictii_urbanism=$("restrictii_urbanism").value;
   if($("categorie_folosinta")&&$("categorie_folosinta").value) land.categorie_folosinta=$("categorie_folosinta").value;
   if($("clasa_calitate")&&$("clasa_calitate").value) land.clasa_calitate=parseInt($("clasa_calitate").value);
