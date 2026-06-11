@@ -133,7 +133,8 @@ suprascrie) — Claude Code va propune instalarea la următoarea pornire:
   "supply-chain-risk-auditor@trailofbits": true
 }
 ```
-(Ultimele 5 trailofbits = recomandările find-skills din 2026-06-10/11 — se instalează direct aici.)
+(Listă VERIFICATĂ 2026-06-11 contra `installed_plugins.json` de pe Windows: acoperă TOATE cele
+37 plugin-uri user-scope — 36 aici + claude-mem instalat separat la A7. Completă, zero lipsuri.)
 Plugin-urile project-scope (agentic-actions-auditor, site-audit, zeroize-audit, gh-cli,
 audit-context-building, static-analysis, differential-review @trailofbits/easier-life-skills):
 scrie-le în `~/claude/anevar/.claude/settings.local.json` → `enabledPlugins` (fp-check = `false`).
