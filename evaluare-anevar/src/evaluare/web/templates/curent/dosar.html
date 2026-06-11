@@ -50,6 +50,19 @@
     border-radius:var(--radius-sm); box-shadow:var(--shadow); font-size:.82rem; font-weight:400;
     line-height:1.5; white-space:normal; }
   #d-rezultate .cr-scor-pop.hint-open{ display:block; }
+  /* Acțiuni pe rândul de candidat: «Salvează» (în așteptare) lângă «vezi». */
+  #d-rezultate .cr-salv{ font-size:.8rem; white-space:nowrap; padding:2px 8px; }
+  #d-rezultate .cr-salv.salvat{ opacity:.6; }
+  /* Panou colapsabil «Candidați salvați» — aceeași estetică cu rândurile live (.cand-row). */
+  #cand-salvati .cand-row{ display:flex; align-items:center; gap:8px 14px; flex-wrap:wrap;
+    padding:8px 0; border-bottom:1px solid var(--rule); }
+  #cand-salvati .cr-pret{ font-family:var(--serif); font-size:1rem; font-weight:600; color:var(--ink); white-space:nowrap; }
+  #cand-salvati .cr-fapt{ font-size:.85rem; color:var(--ink-faint); white-space:nowrap; }
+  #cand-salvati .cr-loc{ font-size:.85rem; color:var(--ink-2); white-space:nowrap; }
+  #cand-salvati .cr-loc::before{ content:"📍 "; }
+  #cand-salvati .cr-actiuni{ margin-left:auto; display:flex; gap:8px; white-space:nowrap; }
+  #cand-salvati .cr-vezi{ font-size:.85rem; white-space:nowrap; }
+  #cand-salvati .cr-portal{ font-size:.78rem; color:var(--ink-faint); white-space:nowrap; }
 </style></head>
 <body>
 <a class="skip-link" href="#continut">Sari la conținut</a>
@@ -337,6 +350,13 @@
       </div>
       <span id="d-status" class="hint" role="status" aria-live="polite"></span>
       <div id="d-rezultate"></div>
+      <!-- Candidați lăsați „în așteptare" (Salvează) până vezi toate anunțurile — importă-i când te-ai decis. -->
+      <details class="grila-det" id="cand-salvati">
+        <summary>{{ icon("grid") }} Candidați salvați (<span id="cs-nr">0</span>)</summary>
+        <p class="hint">Anunțuri puse deoparte cu «💾 Salvează». Importă-le în grilă sau șterge-le.</p>
+        <div id="cs-lista"></div>
+        <span id="cs-status" class="hint" role="status" aria-live="polite"></span>
+      </details>
       <h3>Import dintr-un anunț (URL)</h3>
       <div class="field-row">
         <div class="field" style="flex:3"><label for="d-url">Link imobiliare.ro / storia.ro</label><input id="d-url" placeholder="https://www.imobiliare.ro/..."></div>
@@ -1082,6 +1102,9 @@ if($("ing-fisier")) $("ing-fisier").addEventListener("change", function(){
       ? "<span class='cr-scor-wrap'><button type='button' class='hint-toggle d-scor-q' aria-label='Detaliere scor' aria-expanded='false'>?</button>"
         + "<small class='cr-scor-pop hint'>"+esc(detaliu)+"</small></span>" : "";
     var avert=c.incredere_scazuta?"<span class='alerta'>⚠ date insuficiente</span>":"";
+    // «Salvează» (în așteptare): tot dict-ul candidatului ajunge pe butonul respectiv ca JSON
+    // escapat (anti-XSS, ca restul datelor scrape-uite), trimis ca atare la POST.
+    var candJson=esc(JSON.stringify(c));
     return "<div class='cand-row' role='listitem'>"+
       "<label class='cr-sel'><input type='checkbox' class='d-bif' data-pret='"+esc(val)+"' data-supr='"+esc(c.suprafata||"")+"' aria-label='Selectează comparabilul'></label>"+
       "<span class='badge "+badge(c)+" cr-badge' title='Scor de relevanță: "+esc(c.relevanta)+"%'>"+relevantaText(c)+" <span class='scor-sec'>"+esc(c.relevanta)+"%</span></span>"+scorPop+
@@ -1091,6 +1114,7 @@ if($("ing-fisier")) $("ing-fisier").addEventListener("change", function(){
       celulaLoc(c)+celulaKm(c)+
       (c._portal?"<span class='cr-portal'>"+esc(c._portal)+"</span>":"")+avert+
       "<a class='cr-vezi' href='"+esc(urlSig(c.url))+"' target='_blank' rel='noopener'>vezi ↗</a>"+
+      "<button type='button' class='ghost cr-salv d-salv' data-teren='"+(teren?"1":"")+"' data-cand='"+candJson+"'>💾 Salvează</button>"+
       "</div>";
   }
   function randRezultate(cand, teren){
@@ -1125,9 +1149,38 @@ if($("ing-fisier")) $("ing-fisier").addEventListener("change", function(){
     $("d-importa").addEventListener("click", function(){
       var linii=[]; document.querySelectorAll(".d-bif:checked").forEach(function(b){ if(b.dataset.pret&&b.dataset.supr) linii.push(b.dataset.pret+";"+b.dataset.supr); });
       if(!linii.length){ $("d-status").textContent="Bifează cel puțin un candidat."; return; }
-      var ta=$(teren?"comparabile_teren":"comparabile"); ta.value=(ta.value.trim()?ta.value.trim()+"\n":"")+linii.join("\n"); salveaza(); if(ta._grid)ta._grid.refresh();
+      adaugaLaGrila(linii, teren);
       $("d-status").textContent="✓ "+linii.length+" importate în "+(teren?"Comparabile teren":"grilă")+".";
     });
+    // «Salvează» pe fiecare rând: pune candidatul deoparte (POST), fără a-l importa încă.
+    $("d-rezultate").querySelectorAll(".d-salv").forEach(function(b){
+      b.addEventListener("click", function(){
+        var c; try{ c=JSON.parse(b.dataset.cand||"{}"); }catch(e){ c=null; }
+        if(!c){ $("d-status").textContent="Nu am putut salva candidatul."; return; }
+        b.disabled=true;
+        fetch("/api/dosar/"+UID+"/candidat-salvat",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(c)})
+          .then(function(r){ return r.ok?r.json():Promise.reject(); })
+          .then(function(res){
+            b.textContent="✓ salvat"; b.classList.add("salvat");
+            actualizeazaContorSalvati(res.count!=null?res.count:(res.candidati?res.candidati.length:null));
+            $("d-status").textContent="✓ candidat salvat (în «Candidați salvați»).";
+          })
+          .catch(function(){ b.disabled=false; $("d-status").textContent="Salvarea candidatului a eșuat."; });
+      });
+    });
+  }
+  // Reutilizat de TOATE căile de import (bifate live / din salvați): adaugă „preț;suprafață"
+  // în textarea grilei potrivite, salvează dosarul și reîmprospătează grila vizuală.
+  function adaugaLaGrila(linii, teren){
+    if(!linii||!linii.length) return;
+    var ta=$(teren?"comparabile_teren":"comparabile"); if(!ta) return;
+    ta.value=(ta.value.trim()?ta.value.trim()+"\n":"")+linii.join("\n"); salveaza(); if(ta._grid)ta._grid.refresh();
+  }
+  // Contor „Candidați salvați (N)" din <summary>. Dacă n e null, recitește de pe server.
+  function actualizeazaContorSalvati(n){
+    if(n!=null){ if($("cs-nr")) $("cs-nr").textContent=n; return; }
+    fetch("/api/dosar/"+UID+"/candidati-salvati").then(function(r){return r.ok?r.json():{candidati:[]};})
+      .then(function(d){ if($("cs-nr")) $("cs-nr").textContent=(d.candidati||[]).length; }).catch(function(){});
   }
   function cerePortal(portal, tip, loc){
     var teren=(tip==="teren"), url, payload;
@@ -1203,6 +1256,64 @@ if($("ing-fisier")) $("ing-fisier").addEventListener("change", function(){
   if($("ext-goleste")) $("ext-goleste").addEventListener("click", function(){
     fetch("/api/anunturi-importate/sterge",{method:"POST"}).then(function(){ randCoada([]); }); });
   incarcaCoada();
+
+  // ── Candidați salvați (în așteptare) ──────────────────────────────────────────
+  // Un rând COMPACT de candidat salvat — același stil ca rândurile live (.cand-row),
+  // cu «Importă» (ACELAȘI flux ca importul live, prin adaugaLaGrila) + «🗑 Șterge».
+  // Toate datele scrape-uite trec prin esc() înainte de inserare (anti-XSS, ca restul fișierului).
+  function randCandSalvat(c){
+    var teren=(c.pret_mp!=null && c.pret==null);
+    var pretTxt = teren
+      ? (c.pret_mp?esc(fmtRo(c.pret_mp))+" EUR/mp":"preț/mp ?")
+      : (c.pret?esc(fmtRo(c.pret))+" "+esc(c.moneda||"EUR"):"preț ?");
+    return "<div class='cand-row' role='listitem'>"+
+      "<span class='cr-pret'>"+pretTxt+"</span>"+
+      "<span class='cr-fapt'>"+esc(c.suprafata||"?")+" mp</span>"+
+      (!teren&&c.teren?"<span class='cr-fapt'>teren "+esc(c.teren)+" mp</span>":"")+
+      (c.localitate?"<span class='cr-loc'>"+esc(c.localitate)+"</span>":"")+
+      (c._portal?"<span class='cr-portal'>"+esc(c._portal)+"</span>":"")+
+      "<span class='cr-actiuni'>"+
+        (c.url?"<a class='cr-vezi' href='"+esc(urlSig(c.url))+"' target='_blank' rel='noopener'>vezi ↗</a>":"")+
+        "<button type='button' class='cs-importa' data-cand='"+esc(JSON.stringify(c))+"'>{{ icon('import') }} Importă</button>"+
+        "<button type='button' class='ghost cs-sterge' data-url='"+esc(c.url||"")+"'>🗑 Șterge</button>"+
+      "</span></div>";
+  }
+  function randCandidatiSalvati(lista){
+    actualizeazaContorSalvati(lista.length);
+    var box=$("cs-lista"); if(!box) return;
+    box.textContent="";   // golește înainte de re-randare (fără innerHTML direct cu date scrape-uite)
+    if(!lista.length){ box.insertAdjacentHTML("beforeend",
+      "<p class='hint'>Niciun candidat salvat încă. Folosește «💾 Salvează» pe un anunț din rezultate.</p>"); return; }
+    box.insertAdjacentHTML("beforeend",
+      "<div role='list' aria-label='Candidați salvați'>"+lista.map(randCandSalvat).join("")+"</div>");
+    box.querySelectorAll(".cs-importa").forEach(function(b){
+      b.addEventListener("click", function(){
+        var c; try{ c=JSON.parse(b.dataset.cand||"{}"); }catch(e){ c=null; }
+        if(!c){ if($("cs-status")) $("cs-status").textContent="Import eșuat."; return; }
+        var teren=(c.pret_mp!=null && c.pret==null);
+        var val=teren?(c.pret_mp||""):(c.pret||""), supr=c.suprafata||"";
+        if(!val||!supr){ if($("cs-status")) $("cs-status").textContent="Candidatul nu are preț+suprafață — completează manual."; return; }
+        adaugaLaGrila([val+";"+supr], teren);
+        if($("cs-status")) $("cs-status").textContent="✓ importat în "+(teren?"Comparabile teren":"grilă")+".";
+      });
+    });
+    box.querySelectorAll(".cs-sterge").forEach(function(b){
+      b.addEventListener("click", function(){
+        b.disabled=true;
+        fetch("/api/dosar/"+UID+"/candidat-salvat/sterge",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({url:b.dataset.url||""})})
+          .then(function(r){ return r.ok?r.json():Promise.reject(); })
+          .then(function(d){ randCandidatiSalvati(d.candidati||[]); if($("cs-status")) $("cs-status").textContent="✓ șters."; })
+          .catch(function(){ b.disabled=false; if($("cs-status")) $("cs-status").textContent="Ștergerea a eșuat."; });
+      });
+    });
+  }
+  function incarcaCandidatiSalvati(){
+    fetch("/api/dosar/"+UID+"/candidati-salvati").then(function(r){return r.ok?r.json():{candidati:[]};})
+      .then(function(d){ randCandidatiSalvati(d.candidati||[]); }).catch(function(){ randCandidatiSalvati([]); });
+  }
+  // La deschiderea panoului «Candidați salvați» -> încarcă de pe server (lazy).
+  if($("cand-salvati")) $("cand-salvati").addEventListener("toggle", function(){ if(this.open) incarcaCandidatiSalvati(); });
+  actualizeazaContorSalvati(null);   // contor inițial (N) fără a deschide panoul
 })();
 
 // GDPR in-place: generează documentele model direct din sub-tab (nu redirect la pagina veche).
