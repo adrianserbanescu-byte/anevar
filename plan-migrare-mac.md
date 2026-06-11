@@ -24,7 +24,7 @@
 | settings + hooks | `~/.claude/settings.json`, `anevar/.claude/settings.local.json` | — | rescriere căi (5 hook-uri globale + 2 proiect) |
 
 **Encoding sesiuni (verificat empiric pe 3 cazuri):** orice caracter non-alfanumeric → `-`.
-`C:\Users\adyse\anevar` → `C--Users-adyse-anevar`; pe Mac `/Users/<user>/anevar` → `-Users-<user>-claude-anevar`.
+`C:\Users\adyse\anevar` → `C--Users-adyse-anevar`; pe Mac `/Users/adi/claude/anevar` → `-Users-adi-claude-anevar`.
 
 **Căi Windows hardcodate în cod (doar 3):**
 - `anevar-mailbox/live-up.py:14` — `ROOT = Path(r"C:\Users\adyse\anevar\evaluare-anevar")` + pornește `.exe`
@@ -42,7 +42,7 @@
 
 ### Decizii — LUATE 2026-06-11 (grill cu Adi)
 - [x] **D1 — Build .exe:** GitHub Actions (`windows-latest`) ca pipeline principal **+ PC-ul Windows păstrat ca fallback** până la 2-3 release-uri reușite. Job creat: `.github/workflows/release-exe.yml` la **rădăcina** repo-ului. ⚠️ Descoperire: `evaluare-anevar/.github/workflows/ci.yml` NU rulează pe GitHub (Actions citește doar `.github/` de la rădăcină) — mutarea CI-ului e task separat.
-- [x] **D2 — Calea proiectului pe Mac:** `~/claude/anevar` (actualizat 2026-06-11, era `~/Projects/anevar`) → folder sesiuni encodat `-Users-<user>-claude-anevar`. Atenție la distincția `~/claude/` (folder de proiecte) vs `~/.claude/` (config Claude, cu punct).
+- [x] **D2 — Calea proiectului pe Mac:** `~/claude/anevar` (actualizat 2026-06-11, era `~/Projects/anevar`) → folder sesiuni encodat `-Users-adi-claude-anevar`. Atenție la distincția `~/claude/` (folder de proiecte) vs `~/.claude/` (config Claude, cu punct).
 - [x] **D3 — Worktree-urile b/c/d:** ~~se migrează toate~~ **ANULATĂ 2026-06-11**: A s-a mutat pe *agent work style* (agenți în `.claude/worktrees/`, gestionați automat) → sesiunile B–F și worktree-urile lor nu mai au sens. Worktree-urile b/c/d au fost șterse (branch-urile rămân pe origin; docs nesalvate din c copiate în `evaluare-anevar/docs/`). **Se migrează doar `anevar`.**
 - [x] **D4 — Sesiunile:** **decide pilotul** (Faza 3.5) — relevant acum doar pentru sesiunea A (+ sesiunea de migrare). Dacă transcriptul copiat se deschide corect → copiezi transcripturile dorite la cutover; altfel → sesiune nouă din memorie + claude-mem (handoff scris rămâne plasa de siguranță pentru A).
 
@@ -174,7 +174,7 @@ Notă: `sqlite3` și `git` vin deja cu macOS/Xcode CLT; UPX NU e necesar pe Mac 
 ### Faza 3.5 — PILOT de portabilitate sesiuni (de-riscarea Fazei 6) ⚠️ critic
 Portabilitatea transcripturilor pe CLI e nedocumentată — testăm cu O sesiune înainte de cutover:
 ```bash
-mkdir -p ~/.claude/projects/-Users-<user>-claude-anevar
+mkdir -p ~/.claude/projects/-Users-adi-claude-anevar
 # copiază UN .jsonl (+ subfolderul <session-id>/ aferent) din transfer/sesiuni/
 cd ~/claude/anevar && claude --resume    # sesiunea pilot trebuie să apară în picker și să se deschidă
 ```
@@ -224,7 +224,7 @@ cd ~/claude/anevar && claude --resume    # sesiunea pilot trebuie să apară în
 
 **Pe Mac:**
 5. `git pull` în `~/claude/anevar`.
-6. Transcripturi: conținutul folderului Windows → `~/.claude/projects/-Users-<user>-claude-anevar/` (numele NOU encodat — nu păstra numele `C--Users-adyse-anevar`!). Inclusiv `memory/`. (Worktree-uri: nu mai există — D3 anulată.)
+6. Transcripturi: conținutul folderului Windows → `~/.claude/projects/-Users-adi-claude-anevar/` (numele NOU encodat — nu păstra numele `C--Users-adyse-anevar`!). Inclusiv `memory/`. (Worktree-uri: nu mai există — D3 anulată.)
 7. claude-mem: restore final DB+chroma (procedura din Faza 3.5, cu workerul oprit), restart, `claude-mem search` pe un termen recent.
 8. Repornește sesiunea A: din transcript (dacă pilotul a confirmat resume cross-OS) sau sesiune nouă care citește handoff + memorie + claude-mem.
 9. Repornește serverul live; repornește loop-ul autonom dacă e cazul.
