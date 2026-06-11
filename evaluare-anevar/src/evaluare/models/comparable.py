@@ -44,6 +44,11 @@ class Comparable(BaseModel):
 class LandComparable(BaseModel):
     """Un comparabil de teren."""
 
+    # Sursa datelor: "manual" sau URL. Optional (default None) pentru a nu afecta
+    # constructiile existente. Folosit la anti-contaminare + ierarhia datelor de
+    # intrare SEV 104 / SEV 230 §100.2 (comparabil direct/indirect), simetric cu
+    # `Comparable.sursa` (gap B2-N1 / G12 din SEV-2025-gap-implementare).
+    sursa: str | None = None
     pret_mp: Decimal = Field(gt=0)
     suprafata: Decimal = Field(gt=0)
     localizare: str | None = None

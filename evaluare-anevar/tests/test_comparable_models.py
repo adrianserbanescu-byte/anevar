@@ -33,3 +33,19 @@ def test_land_comparable():
     lc = LandComparable(pret_mp=Decimal("80"), suprafata=Decimal("450"),
                         localizare="zona X")
     assert lc.pret_mp == Decimal("80")
+
+
+def test_land_comparable_sursa_default_backward_compat():
+    """Constructiile existente (fara `sursa`) raman valide; default None (gap B2-N1)."""
+    lc = LandComparable(pret_mp=Decimal("80"), suprafata=Decimal("450"))
+    assert lc.sursa is None
+
+
+def test_land_comparable_with_sursa():
+    """`sursa` poate fi setat (URL sau 'manual') pe terenuri, simetric cu Comparable."""
+    lc = LandComparable(
+        pret_mp=Decimal("80"),
+        suprafata=Decimal("450"),
+        sursa="https://exemplu.ro/anunt-teren",
+    )
+    assert lc.sursa == "https://exemplu.ro/anunt-teren"
