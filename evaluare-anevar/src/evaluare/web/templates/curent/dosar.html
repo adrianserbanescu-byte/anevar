@@ -106,7 +106,7 @@
       {% if blocat %}
       <div class="avert-warn" style="display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:6px 0">
         <span>{{ icon("lock") }} <b>Identitate asumată</b>{% if asumat_la %} la {{ asumat_la }}{% endif %} —
-         câmpurile de identitate sunt <b>read-only</b> (inalterabilitate ADR-003).</span>
+         câmpurile de identitate devin <b>needitabile</b> (se păstrează exact ca în raportul asumat).</span>
         <button type="button" class="ghost" id="btn-delock" style="margin-left:auto">{{ icon("unlock") }} Deblochează corectură</button>
         <button type="button" class="ghost" id="btn-clone">{{ icon("add") }} Dosar nou (altă identitate)</button>
       </div>
@@ -333,7 +333,7 @@
         <div id="gt-rezultat" role="status" aria-live="polite"></div>
       </details>
       <details class="grila-det">
-        <summary>{{ icon("grid") }} Grilă de chirii — pentru abordarea prin venit (chirie/mp + ajustări → VBP)</summary>
+        <summary>{{ icon("grid") }} Grilă de chirii — pentru abordarea prin venit (chirie/mp + ajustări → VBP, venit brut potențial)</summary>
         <p class="hint">Chiria lunară/mp + suprafața fiecărui comparabil + ajustările. Rezultă venitul brut potențial anual (VBP).</p>
         <div class="field" style="max-width:220px"><label for="gc-supr">Suprafață închiriabilă subiect (mp)</label><input id="gc-supr" placeholder="ex. 100"><small class="hint" id="gc-supr-hint" hidden>precompletat cu AU — aria utilă</small></div>
         <div id="grila-chirii-tabel" class="grila-scroll"></div>
@@ -414,7 +414,7 @@
       <details style="margin-top:10px;">
         <summary>Încarcă raport <b>submis</b> (returnat de bancă/client)</summary>
         <p class="hint">Atașează versiunea finală/returnată a raportului (.docx sau .pdf). Se înregistrează cu
-         <b>amprentă de integritate</b> (hash) și marchează identitatea dosarului ca <b>asumată</b> (ADR-003).</p>
+         <b>amprentă de integritate</b> (hash) și marchează identitatea dosarului ca <b>asumată</b> (needitabilă ulterior).</p>
         <input type="file" id="submis-fisier" aria-label="Încarcă fișier (.docx sau .pdf)" accept=".docx,.pdf">
         <button type="button" class="ghost" id="submis-incarca">{{ icon("attach") }} Înregistrează fișierul submis</button>
         <span id="submis-status" class="hint" role="status" aria-live="polite"></span>
@@ -502,7 +502,7 @@ var BLOCAT = {{ 'true' if blocat else 'false' }};   // ADR-003: identitate asuma
 if (BLOCAT) {
   ["id_client","nume_client","scop","tip_proprietate","judet","localitate"].forEach(function(id){
     var el=document.getElementById(id);
-    if(el){ el.disabled=true; el.setAttribute("title","Identitate asumată — read-only (ADR-003). Folosește «Deblochează corectură» pentru typo sau «Dosar nou» pentru altă identitate."); }
+    if(el){ el.disabled=true; el.setAttribute("title","Identitate asumată — needitabilă. Folosește «Deblochează corectură» pentru typo sau «Dosar nou» pentru altă identitate."); }
   });
 }
 (function(){
@@ -554,11 +554,11 @@ var MAPARE = {
   data_evaluarii:{v:"Pas 1 · Data evaluării",d:"Editabilă."},
   data_inspectiei:{v:"Pas 1 · Data inspecției/vizită",d:"Editabilă."},
   suprafata_teren:{v:"Pas 2 · Suprafață teren",d:"Bază valoare teren + potrivire comparabile."},
-  valoare_teren:{v:"Pas 2 · Valoare teren",d:"Se adaugă la CIN pentru valoarea prin cost."},
+  valoare_teren:{v:"Pas 2 · Valoare teren",d:"Se adaugă la CIN (costul de înlocuire net) pentru valoarea prin cost."},
   au:{v:"Pas 2 · Au (arie utilă)",d:"Verificare Au ≤ Acd."},
-  acd:{v:"Pas 2 · Acd",d:"Numitor CIN + suprafața la potrivirea comparabilelor."},
+  acd:{v:"Pas 2 · Acd",d:"Numitor CIN (cost de înlocuire net) + suprafața la potrivirea comparabilelor."},
   an_referinta:{v:"Pas 2 · An referință",d:"Vârsta = an referință − an PIF."},
-  elemente:{v:"Pas 2 · Elemente de cost",d:"Σ(cantitate×cost_unitar) = CIB (catalog IROVAL)."},
+  elemente:{v:"Pas 2 · Elemente de cost",d:"Σ(cantitate×cost_unitar) = CIB (cost de înlocuire brut; catalog IROVAL)."},
   depreciere:{v:"Pas 2 · Depreciere fizică",d:"Puncte vârstă;fracție interpolate."},
   comparabile:{v:"Pas 3 · Comparabile grilă",d:"preț;suprafață; din descoperire sau manual."},
   comparabile_teren:{v:"Pas 3 · Grila de teren",d:"preț/mp;suprafață; valoarea terenului din grilă (2 etape)."},
@@ -654,7 +654,7 @@ if(asumareBox){ asumareBox.addEventListener("change", sincronAsumare); sincronAs
 var AJUTOR = {
   data_evaluarii:"Data la care e valabilă valoarea (de regulă data inspecției). Dacă o lași goală, generarea AML folosește data de azi.",
   au:"Aria utilă (mp). Verificare: Au ≤ Acd.",
-  acd:"Aria construită desfășurată (mp). Numitorul pentru CIN.",
+  acd:"Aria construită desfășurată (mp). Numitorul pentru CIN (costul de înlocuire net).",
   elemente:"Elementele de cost (catalog IROVAL): element;cod;um;cantitate;cost_unitar;an_pif, una pe linie.",
   depreciere:"Punctele de depreciere fizică: vârstă;fracție, una pe linie (interpolate).",
   comparabile:"Comparabile de proprietate: preț;suprafață, una pe linie.",
@@ -698,14 +698,23 @@ document.addEventListener("click", inchideMap);
 document.addEventListener("keydown", function(e){ if(e.key==="Escape") inchideMap(); });
 
 // salvare automată (debounce) în folder, cu indicator de stare real
-var tSave;
+var tSave, tSavePending=false;   // H1: tSavePending = există modificări încă netrimise (în fereastra de debounce)
 function snapshot(){ var s={}; document.querySelectorAll("main input, main select, main textarea").forEach(function(e){ if(e.id) s[e.id]=(e.type==="checkbox")?e.checked:e.value; }); return s; }
-function salveaza(){ clearTimeout(tSave); $("save-ind").textContent="… se salvează"; tSave=setTimeout(function(){
+function salveaza(){ clearTimeout(tSave); tSavePending=true; $("save-ind").textContent="… se salvează"; tSave=setTimeout(function(){
   fetch("/api/dosar/"+UID+"/salveaza",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(snapshot())})
-    .then(function(r){ $("save-ind").textContent = r.ok ? "● salvat în folder" : "⚠ salvarea a eșuat"; })
-    .catch(function(){ $("save-ind").textContent="⚠ salvarea a eșuat (offline?)"; });
+    // H1: marchează „salvat" DOAR după ce serverul a confirmat; cât timp tSave e pending rămâne „… se salvează".
+    .then(function(r){ tSavePending=false; $("save-ind").textContent = r.ok ? "● salvat în folder" : "⚠ salvarea a eșuat"; })
+    .catch(function(){ tSavePending=false; $("save-ind").textContent="⚠ salvarea a eșuat (offline?)"; });
 },700); }
 document.addEventListener("input", salveaza); document.addEventListener("change", salveaza);
+// H1: la închiderea tab-ului în fereastra de debounce, modificările s-ar pierde tăcut. Flush SINCRON
+// prin sendBeacon (același pattern ca unlock-ul de mai sus) — beacon-ul e livrat chiar la unload.
+window.addEventListener("beforeunload", function(){
+  if(!tSavePending) return;
+  clearTimeout(tSave); tSavePending=false;
+  try{ navigator.sendBeacon("/api/dosar/"+UID+"/salveaza",
+    new Blob([JSON.stringify(snapshot())],{type:"application/json"})); }catch(e){}
+});
 
 // tab-uri + sub-tab-uri (pattern WAI-ARIA: săgeți + Home/End, un panou vizibil odată)
 function wireTabs(sel){
@@ -1089,7 +1098,13 @@ if($("ing-fisier")) $("ing-fisier").addEventListener("change", function(){
     var sel=$("d-portal").value, portaluri=(sel==="toate")?PORTALURI:[sel];
     Promise.all(portaluri.map(function(pp){ return cerePortal(pp, tip, loc); })).then(function(lists){
       var cand=[].concat.apply([], lists).sort(function(a,b){ return (b.relevanta||0)-(a.relevanta||0); });
-      if(!cand.length && cerePortal._erori){ $("d-status").textContent="Portalul nu a răspuns sau conexiunea a eșuat — încearcă din nou sau adaugă comparabilele manual."; return; }
+      // H9: distinge clar „portal indisponibil" (rețea/portal picat) de „0 rezultate reale" (căutarea a
+      // mers, dar nu există anunțuri potrivite) — fiecare cu acțiunea recomandată.
+      if(!cand.length){
+        if(cerePortal._erori){ $("d-status").textContent="Portalul nu a răspuns sau conexiunea a eșuat — încearcă din nou sau adaugă comparabilele manual."; }
+        else { $("d-status").textContent="Niciun anunț potrivit pentru filtrele alese — lărgește criteriile (an/stare/finisaj), adaugă «Localități vecine» sau caută în tot județul."; }
+        $("d-rezultate").textContent=""; return;
+      }
       $("d-status").textContent=cand.length+" candidați"+(loc?"":" (tot județul)")+(sel==="toate"?" · toate portalurile":"");
       randRezultate(cand, teren);
     });
@@ -1148,9 +1163,10 @@ if($("gdpr-consimtamant")) $("gdpr-consimtamant").addEventListener("click", func
 if($("audit-gen")) $("audit-gen").addEventListener("click", function(){
   var b=this; b.disabled=true; $("audit-status").textContent="… se generează";
   fetch("/api/dosar/"+UID+"/audit.txt",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(asambleaza())})
-    .then(function(r){ return r.ok?r.text():Promise.reject(); })
+    // H9: succesul e text simplu; eroarea (422) vine JSON cu `detail` — îl propagăm, nu mai înghițim detaliul.
+    .then(function(r){ if(r.ok) return r.text(); return r.json().catch(function(){return{};}).then(function(j){ throw (j.detail||("Generarea a eșuat (cod "+r.status+").")); }); })
     .then(function(t){ $("audit-out").textContent=t; $("audit-out").style.display="block"; $("audit-status").textContent="✓"; })
-    .catch(function(){ $("audit-status").textContent="generarea a eșuat — verifică valorile."; })
+    .catch(function(e){ $("audit-status").textContent="Generarea a eșuat — "+(typeof e==="string"?e:"verifică valorile."); })
     .finally(function(){ b.disabled=false; });
 });
 
@@ -1182,7 +1198,8 @@ if($("audit-gen")) $("audit-gen").addEventListener("click", function(){
   ev.addEventListener("click", function(){
     var body=amlBody();
     fetch("/api/aml/evalueaza",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(body)})
-      .then(function(r){ return r.ok?r.json():Promise.reject(); })
+      // H9: propagă mesajul real din backend (detail din 422), ca la /calcul.
+      .then(function(r){ return r.ok?r.json():r.json().catch(function(){return{};}).then(function(j){ throw (j.detail||("Evaluarea a eșuat (cod "+r.status+").")); }); })
       .then(function(d){
         var h="<div class='callout'><h3>Rezultat</h3><p>Categorie risc: <span class='badge'>"+d.categorie.toUpperCase()+"</span> — măsuri <b>"+d.nivel_masuri+"</b></p>";
         if(d.motive_sporit&&d.motive_sporit.length) h+="<p>Motive risc sporit:</p><ul>"+d.motive_sporit.map(function(m){return "<li>"+m+"</li>";}).join("")+"</ul>";
@@ -1193,7 +1210,9 @@ if($("audit-gen")) $("audit-gen").addEventListener("click", function(){
         $("aml-rez").innerHTML=h; window._amlBody=body;
         document.querySelectorAll("#aml-rez button[data-url]").forEach(function(b){ b.addEventListener("click", function(){ amlDescarca(b.dataset.url); }); });
       })
-      .catch(function(){ $("aml-rez").innerHTML="<p class='hint'>Evaluarea a eșuat — verifică datele.</p>"; });
+      .catch(function(e){ var p=document.createElement("p"); p.className="hint";
+        p.textContent="Evaluarea a eșuat — "+(typeof e==="string"?e:"verifică datele.");
+        $("aml-rez").textContent=""; $("aml-rez").appendChild(p); });
   });
 })();
 
@@ -1288,7 +1307,8 @@ function asambleaza(){
     if(comps.length<3||!ss){ $("g-rezultat").textContent="Completează suprafața subiect + cel puțin 3 comparabile (preț+suprafață)."; return; }
     $("g-rezultat").textContent="… se calculează grila";
     fetch("/api/grila-casa",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({suprafata_subiect:ss,comparabile:comps})})
-      .then(function(r){ return r.ok?r.json():Promise.reject(); })
+      // H9: propagă mesajul real din backend (detail din 422), ca la /calcul — nu mai înghiți detaliul.
+      .then(function(r){ return r.ok?r.json():r.json().catch(function(){return{};}).then(function(j){ throw (j.detail||("Grila a eșuat (cod "+r.status+").")); }); })
       .then(function(d){
         var al = _alertePrudentiale(d);   // M2: prag verificat pe TOATE comparabilele mediate
         var html="<div class='callout'><p><b>Valoare de piață: "+fmtRo(d.valoare_piata)+"</b> · "+_etichetaSelectie(d)+"</p>"+
@@ -1296,7 +1316,7 @@ function asambleaza(){
         html+=al.length?("<ul>"+al.map(function(a){return "<li class='alerta'>⚠ "+a+"</li>";}).join("")+"</ul>"):"<p class='hint'>✓ Toate ajustările brute sub pragul prudențial de 25%.</p>";
         $("g-rezultat").innerHTML=html+"</div>";
       })
-      .catch(function(){ $("g-rezultat").textContent="Grila a eșuat — verifică valorile (minim 3 comparabile completate)."; });
+      .catch(function(e){ $("g-rezultat").textContent="Grila a eșuat — "+(typeof e==="string"?e:"verifică valorile (minim 3 comparabile completate)."); });
   });
   if($("g-import")) $("g-import").addEventListener("click", function(){
     var comps=compForm(); if(!comps.length){ $("g-rezultat").textContent="Nimic de trimis."; return; }
@@ -1343,14 +1363,15 @@ function asambleaza(){
     if(comps.length<3||!ss){ $("gt-rezultat").textContent="Completează suprafața subiect + cel puțin 3 comparabile (preț/mp+suprafață)."; return; }
     $("gt-rezultat").textContent="… se calculează grila";
     fetch("/api/grila-teren",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({suprafata_subiect:ss,comparabile:comps})})
-      .then(function(r){ return r.ok?r.json():Promise.reject(); })
+      // H9: propagă mesajul real din backend (detail din 422), ca la /calcul.
+      .then(function(r){ return r.ok?r.json():r.json().catch(function(){return{};}).then(function(j){ throw (j.detail||("Grila teren a eșuat (cod "+r.status+").")); }); })
       .then(function(d){
         var al = _alertePrudentiale(d);   // M2: prag pe TOATE comparabilele mediate
         var html="<div class='callout'><p><b>Valoare teren: "+fmtRo(d.valoare_teren)+"</b> · preț/mp ales: "+fmtRo(d.pret_mp_ales)+" · "+_etichetaSelectie(d)+"</p>";
         html+=al.length?("<ul>"+al.map(function(a){return "<li class='alerta'>⚠ "+a+"</li>";}).join("")+"</ul>"):"<p class='hint'>✓ Toate ajustările brute sub pragul prudențial de 25%.</p>";
         $("gt-rezultat").innerHTML=html+"</div>";
       })
-      .catch(function(){ $("gt-rezultat").textContent="Grila teren a eșuat — verifică valorile (minim 3 comparabile)."; });
+      .catch(function(e){ $("gt-rezultat").textContent="Grila teren a eșuat — "+(typeof e==="string"?e:"verifică valorile (minim 3 comparabile)."); });
   });
   if($("gt-import")) $("gt-import").addEventListener("click", function(){
     var comps=compForm(); if(!comps.length){ $("gt-rezultat").textContent="Nimic de trimis."; return; }
@@ -1450,15 +1471,26 @@ $("calc").addEventListener("click", async function(){
   try{ var r=await fetch("/api/dosar/"+UID+"/calcul",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(asambleaza())});
     if(!r.ok){ var je=await r.json().catch(function(){return{};}); throw new Error(je.detail||("Calculul a eșuat (cod "+r.status+").")); }
     var d=await r.json();
+    // H5: /calcul e advisory pe blocaje de DATE (200 + alertă „blocheaza"), DAR generarea raportului e
+    // fail-closed (422 pe aceleași probleme). Dacă există alerte cu nivel="blocheaza", NU promite o cale
+    // care lovește zidul după checkpoint-ul de asumare: dezactivează „Continuă la Generează" cu motivul.
+    var blocante=(d.alerte||[]).filter(function(a){ return a.nivel==="blocheaza"; });
     var h="<p><b>Valoare: "+fmtRo(d.valoare_finala)+" "+$("moneda").value+"</b> ("+d.metoda+")</p>";
     if(d.alerte && d.alerte.length){
       h+="<div class='callout'><b>⚠ Verificări:</b><ul>"+d.alerte.map(function(a){
         var cls=(a.nivel==="blocheaza")?"alerta":"hint";
         return "<li class='"+cls+"'>"+(a.nivel?"<b>["+a.nivel+"]</b> ":"")+(a.mesaj||"")+"</li>"; }).join("")+"</ul></div>";
     }
-    h+="<button type='button' id='la-gen'>Continuă la Generează →</button>";
+    if(blocante.length){
+      // Buton dezactivat + motivul: generarea va fi respinsă până se corectează problemele blocante.
+      h+="<button type='button' id='la-gen' disabled aria-describedby='la-gen-motiv'>Continuă la Generează →</button>"+
+         "<p id='la-gen-motiv' class='field-error'>Generarea raportului e blocată până corectezi problema de mai sus ("
+         +blocante.length+(blocante.length===1?" problemă blocantă":" probleme blocante")+"). Un raport semnabil de garantare nu se generează pe date blocante.</p>";
+    } else {
+      h+="<button type='button' id='la-gen'>Continuă la Generează →</button>";
+    }
     $("rezultat").innerHTML=h;
-    var lg=$("la-gen"); if(lg) lg.addEventListener("click",function(){ subtab("s-genereaza"); });
+    var lg=$("la-gen"); if(lg && !lg.disabled) lg.addEventListener("click",function(){ subtab("s-genereaza"); });
   }catch(e){ console.error("Eroare calcul:", e); var m=(e&&e.message)||(e&&(""+e))||"verifică valorile (suprafețe, elemente, comparabile)."; $("rezultat").textContent="Calculul a eșuat — "+m; }
 });
 function genereazaRaport(adnotari, btn){
