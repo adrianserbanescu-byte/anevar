@@ -331,3 +331,107 @@ def test_candidati_json_corupt_degradeaza(baza):
     (fs.baza() / uid / "candidati_salvati.json").write_text("{ corupt", encoding="utf-8")
     assert fs.listeaza_candidati_salvati(uid) == []
     assert len(fs.salveaza_candidat(uid, _candidat())) == 1   # salvarea repară fișierul
+
+
+# ── Manifest formal: cele 4 secțiuni ANEVAR ale dosarului de lucru (I-16) ─────────
+def test_manifest_sectiuni_structura_si_etichete(baza):
+    # I-16: manifestul are FIX cele 4 secțiuni canonice ANEVAR, în ordine, cu etichete lizibile.
+    from evaluare import dosare_fs as fs
+    uid = fs.creeaza("8717", "Adi S", _wizard())
+    m = fs.manifest_dosar(uid)
+    assert list(m["sectiuni"].keys()) == ["contractare", "info_client", "prelucrari", "raport"]
+    assert [cod for cod, _ in fs.SECTIUNI_DOSAR] == list(m["sectiuni"].keys())
+    for cod in m["sectiuni"]:
+        assert m["sectiuni"][cod]["eticheta"]                  # fiecare secțiune are etichetă
+        assert m["sectiuni"][cod]["n_fisiere"] == 0            # dosar gol -> nimic clasificat
+    assert m["uuid"] == uid and m["nr_lucrare"]
+
+
+def test_manifest_clasifica_continutul_pe_sectiuni(baza):
+    # Conținutul real al folderului se proiectează pe secțiunea corectă (euristică pe nume).
+    from evaluare import dosare_fs as fs
+    uid = fs.creeaza("8717", "Adi S", _wizard())
+    folder = fs.baza() / uid
+    (folder / "contract-evaluare.pdf").write_text("c", encoding="utf-8")          # contractare
+    (folder / "extras-cf-12345.pdf").write_text("c", encoding="utf-8")            # info_client
+    (folder / "fisa-kyc-client.docx").write_text("c", encoding="utf-8")           # info_client
+    (folder / "grila-comparabile.xlsx").write_text("c", encoding="utf-8")         # prelucrari
+    (folder / "atasament-oarecare.bin").write_text("c", encoding="utf-8")         # prelucrari (fallback)
+    src = baza / "r.docx"
+    src.write_bytes(b"raport final")
+    fs.adauga_versiune_docx(uid, src, tip="generat")                              # raport
+    m = fs.manifest_dosar(uid)
+    nume = {cod: {f["fisier"] for f in m["sectiuni"][cod]["fisiere"]} for cod in m["sectiuni"]}
+    assert "contract-evaluare.pdf" in nume["contractare"]
+    assert {"extras-cf-12345.pdf", "fisa-kyc-client.docx"} <= nume["info_client"]
+    assert {"grila-comparabile.xlsx", "atasament-oarecare.bin"} <= nume["prelucrari"]
+    assert any(f.startswith("raport-") for f in nume["raport"])
+
+
+def test_manifest_exclude_infrastructura(baza):
+    # Fișierele de infrastructură (dosar.json, index, cache, lock, .tmp) NU sunt conținut de dosar.
+    from evaluare import dosare_fs as fs
+    uid = fs.creeaza("8717", "Adi S", _wizard())
+    folder = fs.baza() / uid
+    fs.marcheaza_lock(uid, "tok")                          # creează .lock
+    fs.listeaza()                                          # creează _cache_antete.json
+    (folder / "dosar.json.tmp").write_text("x", encoding="utf-8")
+    m = fs.manifest_dosar(uid)
+    toate = [f["fisier"] for cod in m["sectiuni"] for f in m["sectiuni"][cod]["fisiere"]]
+    for intern in ("dosar.json", ".lock", "_cache_antete.json", "dosar.json.tmp"):
+        assert intern not in toate
+
+
+def test_manifest_candidati_intra_la_prelucrari(baza):
+    # Comparabilele salvate din «Descoperă» = informații de piață -> secțiunea «prelucrări».
+    from evaluare import dosare_fs as fs
+    uid = fs.creeaza("8717", "Adi S", _wizard())
+    fs.salveaza_candidat(uid, _candidat(url="https://x.ro/a"))
+    fs.salveaza_candidat(uid, _candidat(url="https://x.ro/b"))
+    m = fs.manifest_dosar(uid)
+    comp = [f for f in m["sectiuni"]["prelucrari"]["fisiere"]
+            if f.get("tip") == "comparabile_piata"]
+    assert len(comp) == 1 and comp[0]["n_intrari"] == 2
+
+
+def test_manifest_integritate_si_asumare(baza):
+    # Manifestul include metadata de integritate (hash-uri reverificate) + starea de asumare/blocare.
+    from evaluare import dosare_fs as fs
+    uid = fs.creeaza("8717", "Adi S", _wizard())
+    assert fs.manifest_dosar(uid)["integritate"]["toate_ok"] is None   # fără versiuni încă
+    src = baza / "r.docx"
+    src.write_bytes(b"raport integru")
+    nume = fs.adauga_versiune_docx(uid, src, tip="generat")
+    m = fs.manifest_dosar(uid)
+    assert m["integritate"]["asumat_la"] and m["integritate"]["blocat"] is True
+    assert m["integritate"]["toate_ok"] is True
+    # alterăm fișierul asumat -> integritatea pică (tamper-evidence reflectat în manifest)
+    (fs.baza() / uid / nume).write_bytes(b"ALTERAT")
+    assert fs.manifest_dosar(uid)["integritate"]["toate_ok"] is False
+
+
+def test_manifest_retentie_5_ani(baza):
+    # Nota de retenție: min. 5 ani, cu termen calculat din ancora (asumat_la/creat_la).
+    from evaluare import dosare_fs as fs
+    uid = fs.creeaza("8717", "Adi S", _wizard())
+    src = baza / "r.docx"
+    src.write_bytes(b"raport")
+    fs.adauga_versiune_docx(uid, src, tip="generat")
+    r = fs.manifest_dosar(uid)["retentie"]
+    assert r["ani"] == fs.RETENTIE_ANI == 5
+    assert "129/2019" in r["baza_legala"]
+    # sterge_dupa = ancora + 5 ani (același prefix lună-zi, an +5)
+    assert r["ancora"][:4] != r["sterge_dupa"][:4]
+    assert int(r["sterge_dupa"][:4]) == int(r["ancora"][:4]) + 5
+
+
+def test_manifest_uid_invalid_si_inexistent_ridica(baza):
+    # gard UUID (anti path-traversal) + dosar inexistent -> KeyError (404 la router).
+    import uuid as _uuid
+
+    from evaluare import dosare_fs as fs
+    for rau in ["..", "../..", "not-a-uuid", "/etc/passwd"]:
+        with pytest.raises(KeyError):
+            fs.manifest_dosar(rau)
+    with pytest.raises(KeyError):                          # UUID valid dar fără dosar.json
+        fs.manifest_dosar(str(_uuid.uuid4()))

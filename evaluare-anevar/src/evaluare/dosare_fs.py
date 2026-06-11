@@ -538,3 +538,173 @@ def sterge_candidat_salvat(uid: str, url: str) -> list[dict]:
     with contextlib.suppress(FileNotFoundError):   # dosar șters concurent -> nimic de rescris
         _scrie_atomic(_fisier_candidati(uid), json.dumps(candidati, ensure_ascii=False, indent=2))
     return candidati
+
+
+# ── Manifest formal al dosarului de lucru: cele 4 secțiuni ANEVAR (I-16) ──────────────
+# Procedura de arhivare ANEVAR §4–5 + „Asigurarea calității" cap. „Dosarul de lucru" cer ca
+# dosarul de lucru (recomandat electronic) să fie structurat formal pe PATRU secțiuni fixe.
+# Stocarea NU se reorganizează (un dosar rămâne un folder plat cu `dosar.json` + `raport-*.docx`
+# + `candidati_salvati.json`); aici doar PROIECTĂM/INDEXĂM conținutul existent peste cele 4
+# secțiuni — un MANIFEST derivat (read-only), util pentru pachetul de inspecție ANEVAR (§12),
+# checklist QC pre-emitere și export per-dosar. ADITIV: nu mută/redenumește/șterge nimic.
+#
+# Cele 4 secțiuni (denumirile canonice ANEVAR), în ordinea fluxului misiunii:
+#   1) contractare      — ofertă, contract/comandă/numire, termeni de referință, PV predare-primire,
+#                         comenzi, facturi (relația contractuală cu clientul).
+#   2) info_client      — informațiile/documentele primite de la client în original: cererea de
+#                         informații, acte de proprietate (CVC, certif. moștenitor), extras CF, plan
+#                         cadastral, certificat de urbanism, autorizații, documentele KYC.
+#   3) prelucrari       — prelucrările evaluatorului: inspecție (foto/fișe), informații de piață
+#                         (comparabile, capturi de ecran, link-uri cu trasabilitate), fișiere de
+#                         lucru/calcule, studii de piață.
+#   4) raport           — livrabilul: raport în formă preliminară + finală, recipisa BIG/BIF.
+SECTIUNI_DOSAR: tuple[tuple[str, str], ...] = (
+    ("contractare", "Contractare (ofertă, contract/numire, termeni de referință, PV, facturi)"),
+    ("info_client", "Informații de la client (cerere informații, acte proprietate, CF, KYC)"),
+    ("prelucrari", "Prelucrări evaluator (inspecție, comparabile/piață, fișiere de lucru/calcule)"),
+    ("raport", "Raport + livrabile (variantă preliminară + finală, recipisă BIG/BIF)"),
+)
+
+# Retenție: Procedura de arhivare §8 + Legea 129/2019 art. 8 — minimum 5 ani pentru TOATE
+# documentele dosarului (de la finalizarea lucrării / încetarea relației de afaceri).
+RETENTIE_ANI = 5
+
+
+def _clasifica_fisier(nume: str) -> str:
+    """Clasifică un fișier din folderul dosarului pe una din cele 4 secțiuni ANEVAR.
+
+    Euristică pe nume (singura sursă disponibilă — stocarea e plată, fără sub-foldere). Fișierele
+    de infrastructură (`dosar.json`, indecși, lock, cache, `.tmp`) NU sunt conținut de dosar și se
+    întorc ca `""` (excluse din manifest). Necunoscutele „cad" pe `prelucrari` (documente de lucru),
+    secțiunea-coș cea mai neutră pentru un atașament negenerat de app.
+    """
+    n = (nume or "").lower()
+    # Infrastructură internă (nu e document de arhivă) — exclusă din secțiuni.
+    if n in ("dosar.json", "candidati_salvati.json", "_index.json", "_cache_antete.json", ".lock"):
+        return ""
+    if n.endswith(".tmp"):
+        return ""
+    # 4) Raport + livrabile: rapoartele generate/importate + recipisele BIG/BIF.
+    if n.startswith("raport") or "recipisa" in n or "recipisă" in n \
+            or "-big" in n or "_big" in n or "bif" in n:
+        return "raport"
+    # 1) Contractare: relația contractuală. Verificată ÎNAINTEA `info_client` fiindcă „contract"
+    #    e un semnal puternic (altfel „contract-..." ar fi prins de tokenul larg „act-").
+    if any(t in n for t in ("contract", "oferta", "ofertă", "termeni", "comanda", "comandă",
+                            "numire", "factura", "factură", "pv-", "proces-verbal", "predare")):
+        return "contractare"
+    # 2) Informații de la client: acte de proprietate + KYC/AML.
+    if any(t in n for t in ("kyc", "aml", "client", "cvc", "carte-funciara", "carte_funciara",
+                            "extras-cf", "extras_cf", "cadastr", "urbanism", "proprietate",
+                            "mostenitor", "moștenitor", "act-proprietate", "act_proprietate",
+                            "acte-")):
+        return "info_client"
+    # 3) Prelucrări evaluator: inspecție / piață / calcule.
+    if any(t in n for t in ("inspectie", "inspecție", "foto", "poza", "poză", "comparabil",
+                            "grila", "grilă", "calcul", "studiu", "piata", "piață", "captura",
+                            "captură", "screenshot", "fisa", "fișă")):
+        return "prelucrari"
+    # Necunoscut (atașament generic) -> documente de lucru.
+    return "prelucrari"
+
+
+def _sectiune_candidati() -> str:
+    """Comparabilele salvate din «Descoperă» = informații de piață → secțiunea «prelucrări»."""
+    return "prelucrari"
+
+
+def manifest_dosar(uid: str) -> dict:
+    """Manifest formal al dosarului de lucru pe cele 4 secțiuni ANEVAR (I-16) — DERIVAT, read-only.
+
+    Clasifică TOT conținutul folderului dosarului (fișiere + comparabilele salvate) pe cele patru
+    secțiuni canonice (`contractare` / `info_client` / `prelucrari` / `raport`), atașează metadata
+    de integritate (listă fișiere cu mărime + marcă temporală mtime + verificarea hash-urilor
+    asumate din `dosar.json`) și nota de retenție (min. 5 ani). Nu mută/redenumește/șterge nimic —
+    e un INDEX peste stocarea existentă, pentru pachetul de inspecție ANEVAR / checklist QC / export.
+
+    `uid` e validat ca UUID prin `_cale` (gard anti path-traversal); dosar inexistent -> KeyError.
+
+    Returnează:
+      {
+        uuid, nr_lucrare, nume,
+        sectiuni: {cod: {eticheta, fisiere: [{fisier, marime, mtime, sectiune}], n_fisiere}},
+        integritate: {asumat_la, blocat, versiuni: [verifica_integritate], toate_ok},
+        retentie: {ani, baza_legala, sterge_dupa, nota},
+        generat_la,
+      }
+    """
+    folder = _cale(uid)                                   # gard UUID (KeyError la uid invalid)
+    dosar = incarca(uid)                                  # KeyError dacă dosar.json lipsește/corupt
+
+    sectiuni: dict[str, dict] = {
+        cod: {"eticheta": et, "fisiere": [], "n_fisiere": 0} for cod, et in SECTIUNI_DOSAR
+    }
+
+    # 1) Fișierele fizice din folder, clasificate + amprentate (mărime + mtime = marcă temporală).
+    for cale in sorted(p for p in folder.iterdir() if p.is_file()):
+        cod = _clasifica_fisier(cale.name)
+        if not cod:                                      # infrastructură internă -> exclus
+            continue
+        try:
+            st = cale.stat()
+            intrare = {
+                "fisier": cale.name,
+                "marime": st.st_size,
+                "mtime": datetime.fromtimestamp(st.st_mtime).strftime("%Y-%m-%d %H:%M:%S"),
+                "sectiune": cod,
+            }
+        except OSError:                                  # fișier dispărut concurent -> sărim
+            continue
+        sectiuni[cod]["fisiere"].append(intrare)
+
+    # 2) Comparabilele salvate din «Descoperă» = informații de piață (secțiunea «prelucrări»);
+    #    nu sunt fișiere separate, ci intrări în `candidati_salvati.json` -> le numărăm ca artefacte.
+    candidati = _citeste_candidati(uid)
+    if candidati:
+        cod = _sectiune_candidati()
+        sectiuni[cod]["fisiere"].append({
+            "fisier": "candidati_salvati.json",
+            "marime": len(candidati),
+            "mtime": dosar.get("modificat_la"),
+            "sectiune": cod,
+            "tip": "comparabile_piata",
+            "n_intrari": len(candidati),
+        })
+
+    for cod in sectiuni:
+        sectiuni[cod]["n_fisiere"] = len(sectiuni[cod]["fisiere"])
+
+    # 3) Metadata de integritate: reverifică hash-urile versiunilor asumate (ADR-003).
+    versiuni = verifica_integritate(uid)
+    integritate = {
+        "asumat_la": dosar.get("asumat_la"),
+        "blocat": este_blocat(dosar),
+        "versiuni": versiuni,
+        "toate_ok": all(v["ok"] for v in versiuni) if versiuni else None,
+    }
+
+    # 4) Nota de retenție (min. 5 ani de la asumare/finalizare; fallback pe creat_la).
+    ancora = dosar.get("asumat_la") or dosar.get("creat_la")
+    sterge_dupa = None
+    if ancora:
+        with contextlib.suppress(ValueError):
+            d0 = datetime.strptime(ancora, "%Y-%m-%d %H:%M:%S")
+            sterge_dupa = d0.replace(year=d0.year + RETENTIE_ANI).strftime("%Y-%m-%d")
+    retentie = {
+        "ani": RETENTIE_ANI,
+        "baza_legala": "Procedura de arhivare ANEVAR §8 + Legea 129/2019 art. 8",
+        "ancora": ancora,
+        "sterge_dupa": sterge_dupa,
+        "nota": (f"Păstrare minimum {RETENTIE_ANI} ani de la finalizarea lucrării / încetarea "
+                 "relației de afaceri; documentele AML/KYC se păstrează separat de dosar."),
+    }
+
+    return {
+        "uuid": dosar.get("uuid", uid),
+        "nr_lucrare": dosar.get("nr_lucrare"),
+        "nume": dosar.get("nume"),
+        "sectiuni": sectiuni,
+        "integritate": integritate,
+        "retentie": retentie,
+        "generat_la": _acum(),
+    }
