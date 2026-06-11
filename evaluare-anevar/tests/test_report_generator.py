@@ -430,6 +430,43 @@ def test_sev106_raport_contine_cele_18_elemente_obligatorii(tmp_path):
     assert not lipsa, f"Elemente SEV 106 §30.6 lipsa din raport: {lipsa}"
 
 
+def test_i12_raport_contine_structura_piata(tmp_path):
+    # I-12: capitolul 3 (piata) primeste schelet structurat (faza ciclu, segment, tendinta) peste narativ.
+    out = tmp_path / "r.docx"
+    genereaza_raport(_ctx(), out)
+    t = _all_text(out)
+    assert "Analiza structurata a pietei" in t
+    assert "Faza de ciclu a cartierului" in t
+    assert "dezvoltare / stabilitate / declin / revitalizare" in t
+    assert "Segmentul de pret al subiectului" in t
+    assert "Tendinta preturilor" in t
+
+
+def test_i12_raport_contine_cmbu_4_teste(tmp_path):
+    # I-12: capitolul 5 (CMBU) primeste testarea pe cele 4 criterii clasice, ca lista de bifat.
+    out = tmp_path / "r.docx"
+    genereaza_raport(_ctx(), out)
+    t = _all_text(out)
+    assert "Testarea CMBU pe cele 4 criterii" in t
+    assert "Permisibil legal" in t
+    assert "Posibil fizic" in t
+    assert "Fezabil financiar" in t
+    assert "Maxim productiv" in t
+
+
+def test_m3_raport_contine_disclaimer_fezabilitate_si_supra_imbunatatire(tmp_path):
+    # m-3: disclaimer «evaluare != studiu de fezabilitate» + concept supra-imbunatatire (valoare
+    # contributorie != cost investitie) apar in ipotezele raportului.
+    from evaluare.report.generator import _DISCLAIMER_FEZABILITATE
+    out = tmp_path / "r.docx"
+    genereaza_raport(_ctx(), out)
+    t = _all_text(out)
+    assert _DISCLAIMER_FEZABILITATE in t
+    assert "NU constituie un studiu de fezabilitate" in t
+    assert "supra-imbunatatire" in t
+    assert "CONTRIBUTORII" in t   # valoare contributorie de piata, nu cost investitie
+
+
 def test_sev100_declara_scepticism_si_verificare_calitate(tmp_path):
     # SEV 100 (2025): raportul declara EXPLICIT scepticismul profesional (§10.4) + procedura de
     # verificare a calitatii (§20) — le aplicam de-facto (validari + audit), dar trebuie DECLARATE.

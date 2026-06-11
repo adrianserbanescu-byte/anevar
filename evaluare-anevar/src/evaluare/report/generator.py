@@ -169,6 +169,71 @@ def _valoare_teren(ctx: ReportContext):
 
 
 # --------------------------------------------------------------------------- #
+# Structuri metodologice de piata (I-12) — scaffold determinist care completeaza narativul AI:
+# faza de ciclu a cartierului, segmentul de pret, tendinta (articole-piata-1, GEV 520 A5(a)) +
+# analiza CMBU pe cele 4 teste clasice. NU inlocuiesc textul AI; il incadreaza intr-o structura
+# pe care evaluatorul o bifeaza/completeaza, ca raportul sa nu ramana narativ liber/placeholder.
+# --------------------------------------------------------------------------- #
+def _adauga_structura_piata(doc: DocxDocument, ctx: ReportContext) -> None:
+    """I-12 — schelet structurat al analizei de piata (faza de ciclu, segment de pret, tendinta).
+
+    Apare DUPA narativul de piata (AI sau placeholder), ca grila de completat de evaluator. Sustine
+    direct factorii GEV 520 A5(a) (activitatea curenta si tendintele pietei relevante)."""
+    p = doc.add_paragraph()
+    p.add_run("Analiza structurata a pietei (de confirmat de evaluator):").bold = True
+    doc.add_paragraph(
+        "Faza de ciclu a cartierului (dezvoltare / stabilitate / declin / revitalizare): "
+        "________ — argumentati pe baza ritmului de constructie, a tranzactiilor recente si a "
+        "tendintei populatiei/cererii.",
+        style="List Bullet",
+    )
+    doc.add_paragraph(
+        "Segmentul de pret al subiectului in cartier (cel mai ieftin / mediu / cel mai scump): "
+        "________ — relevant pentru principiile de progresie (subiectul ieftin castiga din vecini "
+        "scumpi) si regresie (subiectul scump pierde din vecini ieftini).",
+        style="List Bullet",
+    )
+    doc.add_paragraph(
+        "Tendinta preturilor pe sub-piata relevanta (crestere / stabil / scadere): ________ — cu "
+        "orizont si sursa (oferte, tranzactii, indici de piata).",
+        style="List Bullet",
+    )
+
+
+def _adauga_structura_cmbu(doc: DocxDocument, ctx: ReportContext) -> None:
+    """I-12 — analiza CMBU pe cele 4 teste clasice (permisibil legal, posibil fizic, fezabil financiar,
+    maxim productiv), ca lista de bifat. Apare DUPA narativul CMBU (AI sau placeholder)."""
+    p = doc.add_paragraph()
+    p.add_run("Testarea CMBU pe cele 4 criterii (de confirmat de evaluator):").bold = True
+    for crit in (
+        "1. Permisibil legal — utilizarea respecta zonarea, certificatul de urbanism (POT/CUT), "
+        "servitutile si restrictiile legale? (☐ DA / ☐ NU)",
+        "2. Posibil fizic — terenul/constructia permit fizic utilizarea (suprafata, forma, "
+        "topografie, acces, utilitati)? (☐ DA / ☐ NU)",
+        "3. Fezabil financiar — utilizarea genereaza un randament pozitiv, adecvat pietei? "
+        "(☐ DA / ☐ NU)",
+        "4. Maxim productiv — dintre utilizarile fezabile, aceasta produce cea mai mare valoare? "
+        "(☐ DA / ☐ NU)",
+    ):
+        doc.add_paragraph(crit, style="List Bullet")
+    doc.add_paragraph(
+        "Daca zonarea/planul urbanistic difera de utilizarea reala maxim productiva, mentionati "
+        "utilizarea alternativa si justificarea (relevant in special la teren — CMBU poate diferi de "
+        "zonare)."
+    )
+
+
+# m-3 — concept de supra-imbunatatire + disclaimer scop. Frazele sunt FIXE (sablon), apar in ipoteze.
+_DISCLAIMER_FEZABILITATE = (
+    "Prezentul raport estimeaza valoarea proprietatii la data evaluarii si NU constituie un studiu "
+    "de fezabilitate sau de absorbtie a pietei. Imbunatatirile sunt reflectate la nivelul valorii lor "
+    "CONTRIBUTORII de piata (cat adauga la pret), nu la nivelul costului investitiei: o "
+    "supra-imbunatatire (dotari/finisaje peste standardul cartierului) se poate recupera doar partial "
+    "sau deloc (capital excedentar / depreciere functionala)."
+)
+
+
+# --------------------------------------------------------------------------- #
 # Front matter (shell GBF)
 # --------------------------------------------------------------------------- #
 def _coperta(doc: DocxDocument, ctx: ReportContext, adnotari: bool = False) -> None:
@@ -733,6 +798,8 @@ def genereaza_raport(
         _narativ(ctx, "Ipoteze generale si speciale")
         or "Ipoteze limitative standard privind structura de rezistenta si solul."
     )
+    # m-3 — disclaimer de scop (evaluare != studiu de fezabilitate) + concept supra-imbunatatire.
+    doc.add_paragraph(_DISCLAIMER_FEZABILITATE)
 
     doc.add_heading("3. PREZENTAREA DATELOR DE PIATA", level=1)
     _nota(doc, "cap3", adnotari)
@@ -740,6 +807,8 @@ def genereaza_raport(
         _narativ(ctx, "Prezentarea datelor de piata")
         or "Analiza pietei locale [de completat]."
     )
+    # I-12 — schelet structurat (faza ciclu / segment / tendinta) peste narativul AI.
+    _adauga_structura_piata(doc, ctx)
 
     doc.add_heading("4. DESCRIEREA JURIDICA SI FIZICA A PROPRIETATII", level=1)
     _nota(doc, "cap4", adnotari)
@@ -790,6 +859,8 @@ def genereaza_raport(
         _narativ(ctx, "Analiza celei mai bune utilizari (CMBU)")
         or "Analiza CMBU [de completat]."
     )
+    # I-12 — testarea CMBU pe cele 4 criterii, ca lista de bifat, peste narativul AI.
+    _adauga_structura_cmbu(doc, ctx)
 
     doc.add_heading("6. APLICAREA METODELOR DE CALCUL", level=1)
     _nota(doc, "cap6", adnotari)

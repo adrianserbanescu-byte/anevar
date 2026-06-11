@@ -79,6 +79,27 @@ def ajustare_neta(comp: Comparable) -> Decimal:
     return n
 
 
+def semnal_supra_imbunatatire(
+    cost_caracteristica: Decimal, valoare_contributorie: Decimal,
+    prag_recuperare: Decimal = Decimal("0.5"),
+) -> bool:
+    """m-3 — semnal de SUPRA-IMBUNATATIRE (Nicolescu / GEV 630 §35-39, capital excedentar A30.20).
+
+    O imbunatatire costisitoare a carei VALOARE CONTRIBUTORIE de piata (cat adauga la pret) e mult sub
+    COSTUL ei se recupereaza partial sau ~deloc. Returneaza True cand rata de recuperare
+    (valoare_contributorie / cost) e sub `prag_recuperare` (default 50%) — semnal de supra-imbunatatire
+    / capital excedentar (depreciere functionala), de reflectat in evaluare.
+
+    `cost_caracteristica` <= 0 -> False (nimic de recuperat). Conceptul: «evaluarea masoara valoarea
+    contributorie de piata, nu costul investitiei» — vezi si disclaimerul «evaluare != studiu de
+    fezabilitate» din raport.
+    """
+    if cost_caracteristica <= 0:
+        return False
+    rata_recuperare = valoare_contributorie / cost_caracteristica
+    return rata_recuperare < prag_recuperare
+
+
 def evaluate_market(
     comparables: list[Comparable], suprafata_subiect: Decimal | None = None,
     cfg: MetodologieConfig = IMPLICIT,

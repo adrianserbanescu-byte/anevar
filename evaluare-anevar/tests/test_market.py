@@ -65,6 +65,33 @@ def test_evaluate_market_fara_comparabile_ridica():
         evaluate_market([])
 
 
+# m-3 — semnal de supra-imbunatatire (cost >> valoare contributorie -> recuperare ~0).
+def test_semnal_supra_imbunatatire_cost_mult_peste_valoare():
+    from evaluare.engine.market import semnal_supra_imbunatatire
+    # cost 50000, valoare contributorie 10000 -> recuperare 20% < 50% -> supra-imbunatatire
+    assert semnal_supra_imbunatatire(Decimal("50000"), Decimal("10000")) is True
+
+
+def test_semnal_supra_imbunatatire_recuperare_buna_nu_semnaleaza():
+    from evaluare.engine.market import semnal_supra_imbunatatire
+    # cost 50000, valoare contributorie 45000 -> recuperare 90% >= 50% -> NU supra-imbunatatire
+    assert semnal_supra_imbunatatire(Decimal("50000"), Decimal("45000")) is False
+
+
+def test_semnal_supra_imbunatatire_cost_zero_e_false():
+    from evaluare.engine.market import semnal_supra_imbunatatire
+    assert semnal_supra_imbunatatire(Decimal("0"), Decimal("10000")) is False
+    assert semnal_supra_imbunatatire(Decimal("-5"), Decimal("10000")) is False
+
+
+def test_semnal_supra_imbunatatire_prag_configurabil():
+    from evaluare.engine.market import semnal_supra_imbunatatire
+    # recuperare 60%: la prag 0.5 -> False; la prag 0.7 -> True
+    assert semnal_supra_imbunatatire(Decimal("100"), Decimal("60")) is False
+    assert semnal_supra_imbunatatire(Decimal("100"), Decimal("60"),
+                                     prag_recuperare=Decimal("0.7")) is True
+
+
 # --------------------------------------------------------------------------- #
 # Regresie pe grila reala de casa GBF (Busteni, foaie "G. Comparatii locuinta").
 # Verifica reproducerea EXACTA a preturilor totale corectate ale celor 4 comparabile.
