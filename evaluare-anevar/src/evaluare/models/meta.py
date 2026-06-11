@@ -54,12 +54,17 @@ class EvaluationMeta(BaseModel):
     curs_valutar: Decimal | None = Field(default=None, gt=0, le=1_000_000)
     # Codul postal al imobilului subiect. Necesar la inregistrarea raportului in BIG
     # (gap S-4). Optional (default None) -> backward-compatible cu lucrarile existente.
-    cod_postal: str | None = None
+    # max_length: cod postal RO = 6 cifre; plafon generos pentru variante cu spatii/prefix
+    # tara (F-15-3) — opreste balonarea recipisei BIG / docx cu un cod postal de cativa MB.
+    cod_postal: str | None = Field(default=None, max_length=12)
     # Riscuri fizice identificate (ESG, GEV 520 §86-88, novatie 2025): lista de etichete
     # (ex. "inundabilitate", "seismic", "alunecari de teren"). Evaluatorul autorizat NU
     # are competenta de cuantificare — se enumera/semnaleaza (gap S-5 ESG). Lista goala
-    # implicit -> neafectate constructiile existente.
-    riscuri_fizice: list[str] = Field(default_factory=list)
+    # implicit -> neafectate constructiile existente. max_length (F-15-1): catalogul are 8
+    # riscuri; plafonul de 30 e generos si opreste DoS-ul prin N paragrafe in docx
+    # (fiecare eticheta -> un paragraf serializat XML in python-docx).
+    riscuri_fizice: list[str] = Field(default_factory=list, max_length=30)
     # Certificatul de performanta energetica (CPE): clasa energetica / referinta document
-    # obligatoriu la garantare (GEV 520 §46, gap G7). Optional (default None).
-    certificat_energetic: str | None = None
+    # obligatoriu la garantare (GEV 520 §46, gap G7). Optional (default None). max_length:
+    # clasa energetica / referinta scurta de document (F-15-3) — opreste balonarea docx.
+    certificat_energetic: str | None = Field(default=None, max_length=120)

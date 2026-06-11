@@ -129,7 +129,10 @@ class RiscIdentificat(BaseModel):
     cheie: str                        # cheie din CATALOG_RISCURI_FIZICE
     document_furnizat: bool = False   # documentul oficial a fost pus la dispoziție de client?
     sursa: str = ""                   # cheie din AUTORITATI_SURSA (ISU/ANM/INHGA/MMAP/ISC/asigurator)
-    observatie: str = ""              # informația preluata ca atare din documentul oficial
+    # informația preluata ca atare din documentul oficial. max_length (F-15-4): o observatie
+    # legitima e scurta; intra in genereaza_sectiune_esg -> docx ca atare, deci plafonul opreste
+    # balonarea documentului oficial.
+    observatie: str = Field(default="", max_length=2000)
 
 
 def risc(cheie: str) -> RiscFizic | None:

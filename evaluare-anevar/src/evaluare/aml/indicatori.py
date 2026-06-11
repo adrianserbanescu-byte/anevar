@@ -13,7 +13,7 @@ from __future__ import annotations
 
 from typing import Literal
 
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 # Categorii de catalog: cei 10 de baza (HCD 58) vs. cei specifici pietei imobiliare (ghid ONPCSB).
 CategorieIndicator = Literal["hcd58_baza", "ghid_imobiliar"]
@@ -161,8 +161,9 @@ class SemnaleIndicatori(BaseModel):
     distanta_geografica_inexplicabila: bool = False
     vanzare_prin_cesiune: bool = False
 
-    # observatii libere ale evaluatorului
-    observatii: str = ""
+    # observatii libere ale evaluatorului. max_length (F-15-4): o observatie legitima e scurta;
+    # plafonul opreste balonarea raspunsului /api/aml/evalueaza (campul e reflectat inapoi).
+    observatii: str = Field(default="", max_length=2000)
 
     model_config = {"extra": "forbid"}
 

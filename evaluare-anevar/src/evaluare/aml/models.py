@@ -106,7 +106,12 @@ class ClientPJ(BaseModel):
     imputernicit: PersoanaFizica | None = None
     document_imputernicire: str | None = None
     traducere_legalizata: bool = False              # obligatoriu daca PJ straina (art. 15(2))
-    beneficiari_reali: list[BeneficiarReal] = Field(default_factory=list, max_length=1000)
+    # max_length=200 (F-15-2): un BR real al unei PJ are sub 200 de persoane; plafonul vechi de
+    # 1000 ramanea un DoS rezidual la screening — `serviciu._nume_screening` emite ~1 nume per BR,
+    # iar `screening` ruleaza SequenceMatcher O(n*m) pe FIECARE nume x FIECARE intrare din listele
+    # oficiale (mii de intrari). 1000 BR x mii intrari = minute de CPU blocant per request; 200 il
+    # margineste realist fara a afecta structuri legitime.
+    beneficiari_reali: list[BeneficiarReal] = Field(default_factory=list, max_length=200)
     # S-3: consultarea Registrului Beneficiarilor Reali (RBR) la aplicarea MDC — Legea art. 19(5);
     # acces gratuit pentru entitati raportoare. `nr_extras_rbr`/`data_extras_rbr` = dovada consultarii.
     consultat_rbr: bool = False
