@@ -89,7 +89,10 @@ class DescoperaTerenRequest(BaseModel):
     judet: str
     localitate: str = ""
     suprafata_subiect: Decimal | None = None
-    max_candidati: int = 50             # default ridicat (era 8); configurabil din request (control UI)
+    # default ridicat (era 8); configurabil din request (control UI). RUNDA 16 (F-16-4): marginit la
+    # [1, 50] la nivel de schema (paritate cu clamp-ul UI) -> 422 pe valori nemarginite/negative care ar
+    # amplifica fetch/parse per request (un client direct ocolea altfel clamparea client-side).
+    max_candidati: int = Field(default=50, ge=1, le=50)
 
 
 # N4 (audit nealiniat-consistenta): suprafata subiect <=0 era respinsa de /api/grila-chirii (engine
@@ -117,7 +120,9 @@ class DescoperaRequest(BaseModel):
     localitate: str
     subiect: SubjectProfile
     atribute_secundare: list[str] = []
-    max_candidati: int = 50             # default ridicat (era 8); configurabil din request (control UI)
+    # default ridicat (era 8); configurabil din request (control UI). RUNDA 16 (F-16-4): marginit la
+    # [1, 50] la nivel de schema (paritate cu clamp-ul UI) -> 422 pe valori nemarginite/negative.
+    max_candidati: int = Field(default=50, ge=1, le=50)
     tip_activ: str | None = None        # categoria proprietatii (ex. "apartament") -> model de scoring per categorie
 
 

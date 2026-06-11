@@ -25,6 +25,11 @@ USER_AGENT = (
     "(KHTML, like Gecko) Chrome/124.0 Safari/537.36"
 )
 
+# Plafon de lungime pentru textul pe care rulam regex-uri de extractie (titlu + og:meta). Titlurile/
+# descrierile legitime sunt scurte (≤ cateva sute de caractere); un input de zeci de KB e ostil si ar
+# putea declansa backtracking super-liniar (ReDoS). Truncam INAINTE de regex (RUNDA 16, F-16-2).
+_MAX_TEXT_REGEX = 8000
+
 
 class ParsedListing(BaseModel):
     """Datele extrase dintr-un anunt (partiale, de confirmat de evaluator)."""
@@ -101,7 +106,9 @@ def _din_nextdata(soup) -> tuple:
         return None, None, None, None
     try:
         data = json.loads(raw)
-    except (ValueError, TypeError):
+    except (ValueError, TypeError, RecursionError):
+        # RecursionError: blob __NEXT_DATA__ adanc imbricat ([[[…]]]) depaseste limita de recursie a
+        # decoderului C din CPython. NU e subclasa de ValueError -> ar propaga ca 500 (RUNDA 16, F-16-1).
         return None, None, None, None
     pret = moneda = supr = teren = None
     stack = [data]
@@ -165,8 +172,8 @@ def _caracteristici_storia(soup) -> dict:
         return {}
     try:
         data = json.loads(raw)
-    except (ValueError, TypeError):
-        return {}
+    except (ValueError, TypeError, RecursionError):
+        return {}   # blob adanc imbricat -> RecursionError (NU ValueError); vezi F-16-1
 
     def primul(v):
         return v[0] if isinstance(v, list) and v else v
@@ -367,7 +374,9 @@ def parse_listing_html(html: str, sursa_url: str = "") -> ParsedListing:
     for script in soup.find_all("script", type="application/ld+json"):
         try:
             data = json.loads(script.get_text() or "")
-        except (json.JSONDecodeError, TypeError, ValueError):
+        except (json.JSONDecodeError, TypeError, ValueError, RecursionError):
+            # RecursionError: JSON-LD adanc imbricat depaseste limita de recursie a decoderului C
+            # (NU e subclasa de ValueError) -> ar propaga ca 500 (RUNDA 16, F-16-1).
             continue
         p, m, s = _cauta_in_jsonld(data)
         pret = pret or p
@@ -392,6 +401,11 @@ def parse_listing_html(html: str, sursa_url: str = "") -> ParsedListing:
         og = soup.find("meta", property=prop)
         if og and og.get("content"):
             text_cautare += " " + str(og["content"])
+    # RUNDA 16 (F-16-2, ReDoS): titlul/og sunt attacker-controlled (HTML din extensie/portal). Le truncam
+    # INAINTE de orice regex (mp, pret, pagina-lista, etaj) — un titlu ostil de zeci de KB (ex. un sir
+    # lung de cifre fara unitate/moneda) ar declansa backtracking super-liniar pe „N mp" si pe regexul de
+    # pret `(\d[\d.\s]{3,})\s*(eur|...)` -> zeci de secunde pe un singur request. Textele legitime sunt scurte.
+    text_cautare = text_cautare[:_MAX_TEXT_REGEX]
     # imagine reprezentativa pt carduri (og:image, fallback twitter:image)
     poza = None
     for cheie, val in (("property", "og:image"), ("name", "twitter:image")):
@@ -405,7 +419,10 @@ def parse_listing_html(html: str, sursa_url: str = "") -> ParsedListing:
         # sau urmează imediat după unitate („2000mp Teren") — NU o confunda cu suprafața casei
         # (ex. OLX „Casă cu 2000mp Teren"). Atenție: fereastra „după" e mică, ca să nu prindă
         # eticheta câmpului următor („120 mp  Suprafață teren: 300").
-        for m in re.finditer(r"(\d+(?:[.,]\d+)?)\s*mp\b", text_cautare, re.IGNORECASE):
+        # RUNDA 16 (F-16-2, ReDoS): cifrele mărginite (`\d{1,7}` = suprafață realistă ≤7 cifre,
+        # zecimale `{1,3}`) ca un titlu ostil să nu declanșeze backtracking super-liniar pe `finditer`
+        # (`text_cautare` e deja truncat mai sus).
+        for m in re.finditer(r"(\d{1,7}(?:[.,]\d{1,3})?)\s*mp\b", text_cautare, re.IGNORECASE):
             inainte = text_cautare[max(0, m.start() - 12):m.start()].lower()
             dupa = text_cautare[m.end():m.end() + 8].lower()
             e_teren = "teren" in inainte or re.match(r"\s*\.?\s*teren", dupa)
@@ -416,7 +433,11 @@ def parse_listing_html(html: str, sursa_url: str = "") -> ParsedListing:
             suprafata = _to_decimal(m.group(1))
             break
     if pret is None:
-        m = re.search(r"(\d[\d.\s]{3,})\s*(eur|euro|€|lei)", text_cautare, re.IGNORECASE)
+        # RUNDA 16 (F-16-2, ReDoS): grupul de cifre/separatori e mărginit la {3,18} (un preț realist are
+        # ≤18 caractere chiar cu separatori, ex. „2.000.000"). Nemărginit (`{3,}`) urmat de `\s*(eur|...)`
+        # avea cost pătratic pe un șir lung de cifre fără monedă (8000 cifre ≈ 1.4s) — chiar și cu
+        # `text_cautare` truncat. Marginirea îl ține în praguri de milisecunde.
+        m = re.search(r"(\d[\d.\s]{3,18})\s*(eur|euro|€|lei)", text_cautare, re.IGNORECASE)
         if m:
             pret = _to_decimal(m.group(1).replace(".", "").replace(" ", ""))
             moneda = moneda or m.group(2).upper().replace("EURO", "EUR").replace("€", "EUR")

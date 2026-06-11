@@ -68,7 +68,9 @@ def _scalar(v, *subkeys):
 def _int_safe(x) -> int | None:
     try:
         return int(x)
-    except (TypeError, ValueError):
+    except (TypeError, ValueError, ArithmeticError):
+        # ArithmeticError (OverflowError): `an: 1e400` din iesirea LLM ostila -> float('inf') ->
+        # int(inf) -> OverflowError (NU subclasa de ValueError) -> ar propaga ca 500 (RUNDA 16, F-16-5).
         return None
 
 

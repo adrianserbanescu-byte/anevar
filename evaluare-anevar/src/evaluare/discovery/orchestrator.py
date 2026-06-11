@@ -37,7 +37,8 @@ def _descriere_din_nextdata(soup, max_caractere: int) -> str:
         return ""
     try:
         data = json.loads(raw)
-    except (ValueError, TypeError):
+    except (ValueError, TypeError, RecursionError):
+        # blob __NEXT_DATA__ adanc imbricat -> RecursionError (NU ValueError) -> 500 (RUNDA 16, F-16-1).
         return ""
     best = ""
     stack = [data]
@@ -94,11 +95,19 @@ def extrage_descriere(html: str, max_caractere: int = 4000) -> str:
 # "257 mp teren", "teren de 1.910 mp"), nu in datele structurate -> ramanea None -> atributul
 # „teren" era exclus TACIT din scor desi exista in anunt. Regex tolerant la formatul RO de numere
 # (punct=mii, virgula=zecimale). Acopera ambele ordini (teren inainte sau dupa cifra).
+# RUNDA 16 (F-16-3, ReDoS): repetitiile clasei cifre+punct+spatii sunt marginite la {0,12}
+# (max ~13 caractere = o suprafata realista, ex. 1.000.000 mp). Nemarginit (*), urmat de unitate,
+# backtrack-uia catastrofal pe un sir lung de cifre care NU se termina in mp (titlu/descriere
+# ostila) -> zeci de secunde pe un singur request -> DoS pe worker.
 _RE_TEREN_TEXT = re.compile(
-    r"(?:teren\w*(?:\s+de)?\s*:?\s*([\d][\d.  ]*)\s*(?:mp|m²|m2)"
-    r"|([\d][\d.  ]*)\s*(?:mp|m²|m2)\s+teren)",
+    r"(?:teren\w*(?:\s+de)?\s*:?\s*([\d][\d.  ]{0,12})\s*(?:mp|m²|m2)"
+    r"|([\d][\d.  ]{0,12})\s*(?:mp|m²|m2)\s+teren)",
     re.IGNORECASE,
 )
+
+# Plafon de lungime pentru textul pasat regex-ului de teren (defense-in-depth peste marginirea de
+# mai sus): titlul/descrierea legitime sunt scurte; un input ostil de zeci de KB e truncat.
+_MAX_TEREN_TEXT = 8000
 
 
 def _teren_din_text(text: str) -> Decimal | None:
@@ -106,7 +115,7 @@ def _teren_din_text(text: str) -> Decimal | None:
     structurate. Intoarce primul match plauzibil (10..1_000_000 mp), altfel None."""
     if not text:
         return None
-    for m in _RE_TEREN_TEXT.finditer(text):
+    for m in _RE_TEREN_TEXT.finditer(text[:_MAX_TEREN_TEXT]):
         brut = (m.group(1) or m.group(2) or "").replace(" ", "").replace(" ", "").replace(".", "")
         if not brut:
             continue
