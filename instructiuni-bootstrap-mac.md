@@ -21,7 +21,8 @@ dacă primești arhiva de transfer, Partea B.** Windows-ul rămâne sursa de ade
 Deciziile D1–D4 sunt deja LUATE (vezi secțiunea „Decizii" din `plan-migrare-mac.md`):
 calea de lucru e `~/Projects/anevar`; build-ul .exe merge prin GitHub Actions
 (`.github/workflows/release-exe.yml`, la rădăcină) cu PC-ul Windows ca fallback;
-worktree-urile se migrează toate (peste câteva zile); sesiunile A–F — decide pilotul (B5).
+FĂRĂ worktree-uri suplimentare (D3 anulată — sesiunile B–F și worktree-urile lor au fost
+desființate pe 2026-06-11; A lucrează cu agenți); sesiuni — decide pilotul (B5).
 
 ## REGULI (rulezi cu bypass permissions — disciplina e a ta)
 
@@ -76,13 +77,8 @@ mkdir -p ~/Projects
 gh repo clone adrianserbanescu-byte/anevar ~/Projects/anevar
 cd ~/Projects/anevar && git log --oneline -3   # sanity
 ```
-Worktree-uri (doar dacă branch-urile există pe origin — verifică cu `git branch -r`):
-```bash
-cd ~/Projects/anevar
-git worktree add ../anevar-b origin/mutation-testing 2>/dev/null || echo "skip b"
-git worktree add ../anevar-c origin/feat-descoperire-comparabile 2>/dev/null || echo "skip c"
-git worktree add ../anevar-d origin/strategie-safety-net 2>/dev/null || echo "skip d"
-```
+NU crea worktree-uri suplimentare (anevar-b/c/d au fost desființate pe 2026-06-11 odată cu
+sesiunile B–F; A lucrează pe agent work style, cu worktrees automate sub `.claude/worktrees/`).
 
 ### A4. Mediu Python + GATE-ul principal
 ```bash
@@ -158,10 +154,11 @@ Mesaj sumar către Adi cu ce a trecut, ce a picat, ce așteaptă (arhiva pt. Par
 ## PARTEA B — DOAR când Adi îți dă arhiva de transfer 🙋 (cere-i calea, ex. /Volumes/...)
 
 B1. **Skills:** `cp -R <arhiva>/claude-skills/* ~/.claude/skills/` (creează dirul dacă lipsește).
-B2. **Mailbox:** `cp -R <arhiva>/anevar-mailbox ~/Projects/anevar-mailbox`. Verifică `live-up.py`:
-    dacă mai are `ROOT = Path(r"C:\Users\adyse...")` hardcodat → rescrie pentru Mac:
-    ROOT din env `ANEVAR_ROOT` (default `~/Projects/anevar/evaluare-anevar`) și pornire
-    `python -m evaluare` (nu `.exe`) cu env `OUTPUT_DIR`, `DB_PATH`, `ANEVAR_NO_BROWSER=1`.
+B2. **live-up.py — DOAR el** (restul `anevar-mailbox/` = sistem istoric A–F, desființat 2026-06-11,
+    NU se repune în funcțiune): ia `live-up.py` din arhivă sau din repo (dacă a fost mutat în
+    `evaluare-anevar/scripts/`). Dacă mai are `ROOT = Path(r"C:\Users\adyse...")` hardcodat →
+    rescrie pentru Mac: ROOT din env `ANEVAR_ROOT` (default `~/Projects/anevar/evaluare-anevar`)
+    și pornire `python -m evaluare` (nu `.exe`) cu env `OUTPUT_DIR`, `DB_PATH`, `ANEVAR_NO_BROWSER=1`.
 B3. **Date aplicație:** `cp -R <arhiva>/app-date/* ~/Projects/anevar/evaluare-anevar/live/date/`;
     apoi `sqlite3 ~/Projects/anevar/evaluare-anevar/live/date/evaluari.db "PRAGMA integrity_check;"` → ok.
 B4. **Hooks:** global (`~/.claude/settings.json`) — recreează echivalentele Windows cu căi Mac:
@@ -170,7 +167,7 @@ B4. **Hooks:** global (`~/.claude/settings.json`) — recreează echivalentele W
     `security_reminder_hook.py`; PostToolUse → memplan `memplan-post-tooluse.py`.
     Folosește căile REALE din cache după instalarea plugin-urilor (glob, nu ghici).
     Proiect (`~/Projects/anevar/.claude/settings.local.json`) — UserPromptSubmit:
-    `python3 ~/Projects/anevar-mailbox/mailbox.py hook` + `python3 ~/Projects/anevar-mailbox/live-up.py`.
+    DOAR `python3 <cale>/live-up.py` (vezi B2). NU recrea hook-ul `mailbox.py` (sistem desființat).
 B5. **PILOT sesiune (capcana nr. 2):**
     `mkdir -p ~/.claude/projects/-Users-$(whoami)-Projects-anevar` și copiază din arhivă UN singur
     `.jsonl` + subfolderul `<session-id>/` aferent. Apoi cere-i lui Adi 🙋 să verifice în
