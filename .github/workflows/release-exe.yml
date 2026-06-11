@@ -36,7 +36,10 @@ jobs:
         run: python scripts/build.py --clean --smoke-offline
 
       - name: Raporteaza dimensiunea
-        run: python -c "from pathlib import Path; p = Path('dist/evaluare-anevar.exe'); print(f'{p.name}: {p.stat().st_size/1e6:.1f} MB')"
+        # Block scalar (|): comanda contine ": " care nu e permis intr-un plain scalar YAML
+        # (parse error => TOATE rularile workflow-ului picau la 0s, pe orice push).
+        run: |
+          python -c "from pathlib import Path; p = Path('dist/evaluare-anevar.exe'); print(f'{p.name}: {p.stat().st_size/1e6:.1f} MB')"
 
       - uses: actions/upload-artifact@v4
         with:
