@@ -90,6 +90,33 @@ class Issue(BaseModel):
     mesaj: str
 
 
+def _mediana(valori: list[Decimal]) -> Decimal:
+    """Mediana unei liste de preturi `Decimal`, intoarsa tot ca `Decimal`.
+
+    Helper comun (CQ-02): centralizeaza pasul repetat `Decimal(str(median([float(p) ...])))`.
+    Lista trebuie sa fie nevida (apelantii verifica `len(...) >= ...` inainte)."""
+    return Decimal(str(median([float(p) for p in valori])))
+
+
+def _issues_outlier(preturi: list[Decimal], med: Decimal, prag: Decimal,
+                    eticheta: str = "Comparabilul") -> list[Issue]:
+    """Alerte de OUTLIER fata de mediana (CQ-02): pentru fiecare pret cu deviatie relativa > `prag`.
+
+    `eticheta` permite mesaje distincte piata vs teren ("Comparabilul" / "Comparabilul de teren").
+    Daca `med <= 0` nu se poate calcula deviatia relativa -> lista goala (comportament neschimbat)."""
+    issues: list[Issue] = []
+    if med <= 0:
+        return issues
+    for i, p in enumerate(preturi):
+        deviatie = abs(p - med) / med
+        if deviatie > prag:
+            issues.append(Issue(
+                nivel="alerteaza",
+                mesaj=f"{eticheta} {i} este outlier (deviatie {deviatie:.0%} fata de mediana).",
+            ))
+    return issues
+
+
 def valideaza_proprietate(land: LandData, building: BuildingData) -> list[Issue]:
     """Valideaza datele fizice/cadastrale ale proprietatii."""
     issues: list[Issue] = []
@@ -127,7 +154,7 @@ def valideaza_omogenitate(comparables: list[Comparable],
 
     # (a) segment de pret unic — dispersia totala a pretului unitar brut
     preturi = [pret_unitar_brut(c) for c in comparables]
-    med = Decimal(str(median([float(p) for p in preturi])))
+    med = _mediana(preturi)
     if med > 0:
         disp = (max(preturi) - min(preturi)) / med
         if disp < PRAG_SEGMENT_UNIC:
@@ -220,15 +247,8 @@ def valideaza_comparabile(comparables: list[Comparable],
         return issues
 
     preturi = [pret_unitar_brut(c) for c in comparables]
-    med = Decimal(str(median([float(p) for p in preturi])))
-    if med > 0:
-        for i, p in enumerate(preturi):
-            deviatie = abs(p - med) / med
-            if deviatie > cfg.prag_outlier:
-                issues.append(Issue(
-                    nivel="alerteaza",
-                    mesaj=f"Comparabilul {i} este outlier (deviatie {deviatie:.0%} fata de mediana).",
-                ))
+    med = _mediana(preturi)
+    issues += _issues_outlier(preturi, med, cfg.prag_outlier)
 
     for i, c in enumerate(comparables):
         if pret_total_corectat(c) <= 0:    # ajustari care duc pretul corectat la <=0 -> valoare nonsens
@@ -299,7 +319,7 @@ def valideaza_omogenitate_teren(comparables: list[LandComparable],
     if len(comparables) < 2:
         return issues
     preturi = [pret_mp_corectat(c) for c in comparables]
-    med = Decimal(str(median([float(p) for p in preturi])))
+    med = _mediana(preturi)
     if med > 0:
         disp = (max(preturi) - min(preturi)) / med
         if disp < PRAG_SEGMENT_UNIC:
@@ -367,16 +387,8 @@ def valideaza_comparabile_teren(comparables: list[LandComparable],
 
     inc = cfg.teren_selectie_include_eur
     preturi = [pret_mp_corectat(c) for c in comparables]
-    med = Decimal(str(median([float(p) for p in preturi])))
-    if med > 0:
-        for i, p in enumerate(preturi):
-            deviatie = abs(p - med) / med
-            if deviatie > cfg.prag_outlier:
-                issues.append(Issue(
-                    nivel="alerteaza",
-                    mesaj=f"Comparabilul de teren {i} este outlier "
-                          f"(deviatie {deviatie:.0%} fata de mediana).",
-                ))
+    med = _mediana(preturi)
+    issues += _issues_outlier(preturi, med, cfg.prag_outlier, eticheta="Comparabilul de teren")
 
     for i, c in enumerate(comparables):
         if pret_mp_corectat(c) <= 0:
