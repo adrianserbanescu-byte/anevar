@@ -27,8 +27,11 @@ class ReportContext(BaseModel):
     reconciled: ReconciledResult
     land_result: LandResult | None = None
     alocare_constructii: Decimal | None = None
-    photos: list[str] = Field(default_factory=list)   # data-URL base64 pentru anexa foto
-    documente: list[str] = Field(default_factory=list)  # data-URL base64 (scanuri) -> Anexa 3
+    # max_length (R17-2, DoS): data-URL base64 mari incarca memoria la decodare + inglobare in docx;
+    # fara plafon, N imagini/scanuri = amplificator memorie/CPU. 30 fiecare = generos pentru o anexa
+    # foto / set de scanuri real. Backward-compat (seturile normale trec; peste plafon -> ValidationError).
+    photos: list[str] = Field(default_factory=list, max_length=30)   # data-URL base64 pentru anexa foto
+    documente: list[str] = Field(default_factory=list, max_length=30)  # data-URL base64 (scanuri) -> Anexa 3
     narrative: list[NarrativeSection] = Field(default_factory=list)
     profil: ProfilEvaluare = Field(default_factory=lambda: CASA_TEREN_GARANTARE)
     venit_result: RezultatVenit | None = None

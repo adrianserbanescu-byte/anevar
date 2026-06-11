@@ -38,7 +38,10 @@ class Comparable(BaseModel):
     suprafata: Decimal = Field(gt=0)    # mp (numitorul pentru pretul unitar)
     tip_oferta: Literal["oferta", "tranzactie"] = "oferta"
     data_oferta: str | None = None
-    adjustments: list[Adjustment] = Field(default_factory=list)
+    # max_length (R17-1, DoS): o grila reala are sub ~10 elemente de comparatie; plafonul de 50
+    # e generos si opreste balonarea CPU/docx prin N ajustari imbricate. Backward-compat (valorile
+    # normale trec; peste plafon -> ValidationError/422 inainte de motor).
+    adjustments: list[Adjustment] = Field(default_factory=list, max_length=50)
 
 
 class LandComparable(BaseModel):
@@ -53,7 +56,7 @@ class LandComparable(BaseModel):
     suprafata: Decimal = Field(gt=0)
     localizare: str | None = None
     data: str | None = None
-    adjustments: list[Adjustment] = Field(default_factory=list)
+    adjustments: list[Adjustment] = Field(default_factory=list, max_length=50)  # R17-1 (DoS): vezi Comparable
 
 
 class RentComparable(BaseModel):
@@ -68,4 +71,4 @@ class RentComparable(BaseModel):
     suprafata: Decimal = Field(gt=0)
     localizare: str | None = None
     data: str | None = None
-    adjustments: list[Adjustment] = Field(default_factory=list)
+    adjustments: list[Adjustment] = Field(default_factory=list, max_length=50)  # R17-1 (DoS): vezi Comparable

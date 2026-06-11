@@ -44,8 +44,12 @@ class BuildingData(BaseModel):
     # cladire (suprascrie varsta cronologica ponderata pe elementele de cost). Daca e
     # None, se foloseste an_pif per-element (comportamentul existent prin compute_vcp).
     an_pif: int | None = None
-    elements: list[CostElement] = Field(default_factory=list)
-    depreciation_points: list[DepreciationPoint] = Field(default_factory=list)
+    # max_length (R17-2, DoS): la /raport.docx fiecare element/punct devine paragraf XML in
+    # python-docx (amplificator mai greu decat motorul). Plafoane realiste (catalog IROVAL are
+    # cateva zeci de elemente; tabelul de depreciere cateva puncte) — respinge 422 la marginea
+    # API. Backward-compat (valorile normale trec; peste plafon -> ValidationError).
+    elements: list[CostElement] = Field(default_factory=list, max_length=100)
+    depreciation_points: list[DepreciationPoint] = Field(default_factory=list, max_length=50)
     # Metoda LINIARA de depreciere fizica (alternativa la tabelul de interpolare):
     # daca e setata si NU exista depreciation_points, Dfn = Vcp / durata_viata_totala.
     durata_viata_totala: Decimal | None = Field(default=None, gt=0)  # ani (durata de viata fizica)
@@ -70,7 +74,7 @@ class LandData(BaseModel):
     suprafata: Decimal                  # mp
     categorie: str = "intravilan"       # intravilan / extravilan
     deschidere: Decimal | None = None
-    utilitati: list[str] = Field(default_factory=list)
+    utilitati: list[str] = Field(default_factory=list, max_length=30)  # R17-2 (DoS): vezi BuildingData.elements
     acces: str | None = None             # cale de acces (drum asfaltat/pietruit/servitute) — GEV 630 §28
     restrictii_urbanism: str | None = None
     categorie_folosinta: str | None = None   # arabil / pasune / vie / livada / padure

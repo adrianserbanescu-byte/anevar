@@ -99,19 +99,23 @@ class DescoperaTerenRequest(BaseModel):
 # evalueaza_chirie ridica ValueError -> 422) dar acceptata tacut de grila-casa (suprafata ignorata) si
 # grila-teren (producea valoare_teren <=0). Aliniem la comportamentul STRICT (chirii) prin gard la
 # nivel de schema -> 422 consistent pentru toate 3 grilele inainte de a ajunge in motor.
+# R17-1 (DoS): listele `comparabile` ale celor 3 grile erau nemarginite -> un client local putea trimite
+# zeci/sute de mii de comparabile (sub plafonul global de 50MB) -> rafala CPU (sorted O(n log n) + pase
+# O(n) + Decimal per comparabil) + amplificator docx. Plafon 200 (paritate cu `beneficiari_reali` din
+# RUNDA 15): generos fata de uzul real (3-6 comparabile), respinge 422 inainte de motor. Backward-compat.
 class GrilaTerenRequest(BaseModel):
     suprafata_subiect: Decimal = Field(gt=0)
-    comparabile: list[LandComparable]
+    comparabile: list[LandComparable] = Field(max_length=200)
 
 
 class GrilaCasaRequest(BaseModel):
     suprafata_subiect: Decimal = Field(gt=0)
-    comparabile: list[Comparable]
+    comparabile: list[Comparable] = Field(max_length=200)
 
 
 class GrilaChiriiRequest(BaseModel):
     suprafata_subiect: Decimal = Field(gt=0)
-    comparabile: list[RentComparable]
+    comparabile: list[RentComparable] = Field(max_length=200)
 
 
 class DescoperaRequest(BaseModel):
