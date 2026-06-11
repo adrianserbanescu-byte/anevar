@@ -375,6 +375,10 @@
       <hr class="brass-rule">
       <label for="comparabile">Comparabile construcție/proprietate</label>
       <textarea id="comparabile" rows="4" placeholder="250000;120"></textarea>
+      {# GF1: desfășurătorul de ajustări al grilei de casă, serializat JSON pe semnătura (preț;suprafață) a
+         fiecărui comparabil. Persistat prin snapshot (are id) → supraviețuiește refresh-ului. asambleaza()
+         îl citește și atașează adjustments la comparabilele trimise în raport. Ascuns: nu se editează manual. #}
+      <textarea id="comparabile_aj" hidden aria-hidden="true" tabindex="-1"></textarea>
       <details class="grila-det">
         <summary>{{ icon("grid") }} Grilă de ajustări — casă (pe etape + alerte prudențiale)</summary>
         <p class="hint">Completează prețul + suprafața fiecărui comparabil și ajustările. „Tranzacție" = compus (ofertă→tranzacție);
@@ -389,6 +393,8 @@
       </details>
       <label for="comparabile_teren">Comparabile teren <span class="hint">(opțional; dacă există, valoarea terenului se calculează din grilă, nu manual)</span></label>
       <textarea id="comparabile_teren" rows="3" placeholder="50;700"></textarea>
+      {# GF1: idem pentru grila de teren — JSON pe semnătura (preț/mp;suprafață) → adjustments în raport. #}
+      <textarea id="comparabile_teren_aj" hidden aria-hidden="true" tabindex="-1"></textarea>
       <details class="grila-det">
         <summary>{{ icon("grid") }} Grilă de ajustări — teren (pe etape + alerte prudențiale)</summary>
         <p class="hint">Preț/mp + suprafața fiecărui comparabil + ajustările (procentuale, în puncte %: 5 = +5%).</p>
@@ -1389,12 +1395,33 @@ if($("audit-gen")) $("audit-gen").addEventListener("click", function(){
   });
 })();
 
+// GF1 — desfășurătorul de ajustări al grilei, keyed pe semnătura comparabilului ((preț|preț/mp);suprafață).
+// Citește JSON-ul din câmpul ascuns (#comparabile_aj / #comparabile_teren_aj) scris de butoanele de import
+// ale grilei. Robust la JSON corupt (→ map gol = comportament vechi, brut). Folosit de asambleaza() pentru
+// a atașa adjustments la comparabilele trimise în raport (altfel media e pe prețuri BRUTE — bug GF1).
+function _ajMap(id){
+  var el=$(id); if(!el||!(el.value||"").trim()) return {};
+  try{ var m=JSON.parse(el.value); return (m&&typeof m==="object")?m:{}; }catch(e){ return {}; }
+}
+// Semnătura unei linii de comparabil = primele 2 câmpuri (preț + suprafață), normalizate (trim).
+function _ajSig(a, b){ return String(a==null?"":a).trim()+";"+String(b==null?"":b).trim(); }
+// GF1 — scrie/merge desfășurătorul de ajustări în câmpul ascuns `id`, keyed pe semnătura comparabilului
+// (`sig(c)`). Aditiv: pornește de la maparea existentă (nu pierde ajustările altor comparabile deja trimise);
+// suprascrie doar semnăturile re-trimise acum. `comps` au forma din compForm() (au c.adjustments).
+function _scrieAj(id, comps, sig){
+  var el=$(id); if(!el) return;
+  var m=_ajMap(id);
+  comps.forEach(function(c){ m[sig(c)]=c.adjustments||[]; });
+  el.value=JSON.stringify(m);
+}
+
 // construiește payload-ul de evaluare din câmpuri
 function asambleaza(){
   var elements=$("elemente").value.trim().split("\n").filter(Boolean).map(function(l){var p=l.split(";");return{element:p[0],cod:p[1],um:p[2],cantitate:p[3],cost_unitar:p[4],an_pif:parseInt(p[5])};});
   var dp=$("depreciere").value.trim().split("\n").filter(Boolean).map(function(l){var p=l.split(";");return{varsta:parseInt(p[0]),depreciere:p[1]};});
-  var comparables=$("comparabile").value.trim().split("\n").filter(Boolean).map(function(l){var p=l.split(";");return{pret:p[0],suprafata:p[1]};});
-  var land_comparables=$("comparabile_teren").value.trim().split("\n").filter(Boolean).map(function(l){var p=l.split(";");return{pret_mp:p[0],suprafata:p[1]};});
+  var ajCasa=_ajMap("comparabile_aj"), ajTeren=_ajMap("comparabile_teren_aj");
+  var comparables=$("comparabile").value.trim().split("\n").filter(Boolean).map(function(l){var p=l.split(";");var c={pret:p[0],suprafata:p[1]};var aj=ajCasa[_ajSig(p[0],p[1])];if(aj&&aj.length)c.adjustments=aj;return c;});
+  var land_comparables=$("comparabile_teren").value.trim().split("\n").filter(Boolean).map(function(l){var p=l.split(";");var c={pret_mp:p[0],suprafata:p[1]};var aj=ajTeren[_ajSig(p[0],p[1])];if(aj&&aj.length)c.adjustments=aj;return c;});
   var SCOP={garantare:["Garantarea creditului ipotecar","Valoarea de piață (SEV 102)"],raportare_financiara:["Raportare financiară (IFRS)","Valoarea justă (IFRS 13)"],asigurare:["Asigurare","Valoarea de asigurare"],impozitare:["Impozitare","Valoarea impozabilă"],litigii:["Litigiu","Valoarea de piață (SEV 102)"]};
   var sc=SCOP[$("scop").value]||SCOP.garantare;
   var meta={client_nume:$("nume_client").value||"Client",adresa:[$("adresa_strada").value,numeLoc("localitate"),numeLoc("judet")].filter(Boolean).join(", ")||"-",numar_cadastral:$("numar_cadastral").value,carte_funciara:$("carte_funciara").value,evaluator_nume:"{{ cont.nume if cont else '' }}",evaluator_legitimatie:"{{ cont.legitimatie if cont else '' }}",data_evaluarii:$("data_evaluarii").value||new Date().toISOString().slice(0,10),data_raportului:$("data_raportului").value||new Date().toISOString().slice(0,10),moneda:$("moneda").value,scop:sc[0],tip_valoare:sc[1]};
@@ -1497,8 +1524,12 @@ function asambleaza(){
   });
   if($("g-import")) $("g-import").addEventListener("click", function(){
     var comps=compForm(); if(!comps.length){ $("g-rezultat").textContent="Nimic de trimis."; return; }
-    var ta=$("comparabile"); ta.value=(ta.value.trim()?ta.value.trim()+"\n":"")+comps.map(function(c){return c.pret+";"+c.suprafata;}).join("\n"); salveaza(); if(ta._grid)ta._grid.refresh();
-    $("g-rezultat").textContent="✓ "+comps.length+" prețuri trimise în Comparabile.";
+    var ta=$("comparabile"); ta.value=(ta.value.trim()?ta.value.trim()+"\n":"")+comps.map(function(c){return c.pret+";"+c.suprafata;}).join("\n");
+    // GF1: pe lângă preț;suprafață, păstrăm desfășurătorul de ajustări (keyed pe semnătură) în câmpul ascuns,
+    // ca asambleaza() să-l trimită în raport — altfel valoarea de piață = media prețurilor BRUTE (bug GF1).
+    if(typeof _scrieAj==="function") _scrieAj("comparabile_aj", comps, function(c){return c.pret+";"+c.suprafata;});
+    salveaza(); if(ta._grid)ta._grid.refresh();
+    $("g-rezultat").textContent="✓ "+comps.length+" comparabile (cu ajustări) trimise în Comparabile.";
   });
 })();
 // Grilă de ajustări TEREN (port din grila.html): 2 etape + alertă prudențială 25% (GEV 520).
@@ -1552,8 +1583,11 @@ function asambleaza(){
   });
   if($("gt-import")) $("gt-import").addEventListener("click", function(){
     var comps=compForm(); if(!comps.length){ $("gt-rezultat").textContent="Nimic de trimis."; return; }
-    var ta=$("comparabile_teren"); ta.value=(ta.value.trim()?ta.value.trim()+"\n":"")+comps.map(function(c){return c.pret_mp+";"+c.suprafata;}).join("\n"); salveaza(); if(ta._grid)ta._grid.refresh();
-    $("gt-rezultat").textContent="✓ "+comps.length+" comparabile trimise în Comparabile teren.";
+    var ta=$("comparabile_teren"); ta.value=(ta.value.trim()?ta.value.trim()+"\n":"")+comps.map(function(c){return c.pret_mp+";"+c.suprafata;}).join("\n");
+    // GF1: păstrăm desfășurătorul de ajustări al grilei de teren (keyed pe semnătură preț/mp;suprafață).
+    if(typeof _scrieAj==="function") _scrieAj("comparabile_teren_aj", comps, function(c){return c.pret_mp+";"+c.suprafata;});
+    salveaza(); if(ta._grid)ta._grid.refresh();
+    $("gt-rezultat").textContent="✓ "+comps.length+" comparabile (cu ajustări) trimise în Comparabile teren.";
   });
 })();
 // Grilă de CHIRII (port din grila.html): 2 etape + alertă prudențială 25% → VBP pentru abordarea prin venit.
