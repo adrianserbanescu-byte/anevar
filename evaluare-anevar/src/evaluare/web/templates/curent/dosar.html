@@ -154,7 +154,7 @@
           <div class="field"><label for="adresa_strada">Stradă, nr.</label><input id="adresa_strada"></div>
         </div>
         <div class="field-row">
-          <div class="field"><label for="cod_postal">Cod poștal <span class="hint">(pentru Buletinul Informativ al Garanțiilor — BIG)</span></label><input id="cod_postal" inputmode="numeric" autocomplete="postal-code" placeholder="ex. 105600"></div>
+          <div class="field"><label for="cod_postal">Cod poștal <span class="hint">(pentru Buletinul Informativ al Garanțiilor — BIG)</span></label><input id="cod_postal" inputmode="numeric" autocomplete="postal-code" placeholder="ex. 105600"><span class="hint" id="cod_postal_hint" hidden></span></div>
         </div>
       </fieldset>
 
@@ -803,6 +803,37 @@ function numeLoc(id){ var e=$(id); if(!e) return ""; if(e.tagName!=="SELECT") re
 var asumareBox = $("asumare"), genBtn0 = $("genereaza");
 function sincronAsumare(){ if(genBtn0) genBtn0.disabled = !(asumareBox && asumareBox.checked); }
 if(asumareBox){ asumareBox.addEventListener("change", sincronAsumare); sincronAsumare(); }
+
+// Auto-tragere cod poștal (Poșta Română) — cablare la endpointul GET /api/cod-postal (Lot A1).
+// Trigger: BLUR pe #adresa_strada; sau CHANGE pe #localitate dacă strada e deja completată (debounce).
+// Endpointul vrea NUMELE județului/localității (nu slug-ul) -> folosim numeLoc(); câmpul „Stradă, nr."
+// e combinat, deci trimitem tot textul ca `strada` și lăsăm `nr` gol (backendul parsează).
+// Robust: nu suprascrie ce a tastat userul (completează #cod_postal DOAR dacă e gol); la cod==null /
+// eroare / offline NU face nimic și NU aruncă în consolă (.catch). INTERZIS {{ icon() }} aici — doar text.
+(function(){
+  var strada=$("adresa_strada"), loc=$("localitate"), hint=$("cod_postal_hint");
+  if(!strada || !loc) return;
+  function aratHint(text){ if(!hint) return; if(text){ hint.textContent=text; hint.hidden=false; } else { hint.textContent=""; hint.hidden=true; } }
+  function tragCodPostal(){
+    var cp=$("cod_postal");
+    var jN=numeLoc("judet"), lN=numeLoc("localitate"), sV=(strada.value||"").trim();
+    if(!jN || !lN || !sV) return;                 // toate cele 3 câmpuri trebuie completate
+    var q="/api/cod-postal?judet="+encodeURIComponent(jN)+"&localitate="+encodeURIComponent(lN)+"&strada="+encodeURIComponent(sV);
+    fetch(q).then(function(r){ return r.ok ? r.json() : null; }).then(function(d){
+      if(!d || d.cod==null) return;               // cod necunoscut/eroare -> rămâne manual, fără zgomot
+      if(cp && !(cp.value||"").trim()){ cp.value=d.cod; salveaza&&salveaza(); }
+      aratHint(d.ambiguu ? "verifică — strada are mai multe coduri" : "auto · Poșta Română");
+    }).catch(function(){ /* offline/eroare rețea: câmpul rămâne manual, fără eroare în consolă */ });
+  }
+  // BLUR pe stradă: declanșare imediată (userul tocmai a terminat de tastat adresa).
+  strada.addEventListener("blur", tragCodPostal);
+  // CHANGE pe localitate: doar dacă strada e deja completată; debounce ca să nu spamăm la fiecare tastă.
+  var tCp;
+  loc.addEventListener("change", function(){
+    if(!(strada.value||"").trim()) return;
+    clearTimeout(tCp); tCp=setTimeout(tragCodPostal, 400);
+  });
+})();
 
 // Ajutor contextual „?" (ce înseamnă câmpul) — re-adăugat lângă „!" (mapare vechi→nou).
 // audit UX 2026-06-11 (R2): popovere „?" reduse drastic. Am scos cheile tautologice (label clar
