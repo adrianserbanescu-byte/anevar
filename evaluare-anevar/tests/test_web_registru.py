@@ -140,3 +140,52 @@ def test_export_dosar_zip_fara_lock(client):
 def test_export_dosar_uid_invalid_404(client):
     assert client.get("/api/dosar/nope/export.zip").status_code == 404
     assert client.get("/api/dosar/../export.zip").status_code in (404, 400)
+
+
+# ── Pregatire BIG per dosar (GEV 520 §7) ──────────────────────────────────────
+def test_big_dosar_incomplet_listeaza_lipsuri(client):
+    # Dosar minimal (doar identitate) -> multe campuri minime BIG lipsa, dar nu pica.
+    uid = _dosar(client, nume_client="Pop", tip_proprietate="casa")
+    r = client.get(f"/api/dosar/{uid}/big")
+    assert r.status_code == 200
+    j = r.json()
+    assert j["uid"] == uid
+    assert j["gata"] is False
+    assert isinstance(j["lipsuri"], list) and j["lipsuri"]
+    # Evaluatorul (creatorul contului) + nr de lucrare sunt completate automat -> NU apar ca lipsa.
+    assert "Numele evaluatorului" not in j["lipsuri"]
+    assert "Numărul de identificare a raportului" not in j["lipsuri"]
+    # Banca/valoarea/codul postal nu sunt completate -> apar ca lipsa.
+    assert "Banca / utilizatorul desemnat (creditorul)" in j["lipsuri"]
+    assert "Valoarea de piață (concluzia evaluatorului)" in j["lipsuri"]
+
+
+def test_big_dosar_complet_e_gata(client):
+    uid = _dosar(client,
+                 nume_client="Ionescu", tip_proprietate="teren",
+                 beneficiar="Banca Transilvania", cod_postal="400001",
+                 judet="Cluj", localitate="Cluj-Napoca",
+                 suprafata_teren="500", moneda="RON",
+                 data_evaluarii="2026-01-16", valoare_finala="123000")
+    j = client.get(f"/api/dosar/{uid}/big").json()
+    assert j["gata"] is True, j["lipsuri"]
+    assert j["lipsuri"] == []
+    # Payload-ul reflecta datele introduse (mapate la campurile BIG).
+    p = j["payload"]
+    assert p["banca"] == "Banca Transilvania"
+    assert p["tip_proprietate"] == "teren"
+    assert p["cod_postal"] == "400001"
+    assert str(p["valoare_piata"]) == "123000"
+
+
+def test_big_uid_invalid_404(client):
+    assert client.get("/api/dosar/nope/big").status_code == 404
+
+
+def test_registru_arata_pregatirea_big(client):
+    _dosar(client, nume_client="Vasilescu", tip_proprietate="casa")
+    r = client.get("/registru")
+    assert r.status_code == 200
+    assert "Pregătire BIG" in r.text
+    # Dosar incomplet -> pastila „lipsă" pe pagina.
+    assert "lipsă" in r.text

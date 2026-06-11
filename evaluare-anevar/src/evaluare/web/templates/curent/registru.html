@@ -10,6 +10,11 @@
   table.reg td.wrap{ white-space:normal; min-width:14ch; }
   .reg-actiuni{ display:flex; gap:8px; flex-wrap:wrap; margin:0 0 14px; }
   .empty-state h2{ margin:0 0 6px; font-family:var(--serif); color:var(--ink); font-size:1.15rem; font-weight:600; }
+  /* Pregatire BIG (GEV 520 §7): pastila verde = gata, ambra = N campuri minime lipsa. */
+  .big-pill{ display:inline-block; padding:1px 8px; border-radius:999px; font-size:.78rem; font-weight:600; white-space:nowrap; }
+  .big-pill.gata{ background:#e6f4ea; color:#1e6b35; border:1px solid #b7dcc2; }
+  .big-pill.lipsa{ background:#fbeede; color:#8a5a12; border:1px solid #efcf9f; }
+  .big-pill a{ color:inherit; text-decoration:underline; }
 </style></head>
 <body>
 {% from "_icon.html" import icon %}
@@ -38,6 +43,7 @@
     <caption class="sr-only">Registrul rapoartelor de evaluare, cu cele ~13 câmpuri cerute de Procedura de arhivare ANEVAR §6 și un export de audit per dosar.</caption>
     <thead><tr>
       {% for cheie, eticheta in coloane %}<th scope="col">{{ eticheta }}</th>{% endfor %}
+      <th scope="col">Pregătire BIG</th>
       <th scope="col">Audit</th>
     </tr></thead>
     <tbody>
@@ -46,6 +52,13 @@
       {% for cheie, eticheta in coloane %}
         <td class="{{ 'wrap' if cheie in ('obiect', 'observatii', 'utilizatori') else '' }}">{{ r[cheie] or '—' }}</td>
       {% endfor %}
+      <td>
+        {% set bs = big_status.get(r.uid) if r.uid else none %}
+        {% if bs is none %}—
+        {% elif bs.gata %}<a class="big-pill gata" href="/api/dosar/{{ r.uid }}/big" title="Toate câmpurile minime BIG sunt completate — gata de înregistrare">✓ gata</a>
+        {% else %}<a class="big-pill lipsa" href="/api/dosar/{{ r.uid }}/big" title="Câmpuri minime BIG lipsă — vezi lista înainte de înregistrare">⚠ {{ bs.nr_lipsuri }} lipsă</a>
+        {% endif %}
+      </td>
       <td>{% if r.uid %}<a class="btn ghost" href="/api/dosar/{{ r.uid }}/export.zip" title="Pachet de inspecție (dosar.json + .docx + integritate)">{{ icon("download") }} .zip</a>{% endif %}</td>
     </tr>
     {% endfor %}
