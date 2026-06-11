@@ -74,3 +74,54 @@ SPECIAL = ProfilEvaluare(
     tip_activ="special", scop="garantare_credit", tip_valoare="piata",
     abordari_aplicabile=["venit", "comparatie", "cost"], ghid="GEV_630",
 )
+
+
+class SectiuniTip(BaseModel):
+    """Ce sectiuni de raport sunt UNICE / aplicabile pentru un tip de imobil (structura livrabilului).
+
+    Sursa: docs/SEV-2025-cerinte-per-tip-imobil.md (matricea „ce e UNIC per tip"). Decuplam STRUCTURA
+    raportului (ce sectiuni apar) de DATELE prezente: un raport de teren nu trebuie sa contina sectiunea
+    de constructie chiar daca, accidental, ar exista elemente de cost in input. Flag-urile aici sunt
+    ADITIVE — `True` = comportamentul implicit (se randeaza daca exista date); `False` = se omite
+    explicit pentru tipul respectiv.
+    """
+
+    # Sectiunile de constructie (tabel cost de inlocuire + linia descriptiva a constructiei).
+    # False pentru teren liber / agricol (nu exista constructie de evaluat).
+    constructie: bool = True
+    # Grila de teren STANDALONE + alocarea valorii teren/constructie. False pentru apartament
+    # (terenul = cota indiviza netranzacționabila, NU se aloca separat — GEV 630 §118.a).
+    teren_standalone: bool = True
+    # Nota „cota parte indiviza din teren" in locul terenului in proprietate exclusiva (apartament).
+    nota_cota_indiviza: bool = False
+    # Venitul ca abordare PRINCIPALA (comercial / generator de venit) — marcaj proeminent in raport.
+    venit_principal: bool = False
+    # Permite tabelul de cost (abordarea prin cost). False = se omite explicit pentru tipul respectiv
+    # (ex. comercial — costul de regula NU se aplica, GEV 232 §11). True = comportamentul actual
+    # (se randeaza data-driven, daca exista elemente de cost). NB: distinct de `constructie`, care
+    # acopera si linia descriptiva a constructiei la teren/agricol.
+    abordare_cost: bool = True
+
+
+# Maparea tip de imobil -> structura sectiunilor de raport. Tipurile neenumerate (sau profilul
+# implicit/necunoscut) cad pe `SectiuniTip()` = comportamentul actual (toate sectiunile, data-driven).
+SECTIUNI_PER_TIP: dict[str, SectiuniTip] = {
+    # Casa: piata + cost (construcție + teren). Toate sectiunile — comportamentul actual.
+    "casa": SectiuniTip(),
+    # Apartament: piata principala; FARA teren standalone (cota indiviza), cu nota explicativa.
+    "apartament": SectiuniTip(teren_standalone=False, nota_cota_indiviza=True),
+    # Teren liber: doar analiza terenului; FARA constructie / cost de inlocuire constructie.
+    "teren": SectiuniTip(constructie=False),
+    # Agricol: comparatie pe teren; FARA constructie.
+    "agricol": SectiuniTip(constructie=False),
+    # Comercial: venit = abordarea PRINCIPALA (proeminenta in raport); costul de regula NU se aplica.
+    "comercial": SectiuniTip(venit_principal=True, abordare_cost=False),
+    # Industrial / special: toate sectiunile (piata/cost/venit dupa caz) — comportamentul actual.
+    "industrial": SectiuniTip(),
+    "special": SectiuniTip(),
+}
+
+
+def sectiuni_pentru_tip(tip: str | None) -> SectiuniTip:
+    """Structura de sectiuni pentru un tip de imobil. Tip necunoscut/absent -> implicit (toate)."""
+    return SECTIUNI_PER_TIP.get(tip or "", SectiuniTip())

@@ -96,6 +96,18 @@ def _narativ(ctx: ReportContext, capitol: str) -> str | None:
     return None
 
 
+# --------------------------------------------------------------------------- #
+# Tailoring per tip de imobil (structura livrabilului) — vezi profil.SECTIUNI_PER_TIP +
+# docs/SEV-2025-cerinte-per-tip-imobil.md. Toate helperele de mai jos sunt ADITIVE: tipul
+# implicit/necunoscut (`casa`) -> SectiuniTip() implicit -> comportamentul actual data-driven.
+# --------------------------------------------------------------------------- #
+def _sectiuni(ctx: ReportContext):
+    """Structura de sectiuni aplicabila tipului de imobil din profil (fail-soft pe profil absent)."""
+    from evaluare.profil import sectiuni_pentru_tip
+    tip = getattr(getattr(ctx, "profil", None), "tip_activ", None)
+    return sectiuni_pentru_tip(tip)
+
+
 def _fmt(v) -> str:
     """Formateaza un numar cu separator de mii (stil RO) fara zecimale inutile."""
     try:
@@ -543,6 +555,10 @@ def _adauga_grila_comparatie(doc: DocxDocument, ctx: ReportContext) -> None:
 
 
 def _adauga_grila_teren(doc: DocxDocument, ctx: ReportContext) -> None:
+    # Per tip apartament: terenul = cota indiviza netranzacționabila -> NU se evalueaza standalone
+    # (GEV 630 §118.a). In locul grilei, o nota explicativa (vezi _adauga_nota_cota_indiviza).
+    if not _sectiuni(ctx).teren_standalone:
+        return
     if ctx.land_result is None or not ctx.land_comparables:
         return
     doc.add_paragraph("Grila de comparatie pentru teren (EUR/mp):")
@@ -574,7 +590,29 @@ def _adauga_grila_teren(doc: DocxDocument, ctx: ReportContext) -> None:
     )
 
 
+def _adauga_nota_cota_indiviza(doc: DocxDocument, ctx: ReportContext) -> None:
+    """Apartament: nota „cota parte indiviza din teren" — terenul NU e in proprietate exclusiva si NU
+    se evalueaza standalone (GEV 630 §118.a interzice alocarea separata). Inlocuieste grila de teren.
+    Aditiva: apare doar pe tipul cu `nota_cota_indiviza` (apartament)."""
+    if not _sectiuni(ctx).nota_cota_indiviza:
+        return
+    cota = getattr(ctx.building, "cota_teren_indiviza", None)
+    cota_txt = (f" Cota-parte indiviza aferenta: {cota} mp." if cota is not None else "")
+    doc.add_paragraph(
+        "Teren: dreptul asupra terenului consta intr-o COTA-PARTE INDIVIZA din terenul aferent "
+        "blocului, netranzacționabila separat de apartament; in consecinta, terenul NU se evalueaza "
+        "standalone si NU se face o alocare teren/constructie (GEV 630 §118.a). Valoarea cotei "
+        "indivize este incorporata in pretul apartamentului obtinut prin comparatie de piata." + cota_txt
+    )
+
+
 def _adauga_tabel_cost(doc: DocxDocument, ctx: ReportContext) -> None:
+    # Per tip: teren liber / agricol NU au constructie -> se omite tabelul de cost de inlocuire
+    # constructie (chiar daca, accidental, ar exista elemente in input). Comercial -> costul de regula
+    # NU se aplica (abordare_cost=False). Casa/industrial/special pastreaza comportamentul actual.
+    sect = _sectiuni(ctx)
+    if not sect.constructie or not sect.abordare_cost:
+        return
     if not ctx.building.elements:
         return
     doc.add_paragraph("Tabelul costurilor segregate (abordarea prin cost):")
@@ -607,6 +645,10 @@ def _adauga_tabel_cost(doc: DocxDocument, ctx: ReportContext) -> None:
 # --------------------------------------------------------------------------- #
 def _adauga_alocare(doc: DocxDocument, ctx: ReportContext, adnotari: bool = False) -> None:
     if ctx.alocare_constructii is None:
+        return
+    # Per tip apartament: terenul = cota indiviza netranzacționabila -> NU se face alocare separata
+    # teren/constructie (GEV 630 §118.a). Nota explicativa apare deja la capitolul 6.
+    if not _sectiuni(ctx).teren_standalone:
         return
     doc.add_heading("ALOCAREA VALORII", level=1)
     _nota(doc, "alocare", adnotari)
@@ -906,10 +948,12 @@ def genereaza_raport(
         doc.add_paragraph(f"Utilitati: {', '.join(ctx.land.utilitati)}.")
     if ctx.land.restrictii_urbanism:                    # GEV 630 §16 — regim/restrictii urbanism (POT/CUT etc.)
         doc.add_paragraph(f"Regim urbanistic / restrictii (certificat urbanism): {ctx.land.restrictii_urbanism}.")
-    doc.add_paragraph(
-        f"Constructie: Au {ctx.building.au} mp, Acd {ctx.building.acd} mp, "
-        f"an referinta {ctx.building.an_referinta}."
-    )
+    # Per tip: teren liber / agricol nu au constructie -> se omite linia descriptiva a constructiei.
+    if _sectiuni(ctx).constructie:
+        doc.add_paragraph(
+            f"Constructie: Au {ctx.building.au} mp, Acd {ctx.building.acd} mp, "
+            f"an referinta {ctx.building.an_referinta}."
+        )
     if ctx.building.etaj is not None or ctx.building.an_bloc is not None:
         parti = []
         if ctx.building.etaj is not None:
@@ -965,11 +1009,24 @@ def genereaza_raport(
         'SEV 105 „Modele de evaluare” (echivalente IVS 103/IVS 105). Selecția abordării '
         'este justificată în reconcilierea de la capitolul 7.'
     )
+    sect = _sectiuni(ctx)
+    # Comercial / generator de venit: abordarea prin VENIT este PRINCIPALA — marcaj proeminent
+    # inaintea metodelor (GEV 232 §11; proprietatea genereaza venit, piata = verificare).
+    if sect.venit_principal:
+        p_vp = doc.add_paragraph()
+        p_vp.add_run(
+            "Abordarea PRINCIPALA pentru acest tip de proprietate (generatoare de venit) este "
+            "abordarea prin VENIT (capitalizare directa / DCF); abordarea prin piata are rol de "
+            "verificare, iar costul de regula NU se aplica (GEV 630 / GEV 232)."
+        ).bold = True
     _adauga_grila_comparatie(doc, ctx)
     _adauga_grila_teren(doc, ctx)
+    _adauga_nota_cota_indiviza(doc, ctx)   # apartament: nota cota indiviza in locul grilei de teren
     _adauga_tabel_cost(doc, ctx)
     if ctx.venit_result is not None:
-        doc.add_heading("Abordarea prin venit (capitalizare directă)", level=2)
+        titlu_venit = ("Abordarea prin venit (capitalizare directă) — abordare PRINCIPALA"
+                       if sect.venit_principal else "Abordarea prin venit (capitalizare directă)")
+        doc.add_heading(titlu_venit, level=2)
         dv, vr = ctx.date_venit, ctx.venit_result
         if dv is not None:
             doc.add_paragraph(
