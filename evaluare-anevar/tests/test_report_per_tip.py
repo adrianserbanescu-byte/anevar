@@ -10,6 +10,7 @@ Toate aditiv / backward-compatible (tipul implicit/necunoscut -> comportamentul 
 """
 from decimal import Decimal
 
+import pytest
 from docx import Document
 
 from evaluare.engine.venit import DateVenit, RezultatVenit
@@ -224,3 +225,56 @@ def test_tip_implicit_pastreaza_comportamentul_actual(tmp_path):
     assert "Grila de comparatie pentru teren" in text
     assert "ALOCAREA VALORII" in text
     assert "COTA-PARTE INDIVIZA" not in text
+
+
+# --------------------------------------------------------------------------- #
+# CONF-02 — eticheta de identificare a proprietatii pe coperta derivata din tip_activ
+# (SEV 106 / GEV 630 §110-112). Inainte hardcodata „casa de locuit si teren aferent" pe ORICE tip.
+# --------------------------------------------------------------------------- #
+@pytest.mark.parametrize(
+    ("tip", "eticheta"),
+    [
+        ("casa", "casa de locuit si teren aferent"),
+        ("apartament", "apartament"),
+        ("teren", "teren"),
+        ("comercial", "spatiu comercial"),
+        ("industrial", "imobil industrial"),
+        ("agricol", "teren agricol"),
+        ("special", "proprietate cu destinatie speciala"),
+    ],
+)
+def test_coperta_eticheta_proprietate_per_tip(tmp_path, tip, eticheta):
+    ctx = _ctx(ProfilEvaluare(tip_activ=tip))
+    out = tmp_path / f"coperta_{tip}.docx"
+    genereaza_raport(ctx, out)
+    text = _all_text(out)
+    assert f"Proprietate imobiliara: {eticheta}" in text
+
+
+def test_coperta_casa_neschimbata_backward_compat(tmp_path):
+    # Backward-compat strict: tipul „casa" pastreaza textul exact de dinainte de CONF-02.
+    out = tmp_path / "coperta_casa_compat.docx"
+    genereaza_raport(_ctx(CASA_TEREN_GARANTARE), out)
+    assert "Proprietate imobiliara: casa de locuit si teren aferent" in _all_text(out)
+
+
+def test_coperta_apartament_nu_eticheteaza_casa_teren(tmp_path):
+    # Apartament (fara teren in proprietate exclusiva — GEV 630 §118.a): NU mai apare mislabel-ul
+    # „casa de locuit si teren aferent".
+    out = tmp_path / "coperta_apt_nomislabel.docx"
+    genereaza_raport(_ctx(APARTAMENT_GARANTARE), out)
+    text = _all_text(out)
+    assert "Proprietate imobiliara: apartament" in text
+    assert "Proprietate imobiliara: casa de locuit si teren aferent" not in text
+
+
+def test_coperta_tip_necunoscut_revine_la_casa(tmp_path):
+    # Fail-soft: tip de activ necunoscut (in afara mapei) -> eticheta implicita „casa"
+    # (comportament actual). Profilul ramane valid pentru restul pipeline-ului (ghid).
+    ctx = _ctx()
+    profil = CASA_TEREN_GARANTARE.model_copy()
+    object.__setattr__(profil, "tip_activ", "necunoscut")  # tip in afara mapei, restul valid
+    ctx.profil = profil
+    out = tmp_path / "coperta_tip_necunoscut.docx"
+    genereaza_raport(ctx, out)
+    assert "Proprietate imobiliara: casa de locuit si teren aferent" in _all_text(out)

@@ -379,6 +379,28 @@ _DISCLAIMER_FEZABILITATE = (
 )
 
 
+# CONF-02 — eticheta de identificare a proprietatii pe coperta, derivata din `profil.tip_activ`
+# (SEV 106 / GEV 630 §110-112). Inainte era hardcodata „casa de locuit si teren aferent" pentru ORICE
+# tip; pentru apartament (fara teren in proprietate exclusiva — GEV 630 §118.a), teren liber, hala etc.
+# era mislabel. Mapare aditiva, backward-compatible: tip implicit/necunoscut -> eticheta „casa".
+_ETICHETA_PROPRIETATE_PER_TIP: dict[str, str] = {
+    "casa": "casa de locuit si teren aferent",
+    "apartament": "apartament",
+    "teren": "teren",
+    "comercial": "spatiu comercial",
+    "industrial": "imobil industrial",
+    "agricol": "teren agricol",
+    "special": "proprietate cu destinatie speciala",
+}
+_ETICHETA_PROPRIETATE_IMPLICITA = _ETICHETA_PROPRIETATE_PER_TIP["casa"]
+
+
+def _eticheta_proprietate(ctx: ReportContext) -> str:
+    """Descrierea proprietatii pentru coperta, derivata din tipul de activ (fail-soft pe profil absent)."""
+    tip = getattr(getattr(ctx, "profil", None), "tip_activ", None)
+    return _ETICHETA_PROPRIETATE_PER_TIP.get(tip, _ETICHETA_PROPRIETATE_IMPLICITA)
+
+
 # --------------------------------------------------------------------------- #
 # Front matter (shell GBF)
 # --------------------------------------------------------------------------- #
@@ -390,7 +412,7 @@ def _coperta(doc: DocxDocument, ctx: ReportContext, adnotari: bool = False) -> N
     if meta.nr_lucrare:        # numar de identificare a raportului (Procedura §6: recomandat pe coperta)
         doc.add_paragraph(f"Nr. de identificare raport: {meta.nr_lucrare}")
     p = doc.add_paragraph()
-    p.add_run("Proprietate imobiliara: casa de locuit si teren aferent").bold = True
+    p.add_run(f"Proprietate imobiliara: {_eticheta_proprietate(ctx)}").bold = True
     adresa_txt = f"Adresa: {meta.adresa}"
     if meta.cod_postal:   # cod postal in identificare (necesar la inregistrarea in BIG — gap S-4)
         adresa_txt += f", cod poștal {meta.cod_postal}"
