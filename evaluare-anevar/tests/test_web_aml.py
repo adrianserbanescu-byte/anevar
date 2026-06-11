@@ -45,6 +45,82 @@ def test_aml_evalueaza_pep_sporit_si_rts(tmp_path):
     assert "rts" in d["documente_necesare"]
 
 
+def test_aml_evalueaza_scop_din_dosar_ridica_factor_produs(tmp_path):
+    # Wiring: scopul evaluarii din corpul cererii (dosar/meta) intra in scor ca factor produs/serviciu.
+    client, _ = _client(tmp_path)
+    resp = client.post("/api/aml/evalueaza", json={
+        "tip_entitate": "PFA", "azi": "2026-06-03",
+        "client_pf": {"persoana": {"nume": "Ion", "prenume": "Popescu"}},
+        "scop": "vanzare_piata",
+    })
+    assert resp.status_code == 200
+    factori = {f["nume"]: f["valoare"] for f in resp.json()["evaluare_risc"]["factori"]}
+    assert factori["produs_serviciu"] == 3
+
+
+def test_aml_evalueaza_scop_text_liber_din_meta(tmp_path):
+    # Scopul poate veni si ca text liber RO intr-un sub-obiect meta (ex. „Garantarea creditului ipotecar").
+    client, _ = _client(tmp_path)
+    resp = client.post("/api/aml/evalueaza", json={
+        "tip_entitate": "PFA", "azi": "2026-06-03",
+        "client_pf": {"persoana": {"nume": "Ion", "prenume": "Popescu"}},
+        "meta": {"scop": "Garantarea creditului ipotecar"},
+    })
+    assert resp.status_code == 200
+    factori = {f["nume"]: f["valoare"] for f in resp.json()["evaluare_risc"]["factori"]}
+    assert factori["produs_serviciu"] == 1
+
+
+def test_aml_evalueaza_avertisment_edd_la_sporit(tmp_path):
+    client, _ = _client(tmp_path)
+    resp = client.post("/api/aml/evalueaza", json={
+        "tip_entitate": "PJ", "azi": "2026-06-03",
+        "client_pf": {"persoana": {"nume": "Ion", "prenume": "Popescu"},
+                      "pep": {"este_pep": True}},
+    })
+    assert resp.status_code == 200
+    d = resp.json()
+    assert d["categorie"] == "sporit"
+    assert any("EDD" in a for a in d["avertismente"])
+
+
+def test_aml_evalueaza_edd_completat_din_corp_inlatura_avertismentul(tmp_path):
+    client, _ = _client(tmp_path)
+    resp = client.post("/api/aml/evalueaza", json={
+        "tip_entitate": "PJ", "azi": "2026-06-03",
+        "client_pf": {"persoana": {"nume": "Ion", "prenume": "Popescu"},
+                      "pep": {"este_pep": True}},
+        "sursa_fonduri": "salariu", "sursa_avere": "economii",
+        "aprobare_conducere_superioara_pep": True,
+    })
+    d = resp.json()
+    assert d["categorie"] == "sporit"
+    assert not any("EDD" in a for a in d["avertismente"])
+
+
+def test_aml_evalueaza_pj_fara_rbr_avertisment(tmp_path):
+    client, _ = _client(tmp_path)
+    resp = client.post("/api/aml/evalueaza", json={
+        "tip_entitate": "PJ", "azi": "2026-06-03",
+        "client_pj": {"denumire": "ACME SRL",
+                      "reprezentant_legal": {"nume": "Rep", "prenume": "Legal"}},
+    })
+    assert resp.status_code == 200
+    assert any("RBR" in a for a in resp.json()["avertismente"])
+
+
+def test_aml_evalueaza_fara_scop_backward_compatible(tmp_path):
+    # Fara scop/EDD in corp, comportamentul ramane identic: standard, fara avertismente EDD.
+    client, _ = _client(tmp_path)
+    resp = client.post("/api/aml/evalueaza", json={
+        "tip_entitate": "PFA", "azi": "2026-06-03",
+        "client_pf": {"persoana": {"nume": "Ion", "prenume": "Popescu"}},
+    })
+    d = resp.json()
+    assert d["categorie"] == "standard"
+    assert d["avertismente"] == []
+
+
 def test_aml_norme_interne_docx(tmp_path):
     client, _ = _client(tmp_path)
     resp = client.post("/api/aml/norme-interne.docx", json={"tip_entitate": "PFA"})

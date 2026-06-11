@@ -39,6 +39,48 @@ def _client_din(req) -> ClientPF | ClientPJ:
     return _construieste(ClientPF, req.client_pf, "client persoana fizica")
 
 
+async def _corp_brut(request: Request) -> dict:
+    """Corpul JSON brut al cererii ca dict (cu fallback {} la corp ne-dict/ne-JSON).
+
+    FastAPI cacheaza body-ul, deci re-citirea aici (dupa parsarea modelului tipizat) e sigura.
+    Folosit DOAR pentru campuri optionale aditive (scop/EDD) absente din schema stabila."""
+    try:
+        corp = await request.json()
+    except (ValueError, UnicodeDecodeError):
+        return {}
+    return corp if isinstance(corp, dict) else {}
+
+
+def _scop_si_edd(corp: dict) -> tuple[str | None, dict]:
+    """Extrage scopul evaluarii (dosar/meta) + campurile EDD din corpul brut.
+
+    Scopul poate veni direct (`scop`) sau dintr-un sub-obiect `meta`/`dosar` (`{"meta": {"scop": …}}`).
+    Campurile EDD provin din DosarAML; absenta lor -> valori neutre (non-blocant)."""
+    def _sub(cheie: str) -> dict:
+        v = corp.get(cheie)
+        return v if isinstance(v, dict) else {}
+
+    meta = _sub("meta")
+    dosar = _sub("dosar")
+    edd_src = {**dosar, **_sub("edd"), **corp}  # corp are precedenta pe chei plate
+    scop = corp.get("scop") or meta.get("scop") or dosar.get("scop")
+    scop = scop if isinstance(scop, str) else None
+
+    def _txt(cheie: str) -> str | None:
+        v = edd_src.get(cheie)
+        return v if isinstance(v, str) else None
+
+    edd = {
+        "sursa_fonduri": _txt("sursa_fonduri"),
+        "sursa_avere": _txt("sursa_avere"),
+        "aprobare_conducere_pep": bool(
+            edd_src.get("aprobare_conducere_pep")
+            or edd_src.get("aprobare_conducere_superioara_pep")
+        ),
+    }
+    return scop, edd
+
+
 def _doc_response(doc, nume: str):
     # Igienă PII (F-SEC-2): documentele AML conțin CNP/nume/serie act. Scriem într-un fișier temp
     # cu token unic (nu nume predictibil, partajat) și îl ștergem după trimitere (BackgroundTask),
@@ -58,12 +100,16 @@ def build_router(d: Deps) -> APIRouter:
     aml_dir = d.storage.db_path.parent / "aml_confidential"
 
     @router.post("/api/aml/evalueaza")
-    def aml_evalueaza(req: AmlEvaluareRequest) -> dict:
+    async def aml_evalueaza(req: AmlEvaluareRequest, request: Request) -> dict:
         from evaluare.aml.indicatori import SemnaleIndicatori
         from evaluare.aml.liste import incarca_liste
         from evaluare.aml.risc import Semnale
         from evaluare.aml.serviciu import evalueaza_relatie
         client = _client_din(req)
+        # Scopul evaluarii + campurile EDD nu sunt pe AmlEvaluareRequest (schema stabila); le citim
+        # optional din corpul brut (dosar/meta) — aditiv si backward-compatible. Corp ne-dict / lipsa
+        # cheilor -> valori neutre (None/False), comportament identic cu cel anterior.
+        scop, edd = _scop_si_edd(await _corp_brut(request))
         return evalueaza_relatie(
             req.tip_entitate, client, azi=req.azi,
             semnale_risc=_construieste(Semnale, req.semnale_risc, "semnale de risc")
@@ -71,6 +117,10 @@ def build_router(d: Deps) -> APIRouter:
             semnale_indicatori=_construieste(SemnaleIndicatori, req.semnale_indicatori, "semnale indicatori")
             if req.semnale_indicatori else None,
             liste=incarca_liste(),
+            scop=scop,
+            sursa_fonduri=edd["sursa_fonduri"],
+            sursa_avere=edd["sursa_avere"],
+            aprobare_conducere_pep=edd["aprobare_conducere_pep"],
         )
 
     @router.post("/api/aml/norme-interne.docx")
