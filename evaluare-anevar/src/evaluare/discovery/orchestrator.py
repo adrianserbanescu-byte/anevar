@@ -150,7 +150,7 @@ def _apartament_exclus(tip_activ: str | None, subiect_camere, candidat_camere) -
 def descopera(
     portal: str, judet: str, localitate: str, subiect: SubjectProfile,
     atribute_secundare: list, fetcher: Callable[[str], str] = fetch_html,
-    client: NarrativeClient | None = None, max_candidati: int = 20,
+    client: NarrativeClient | None = None, max_candidati: int = 50,
     tip_activ: str | None = None, ponderi: dict | None = None,
 ) -> list[CandidateResult]:
     """Pipeline complet de descoperire. Întoarce candidați rankați după relevanță.
@@ -265,7 +265,7 @@ def _relevanta_teren(supr, subiect_supr) -> int:
 
 def descopera_teren(
     portal: str, judet: str, localitate: str, suprafata_subiect: Decimal | None = None,
-    fetcher: Callable[[str], str] = fetch_html, max_candidati: int = 20,
+    fetcher: Callable[[str], str] = fetch_html, max_candidati: int = 50,
 ) -> list[LandDiscoveryResult]:
     """Descopera comparabile de TEREN: cauta anunturi de teren, calculeaza EUR/mp si relevanta.
 

@@ -1069,7 +1069,7 @@ if($("ing-fisier")) $("ing-fisier").addEventListener("change", function(){
   function celulaKm(c){ return (typeof c.distanta_km==="number")
     ? "<span class='cr-km' title='Distanță față de subiect (informativ)'>la "+c.distanta_km+" km de subiect</span>" : ""; }
   var PORTALURI=["imobiliare","storia"];
-  var PAGINA=20;   // PAGINARE (paritate /descoperire #3): primele 20, apoi câte 20 la cerere
+  var PAGINA=50;   // PAGINARE (paritate /descoperire #3): primele 20, apoi câte 20 la cerere
   // Display COMPACT (#4): un comparabil = UN rând (checkbox/scor/preț/mp/teren/localitate/km/vezi);
   // detalierea scorului (explicația lungă) ascunsă sub „?" (#6) — același comportament ca .hint-toggle.
   function randCand(c, teren){
@@ -1131,13 +1131,13 @@ if($("ing-fisier")) $("ing-fisier").addEventListener("change", function(){
   }
   function cerePortal(portal, tip, loc){
     var teren=(tip==="teren"), url, payload;
-    if(teren){ url="/api/descopera-teren"; payload={portal:portal, judet:$("d-judet").value, localitate:loc, suprafata_subiect:$("d-teren").value||null, max_candidati:20}; }
+    if(teren){ url="/api/descopera-teren"; payload={portal:portal, judet:$("d-judet").value, localitate:loc, suprafata_subiect:$("d-teren").value||null, max_candidati:50}; }
     else { url="/api/descopera"; payload={portal:portal, judet:$("d-judet").value, localitate:loc, tip_activ:tip,
       subiect:{suprafata_construita:(($("acd")&&$("acd").value)||($("au")&&$("au").value))||null,
         an:parseInt($("d-an").value)||null, stare:parseInt($("d-stare").value)||null,
         finisaj:parseInt($("d-finisaj").value)||null, incalzire:$("d-incalzire").value||null,
         teren:($("d-teren").value||($("suprafata_teren")&&$("suprafata_teren").value))||null},
-      atribute_secundare:($("d-secundare")&&$("d-secundare").value||"").split("\n").filter(Boolean), max_candidati:20}; }
+      atribute_secundare:($("d-secundare")&&$("d-secundare").value||"").split("\n").filter(Boolean), max_candidati:50}; }
     return fetch(url,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(payload)})
       .then(function(r){ if(!r.ok){ cerePortal._erori++; return {candidati:[]}; } return r.json(); })
       .then(function(res){ return (res.candidati||[]).map(function(c){ c._portal=portal; return c; }); })

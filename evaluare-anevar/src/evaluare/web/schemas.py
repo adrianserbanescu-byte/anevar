@@ -84,7 +84,7 @@ class DescoperaTerenRequest(BaseModel):
     judet: str
     localitate: str = ""
     suprafata_subiect: Decimal | None = None
-    max_candidati: int = 20             # default ridicat (era 8); configurabil din request (control UI)
+    max_candidati: int = 50             # default ridicat (era 8); configurabil din request (control UI)
 
 
 # N4 (audit nealiniat-consistenta): suprafata subiect <=0 era respinsa de /api/grila-chirii (engine
@@ -112,7 +112,7 @@ class DescoperaRequest(BaseModel):
     localitate: str
     subiect: SubjectProfile
     atribute_secundare: list[str] = []
-    max_candidati: int = 20             # default ridicat (era 8); configurabil din request (control UI)
+    max_candidati: int = 50             # default ridicat (era 8); configurabil din request (control UI)
     tip_activ: str | None = None        # categoria proprietatii (ex. "apartament") -> model de scoring per categorie
 
 

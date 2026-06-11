@@ -127,7 +127,7 @@
   <span id="camp-apartament" hidden><label for="nr_camere">Nr. camere</label> <input id="nr_camere" name="nr_camere" value="3" size="3"></span>
    <label for="teren" id="lbl-teren">Teren mp</label> <input id="teren" name="teren" value="500" size="6">
    <label for="max_candidati">Câte comparabile</label>
-   <input id="max_candidati" name="max_candidati" type="number" min="1" max="50" value="20" size="4"
+   <input id="max_candidati" name="max_candidati" type="number" min="1" max="50" value="50" size="4"
      title="Numărul maxim de comparabile returnate (1–50)"><br>
   <label for="secundare">Atribute secundare (unul pe linie, „nume: valoare"):</label><br>
   <textarea id="secundare" name="secundare" rows="3" cols="40" placeholder="tamplarie: termopan"></textarea><br>
@@ -486,7 +486,7 @@ document.getElementById('f').addEventListener('submit', async (e)=>{
   e.preventDefault();
   const d = Object.fromEntries(new FormData(e.target).entries());
   const tip = d.tip || 'casa';
-  const maxc = Math.min(50, Math.max(1, parseInt(d.max_candidati,10) || 20));
+  const maxc = Math.min(50, Math.max(1, parseInt(d.max_candidati,10) || 50));
   let url, payload;
   if(tip === 'teren'){
     url = '/api/descopera-teren';
@@ -524,7 +524,7 @@ document.getElementById('f').addEventListener('submit', async (e)=>{
   // PAGINARE (dispatch A #4): nu turna toate dintr-o dată — arată numărul total, primele 20, apoi
   // câte 20 la cerere. `total` (dacă backend-ul îl trimite) = câte au fost găsite înainte de limită;
   // altfel folosim câte au venit. Dacă s-a atins limita „Câte comparabile", sugerăm mărirea ei.
-  const PAGINA = 20;
+  const PAGINA = 50;
   const lista = res.candidati;
   const totalGasit = (typeof res.total === 'number' && res.total >= lista.length) ? res.total : lista.length;
   const truncat = totalGasit > lista.length || lista.length >= maxc;
