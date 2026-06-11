@@ -155,7 +155,7 @@ Notă: `sqlite3` și `git` vin deja cu macOS/Xcode CLT; UPX NU e necesar pe Mac 
    /plugin marketplace add trailofbits/skills
    /plugin marketplace add jeremylongshore/claude-code-plugins-plus-skills
    ```
-   apoi transferă blocurile `enabledPlugins` + `extraKnownMarketplaces` din settings-ul Windows (din arhivă, `claude-settings/`) și acceptă prompturile de instalare; plugin-urile locale (trailofbits etc.) se reinstalează din proiect (`~/claude/anevar`).
+   apoi transferă blocurile `enabledPlugins` + `extraKnownMarketplaces` din settings-ul Windows (din arhivă, `claude-settings/`) și acceptă prompturile de instalare. **Decizie Adi (2026-06-11): pe Mac TOATE plugin-urile trec la user scope** — inclusiv cele 8 care pe Windows erau project-scope (zeroize-audit, static-analysis, differential-review, audit-context-building, agentic-actions-auditor, gh-cli, fp-check=dezactivat, site-audit). Lista completă e deja în bootstrap (A6); `settings.local.json` rămâne doar pentru hook-ul live-up.
 3. **Skills:** copiază `transfer/claude-skills/` → `~/.claude/skills/`.
 4. **Hooks — rescriere pentru macOS** (echivalentele celor 5 globale + 2 de proiect):
    - global (Stop, SubagentStop, PreToolUse×2, PostToolUse): `python3` + căile noi din `~/.claude/plugins/cache/...` (apar după reinstalarea plugin-urilor cost-tracker/memplan/security-guidance);

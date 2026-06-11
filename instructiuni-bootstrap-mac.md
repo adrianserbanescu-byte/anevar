@@ -130,14 +130,19 @@ suprascrie) — Claude Code va propune instalarea la următoarea pornire:
   "testing-handbook-skills@trailofbits": true,
   "modern-python@trailofbits": true, "property-based-testing@trailofbits": true,
   "dimensional-analysis@trailofbits": true, "git-cleanup@trailofbits": true,
-  "supply-chain-risk-auditor@trailofbits": true
+  "supply-chain-risk-auditor@trailofbits": true,
+  "zeroize-audit@trailofbits": true, "static-analysis@trailofbits": true,
+  "differential-review@trailofbits": true, "audit-context-building@trailofbits": true,
+  "agentic-actions-auditor@trailofbits": true, "gh-cli@trailofbits": true,
+  "fp-check@trailofbits": false,
+  "site-audit@easier-life-skills": true
 }
 ```
-(Listă VERIFICATĂ 2026-06-11 contra `installed_plugins.json` de pe Windows: acoperă TOATE cele
-37 plugin-uri user-scope — 36 aici + claude-mem instalat separat la A7. Completă, zero lipsuri.)
-Plugin-urile project-scope (agentic-actions-auditor, site-audit, zeroize-audit, gh-cli,
-audit-context-building, static-analysis, differential-review @trailofbits/easier-life-skills):
-scrie-le în `~/claude/anevar/.claude/settings.local.json` → `enabledPlugins` (fp-check = `false`).
+(Listă VERIFICATĂ 2026-06-11 contra `installed_plugins.json` de pe Windows: TOATE cele 45 de
+plugin-uri — 36 user-scope + cele 8 foste project-scope (decizie Adi: pe Mac trec la user scope;
+`fp-check` rămâne dezactivat) — sunt în blocul de mai sus; al 45-lea, claude-mem, se instalează la A7.)
+NU scrie plugin-uri în `~/claude/anevar/.claude/settings.local.json` — pe Mac toate sunt la
+user scope (decizie Adi, 2026-06-11); fișierul de proiect rămâne doar pentru hook-ul live-up (B4).
 
 ### A7. claude-mem
 ```bash
