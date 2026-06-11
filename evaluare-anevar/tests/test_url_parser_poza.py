@@ -23,8 +23,8 @@ def test_poza_lipsa_e_none():
 
 
 def test_max_candidati_default_ridicat():
-    # BUG max-8 reparat: default-ul nu mai e 8 (trage mai multe fara override de UI)
-    assert DescoperaRequest(judet="ilfov", localitate="otopeni", subiect={}).max_candidati == 20
-    assert DescoperaTerenRequest(judet="ilfov").max_candidati == 20
+    # BUG max-8 reparat: default-ul nu mai e 8; ridicat la 50 (cerere Adi: adu 50+50)
+    assert DescoperaRequest(judet="ilfov", localitate="otopeni", subiect={}).max_candidati == 50
+    assert DescoperaTerenRequest(judet="ilfov").max_candidati == 50
     # ramane configurabil din request
     assert DescoperaRequest(judet="x", localitate="y", subiect={}, max_candidati=35).max_candidati == 35
