@@ -65,7 +65,32 @@ Modulul propune — <b>evaluatorul decide și transmite</b> (rapoarte.onpcsb.ro)
    <label for="denumire">Denumire PJ</label><input type="text" id="denumire">
    <label for="cui">CUI</label><input type="text" id="cui">
    <p class="hint">Beneficiarii reali (&gt;25%) se completează în fișa generată.</p>
+   <label for="br_modalitate_identificare">Beneficiar real — modalitate de identificare</label>
+   <select id="br_modalitate_identificare">
+     <option value="">— neprecizat —</option>
+     <option value="declaratie_client">Declarație a clientului</option>
+     <option value="extras_rbr">Extras din Registrul Beneficiarilor Reali (RBR)</option>
+     <option value="extras_onrc">Extras ONRC</option>
+     <option value="alte_surse">Alte surse</option>
+   </select>
+   <div class="chk"><label><input type="checkbox" id="consultat_rbr"> S-a consultat Registrul Beneficiarilor Reali (RBR) — Legea art. 19(5)</label></div>
+   <div class="row">
+     <div><label for="nr_extras_rbr">Nr. extras RBR</label><input type="text" id="nr_extras_rbr"></div>
+     <div><label for="data_extras_rbr">Data extras RBR</label><input type="date" id="data_extras_rbr"></div>
+   </div>
  </div>
+</fieldset>
+
+<fieldset>
+ <legend>Măsuri suplimentare (EDD — risc sporit / PEP)</legend>
+ <p class="hint">Se completează la <b>risc sporit</b> sau client/beneficiar real PEP — măsuri de cunoaștere
+  suplimentară a clientelei (Legea 129/2019, art. 17). Opționale; completate de evaluator.</p>
+ <label for="sursa_fonduri">Sursa fondurilor</label>
+ <input type="text" id="sursa_fonduri">
+ <label for="sursa_avere">Sursa averii</label>
+ <input type="text" id="sursa_avere">
+ <div class="chk"><label><input type="checkbox" id="aprobare_conducere_superioara_pep"> Aprobarea conducerii superioare pentru relația cu PEP</label></div>
+ <div class="chk"><label><input type="checkbox" id="monitorizare_sporita"> Monitorizare sporită a relației de afaceri</label></div>
 </fieldset>
 
 <fieldset>
@@ -107,11 +132,27 @@ Modulul propune — <b>evaluatorul decide și transmite</b> (rapoarte.onpcsb.ro)
 <script>
 function _client(){
   const tip=document.getElementById('tip_client').value;
-  if(tip=='PJ') return {client_pj:{tip:'PJ',denumire:val('denumire'),cui:val('cui'),
-     beneficiari_reali:[{nume:val('nume'),prenume:val('prenume'),
-        pep:{este_pep:document.getElementById('pep').checked}}]}};
+  if(tip=='PJ'){
+    const br={nume:val('nume'),prenume:val('prenume'),
+       pep:{este_pep:document.getElementById('pep').checked}};
+    const modal=val('br_modalitate_identificare'); if(modal) br.modalitate_identificare=modal;
+    const pj={tip:'PJ',denumire:val('denumire'),cui:val('cui'),
+       beneficiari_reali:[br],
+       consultat_rbr:document.getElementById('consultat_rbr').checked};
+    if(val('nr_extras_rbr')) pj.nr_extras_rbr=val('nr_extras_rbr');
+    if(val('data_extras_rbr')) pj.data_extras_rbr=val('data_extras_rbr');
+    return {client_pj:pj};
+  }
   return {client_pf:{tip:'PF',persoana:{nume:val('nume'),prenume:val('prenume'),cnp:val('cnp')||null},
      pep:{este_pep:document.getElementById('pep').checked}}};
+}
+// EDD (masuri suplimentare la risc sporit / PEP) — campuri DosarAML (Legea art. 17).
+function _edd(){
+  const e={aprobare_conducere_superioara_pep:document.getElementById('aprobare_conducere_superioara_pep').checked,
+     monitorizare_sporita:document.getElementById('monitorizare_sporita').checked};
+  if(val('sursa_fonduri')) e.sursa_fonduri=val('sursa_fonduri');
+  if(val('sursa_avere')) e.sursa_avere=val('sursa_avere');
+  return e;
 }
 function val(id){return document.getElementById(id).value;}
 function semnaleRisc(){const s={};['tara_risc_inalt','pe_lista_sanctiuni','tranzactie_complexa','canal_la_distanta']
@@ -122,7 +163,7 @@ async function evalueaza(){
   btn.classList.add('is-loading'); btn.disabled=true;
   try{
   const body=Object.assign({tip_entitate:val('tip_entitate'),azi:val('azi'),
-     semnale_risc:semnaleRisc(),semnale_indicatori:semnaleInd()},_client());
+     semnale_risc:semnaleRisc(),semnale_indicatori:semnaleInd()},_edd(),_client());
   const r=await fetch('/api/aml/evalueaza',{method:'POST',headers:{'Content-Type':'application/json'},
      body:JSON.stringify(body)});
   if(!r.ok){document.getElementById('rez').innerHTML='<p class="warn">Evaluarea a eșuat — verifică datele introduse și reîncearcă.</p>';return;}
