@@ -45,7 +45,7 @@ Pentru ajustarea <b>„Condițiile pieței (timp)"</b> poți folosi <b>Indicele 
 <!-- ================= TEREN ================= -->
 <section role="tabpanel" id="panel-teren" aria-labelledby="tab-teren" tabindex="0">
 <h2>Grilă teren — valoare = preț/mp corectat × suprafață subiect</h2>
-<p><label for="supr-teren">Suprafață teren subiect (mp):</label> <input id="supr-teren" class="base" value="1000"></p>
+<p><label for="supr-teren">Suprafață teren subiect (mp):</label> <input id="supr-teren" class="base" value="1000" data-default="1000"><br><small class="hint" id="supr-teren-hint" hidden>precompletat cu suprafața teren</small></p>
 <div id="tabel-teren"></div>
 <button type="button" onclick="calcul('teren')">Calculează grila teren</button>
 <div id="rez-teren" role="status" aria-live="polite"></div>
@@ -72,7 +72,7 @@ Pentru ajustarea <b>„Condițiile pieței (timp)"</b> poți folosi <b>Indicele 
 <p class="hint">Diferența de suprafață se tratează ca ajustare valorică (arie utilă: EUR/mp × Δ), deci
  fiecare comparabilă e adusă la subiect. „Suprafața subiect" de mai sus nu mai intră în formulă
  (rămâne pentru referință).</p>
-<p><label for="supr-casa">Suprafață subiect (mp):</label> <input id="supr-casa" class="base" value="120"></p>
+<p><label for="supr-casa">Suprafață subiect (mp):</label> <input id="supr-casa" class="base" value="120" data-default="120"><br><small class="hint" id="supr-casa-hint" hidden>precompletat cu ACD — aria construită desfășurată</small></p>
 <div id="tabel-casa"></div>
 <button type="button" onclick="calcul('casa')">Calculează grila casă</button>
 <div id="rez-casa" role="status" aria-live="polite"></div>
@@ -85,7 +85,7 @@ Pentru ajustarea <b>„Condițiile pieței (timp)"</b> poți folosi <b>Indicele 
 <p class="hint">Prețul de pornire este <b>chiria lunară pe mp</b> (ex. EUR/mp/lună) a fiecărui comparabil de
  închiriere. Se alege comparabilul cu ajustarea brută minimă; chiria/mp aleasă × suprafața subiectului ×
  12 = <b>venitul brut potențial anual</b>, care intră în capitalizarea directă (abordarea prin venit).</p>
-<p><label for="supr-chirii">Suprafață închiriabilă subiect (mp):</label> <input id="supr-chirii" class="base" value="100"></p>
+<p><label for="supr-chirii">Suprafață închiriabilă subiect (mp):</label> <input id="supr-chirii" class="base" value="100" data-default="100"><br><small class="hint" id="supr-chirii-hint" hidden>precompletat cu AU — aria utilă</small></p>
 <div id="tabel-chirii"></div>
 <button type="button" onclick="calcul('chirii')">Calculează grila chirii</button>
 <div id="rez-chirii" role="status" aria-live="polite"></div>
@@ -116,6 +116,47 @@ const NCOMP = 3;
        if(d && d.uid) uid = String(d.uid); }catch(e){}
   const href = uid ? "/dosar/" + encodeURIComponent(uid) : "/incepe";
   ["inapoi-dosar-sus","inapoi-dosar-jos"].forEach(id => { const a = document.getElementById(id); if(a) a.href = href; });
+})();
+
+// ── PRECOMPLETARE „Suprafață subiect" în cele 3 grile standalone (paritate cu sub-tabul Comparabile) ──
+// Adi: hint-urile + precompletarea din dosar.html (sub-tabul Comparabile) se propagă și pe pagina /grila.
+// Sursa = dosarul activ (localStorage `anevar_dosar_activ` → uid), datele se citesc din /api/dosar/{uid}
+// (cheia `wizard`, indexată pe id-urile câmpurilor din Proprietate). Mapare identică cu dosar.html:
+//   teren  #supr-teren  ← wizard.suprafata_teren   („precompletat cu suprafața teren")
+//   casă   #supr-casa   ← wizard.acd                („…cu ACD — aria construită desfășurată")
+//   chirii #supr-chirii ← wizard.au                 („…cu AU — aria utilă")
+// Precompletăm DOAR dacă userul n-a schimbat valoarea implicită (data-default) — nu suprascriem ce
+// a tastat; câmpul rămâne editabil oricum. Hint-ul .hint se arată doar când chiar am precompletat.
+// Dacă fetch-ul eșuează / nu există dosar activ → câmpurile rămân pe default, fără hint (nimic stricat).
+(function precompleteazaSuprafete(){
+  let uid = null;
+  try{ const d = JSON.parse(localStorage.getItem("anevar_dosar_activ") || "null");
+       if(d && d.uid) uid = String(d.uid); }catch(e){}
+  if(!uid) return;
+  const MAP = [
+    {dst:"supr-teren",  src:"suprafata_teren", hint:"supr-teren-hint"},
+    {dst:"supr-casa",   src:"acd",             hint:"supr-casa-hint"},
+    {dst:"supr-chirii", src:"au",              hint:"supr-chirii-hint"},
+  ];
+  fetch("/api/dosar/" + encodeURIComponent(uid))
+    .then(r => r.ok ? r.json() : null)
+    .then(dosar => {
+      const w = (dosar && dosar.wizard) || null;
+      if(!w) return;
+      MAP.forEach(m => {
+        const inp = document.getElementById(m.dst);
+        if(!inp) return;
+        const sv = String(w[m.src] == null ? "" : w[m.src]).trim();
+        if(!sv) return;                                   // sursa goală pe Proprietate → lăsăm default-ul
+        const def = inp.getAttribute("data-default") || "";
+        // doar dacă userul n-a atins câmpul (încă pe valoarea implicită) → precompletăm + arătăm hint-ul
+        if((inp.value || "").trim() !== def) return;
+        inp.value = sv;
+        const h = document.getElementById(m.hint);
+        if(h) h.hidden = false;
+      });
+    })
+    .catch(() => {});                                     // offline / 404 → câmpurile rămân pe default
 })();
 
 // Catalog elemente. tip: "procentuala" sau "valorica".
