@@ -139,6 +139,9 @@
             <input id="localitate_alt" aria-label="Altă localitate" placeholder="altă localitate (scriu)" hidden></div>
           <div class="field"><label for="adresa_strada">Stradă, nr.</label><input id="adresa_strada"></div>
         </div>
+        <div class="field-row">
+          <div class="field"><label for="cod_postal">Cod poștal <span class="hint">(pentru Buletinul Informativ al Garanțiilor — BIG)</span></label><input id="cod_postal" inputmode="numeric" autocomplete="postal-code" placeholder="ex. 105600"></div>
+        </div>
       </fieldset>
 
       <fieldset class="grup"><legend>Identificare cadastrală &amp; părți</legend>
@@ -179,6 +182,29 @@
           <div class="field"><label for="inspectie_insotitor">Însoțit la inspecție de</label><input id="inspectie_insotitor" placeholder="ex. proprietarul"></div>
           <div class="field field--wide"><label for="inspectie_observatii">Observații / neconcordanțe la inspecție</label><input id="inspectie_observatii" placeholder="ex. concordanță cu actele; fără neconcordanțe"></div>
         </div>
+        <div class="field-row">
+          <div class="field"><label for="certificat_energetic">Certificat de performanță energetică (CPE)</label>
+            <select id="certificat_energetic"><option value="">fără / nu se aplică</option>
+              <option value="A">A</option><option value="B">B</option><option value="C">C</option>
+              <option value="D">D</option><option value="E">E</option><option value="F">F</option>
+              <option value="G">G</option></select></div>
+        </div>
+      </fieldset>
+
+      {# Riscuri fizice (ESG, S-5 / GEV 520 §86–88) — cele 8 riscuri din esg.CATALOG_RISCURI_FIZICE.
+         Poziția ANEVAR: se MENȚIONEAZĂ, NU se cuantifică. Fiecare checkbox are id => snapshot()/restore
+         îl persistă individual; clasa .risc-fizic îi adună într-o listă `riscuri_fizice` la build payload
+         (același pattern ca Utilități/.util). #}
+      <fieldset class="grup"><legend>Riscuri fizice (ESG, GEV 520)</legend>
+        <small class="hint grup-nota">Bifează riscurile fizice identificate; sursa de verificare (autorități: ISU, ANM, INHGA, MMAP, ISC) se preia ca atare în raport. Încadrarea pe scală de probabilitate excede competența evaluatorului — riscurile se menționează, nu se cuantifică.</small>
+        <label class="chk"><input type="checkbox" id="risc_cutremure" class="risc-fizic" value="cutremure"> Cutremure</label>
+        <label class="chk"><input type="checkbox" id="risc_alunecari_teren" class="risc-fizic" value="alunecari_teren"> Alunecări de teren</label>
+        <label class="chk"><input type="checkbox" id="risc_falie_surpare" class="risc-fizic" value="falie_surpare"> Zone de falie / surpare</label>
+        <label class="chk"><input type="checkbox" id="risc_activitate_vulcanica" class="risc-fizic" value="activitate_vulcanica"> Activitate vulcanică</label>
+        <label class="chk"><input type="checkbox" id="risc_furtuni_extreme" class="risc-fizic" value="furtuni_extreme"> Furtuni extreme</label>
+        <label class="chk"><input type="checkbox" id="risc_inundatii" class="risc-fizic" value="inundatii"> Inundații</label>
+        <label class="chk"><input type="checkbox" id="risc_grindina_precipitatii" class="risc-fizic" value="grindina_precipitatii"> Grindină / precipitații extreme</label>
+        <label class="chk"><input type="checkbox" id="risc_incendii" class="risc-fizic" value="incendii"> Incendii</label>
       </fieldset>
 
       <fieldset class="grup"><legend>Administrativ &amp; registru</legend>
@@ -1266,6 +1292,10 @@ function asambleaza(){
   if($("inspectie_amploare")&&$("inspectie_amploare").value) meta.inspectie_amploare=$("inspectie_amploare").value;
   if($("inspectie_insotitor")&&$("inspectie_insotitor").value) meta.inspectie_insotitor=$("inspectie_insotitor").value;
   if($("inspectie_observatii")&&$("inspectie_observatii").value) meta.inspectie_observatii=$("inspectie_observatii").value;
+  if($("cod_postal")&&$("cod_postal").value) meta.cod_postal=$("cod_postal").value;                       // BIG (S-4)
+  if($("certificat_energetic")&&$("certificat_energetic").value) meta.certificat_energetic=$("certificat_energetic").value;  // CPE (S-5)
+  var riscuri=[]; document.querySelectorAll(".risc-fizic:checked").forEach(function(c){ riscuri.push(c.value); });  // ESG (S-5), pattern .util
+  if(riscuri.length) meta.riscuri_fizice=riscuri;
   var curs=($("curs_valutar")&&$("curs_valutar").value||"").replace(",",".").trim();
   if(curs) meta.curs_valutar=curs;
   var faraConstr=($("tip_proprietate").value==="agricol");
