@@ -1,7 +1,14 @@
+import threading
+import time
 from decimal import Decimal
 from pathlib import Path
 
-from evaluare.discovery.orchestrator import descopera, extrage_descriere
+from evaluare.discovery.orchestrator import (
+    _MAX_CONCURENTA_DESCOPERIRE,
+    descopera,
+    descopera_teren,
+    extrage_descriere,
+)
 from evaluare.discovery.profiles import SubjectProfile
 
 FIXTURES = Path(__file__).parent / "fixtures"
@@ -195,3 +202,148 @@ def test_gap4_calibrat_nu_marcheaza_casa_pe_teren_premium():
     assert "atipic" not in by_pret[Decimal("360000")].breakdown.explicatie
     # prețul tastat greșit (40 €/mp = factor ~50 sub mediană) -> marcat
     assert "atipic" in by_pret[Decimal("4000")].breakdown.explicatie
+
+
+# ─────────────────────────── PERF-1: paralelizare prudentă ───────────────────────────
+
+def _listing_supr(supr, pret, titlu):
+    return (f'<html><head><title>{titlu}</title>'
+            f'<script type="application/ld+json">{{"@type":"Offer","price":"{pret}",'
+            f'"priceCurrency":"EUR","floorSize":{{"value":"{supr}"}}}}</script>'
+            f'</head><body>{titlu}</body></html>')
+
+
+def test_perf1_pastreaza_ordinea_url_urilor():
+    # Ordinea rezultatelor (înainte de sortarea finală) trebuie să fie cea a URL-urilor, indiferent
+    # de ordinea în care thread-urile termină. Anunțurile au TOATE aceeași relevanță (subiect identic)
+    # -> sortarea stabilă nu le reordonează, deci verificăm direct ordinea de URL.
+    n = 12
+    listings = {f"l{i}": _listing_supr(100, 200000, f"CASA-{i}") for i in range(n)}
+    search = ('<html><body>'
+              + ''.join(f'<a href="/oferta/l{i}-1">a</a>' for i in range(n))
+              + '</body></html>')
+
+    def fetcher(url):
+        for k, v in listings.items():
+            if "/" + k + "-" in url:
+                return v
+        return search
+
+    class FakeClient:
+        def complete(self, system, user):
+            return ('{"an":{"valoare":2010,"text":""},"stare":{"treapta":3,"text":""},'
+                    '"finisaj":{"treapta":3,"text":""},"incalzire":{"categorie":"centrala_gaz","text":""},'
+                    '"teren":{"valoare":500,"text":""},"secundare":[]}')
+
+    subiect = SubjectProfile(suprafata_construita=Decimal("100"), an=2010, stare=3, finisaj=3,
+                             incalzire="centrala_gaz", teren=Decimal("500"))
+    rez = descopera("imobiliare", "prahova", "breaza", subiect=subiect, atribute_secundare=[],
+                    fetcher=fetcher, client=FakeClient(), max_candidati=n)
+    assert len(rez) == n
+    titluri = [r.titlu for r in rez]
+    assert titluri == [f"CASA-{i}" for i in range(n)]   # ordinea URL-urilor, păstrată
+
+
+def test_perf1_un_candidat_care_esueaza_nu_pica_tot():
+    # Robustețe: un fetch care aruncă excepție trebuie sărit, restul candidaților rămân.
+    listings = {f"l{i}": _listing_supr(100, 200000, f"CASA-{i}") for i in range(5)}
+    search = ('<html><body>'
+              + ''.join(f'<a href="/oferta/l{i}-1">a</a>' for i in range(5))
+              + '</body></html>')
+
+    def fetcher(url):
+        if "/oferta/l2-" in url:
+            raise RuntimeError("rețea picată pe candidatul 2")
+        for k, v in listings.items():
+            if "/" + k + "-" in url:
+                return v
+        return search
+
+    class FakeClient:
+        def complete(self, system, user):
+            return '{"secundare":[]}'
+
+    subiect = SubjectProfile(suprafata_construita=Decimal("100"))
+    rez = descopera("imobiliare", "prahova", "breaza", subiect=subiect, atribute_secundare=[],
+                    fetcher=fetcher, client=FakeClient(), max_candidati=5)
+    titluri = {r.titlu for r in rez}
+    assert titluri == {"CASA-0", "CASA-1", "CASA-3", "CASA-4"}   # 2 a fost sărit, restul intacte
+
+
+def test_perf1_fetch_urile_ruleaza_in_paralel():
+    # Dovada de concurență: dacă fetch-urile ar rula serial, N candidați la `delay` secunde fiecare ar
+    # dura ~N*delay. În paralel (plafon >1), durata e ~ceil(N/plafon)*delay. Folosim un fetcher lent și
+    # numărăm câte thread-uri sunt active simultan (>1 => paralelism real).
+    n = _MAX_CONCURENTA_DESCOPERIRE
+    delay = 0.05
+    activi = 0
+    maxim_simultan = 0
+    lock = threading.Lock()
+    listing = _listing_supr(100, 200000, "CASA")
+    search = ('<html><body>'
+              + ''.join(f'<a href="/oferta/l{i}-1">a</a>' for i in range(n))
+              + '</body></html>')
+
+    def fetcher(url):
+        nonlocal activi, maxim_simultan
+        if "/oferta/" not in url:
+            return search
+        with lock:
+            activi += 1
+            maxim_simultan = max(maxim_simultan, activi)
+        try:
+            time.sleep(delay)
+            return listing
+        finally:
+            with lock:
+                activi -= 1
+
+    class FakeClient:
+        def complete(self, system, user):
+            return '{"secundare":[]}'
+
+    subiect = SubjectProfile(suprafata_construita=Decimal("100"))
+    t0 = time.perf_counter()
+    rez = descopera("imobiliare", "prahova", "breaza", subiect=subiect, atribute_secundare=[],
+                    fetcher=fetcher, client=FakeClient(), max_candidati=n)
+    durata = time.perf_counter() - t0
+    assert len(rez) == n
+    assert maxim_simultan > 1                       # fetch-uri suprapuse (nu serial)
+    assert durata < n * delay                       # mai rapid decât suma seriilor
+
+
+def test_perf1_descopera_teren_paralel_si_ordonat():
+    # Aceeași garanție pentru descopera_teren: paralelism + un fetch picat nu oprește restul.
+    n = 6
+    listings = {f"t{i}": _listing_supr(1000, 50000, f"TEREN-{i}") for i in range(n)}
+    search = ('<html><body>'
+              + ''.join(f'<a href="/oferta/t{i}-1">a</a>' for i in range(n))
+              + '</body></html>')
+    activi = 0
+    maxim_simultan = 0
+    lock = threading.Lock()
+
+    def fetcher(url):
+        nonlocal activi, maxim_simultan
+        if "/oferta/" not in url:
+            return search
+        if "/oferta/t3-" in url:
+            raise RuntimeError("picat")
+        with lock:
+            activi += 1
+            maxim_simultan = max(maxim_simultan, activi)
+        try:
+            time.sleep(0.05)
+            for k, v in listings.items():
+                if "/" + k + "-" in url:
+                    return v
+            return search
+        finally:
+            with lock:
+                activi -= 1
+
+    rez = descopera_teren("imobiliare", "prahova", "breaza",
+                          suprafata_subiect=Decimal("1000"), fetcher=fetcher, max_candidati=n)
+    titluri = {r.titlu for r in rez}
+    assert titluri == {f"TEREN-{i}" for i in range(n) if i != 3}   # 3 sărit, restul intacte
+    assert maxim_simultan > 1                                       # fetch-uri suprapuse

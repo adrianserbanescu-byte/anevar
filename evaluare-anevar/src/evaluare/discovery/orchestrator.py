@@ -4,6 +4,7 @@ from __future__ import annotations
 import json
 import re
 from collections.abc import Callable
+from concurrent.futures import ThreadPoolExecutor
 from decimal import Decimal
 
 from bs4 import BeautifulSoup
@@ -156,6 +157,19 @@ def _apartament_exclus(tip_activ: str | None, subiect_camere, candidat_camere) -
             and candidat_camere is not None and abs(candidat_camere - subiect_camere) > 1)
 
 
+# PERF-1: plafon de concurenta pentru fetch HTTP + LLM per candidat. Bucla era STRICT secventiala
+# (fetch 15s + LLM 60s in serie) -> 50 candidati ocupau un worker minute intregi. Paralelizam cu un
+# THREADPOOL marginit (munca e I/O-bound: retea + API LLM, deci threadurile castiga in ciuda GIL-ului).
+# Plafonul e si POLITETE fata de portaluri (nu bombardam un singur host cu 50 cereri simultane =>
+# risc de rate-limit/ban) si tine in frau memoria/socketii. 6 = compromis prudent (latenta vs DoS).
+_MAX_CONCURENTA_DESCOPERIRE = 6
+
+
+def _numar_workeri(n_url: int) -> int:
+    """Numarul de threaduri = min(plafon, nr. URL-uri), minim 1 (ThreadPoolExecutor cere >=1)."""
+    return max(1, min(_MAX_CONCURENTA_DESCOPERIRE, n_url))
+
+
 def descopera(
     portal: str, judet: str, localitate: str, subiect: SubjectProfile,
     atribute_secundare: list, fetcher: Callable[[str], str] = fetch_html,
@@ -174,17 +188,20 @@ def descopera(
     categorie = "apartament" if tip_activ == "apartament" else "casa"
     urls = cauta_anunturi_multi(portal, judet, localitate, fetcher=fetcher,
                                 categorie=categorie)[:max_candidati]
-    rezultate: list[CandidateResult] = []
-    for url in urls:
+
+    def _proceseaza(url: str) -> CandidateResult | None:
+        """Pipeline-ul pentru UN candidat: fetch -> parse -> extract (LLM) -> scor. Rezistent: orice
+        exceptie (retea/parsare/LLM) intoarce None -> candidatul e sarit, restul continua (robustete).
+        Ruleaza intr-un thread din pool (PERF-1): fetch + LLM erau blocante in serie."""
         try:
             html = fetcher(url)
         except Exception as e:
             log.debug("Anunt sarit (fetch esuat) %s: %s", url, e)
-            continue
+            return None
         parsed = parse_listing_html(html, sursa_url=url)
         if parsed.pagina_lista:                 # pagină de listă/căutare, nu anunț -> sare
             log.debug("Anunt sarit (pagina de lista) %s", url)
-            continue
+            return None
         descriere = extrage_descriere(html)
         extraction = extrage_atribute(descriere, atribute_secundare, client=client)
         # suprafata casei pentru potrivire = suprafata reala din anunt (parser, nu LLM)
@@ -223,7 +240,7 @@ def descopera(
         if _apartament_exclus(tip_activ, subiect.nr_camere, parsed.nr_camere):
             log.debug("Apartament sarit (camere %s vs subiect %s, dif >1) %s",
                       parsed.nr_camere, subiect.nr_camere, url)
-            continue
+            return None
         breakdown = scor_candidat(subiect, extraction.profile, ponderi)
         # OLX (și alte anunțuri cu text liber) dau adesea prețul fără suprafață structurată →
         # declasăm scorul + marcăm „completează manual" (council 2026-06-06, Topic 8).
@@ -232,11 +249,20 @@ def descopera(
             breakdown.explicatie = (f"{breakdown.explicatie} ⚠ Suprafață lipsă — "
                                     "completează manual înainte de a folosi în grilă.").strip()
         pret_mp = _pret_mp_daca_teren_comparabil(parsed, subiect, extraction.profile.teren)
-        rezultate.append(CandidateResult(
+        return CandidateResult(
             url=url, titlu=parsed.titlu, pret=parsed.pret, suprafata=parsed.suprafata,
             teren=extraction.profile.teren, pret_mp=pret_mp, poza=parsed.poza,
             breakdown=breakdown, secundare=extraction.secundare,
-        ))
+        )
+
+    # PERF-1: executam pipeline-ul per candidat IN PARALEL, cu un plafon de concurenta. `map` pastreaza
+    # ORDINEA URL-urilor (determinista, ca varianta secventiala) -> sortarea finala stabila + marcarea
+    # outlierilor raman reproductibile. None (candidat sarit) e filtrat. Daca nu sunt URL-uri, sarim
+    # peste pool (ThreadPoolExecutor cere max_workers >= 1).
+    rezultate: list[CandidateResult] = []
+    if urls:
+        with ThreadPoolExecutor(max_workers=_numar_workeri(len(urls))) as executor:
+            rezultate = [r for r in executor.map(_proceseaza, urls) if r is not None]
     _marcheaza_pret_atipic(rezultate)   # GAP #4 (audit comparabile): marchează outlierii €/mp
     # GAP #2 (audit comparabile): candidații cu `incredere_scazuta` (>=3 atribute lipsă — anunț
     # expirat/truncat) merg la COADĂ, chiar dacă relevanța brută pe puținele atribute cunoscute e mare
@@ -287,23 +313,32 @@ def descopera_teren(
     """
     urls = cauta_anunturi_multi(portal, judet, localitate, fetcher=fetcher, categorie="teren")
     urls = urls[:max_candidati]
-    rezultate: list[LandDiscoveryResult] = []
-    for url in urls:
+
+    def _proceseaza(url: str) -> LandDiscoveryResult | None:
+        """Fetch + parse pentru UN candidat de teren. Orice exceptie -> None (sarit, restul continua).
+        Ruleaza intr-un thread din pool (PERF-1): fetch-ul era blocant in serie."""
         try:
             parsed = parse_listing_html(fetcher(url), sursa_url=url)
         except Exception as e:
             log.debug("Anunt teren sarit (fetch/parse esuat) %s: %s", url, e)
-            continue
+            return None
         if parsed.pagina_lista:                 # pagină de listă/căutare, nu anunț -> sare
-            continue
+            return None
         supr = parsed.suprafata_teren or parsed.suprafata
         pret_mp = None
         if parsed.pret is not None and supr and supr > 0:
             pret_mp = round(parsed.pret / supr)
         nota = "" if pret_mp is not None else "fara pret/suprafata clare — verifica manual"
-        rezultate.append(LandDiscoveryResult(
+        return LandDiscoveryResult(
             url=url, titlu=parsed.titlu, pret=parsed.pret, suprafata=supr, pret_mp=pret_mp,
             relevanta=_relevanta_teren(supr, suprafata_subiect), nota=nota,
-        ))
+        )
+
+    # PERF-1: fetch-uri in PARALEL cu plafon de concurenta; `map` pastreaza ordinea (determinism inainte
+    # de sortarea dupa relevanta). None (candidat sarit) e filtrat.
+    rezultate: list[LandDiscoveryResult] = []
+    if urls:
+        with ThreadPoolExecutor(max_workers=_numar_workeri(len(urls))) as executor:
+            rezultate = [r for r in executor.map(_proceseaza, urls) if r is not None]
     rezultate.sort(key=lambda r: r.relevanta, reverse=True)
     return rezultate
