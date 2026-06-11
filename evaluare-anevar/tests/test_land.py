@@ -3,8 +3,12 @@ from decimal import Decimal
 import pytest
 
 from evaluare.engine.land import (
+    AjustareBonitare,
     DateTerenRezidual,
+    ajustare_bonitare,
+    aplica_bonitare,
     evaluate_land,
+    evaluate_land_agricol,
     pret_mp_corectat,
     teren_rezidual,
 )
@@ -187,3 +191,86 @@ def test_teren_rezidual_nu_afecteaza_comparatia_directa():
     c = LandComparable(pret_mp=Decimal("100"), suprafata=Decimal("500"),
                        adjustments=[_adj("Deschidere", 0.10)])
     assert pret_mp_corectat(c) == Decimal("110.00")
+
+
+# --------------------------------------------------------------------------- #
+# G-N4 — TEREN AGRICOL: comparatia vanzarilor cu nota de bonitare a solului ca ELEMENT
+# de comparatie (NU formula PMB 79/1992 interzisa de GEV 630 §86). Aditiv fata de €/mp.
+# --------------------------------------------------------------------------- #
+def test_bonitare_subiect_mai_bun_majoreaza_comparabil():
+    # subiect clasa 1 (mai bun), comparabil clasa 3 (mai slab): +0.08 * (3-1) = +0.16
+    assert ajustare_bonitare(1, 3) == Decimal("0.16")
+
+
+def test_bonitare_subiect_mai_slab_diminueaza_comparabil():
+    # subiect clasa 4 (mai slab), comparabil clasa 2 (mai bun): 0.08 * (2-4) = -0.16
+    assert ajustare_bonitare(4, 2) == Decimal("-0.16")
+
+
+def test_bonitare_aceeasi_clasa_fara_ajustare():
+    assert ajustare_bonitare(3, 3) == Decimal("0")
+
+
+def test_bonitare_plafonata():
+    # 0.20 * (5-1) = 0.80, plafonat la +0.40 (default)
+    p = AjustareBonitare(procent_pe_clasa=Decimal("0.20"))
+    assert ajustare_bonitare(1, 5, p) == Decimal("0.40")
+    assert ajustare_bonitare(5, 1, p) == Decimal("-0.40")
+
+
+@pytest.mark.parametrize("clasa", [0, 6, -1])
+def test_bonitare_clasa_invalida_ridica(clasa):
+    with pytest.raises(ValueError):
+        ajustare_bonitare(1, clasa)
+    with pytest.raises(ValueError):
+        ajustare_bonitare(clasa, 1)
+
+
+def test_aplica_bonitare_nu_muta_comparabilele_originale():
+    # ADITIV: comparabilele primite raman neatinse; se intorc copii cu ajustarea adaugata.
+    c0 = LandComparable(pret_mp=Decimal("3"), suprafata=Decimal("10000"))
+    c1 = LandComparable(pret_mp=Decimal("3"), suprafata=Decimal("10000"),
+                        adjustments=[_adj("Acces", 0.05)])
+    originale = [c0, c1]
+    rezultat = aplica_bonitare(originale, clasa_subiect=2, clase_comparabile=[2, 4])
+    # originalele neschimbate
+    assert c0.adjustments == []
+    assert len(c1.adjustments) == 1
+    # c0: aceeasi clasa (2 vs 2) -> nicio ajustare de bonitare adaugata
+    assert all(a.element != "Bonitare sol" for a in rezultat[0].adjustments)
+    # c1: subiect 2 mai bun ca 4 -> +0.08*(4-2)=+0.16, pastreaza si ajustarea Acces
+    bon = [a for a in rezultat[1].adjustments if a.element == "Bonitare sol"]
+    assert len(bon) == 1 and bon[0].valoare == Decimal("0.16")
+    assert any(a.element == "Acces" for a in rezultat[1].adjustments)
+
+
+def test_aplica_bonitare_lungime_nepotrivita_ridica():
+    c = LandComparable(pret_mp=Decimal("3"), suprafata=Decimal("10000"))
+    with pytest.raises(ValueError):
+        aplica_bonitare([c], clasa_subiect=2, clase_comparabile=[2, 3])
+
+
+def test_evaluate_land_agricol_aplica_bonitarea_in_grila():
+    # subiect clasa 2; comparabil clasa 4 (mai slab) -> +0.16 pe pretul de baza.
+    # pret_mp 3 EUR/mp, fara alte ajustari -> corectat 3*(1+0.16)=3.48; suprafata 10.000 mp
+    c = LandComparable(pret_mp=Decimal("3"), suprafata=Decimal("10000"))
+    r = evaluate_land_agricol([c], suprafata_subiect=Decimal("10000"),
+                              clasa_subiect=2, clase_comparabile=[4], cfg=_N1)
+    assert r.pret_mp_ales == Decimal("3.48")
+    assert r.valoare_teren == Decimal("34800.00")
+
+
+def test_evaluate_land_agricol_egal_cu_evaluate_land_fara_diferenta_de_clasa():
+    # Daca subiectul si toate comparabilele sunt in aceeasi clasa, bonitarea nu schimba nimic:
+    # rezultatul = comparatia €/mp standard (aditivitatea = identitate la diferenta 0).
+    comps = [
+        LandComparable(pret_mp=Decimal("3.0"), suprafata=Decimal("10000"),
+                       adjustments=[_adj("Acces", -0.05)]),
+        LandComparable(pret_mp=Decimal("3.2"), suprafata=Decimal("12000"),
+                       adjustments=[_adj("Localizare", 0.03)]),
+    ]
+    baza = evaluate_land(comps, suprafata_subiect=Decimal("10000"), cfg=_N1)
+    agricol = evaluate_land_agricol(comps, suprafata_subiect=Decimal("10000"),
+                                    clasa_subiect=3, clase_comparabile=[3, 3], cfg=_N1)
+    assert agricol.valoare_teren == baza.valoare_teren
+    assert agricol.pret_mp_ales == baza.pret_mp_ales

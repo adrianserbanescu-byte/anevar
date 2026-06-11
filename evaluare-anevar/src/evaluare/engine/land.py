@@ -18,7 +18,7 @@ from decimal import ROUND_HALF_UP, Decimal
 from pydantic import BaseModel, Field
 
 from evaluare.engine.metodologie import IMPLICIT, MetodologieConfig
-from evaluare.models.comparable import LandComparable
+from evaluare.models.comparable import Adjustment, LandComparable
 from evaluare.models.results import LandResult
 
 _UNU = Decimal("1")
@@ -193,3 +193,140 @@ def teren_rezidual(d: DateTerenRezidual) -> RezultatTerenRezidual:
         profit_dezvoltator=profit,
         valoare_teren=valoare,
     )
+
+
+# --------------------------------------------------------------------------- #
+# G-N4 — TEREN AGRICOL: comparația vânzărilor cu ajustare pe NOTA DE BONITARE a solului.
+#
+# ATENȚIE — poziția ANEVAR (PdV „metoda comparației prin bonitare", reluată în SEV 2025
+# GEV 630 §86): „metoda comparației prin bonitare" în sensul FORMULEI matematice
+# (Decizia PMB 79/1992 + Dispozițiile PMB 421/1992, 191/1993, 827/1994), care derivă o
+# valoare DIRECT dintr-un coeficient/grilă de bonitate, NU este o metodă de evaluare a
+# terenurilor recunoscută — folosirea ei = abatere disciplinară sancționabilă. NU o
+# implementăm și nu trebuie folosită.
+#
+# Ce face funcția de mai jos NU este acea formulă interzisă. Este metoda RECUNOSCUTĂ a
+# comparației vânzărilor (GEV 630 §82–§83), în care nota de bonitare a solului intră DOAR
+# ca ELEMENT DE COMPARAȚIE (alături de localizare, acces, suprafață, deschidere etc.,
+# GEV 630 §90) — un factor de AJUSTARE între subiect și comparabil, nu un substitut de
+# piață. Cu alte cuvinte: bonitarea ajustează prețul comparabilelor REALE de pe piață;
+# nu produce valoarea în absența pieței.
+#
+# Limitări respectate (din PdV):
+#   • Bonitarea = factor de comparație, NU formulă de valoare. Funcția produce o `Adjustment`
+#     care se aplică în grila de comparație €/mp existentă; nu există „valoare din bonitate".
+#   • Comparabilele rămân tranzacții/oferte reale de teren agricol (`LandComparable`). Dacă
+#     nu există comparabile, metoda nu se aplică — nu se inventează valoare (vezi G-N5,
+#     capitalizarea rentei funciare, ca alternativă §99, în afara acestui scope).
+#   • ADITIV: comparația €/mp existentă (`evaluate_land`) rămâne NEATINSĂ. Această metodă
+#     doar PRE-CALCULEAZĂ ajustarea de bonitare și o adaugă ca element de comparație.
+# --------------------------------------------------------------------------- #
+
+# Clasa de calitate / bonitate a solului în RO: 1..5, unde 1 = cea mai bună (`LandData.clasa_calitate`).
+# Un sol de clasă mai bună (nr. mai mic) e mai productiv → mai scump pe piață. Ajustarea adusă unui
+# comparabil îl aduce la calitatea SUBIECTULUI: dacă subiectul e MAI BUN ca solul comparabilului,
+# prețul comparabilului se majorează (+), altfel se diminuează (−).
+_CLASA_MIN = 1
+_CLASA_MAX = 5
+
+
+class AjustareBonitare(BaseModel):
+    """Parametrii ajustării de bonitare a solului pentru un comparabil agricol.
+
+    `procent_pe_clasa` = diferența procentuală de valoare estimată de evaluator între două
+    clase de calitate succesive ale solului (ex. 0.08 = ~8% pe clasă), extrasă/justificată
+    din piață — NU un coeficient impus de o grilă (acela ar fi metoda interzisă). Ajustarea
+    pe comparabil = `procent_pe_clasa` × (clasa_comparabil − clasa_subiect), pentru că o clasă
+    cu număr mai mare = sol mai slab. Plafonată ca să nu degenereze pe diferențe extreme.
+    """
+
+    procent_pe_clasa: Decimal = Field(default=Decimal("0.08"), ge=0, le=1)
+    # Plafon (în valoare absolută) al ajustării totale de bonitare per comparabil. Apără contra
+    # unei ajustări nerealiste (ex. 4 clase × procent mare) care ar contamina selecția.
+    plafon: Decimal = Field(default=Decimal("0.40"), gt=0, le=1)
+
+
+# Singleton de default (ca `IMPLICIT` pt MetodologieConfig) — evită apelul în argumentele implicite.
+BONITARE_IMPLICIT = AjustareBonitare()
+
+
+def _valideaza_clasa(clasa: int, eticheta: str) -> int:
+    if not (_CLASA_MIN <= clasa <= _CLASA_MAX):
+        raise ValueError(
+            f"Clasa de calitate (bonitate) a solului {eticheta} trebuie să fie {_CLASA_MIN}..{_CLASA_MAX} "
+            f"(1 = cea mai bună); primit: {clasa}."
+        )
+    return clasa
+
+
+def ajustare_bonitare(
+    clasa_subiect: int, clasa_comparabil: int, p: AjustareBonitare = BONITARE_IMPLICIT,
+) -> Decimal:
+    """Ajustarea procentuală de BONITARE adusă unui comparabil agricol (element de comparație).
+
+    Adu comparabilul la calitatea solului subiectului: dacă subiectul e mai bun (clasă cu număr
+    mai mic) decât comparabilul, prețul comparabilului se MAJOREAZĂ (+); invers, se diminuează (−).
+    Valoare = clamp(procent_pe_clasa × (clasa_comparabil − clasa_subiect), ±plafon).
+    NU este o valoare; e o corecție de comparație ce intră în grila €/mp existentă.
+    """
+    _valideaza_clasa(clasa_subiect, "subiectului")
+    _valideaza_clasa(clasa_comparabil, "comparabilului")
+    brut = p.procent_pe_clasa * Decimal(clasa_comparabil - clasa_subiect)
+    if brut > p.plafon:
+        return p.plafon
+    if brut < -p.plafon:
+        return -p.plafon
+    return brut
+
+
+def aplica_bonitare(
+    comparables: list[LandComparable], clasa_subiect: int,
+    clase_comparabile: list[int], p: AjustareBonitare = BONITARE_IMPLICIT,
+) -> list[LandComparable]:
+    """Întoarce COPII ale comparabilelor cu un `Adjustment` „Bonitare sol" adăugat (etapa
+    proprietate, procentual), pregătite pentru `evaluate_land`. ADITIV: comparabilele primite
+    NU sunt mutate; comparația €/mp rămâne intactă, doar capătă elementul de comparație bonitare.
+
+    `clase_comparabile[i]` = clasa de calitate a solului comparabilului i (1..5). O ajustare de
+    bonitare 0 (subiect și comparabil în aceeași clasă) NU se adaugă, ca să nu polueze grila.
+    """
+    if len(clase_comparabile) != len(comparables):
+        raise ValueError(
+            f"Numărul claselor de calitate ({len(clase_comparabile)}) trebuie să fie egal cu "
+            f"numărul comparabilelor ({len(comparables)})."
+        )
+    _valideaza_clasa(clasa_subiect, "subiectului")
+    rezultat: list[LandComparable] = []
+    for comp, clasa_c in zip(comparables, clase_comparabile, strict=True):
+        pct = ajustare_bonitare(clasa_subiect, clasa_c, p)
+        adj = list(comp.adjustments)
+        if pct != _ZERO:
+            adj.append(Adjustment(
+                element="Bonitare sol",
+                tip="procentuala",
+                valoare=pct,
+                etapa="proprietate",
+                justificare=(
+                    f"Element de comparație (GEV 630 §90): clasă calitate sol comparabil {clasa_c} "
+                    f"vs. subiect {clasa_subiect}. NU metoda comparației prin bonitare (formula PMB "
+                    f"79/1992), interzisă de GEV 630 §86."
+                ),
+            ))
+        rezultat.append(comp.model_copy(update={"adjustments": adj}))
+    return rezultat
+
+
+def evaluate_land_agricol(
+    comparables: list[LandComparable], suprafata_subiect: Decimal,
+    clasa_subiect: int, clase_comparabile: list[int],
+    p: AjustareBonitare = BONITARE_IMPLICIT, cfg: MetodologieConfig = IMPLICIT,
+) -> LandResult:
+    """Comparația vânzărilor pentru teren AGRICOL, cu nota de bonitare a solului ca element de
+    comparație. Pre-calculează ajustarea de bonitare (subiect vs. comparabil) și o adaugă în grila
+    €/mp standard, apoi rulează `evaluate_land` neschimbat.
+
+    Metodă RECUNOSCUTĂ (comparația vânzărilor, GEV 630 §82–§83), NU formula interzisă a „comparației
+    prin bonitare" (GEV 630 §86). Aditivă față de `evaluate_land` — nu o înlocuiește.
+    """
+    cu_bonitare = aplica_bonitare(comparables, clasa_subiect, clase_comparabile, p)
+    return evaluate_land(cu_bonitare, suprafata_subiect, cfg)
