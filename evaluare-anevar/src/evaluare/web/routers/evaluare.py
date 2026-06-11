@@ -202,11 +202,17 @@ def build_router(d: Deps) -> APIRouter:
         moneda = (ctx.meta.moneda or "LEI").upper()
         curs = ctx.meta.curs_valutar
         echiv = None
+        # Afisarea echivalentului valutar e auxiliara — nu trebuie sa darame pagina daca cursul
+        # e degenerat (impartire/quantize extrem). fmt_numar e deja robust; aici prindem si
+        # ArithmeticError din val/curs (defense-in-depth).
         if curs:
-            if moneda == "LEI":
-                echiv = fmt_numar(val / curs) + " EUR"
-            elif moneda == "EUR":
-                echiv = fmt_numar(val * curs) + " LEI"
+            try:
+                if moneda == "LEI":
+                    echiv = fmt_numar(val / curs) + " EUR"
+                elif moneda == "EUR":
+                    echiv = fmt_numar(val * curs) + " LEI"
+            except ArithmeticError:
+                echiv = None
         return d.templates.TemplateResponse(request, "result.html", {
             "eid": eid,
             "client_nume": ctx.meta.client_nume,

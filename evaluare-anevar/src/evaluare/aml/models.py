@@ -27,11 +27,17 @@ CategoriePEP = Literal[
 TipPEP = Literal["titular", "membru_familie", "asociat_apropiat"]
 
 
+# Plafon rezonabil pentru campuri de nume/denumire: numele reale sunt mult sub 200 caractere.
+# Marginirea opreste DoS-ul SequenceMatcher O(n*m) din screening (vezi aml/liste._similar):
+# nume de ~500K caractere -> ~10s CPU per comparare.
+_MAX_NUME = 200
+
+
 class PersoanaFizica(BaseModel):
     """Date de identificare PF — Legea art. 15(1)(a); Norme art. 18(1)(a)."""
 
-    nume: str = ""
-    prenume: str = ""
+    nume: str = Field(default="", max_length=_MAX_NUME)
+    prenume: str = Field(default="", max_length=_MAX_NUME)
     cnp: str | None = None
     tip_act: TipAct | None = None
     serie_act: str | None = None
@@ -86,7 +92,7 @@ class ClientPJ(BaseModel):
     """Client persoana juridica (sau PJ straina) — Legea art. 15(1)(b),(2)."""
 
     tip: Literal["PJ", "PJ_straina"] = "PJ"
-    denumire: str = ""
+    denumire: str = Field(default="", max_length=_MAX_NUME)
     cui: str | None = None
     sediu: str | None = None
     acte_constituire: str | None = None
@@ -94,7 +100,7 @@ class ClientPJ(BaseModel):
     imputernicit: PersoanaFizica | None = None
     document_imputernicire: str | None = None
     traducere_legalizata: bool = False              # obligatoriu daca PJ straina (art. 15(2))
-    beneficiari_reali: list[BeneficiarReal] = Field(default_factory=list)
+    beneficiari_reali: list[BeneficiarReal] = Field(default_factory=list, max_length=1000)
 
 
 class FactorRisc(BaseModel):

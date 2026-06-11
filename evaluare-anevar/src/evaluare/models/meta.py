@@ -4,7 +4,7 @@ from __future__ import annotations
 from decimal import Decimal
 from typing import Literal
 
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 
 class EvaluationMeta(BaseModel):
@@ -36,4 +36,7 @@ class EvaluationMeta(BaseModel):
     evaluator_nume: str
     evaluator_legitimatie: str
     moneda: str = "LEI"
-    curs_valutar: Decimal | None = None   # EUR -> LEI la data evaluarii
+    # EUR -> LEI la data evaluarii. Marginit: un curs valutar real e >0 si mult sub 1e6; valori
+    # extreme (ex. 1E-30) faceau quantize-ul din fmt_numar(val/curs) sa arunce InvalidOperation
+    # (>1e26) -> 500 la /evaluare. gt=0/le=1e6 le respinge cu 422 inca de la /api/evaluare.
+    curs_valutar: Decimal | None = Field(default=None, gt=0, le=1_000_000)

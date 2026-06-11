@@ -17,6 +17,10 @@ from pydantic import BaseModel
 
 _DATA_DIR = Path(__file__).parent / "data"
 _PRAG_SIMILARITATE = 0.86
+# Plafon defensiv pentru intrarile comparate cu SequenceMatcher (O(n*m)): nume reale sunt scurte,
+# dar `screening` poate primi un `nume` arbitrar (nu doar din modele marginite) -> trunchiem ca sa
+# nu transformam o comparare intr-un DoS de CPU (~10s la 500K caractere).
+_MAX_LEN_COMPARARE = 256
 
 
 class Potrivire(BaseModel):
@@ -46,7 +50,9 @@ def _norm(s: str) -> str:
 
 
 def _similar(a: str, b: str) -> float:
-    return SequenceMatcher(None, _norm(a), _norm(b)).ratio()
+    return SequenceMatcher(
+        None, _norm(a)[:_MAX_LEN_COMPARARE], _norm(b)[:_MAX_LEN_COMPARARE]
+    ).ratio()
 
 
 def incarca_liste(dir_date: Path | None = None) -> Liste:
