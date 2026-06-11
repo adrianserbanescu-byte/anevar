@@ -126,7 +126,8 @@
               <option value="litigii">Litigiu</option></select></div>
           <div class="field"><label for="tip_proprietate">Tip proprietate</label>
             <select id="tip_proprietate"><option value="casa">Casă + teren</option>
-              <option value="apartament">Apartament</option><option value="industrial">Industrial</option>
+              <option value="apartament">Apartament</option><option value="comercial">Comercial (generator de venit)</option>
+              <option value="industrial">Industrial</option>
               <option value="agricol">Teren agricol</option><option value="special">Specială</option></select></div>
         </div>
       </fieldset>
@@ -895,14 +896,17 @@ function aplicaTip(v){
   _show("grup-teren", v!=="apartament");      // apartamentul nu are teren standalone
   _show("grup-constructie", v!=="agricol");   // terenul agricol nu are construcție
   // Abordarea prin cost (elemente + depreciere + metodele cost/ponderată) se aplică doar la construcții
-  // care se evaluează prin cost — NU la apartament (comparație) sau teren agricol.
+  // care se evaluează prin cost — NU la apartament (comparație), teren agricol sau comercial.
+  // Comercial = generator de venit: abordarea PRINCIPALĂ e venitul (profil COMERCIAL_INCHIRIAT,
+  // SectiuniTip.abordare_cost=False) => costul/ponderata se ascund, ca la apartament.
   var cost = (v==="casa"||v==="industrial"||v==="special");
   _show("grup-cost", cost);
   if($("metoda")){
     ["cost","ponderata"].forEach(function(val){ var o=$("metoda").querySelector("option[value='"+val+"']");
       if(o){ o.disabled=!cost; o.hidden=!cost; } });
     if(!cost && ($("metoda").value==="cost"||$("metoda").value==="ponderata")){
-      $("metoda").value=(v==="agricol"?"piata":"piata"); if(typeof sincronMetoda==="function") sincronMetoda(); }
+      // Comercial -> implicit „venit" (capitalizare directă, abordarea principală); restul -> „piață".
+      $("metoda").value=(v==="comercial"?"venit":"piata"); if(typeof sincronMetoda==="function") sincronMetoda(); }
   }
 }
 if($("tip_proprietate")){ $("tip_proprietate").addEventListener("change", function(){ aplicaTip(); }); aplicaTip(); }
@@ -1031,8 +1035,8 @@ if($("ing-fisier")) $("ing-fisier").addEventListener("change", function(){
   // proprietății din dosar (#tip_proprietate, wizard). casă/industrial/specială -> [Casă+teren, Teren];
   // apartament -> [Apartament]; teren agricol -> [Teren].
   var CONSTRANGERI_TIP={ casa:["casa","teren"], casa_teren:["casa","teren"], industrial:["casa","teren"],
-    special:["casa","teren"], 'specială':["casa","teren"], apartament:["apartament"], garsoniera:["apartament"],
-    'garsonieră':["apartament"], teren:["teren"], agricol:["teren"], teren_agricol:["teren"] };
+    comercial:["casa","teren"], special:["casa","teren"], 'specială':["casa","teren"], apartament:["apartament"],
+    garsoniera:["apartament"], 'garsonieră':["apartament"], teren:["teren"], agricol:["teren"], teren_agricol:["teren"] };
   // Setul canonic de opțiuni #d-tip (rebuild idempotent — re-constrângerea la schimbarea tipului
   // de proprietate trebuie să poată RE-adăuga opțiuni, nu doar să le scoată).
   var TIP_OPTIUNI=[["casa","Casă + teren"],["apartament","Apartament"],["teren","Teren"]];
