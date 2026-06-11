@@ -96,3 +96,33 @@ def test_toate_semnalele_active():
     s = SemnaleIndicatori(**{i.cheie: True for i in INDICATORI})
     assert len(evalueaza_indicatori(s)) == len(INDICATORI)
     assert propune_rts(s) is True
+
+
+def test_orice_indicator_unic_declanseaza_rts_si_e_intors_singur():
+    # Mutation guard pentru `evalueaza_indicatori` + `propune_rts`: pentru FIECARE indicator din
+    # catalog, bifat singur, funcția întoarce exact acel indicator și propune RTS. Dacă iterarea
+    # peste `_CHEI` ar fi restrânsă (ex. doar baza, doar suplimentul, o feliere), un indicator ar
+    # fi „mut" și mutantul ar supraviețui testelor punctuale existente.
+    for ind in INDICATORI:
+        s = SemnaleIndicatori(**{ind.cheie: True})
+        rez = evalueaza_indicatori(s)
+        assert [i.cheie for i in rez] == [ind.cheie], f"indicatorul {ind.cheie} nu e detectat singur"
+        assert propune_rts(s) is True, f"indicatorul {ind.cheie} nu declanșează RTS"
+
+
+def test_indicatorul_intors_pastreaza_temeiul_si_categoria_corecte():
+    # Mutation guard: evalueaza_indicatori întoarce obiectele Indicator COMPLETE din catalog
+    # (cu temei + categorie), nu doar cheile. Verificăm un indicator de bază și unul imobiliar.
+    s = SemnaleIndicatori(scop_nedefinit=True, plati_numerar_atipice=True)
+    dupa_cheie = {i.cheie: i for i in evalueaza_indicatori(s)}
+    assert dupa_cheie["scop_nedefinit"].temei == "HCD 58/2023 art. 6(10)"
+    assert dupa_cheie["scop_nedefinit"].categorie == "hcd58_baza"
+    assert "Ghid ONPCSB" in dupa_cheie["plati_numerar_atipice"].temei
+    assert dupa_cheie["plati_numerar_atipice"].categorie == "ghid_imobiliar"
+
+
+def test_un_singur_semnal_dintre_multe_false_declanseaza_rts():
+    # Mutation guard explicit pentru propune_rts (any, NU all): un singur True printre zeci de
+    # False trebuie să dea True. Un mutant any->all ar întoarce False aici.
+    s = SemnaleIndicatori(adresa_neclara=True)
+    assert propune_rts(s) is True

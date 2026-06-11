@@ -114,6 +114,36 @@ def test_risc_fara_document_se_mentioneaza_fara_cuantificare():
     assert "fara cuantificare" in txt
 
 
+def test_risc_cu_document_dar_fara_sursa_nu_afiseaza_eticheta_sursa():
+    # Mutation guard: detaliul „ (sursa: ...)" se adaugă DOAR dacă eticheta sursei e nevidă
+    # (`if eticheta`). Cu sursă goală nu apare paranteza, dar rămâne mențiunea „preluata ca atare".
+    ri = RiscIdentificat(cheie="cutremure", document_furnizat=True, sursa="")
+    txt = genereaza_sectiune_esg([ri])
+    linie = next(ln for ln in txt.split("\n\n") if ln.startswith("- Cutremure"))
+    assert "preluata ca atare" in linie
+    assert "(sursa:" not in linie
+
+
+def test_observatia_doar_spatii_nu_adauga_text_in_sectiune():
+    # Mutation guard: observația se adaugă doar dacă `.strip()` e nevidă. O observație formată
+    # doar din spații NU trebuie să introducă spațiu/text suplimentar; linia se încheie cu punct.
+    ri = RiscIdentificat(cheie="inundatii", document_furnizat=True, sursa="INHGA", observatie="   ")
+    txt = genereaza_sectiune_esg([ri])
+    linie = next(ln for ln in txt.split("\n\n") if ln.startswith("- Inund"))
+    assert linie.rstrip().endswith(".")
+    assert "  ." not in linie  # fără spațiu dublu înainte de punctul final
+
+
+def test_observatia_nevida_se_preia_ca_atare_in_sectiune():
+    # Complementar: o observație reală e inclusă (apare după detaliul de sursă).
+    ri = RiscIdentificat(
+        cheie="incendii", document_furnizat=True, sursa="ISU",
+        observatie="Distanță sigură față de sursele de incendiu.",
+    )
+    txt = genereaza_sectiune_esg([ri])
+    assert "Distanță sigură față de sursele de incendiu." in txt
+
+
 def test_sectiune_nu_contine_scoruri_sau_ierarhii():
     # Invariantul ANEVAR: NU se cuantifica. Niciun lexic de scor/probabilitate/ierarhie in CORPUL
     # secțiunii (per-risc). Disclaimerul foloseste legitim aceste cuvinte ca sa le NEGE («nu
@@ -162,6 +192,29 @@ def test_toate_verificate_cand_toate_cele_opt_sunt_identificate():
     chk = checklist_riscuri_fizice(ri)
     assert toate_verificate(chk) is True
     assert riscuri_neverificate(chk) == []
+
+
+def test_toate_verificate_este_false_la_verificare_partiala():
+    # Mutation guard: toate_verificate folosește all(...), NU any(...). Cu o singură verificare
+    # din 8, all() => False, any() => True. Fără acest caz parțial, mutantul all->any supraviețuiește.
+    chk = checklist_riscuri_fizice([RiscIdentificat(cheie="cutremure")])
+    assert toate_verificate(chk) is False
+    # complementar: exact cele 7 rămase sunt neverificate (NU 0, NU 8)
+    assert len(riscuri_neverificate(chk)) == 7
+
+
+def test_riscuri_neverificate_returneaza_doar_cele_neverificate_la_verificare_partiala():
+    # Mutation guard: filtrul folosește `not e.verificat`. Dacă `not` e scos, ar întoarce
+    # riscurile VERIFICATE (1), nu cele neverificate (7).
+    chk = checklist_riscuri_fizice([
+        RiscIdentificat(cheie="cutremure"),
+        RiscIdentificat(cheie="inundatii"),
+    ])
+    nev = riscuri_neverificate(chk)
+    chei_nev = {e.cheie for e in nev}
+    assert "cutremure" not in chei_nev
+    assert "inundatii" not in chei_nev
+    assert len(nev) == 6
 
 
 def test_checklist_expune_sursele_recomandate_din_catalog():

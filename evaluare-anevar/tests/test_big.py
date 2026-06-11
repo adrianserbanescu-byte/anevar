@@ -183,6 +183,36 @@ def test_cod_unic_difera_la_valoare_diferita():
     assert genereaza_cod_unic(c1) != genereaza_cod_unic(c2)
 
 
+def test_cod_unic_are_hash_de_exact_8_caractere():
+    # Mutation guard: hexdigest()[:8] — dacă plafonul hash-ului devine [:7]/[:9]/integral,
+    # codul rămâne stabil dar lungimea segmentului final se schimbă. Fixăm 8 hex.
+    c = _campuri_complete()
+    cod = genereaza_cod_unic(c)
+    hash_final = cod.rsplit("-", 1)[1]
+    assert len(hash_final) == 8
+    assert all(ch in "0123456789abcdef" for ch in hash_final)
+
+
+def test_cod_unic_difera_la_cod_postal_diferit():
+    # Mutation guard: codul poștal intră în seed-ul hash-ului — dacă e scos din seed,
+    # două dosare identice cu cod poștal diferit ar produce același cod (coliziune).
+    c1 = _campuri_complete()
+    c2 = _campuri_complete()
+    c2.cod_postal = "010011"
+    assert genereaza_cod_unic(c1) != genereaza_cod_unic(c2)
+
+
+def test_cod_unic_ignora_spatiile_din_legitimatie_si_nr_raport():
+    # Mutation guard: .strip() pe legitimație/nr_raport — fără strip, „ 12345 " ar produce
+    # un cod diferit de „12345" (spațiile ar intra în segmentul codului).
+    c1 = _campuri_complete()
+    c2 = _campuri_complete()
+    c2.evaluator_legitimatie = "  12345  "
+    c2.nr_raport = "  2026/0042  "
+    assert genereaza_cod_unic(c1) == genereaza_cod_unic(c2)
+    assert genereaza_cod_unic(c2).startswith("BIG-12345-2026-0042-")
+
+
 def test_emite_recipisa_initiala():
     c = _campuri_complete()
     r = emite_recipisa(c)
@@ -223,6 +253,21 @@ def test_rectificativa_fara_cod_corectat_ridica_eroare():
     c = _campuri_complete()
     with pytest.raises(ValueError, match="codul unic"):
         emite_rectificativa(c, "")
+
+
+def test_rectificativa_cu_cod_corectat_doar_spatii_ridica_eroare():
+    # Mutation guard: (cod_unic_corectat or "").strip() — fără .strip(), un cod format doar din
+    # spații („   ") ar trece de verificarea „if not cod" și ar emite o rectificativă fără țintă reală.
+    c = _campuri_complete()
+    with pytest.raises(ValueError, match="codul unic"):
+        emite_rectificativa(c, "   ")
+
+
+def test_rectificativa_curata_spatiile_din_codul_corectat():
+    # Mutation guard: codul corectat e .strip()-uit înainte de a fi stocat (audit trail curat).
+    c = _campuri_complete()
+    rect = emite_rectificativa(c, "  BIG-vechi-001  ")
+    assert rect.cod_unic_corectat == "BIG-vechi-001"
 
 
 def test_rectificativa_incompleta_ridica_eroare():

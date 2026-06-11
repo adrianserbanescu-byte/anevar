@@ -108,6 +108,9 @@ def test_valoarea_prudenta_nu_este_niciodata_negativa():
     r = estimeaza_valoare_prudenta(Decimal("500000"), p)
     assert r.valoare_prudenta == Decimal("0")
     assert r.reducere_totala == Decimal("500000")
+    # Mutation guard: la reducere completă, procentul de reducere = exact 100 (numărătorul
+    # `reducere` și numitorul `vp_r` din formula reducere_pct trebuie să fie ambii valoarea de piață).
+    assert r.reducere_pct == Decimal("100")
 
 
 def test_discount_de_100_la_suta_duce_la_zero():
@@ -169,6 +172,34 @@ def test_reevaluare_urmeaza_valoarea_curenta_cand_e_sub_media():
         [Decimal("400000"), Decimal("420000"), Decimal("440000")],
     )
     assert rez == Decimal("380000")
+
+
+def test_reevaluare_media_se_calculeaza_pe_numarul_real_de_valori():
+    # Mutation guard: media = sum / len(anterioare). Cu 2 valori, divizorul TREBUIE să fie 2.
+    # media(300000, 500000) = 400000 < 600000 curent -> plafonat la 400000.
+    # Un mutant care schimbă divizorul (ex. constantă, len+/-1) ar rata exact 400000.
+    rez = valoare_garantie_reevaluare(
+        Decimal("600000"),
+        [Decimal("300000"), Decimal("500000")],
+    )
+    assert rez == Decimal("400000")
+
+
+def test_reevaluare_media_rotunjita_jumatate_in_sus():
+    # Mutation guard: media e rotunjită la leu întreg cu ROUND_HALF_UP. mean(100, 101) = 100.5
+    # -> 101 (half-up), NU 100 (trunchiere). Distinge round_lei corect de o trunchiere.
+    rez = valoare_garantie_reevaluare(
+        Decimal("500000"),
+        [Decimal("100"), Decimal("101")],
+    )
+    assert rez == Decimal("101")
+
+
+def test_reevaluare_egalitate_medie_egal_curent():
+    # Mutation guard pe operatorul de plafonare: când media == curentul, min => acea valoare,
+    # indiferent dacă mutantul ar fi min/max (ambele dau egalul). Verifică totuși non-eroare la egalitate.
+    rez = valoare_garantie_reevaluare(Decimal("400000"), [Decimal("400000")])
+    assert rez == Decimal("400000")
 
 
 def test_reevaluare_valoare_curenta_negativa_arunca():
