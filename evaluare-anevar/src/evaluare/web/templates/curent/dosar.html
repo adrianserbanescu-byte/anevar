@@ -329,74 +329,82 @@
     </section>
 
     <section role="tabpanel" id="sp-comparabile" aria-labelledby="s-comparabile" tabindex="0" hidden>
-      <h3>{{ icon("search") }} Descoperă comparabile</h3>
-      <!-- Județ + localitate propagate din Proprietate; afișate fix (read-only), nu se schimbă de aici. -->
+      {# Lot C: «Descoperă» ELIMINAT ca bloc separat. Căutarea pe portaluri trăiește acum în CAPUL
+         fiecărei grile (casă/teren/chirii) ca «modul de căutare» integrat (câmpuri + buton + rezultate).
+         Zona (județ + localitate) e PARTAJATĂ — propagată din Proprietate (read-only), îngheață gating-ul. #}
+      <!-- Județ + localitate propagate din Proprietate; afișate fix (read-only), nu se schimbă de aici.
+           Selecturile shared #d-judet/#d-localitate sunt ascunse (le folosește motorul + gating-ul). -->
       <p class="hint" id="d-zona-fix" hidden>{{ icon("lock") }} Zona căutării (din tabul Proprietate):
         <b id="d-zona-judet"></b> · <b id="d-zona-localitate"></b></p>
-      <div class="field-row">
-        <div class="field"><label for="d-tip">Caut</label>
-          <select id="d-tip"><option value="casa">Casă + teren</option><option value="apartament">Apartament</option><option value="teren">Teren</option></select></div>
-        <div class="field"><label for="d-portal">Portal</label>
-          <select id="d-portal"><option value="toate" selected>Toate portalurile</option>
-            <option value="imobiliare">imobiliare.ro</option><option value="storia">storia.ro</option></select></div>
+      <div class="field-row" id="d-zona-edit">
         <div class="field" id="d-judet-field"><label for="d-judet">Județ</label><select id="d-judet"><option value="">— județ —</option></select></div>
         <div class="field" id="d-localitate-field"><label for="d-localitate">Localitate</label><select id="d-localitate"><option value="">— localitate —</option></select></div>
         <div class="field"><label for="d-vecine">Localități vecine <span class="hint">(opțional, separate prin virgulă)</span></label><input id="d-vecine" placeholder="Băicoi, Blejoi"></div>
       </div>
-      <div class="field-row">
-        <div class="field"><label for="d-an">An constr.</label><input id="d-an" type="number" placeholder="2013"></div>
-        <div class="field"><label for="d-stare">Stare</label>
-          <select id="d-stare"><option value="">—</option><option value="1">Degradată</option>
-            <option value="2">Necesită renovare</option><option value="3">Medie / bună</option>
-            <option value="4">Foarte bună / renovată</option><option value="5">Nouă</option></select></div>
-        <div class="field"><label for="d-finisaj">Finisaj</label>
-          <select id="d-finisaj"><option value="">—</option><option value="1">Modest</option>
-            <option value="2">Standard</option><option value="3">Superior</option><option value="4">Lux</option></select></div>
-        <div class="field"><label for="d-incalzire">Încălzire</label><input id="d-incalzire" placeholder="centrala_gaz"></div>
-        <div class="field"><label for="d-teren">Teren (mp)</label><input id="d-teren" placeholder="500"></div>
-      </div>
-      <label for="d-secundare">Atribute secundare de potrivire <span class="hint">(opțional, una pe linie)</span></label>
-      <textarea id="d-secundare" rows="2" placeholder="garaj&#10;piscină&#10;termopan"></textarea>
-      <div class="btn-bar">
-        <button type="button" id="d-cauta">{{ icon("search") }} Caută comparabile</button>
-        <button type="button" class="ghost" id="d-cauta-judet">{{ icon("search") }} Caută în tot județul</button>
-      </div>
-      <span id="d-status" class="hint" role="status" aria-live="polite"></span>
-      <div id="d-rezultate"></div>
-      <!-- Candidați lăsați „în așteptare" (Salvează) până vezi toate anunțurile — importă-i când te-ai decis. -->
-      <details class="grila-det" id="cand-salvati">
-        <summary>{{ icon("grid") }} Candidați salvați (<span id="cs-nr">0</span>)</summary>
-        <p class="hint">Anunțuri puse deoparte cu «💾 Salvează». Importă-le în grilă sau șterge-le.</p>
-        <div id="cs-lista"></div>
-        <span id="cs-status" class="hint" role="status" aria-live="polite"></span>
-      </details>
-      <h3>Import dintr-un anunț (URL)</h3>
-      <div class="field-row">
-        <div class="field" style="flex:3"><label for="d-url">Link imobiliare.ro / storia.ro</label><input id="d-url" placeholder="https://www.imobiliare.ro/..."></div>
-        <div class="field"><label for="d-url-btn-l">&nbsp;</label><button type="button" id="d-url-btn">{{ icon("import") }} Importă din URL</button></div>
-      </div>
-      <span id="d-url-status" class="hint" role="status" aria-live="polite"></span>
-      <details class="grila-det" id="coada-ext">
-        <summary>{{ icon("grid") }} Anunțuri din extensia de browser (<span id="ext-nr">0</span>)</summary>
-        <p class="hint">Navighezi tu pe portal, extensia trimite anunțul aici. Bifează + importă în grilă.</p>
-        <div class="btn-bar">
-          <button type="button" id="ext-reload">{{ icon("refresh") }} Reîmprospătează</button>
-          <button type="button" class="ghost" id="ext-goleste">Golește coada</button>
-        </div>
-        <div id="ext-lista"></div>
-      </details>
-      <hr class="brass-rule">
+
       <label for="comparabile">Comparabile construcție/proprietate</label>
       <textarea id="comparabile" rows="4" placeholder="250000;120"></textarea>
       {# GF1: desfășurătorul de ajustări al grilei de casă, serializat JSON pe semnătura (preț;suprafață) a
          fiecărui comparabil. Persistat prin snapshot (are id) → supraviețuiește refresh-ului. asambleaza()
          îl citește și atașează adjustments la comparabilele trimise în raport. Ascuns: nu se editează manual. #}
       <textarea id="comparabile_aj" hidden aria-hidden="true" tabindex="-1"></textarea>
-      <details class="grila-det">
-        <summary>{{ icon("grid") }} Grilă de ajustări — casă (pe etape + alerte prudențiale)</summary>
+      <details class="grila-det" id="grila-casa-det" open>
+        <summary>{{ icon("grid") }} Grilă comparabile — casă (căutare + candidați + ajustări)</summary>
+        {# ── MODUL DE CĂUTARE (relocat din «Descoperă») — caută anunțuri de casă pe portaluri ── #}
+        <fieldset class="grup cmp-search"><legend>{{ icon("search") }} Caută comparabile (casă)</legend>
+          <div class="field-row">
+            <div class="field"><label for="d-tip">Caut</label>
+              <select id="d-tip"><option value="casa">Casă + teren</option><option value="apartament">Apartament</option></select></div>
+            <div class="field"><label for="d-portal">Portal</label>
+              <select id="d-portal"><option value="toate" selected>Toate portalurile</option>
+                <option value="imobiliare">imobiliare.ro</option><option value="storia">storia.ro</option></select></div>
+            <div class="field"><label for="d-an">An constr.</label><input id="d-an" type="number" placeholder="2013"></div>
+            <div class="field"><label for="d-stare">Stare</label>
+              <select id="d-stare"><option value="">—</option><option value="1">Degradată</option>
+                <option value="2">Necesită renovare</option><option value="3">Medie / bună</option>
+                <option value="4">Foarte bună / renovată</option><option value="5">Nouă</option></select></div>
+          </div>
+          <div class="field-row">
+            <div class="field"><label for="d-finisaj">Finisaj</label>
+              <select id="d-finisaj"><option value="">—</option><option value="1">Modest</option>
+                <option value="2">Standard</option><option value="3">Superior</option><option value="4">Lux</option></select></div>
+            <div class="field"><label for="d-incalzire">Încălzire</label><input id="d-incalzire" placeholder="centrala_gaz"></div>
+            <div class="field"><label for="d-teren">Teren (mp)</label><input id="d-teren" placeholder="500"></div>
+          </div>
+          <label for="d-secundare">Atribute secundare de potrivire <span class="hint">(opțional, una pe linie)</span></label>
+          <textarea id="d-secundare" rows="2" placeholder="garaj&#10;piscină&#10;termopan"></textarea>
+          <div class="btn-bar">
+            <button type="button" id="d-cauta">{{ icon("search") }} Caută comparabile</button>
+            <button type="button" class="ghost" id="d-cauta-judet">{{ icon("search") }} Caută în tot județul</button>
+          </div>
+          <span id="d-status" class="hint" role="status" aria-live="polite"></span>
+          <div id="d-rezultate"></div>
+          <!-- Candidați lăsați „în așteptare" (Salvează) până vezi toate anunțurile — importă-i când te-ai decis. -->
+          <details class="grila-det" id="cand-salvati">
+            <summary>{{ icon("grid") }} Candidați salvați (<span id="cs-nr">0</span>)</summary>
+            <p class="hint">Anunțuri puse deoparte cu «💾 Salvează». Importă-le în grilă sau șterge-le.</p>
+            <div id="cs-lista"></div>
+            <span id="cs-status" class="hint" role="status" aria-live="polite"></span>
+          </details>
+          <div class="field-row">
+            <div class="field field--wide"><label for="d-url">Import dintr-un anunț (URL) — imobiliare.ro / storia.ro</label><input id="d-url" placeholder="https://www.imobiliare.ro/..."></div>
+            <div class="field"><label for="d-url-btn-l">&nbsp;</label><button type="button" id="d-url-btn">{{ icon("import") }} Importă din URL</button></div>
+          </div>
+          <span id="d-url-status" class="hint" role="status" aria-live="polite"></span>
+          <details class="grila-det" id="coada-ext">
+            <summary>{{ icon("grid") }} Anunțuri din extensia de browser (<span id="ext-nr">0</span>)</summary>
+            <p class="hint">Navighezi tu pe portal, extensia trimite anunțul aici. Bifează + importă în grilă.</p>
+            <div class="btn-bar">
+              <button type="button" id="ext-reload">{{ icon("refresh") }} Reîmprospătează</button>
+              <button type="button" class="ghost" id="ext-goleste">Golește coada</button>
+            </div>
+            <div id="ext-lista"></div>
+          </details>
+        </fieldset>
+        {# ── GRILĂ DE AJUSTĂRI — casă (importul completează automat rândurile) ── #}
         <p class="hint">Completează prețul + suprafața fiecărui comparabil și ajustările. „Tranzacție" = compus (ofertă→tranzacție);
           „proprietate" = aditiv (caracteristici). Procentual: puncte % (5 = +5%). Valoric: lei.</p>
-        <div class="field" style="max-width:220px"><label for="g-supr">Suprafață subiect (mp)</label><input id="g-supr" placeholder="ex. 120"><small class="hint" id="g-supr-hint" hidden>precompletat cu ACD — aria construită desfășurată</small></div>
+        <div class="field" style="max-width:220px"><label for="g-supr">Suprafață subiect (mp) <span class="hint">(= AU din Proprietate)</span></label><input id="g-supr" placeholder="ex. 120"><small class="hint" id="g-supr-hint" hidden>precompletat din Proprietate (arie utilă)</small></div>
         <div id="grila-casa-tabel" class="grila-scroll"></div>
         <div class="btn-bar">
           <button type="button" id="g-calc">Calculează grila casă</button>
@@ -404,25 +412,44 @@
         </div>
         <div id="g-rezultat" role="status" aria-live="polite"></div>
       </details>
+
       <label for="comparabile_teren">Comparabile teren <span class="hint">(opțional; dacă există, valoarea terenului se calculează din grilă, nu manual)</span></label>
       <textarea id="comparabile_teren" rows="3" placeholder="50;700"></textarea>
       {# GF1: idem pentru grila de teren — JSON pe semnătura (preț/mp;suprafață) → adjustments în raport. #}
       <textarea id="comparabile_teren_aj" hidden aria-hidden="true" tabindex="-1"></textarea>
-      <details class="grila-det">
-        <summary>{{ icon("grid") }} Grilă de ajustări — teren (pe etape + alerte prudențiale)</summary>
+      <details class="grila-det" id="grila-teren-det">
+        <summary>{{ icon("grid") }} Grilă comparabile — teren (căutare + candidați + ajustări)</summary>
+        {# ── MODUL DE CĂUTARE teren — caută loturi de teren; jos lista TUTUROR portalelor (Lot C #7) ── #}
+        <fieldset class="grup cmp-search"><legend>{{ icon("search") }} Caută comparabile (teren)</legend>
+          <div class="field-row">
+            <div class="field"><label for="dt-portal">Portal</label>
+              <select id="dt-portal"><option value="toate" selected>Toate portalurile</option></select></div>
+            <div class="field"><label for="dt-supr">Suprafață lot căutată (mp)</label><input id="dt-supr" type="number" placeholder="700"></div>
+          </div>
+          <div class="btn-bar">
+            <button type="button" id="dt-cauta">{{ icon("search") }} Caută terenuri</button>
+            <button type="button" class="ghost" id="dt-cauta-judet">{{ icon("search") }} Caută în tot județul</button>
+          </div>
+          <span id="dt-status" class="hint" role="status" aria-live="polite"></span>
+          <div id="dt-rezultate"></div>
+          <p class="hint" id="dt-portaluri-lista"></p>
+        </fieldset>
         <p class="hint">Preț/mp + suprafața fiecărui comparabil + ajustările (procentuale, în puncte %: 5 = +5%).</p>
-        <div class="field" style="max-width:220px"><label for="gt-supr">Suprafață teren subiect (mp)</label><input id="gt-supr" placeholder="ex. 500"><small class="hint" id="gt-supr-hint" hidden>precompletat cu suprafața teren</small></div>
+        <div class="field" style="max-width:220px"><label for="gt-supr">Suprafață teren subiect (mp) <span class="hint">(= teren din Proprietate)</span></label><input id="gt-supr" placeholder="ex. 500"><small class="hint" id="gt-supr-hint" hidden>precompletat din Proprietate (suprafață teren)</small></div>
         <div id="grila-teren-tabel" class="grila-scroll"></div>
         <div class="btn-bar">
           <button type="button" id="gt-calc">Calculează grila teren</button>
           <button type="button" class="ghost" id="gt-import">{{ icon("upload") }} Trimite în Comparabile teren</button>
+          <button type="button" class="ghost" id="gt-la-valoare">{{ icon("upload") }} Preia valoarea în «Valoare teren»</button>
         </div>
         <div id="gt-rezultat" role="status" aria-live="polite"></div>
       </details>
-      <details class="grila-det">
-        <summary>{{ icon("grid") }} Grilă de chirii — pentru abordarea prin venit (chirie/mp + ajustări → VBP, venit brut potențial)</summary>
+
+      {# Grila de chirii = DOAR comercial (Lot C #8). Ascunsă la casă/apartament/teren; aplicaTip() o arată. #}
+      <details class="grila-det" id="grila-chirii-det" hidden>
+        <summary>{{ icon("grid") }} Grilă comparabile — chirii comerciale (pentru abordarea prin venit → VBP)</summary>
         <p class="hint">Chiria lunară/mp + suprafața fiecărui comparabil + ajustările. Rezultă venitul brut potențial anual (VBP).</p>
-        <div class="field" style="max-width:220px"><label for="gc-supr">Suprafață închiriabilă subiect (mp)</label><input id="gc-supr" placeholder="ex. 100"><small class="hint" id="gc-supr-hint" hidden>precompletat cu AU — aria utilă</small></div>
+        <div class="field" style="max-width:220px"><label for="gc-supr">Suprafață închiriabilă subiect (mp) <span class="hint">(= AU din Proprietate)</span></label><input id="gc-supr" placeholder="ex. 100"><small class="hint" id="gc-supr-hint" hidden>precompletat din Proprietate (arie utilă)</small></div>
         <div id="grila-chirii-tabel" class="grila-scroll"></div>
         <div class="btn-bar">
           <button type="button" id="gc-calc">Calculează grila chirii</button>
@@ -971,6 +998,10 @@ function aplicaTip(v){
   _show("agr-fields", v==="agricol");
   _show("grup-teren", v!=="apartament");      // apartamentul nu are teren standalone
   _show("grup-constructie", v!=="agricol");   // terenul agricol nu are construcție
+  // Lot C #8: grila de CHIRII (abordarea prin venit) = DOAR comercial. Ascunsă la casă/apartament/teren.
+  _show("grila-chirii-det", v==="comercial");
+  // Grila de TEREN n-are sens la apartament (fără teren standalone) — o ascundem acolo.
+  _show("grila-teren-det", v!=="apartament");
   // Abordarea prin cost (elemente + depreciere + metodele cost/ponderată) se aplică doar la construcții
   // care se evaluează prin cost — NU la apartament (comparație), teren agricol sau comercial.
   // Comercial = generator de venit: abordarea PRINCIPALĂ e venitul (profil COMERCIAL_INCHIRIAT,
@@ -1108,14 +1139,14 @@ if($("ing-fisier")) $("ing-fisier").addEventListener("change", function(){
   if($("d-judet")&&!$("d-judet").value&&$("judet")) $("d-judet").value=$("judet").value;
   if($("d-localitate")&&!$("d-localitate").value&&$("localitate")) $("d-localitate").value=$("localitate").value;
   // CONSTRANGERE TIP CAUTARE (paritate /descoperire #1): #d-tip nu mai e liber — vine din tipul
-  // proprietății din dosar (#tip_proprietate, wizard). casă/industrial/specială -> [Casă+teren, Teren];
-  // apartament -> [Apartament]; teren agricol -> [Teren].
-  var CONSTRANGERI_TIP={ casa:["casa","teren"], casa_teren:["casa","teren"], industrial:["casa","teren"],
-    comercial:["casa","teren"], special:["casa","teren"], 'specială':["casa","teren"], apartament:["apartament"],
-    garsoniera:["apartament"], 'garsonieră':["apartament"], teren:["teren"], agricol:["teren"], teren_agricol:["teren"] };
+  // proprietății din dosar (#tip_proprietate, wizard). Lot C: căutarea de TEREN are MODUL PROPRIU
+  // (grila de teren) — aici, în modulul casă, oferim doar [Casă+teren, Apartament].
+  var CONSTRANGERI_TIP={ casa:["casa"], casa_teren:["casa"], industrial:["casa"],
+    comercial:["casa"], special:["casa"], 'specială':["casa"], apartament:["apartament"],
+    garsoniera:["apartament"], 'garsonieră':["apartament"], teren:["casa"], agricol:["casa"], teren_agricol:["casa"] };
   // Setul canonic de opțiuni #d-tip (rebuild idempotent — re-constrângerea la schimbarea tipului
-  // de proprietate trebuie să poată RE-adăuga opțiuni, nu doar să le scoată).
-  var TIP_OPTIUNI=[["casa","Casă + teren"],["apartament","Apartament"],["teren","Teren"]];
+  // de proprietate trebuie să poată RE-adăuga opțiuni, nu doar să le scoată). Fără „Teren" (modul separat).
+  var TIP_OPTIUNI=[["casa","Casă + teren"],["apartament","Apartament"]];
   function constrangeTipDescoperire(){
     var sel=$("d-tip"), src=$("tip_proprietate"); if(!sel||!src) return;
     var cheie=(src.value||"").trim().toLowerCase().replace(/[\s-]+/g,"_");
@@ -1173,55 +1204,64 @@ if($("ing-fisier")) $("ing-fisier").addEventListener("change", function(){
       "<button type='button' class='ghost cr-salv d-salv' data-teren='"+(teren?"1":"")+"' data-cand='"+candJson+"'>💾 Salvează</button>"+
       "</div>";
   }
-  function randRezultate(cand, teren){
-    if(!cand.length){ $("d-rezultate").innerHTML="<p class='hint'>Niciun comparabil. Încearcă doar județul sau altă localitate.</p>"; return; }
+  // Lot C: randRezultate parametrizat pe CONTAINER (rezId/statusId) — așa ÎL REFOLOSESC ambele module
+  // de căutare (casă #d-rezultate/#d-status, teren #dt-rezultate/#dt-status) fără să-l duplic. Interogările
+  // sunt SCOPATE pe container (rez.querySelectorAll), nu pe id-uri globale (ar fi coliziune între module).
+  // Conținutul scrape-uit din randCand e DEJA escapat cu esc() (anti-XSS) — la fel ca în restul fișierului.
+  function randRezultate(cand, teren, rezId, statusId){
+    rezId=rezId||"d-rezultate"; statusId=statusId||"d-status";
+    var rez=$(rezId), status=$(statusId); if(!rez) return;
+    function setStatus(t){ if(status) status.textContent=t; }
+    if(!cand.length){ rez.textContent=""; rez.insertAdjacentHTML("beforeend","<p class='hint'>Niciun comparabil. Încearcă doar județul sau altă localitate.</p>"); return; }
     var total=cand.length, afisate=0;
-    $("d-rezultate").innerHTML=
+    rez.textContent="";
+    rez.insertAdjacentHTML("beforeend",
       "<p class='hint' role='status'><b>"+total+"</b> comparabile găsite (sortate după scor de relevanță). "
         +"Mărește «Localități vecine» sau caută în tot județul pentru și mai multe.</p>"+
-      "<div id='d-lista' role='list' aria-label='Comparabile găsite'></div>"+
-      "<div id='d-paginare' class='cr-paginare'></div>"+
-      "<div class='rez-actiuni'><button type='button' id='d-importa'>Importă bifate</button></div>";
-    var lista=$("d-lista"), pag=$("d-paginare");
+      "<div class='d-lista' role='list' aria-label='Comparabile găsite'></div>"+
+      "<div class='d-paginare cr-paginare'></div>"+
+      "<div class='rez-actiuni'><button type='button' class='d-importa'>Importă bifate</button></div>");
+    var lista=rez.querySelector(".d-lista"), pag=rez.querySelector(".d-paginare");
     function maiMulte(){
       var lot=cand.slice(afisate, afisate+PAGINA);
       lista.insertAdjacentHTML("beforeend", lot.map(function(c){ return randCand(c, teren); }).join(""));
       afisate+=lot.length;
       var ramase=total-afisate;
-      if(ramase>0){ pag.innerHTML="<button type='button' id='d-mai-multe'>Arată încă "+Math.min(PAGINA,ramase)+" (rămân "+ramase+")</button>";
-        $("d-mai-multe").addEventListener("click", maiMulte);
-      } else { pag.innerHTML = afisate>PAGINA ? "<p class='hint'>Toate cele "+afisate+" comparabile sunt afișate.</p>" : ""; }
+      pag.textContent="";
+      if(ramase>0){ pag.insertAdjacentHTML("beforeend","<button type='button' class='d-mai-multe'>Arată încă "+Math.min(PAGINA,ramase)+" (rămân "+ramase+")</button>");
+        pag.querySelector(".d-mai-multe").addEventListener("click", maiMulte);
+      } else if(afisate>PAGINA){ pag.insertAdjacentHTML("beforeend","<p class='hint'>Toate cele "+afisate+" comparabile sunt afișate.</p>"); }
     }
     maiMulte();   // primele 20
     // Scor ascuns sub „?" — toggle exclusiv (același pattern ca popoverele „?" din formular).
-    $("d-rezultate").querySelectorAll(".d-scor-q").forEach(function(b){
+    rez.querySelectorAll(".d-scor-q").forEach(function(b){
       b.addEventListener("click", function(e){ e.stopPropagation();
         var pop=b.parentNode.querySelector(".cr-scor-pop"), deschis=pop.classList.contains("hint-open");
-        $("d-rezultate").querySelectorAll(".cr-scor-pop.hint-open").forEach(function(o){ o.classList.remove("hint-open");
+        rez.querySelectorAll(".cr-scor-pop.hint-open").forEach(function(o){ o.classList.remove("hint-open");
           var t=o.parentNode.querySelector(".d-scor-q"); if(t) t.setAttribute("aria-expanded","false"); });
         if(!deschis){ pop.classList.add("hint-open"); b.setAttribute("aria-expanded","true"); }
       });
     });
-    $("d-importa").addEventListener("click", function(){
-      var linii=[]; document.querySelectorAll(".d-bif:checked").forEach(function(b){ if(b.dataset.pret&&b.dataset.supr) linii.push(b.dataset.pret+";"+b.dataset.supr); });
-      if(!linii.length){ $("d-status").textContent="Bifează cel puțin un candidat."; return; }
+    rez.querySelector(".d-importa").addEventListener("click", function(){
+      var linii=[]; rez.querySelectorAll(".d-bif:checked").forEach(function(b){ if(b.dataset.pret&&b.dataset.supr) linii.push(b.dataset.pret+";"+b.dataset.supr); });
+      if(!linii.length){ setStatus("Bifează cel puțin un candidat."); return; }
       adaugaLaGrila(linii, teren);
-      $("d-status").textContent="✓ "+linii.length+" importate în "+(teren?"Comparabile teren":"grilă")+".";
+      setStatus("✓ "+linii.length+" importate în "+(teren?"Comparabile teren":"grilă")+".");
     });
     // «Salvează» pe fiecare rând: pune candidatul deoparte (POST), fără a-l importa încă.
-    $("d-rezultate").querySelectorAll(".d-salv").forEach(function(b){
+    rez.querySelectorAll(".d-salv").forEach(function(b){
       b.addEventListener("click", function(){
         var c; try{ c=JSON.parse(b.dataset.cand||"{}"); }catch(e){ c=null; }
-        if(!c){ $("d-status").textContent="Nu am putut salva candidatul."; return; }
+        if(!c){ setStatus("Nu am putut salva candidatul."); return; }
         b.disabled=true;
         fetch("/api/dosar/"+UID+"/candidat-salvat",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(c)})
           .then(function(r){ return r.ok?r.json():Promise.reject(); })
           .then(function(res){
             b.textContent="✓ salvat"; b.classList.add("salvat");
             actualizeazaContorSalvati(res.count!=null?res.count:(res.candidati?res.candidati.length:null));
-            $("d-status").textContent="✓ candidat salvat (în «Candidați salvați»).";
+            setStatus("✓ candidat salvat (în «Candidați salvați»).");
           })
-          .catch(function(){ b.disabled=false; $("d-status").textContent="Salvarea candidatului a eșuat."; });
+          .catch(function(){ b.disabled=false; setStatus("Salvarea candidatului a eșuat."); });
       });
     });
   }
@@ -1238,9 +1278,12 @@ if($("ing-fisier")) $("ing-fisier").addEventListener("change", function(){
     fetch("/api/dosar/"+UID+"/candidati-salvati").then(function(r){return r.ok?r.json():{candidati:[]};})
       .then(function(d){ if($("cs-nr")) $("cs-nr").textContent=(d.candidati||[]).length; }).catch(function(){});
   }
-  function cerePortal(portal, tip, loc){
+  // Lot C: cerePortal cu subiect-teren parametrizat — modulul de teren are propriul câmp de suprafață
+  // (#dt-supr), distinct de #d-teren al modulului de casă. `terenSuprId` spune de unde se ia.
+  function cerePortal(portal, tip, loc, terenSuprId){
     var teren=(tip==="teren"), url, payload;
-    if(teren){ url="/api/descopera-teren"; payload={portal:portal, judet:$("d-judet").value, localitate:loc, suprafata_subiect:$("d-teren").value||null, max_candidati:50}; }
+    if(teren){ var ts=(terenSuprId&&$(terenSuprId))?$(terenSuprId).value:($("d-teren")&&$("d-teren").value);
+      url="/api/descopera-teren"; payload={portal:portal, judet:$("d-judet").value, localitate:loc, suprafata_subiect:ts||($("suprafata_teren")&&$("suprafata_teren").value)||null, max_candidati:50}; }
     else { url="/api/descopera"; payload={portal:portal, judet:$("d-judet").value, localitate:loc, tip_activ:tip,
       subiect:{suprafata_construita:(($("acd")&&$("acd").value)||($("au")&&$("au").value))||null,
         an:parseInt($("d-an").value)||null, stare:parseInt($("d-stare").value)||null,
@@ -1254,31 +1297,51 @@ if($("ing-fisier")) $("ing-fisier").addEventListener("change", function(){
   }
   cerePortal._erori=0;
   // Caut pe localitatea aleasă + cele vecine adăugate (virgulă). Butonul „tot județul" -> loc="".
+  // Zona (județ+localitate+vecine) e PARTAJATĂ între module → câmpurile #d-* rămân unice.
   function localitatiCautare(){
     var p=[$("d-localitate")?$("d-localitate").value:""];
     if($("d-vecine")) p=p.concat(($("d-vecine").value||"").split(","));
     return p.map(function(s){ return (s||"").trim(); }).filter(Boolean).join(",");
   }
-  function cautaCu(loc){
-    $("d-status").textContent="… se caută ("+(loc?("loc.: "+loc):"tot județul")+")"; $("d-rezultate").textContent="";
+  // Lot C: motorul de căutare REFOLOSIT de ambele module (casă + teren). ctx = {tip, portalId, statusId,
+  // rezId, terenSuprId}. Casa și terenul diferă doar prin container + selectorul de portal + tipul căutat.
+  function cautaCu(loc, ctx){
+    ctx=ctx||{}; var tip=ctx.tip||(($("d-tip")&&$("d-tip").value)||"casa"), teren=(tip==="teren");
+    var statusId=ctx.statusId||"d-status", rezId=ctx.rezId||"d-rezultate", portalId=ctx.portalId||"d-portal";
+    var st=$(statusId), rez=$(rezId);
+    if(st) st.textContent="… se caută ("+(loc?("loc.: "+loc):"tot județul")+")"; if(rez) rez.textContent="";
     cerePortal._erori=0;
-    var tip=($("d-tip")&&$("d-tip").value)||"casa", teren=(tip==="teren");
-    var sel=$("d-portal").value, portaluri=(sel==="toate")?PORTALURI:[sel];
-    Promise.all(portaluri.map(function(pp){ return cerePortal(pp, tip, loc); })).then(function(lists){
+    var sel=($(portalId)&&$(portalId).value)||"toate", portaluri=(sel==="toate")?PORTALURI:[sel];
+    Promise.all(portaluri.map(function(pp){ return cerePortal(pp, tip, loc, ctx.terenSuprId); })).then(function(lists){
       var cand=[].concat.apply([], lists).sort(function(a,b){ return (b.relevanta||0)-(a.relevanta||0); });
       // H9: distinge clar „portal indisponibil" (rețea/portal picat) de „0 rezultate reale" (căutarea a
       // mers, dar nu există anunțuri potrivite) — fiecare cu acțiunea recomandată.
       if(!cand.length){
-        if(cerePortal._erori){ $("d-status").textContent="Portalul nu a răspuns sau conexiunea a eșuat — încearcă din nou sau adaugă comparabilele manual."; }
-        else { $("d-status").textContent="Niciun anunț potrivit pentru filtrele alese — lărgește criteriile (an/stare/finisaj), adaugă «Localități vecine» sau caută în tot județul."; }
-        $("d-rezultate").textContent=""; return;
+        if(st){ st.textContent = cerePortal._erori
+          ? "Portalul nu a răspuns sau conexiunea a eșuat — încearcă din nou sau adaugă comparabilele manual."
+          : "Niciun anunț potrivit pentru filtrele alese — lărgește criteriile, adaugă «Localități vecine» sau caută în tot județul."; }
+        if(rez) rez.textContent=""; return;
       }
-      $("d-status").textContent=cand.length+" candidați"+(loc?"":" (tot județul)")+(sel==="toate"?" · toate portalurile":"");
-      randRezultate(cand, teren);
+      if(st) st.textContent=cand.length+" candidați"+(loc?"":" (tot județul)")+(sel==="toate"?" · toate portalurile":"");
+      randRezultate(cand, teren, rezId, statusId);
     });
   }
   cauta.addEventListener("click", function(){ cautaCu(localitatiCautare()); });
   if($("d-cauta-judet")) $("d-cauta-judet").addEventListener("click", function(){ cautaCu(""); });
+  // Lot C #1/#2/#7: MODUL DE CĂUTARE TEREN în capul grilei de teren — REUTILIZEAZĂ motorul (cautaCu),
+  // doar cu alt container/portal/tip. Fără duplicarea logicii de fetch/randare.
+  if($("dt-cauta")){
+    function cautaTeren(loc){ cautaCu(loc, {tip:"teren", portalId:"dt-portal", statusId:"dt-status", rezId:"dt-rezultate", terenSuprId:"dt-supr"}); }
+    $("dt-cauta").addEventListener("click", function(){ cautaTeren(localitatiCautare()); });
+    if($("dt-cauta-judet")) $("dt-cauta-judet").addEventListener("click", function(){ cautaTeren(""); });
+    // Lot C #7: populează selectul de portal teren cu TOATE portalurile + listează-le dedesubt.
+    (function(){
+      var ps=$("dt-portal"); if(ps){
+        ps.insertAdjacentHTML("beforeend", PORTALURI.map(function(p){ return "<option value='"+esc(p)+"'>"+esc(p)+".ro</option>"; }).join(""));
+      }
+      if($("dt-portaluri-lista")) $("dt-portaluri-lista").textContent="Portaluri disponibile pentru teren: "+PORTALURI.map(function(p){return p+".ro";}).join(", ")+".";
+    })();
+  }
   // Import comparabil dintr-un anunț (URL) → adaugă „preț;suprafață" în grilă.
   if($("d-url-btn")) $("d-url-btn").addEventListener("click", function(){
     var url=($("d-url").value||"").trim(); if(!url){ $("d-url-status").textContent="Lipsește linkul."; return; }
@@ -1621,6 +1684,7 @@ function asambleaza(){
     }
     return comps;
   }
+  var _vt=null;   // Lot C #4: ultima valoare de teren calculată din grilă → preluată în #valoare_teren.
   if($("gt-calc")) $("gt-calc").addEventListener("click", function(){
     var comps=compForm(), ss=$("gt-supr").value;
     if(comps.length<3||!ss){ $("gt-rezultat").textContent="Completează suprafața subiect + cel puțin 3 comparabile (preț/mp+suprafață)."; return; }
@@ -1629,12 +1693,20 @@ function asambleaza(){
       // H9: propagă mesajul real din backend (detail din 422), ca la /calcul.
       .then(function(r){ return r.ok?r.json():r.json().catch(function(){return{};}).then(function(j){ throw (j.detail||("Grila teren a eșuat (cod "+r.status+").")); }); })
       .then(function(d){
+        _vt=d.valoare_teren;
         var al = _alertePrudentiale(d);   // M2: prag pe TOATE comparabilele mediate
         var html="<div class='callout'><p><b>Valoare teren: "+fmtRo(d.valoare_teren)+"</b> · preț/mp ales: "+fmtRo(d.pret_mp_ales)+" · "+_etichetaSelectie(d)+"</p>";
         html+=al.length?("<ul>"+al.map(function(a){return "<li class='alerta'>⚠ "+a+"</li>";}).join("")+"</ul>"):"<p class='hint'>✓ Toate ajustările brute sub pragul prudențial de 25%.</p>";
+        html+="<p class='hint'>Apasă «Preia valoarea în «Valoare teren»» ca să o duci în câmpul din Proprietate.</p>";
         $("gt-rezultat").innerHTML=html+"</div>";
       })
       .catch(function(e){ $("gt-rezultat").textContent="Grila teren a eșuat — "+(typeof e==="string"?e:"verifică valorile (minim 3 comparabile)."); });
+  });
+  // Lot C #4: valoarea terenului din rezultatul grilei → populează #valoare_teren (mutat de Lot B în Proprietate).
+  if($("gt-la-valoare")) $("gt-la-valoare").addEventListener("click", function(){
+    if(_vt===null){ $("gt-rezultat").textContent="Calculează întâi grila de teren."; return; }
+    if($("valoare_teren")){ $("valoare_teren").value=_vt; salveaza(); }
+    $("gt-rezultat").textContent="✓ Valoarea terenului ("+fmtRo(_vt)+") preluată în «Valoare teren» (Proprietate).";
   });
   if($("gt-import")) $("gt-import").addEventListener("click", function(){
     var comps=compForm(); if(!comps.length){ $("gt-rezultat").textContent="Nimic de trimis."; return; }
@@ -1704,14 +1776,14 @@ function asambleaza(){
 // ── PRECOMPLETARE „Suprafață subiect" în cele 3 grile (din datele de pe Proprietate) ──────────
 // Cerința Adi: câmpul „Suprafață subiect" al fiecărei grile pornește din ce a introdus userul pe
 // tabul Proprietate (DOAR dacă e gol — nu suprascriem ce a tastat în grilă; rămâne editabil după).
-//   casă  #g-supr  ← #acd (arie construită desfășurată)
-//   teren #gt-supr ← #suprafata_teren
+//   casă  #g-supr  ← #au (arie utilă)  — Lot C #5
+//   teren #gt-supr ← #suprafata_teren  — Lot C #4
 //   chirii #gc-supr ← #au (arie utilă)
 // Rulează la init + la fiecare deschidere a grilei (toggle) — ca să prindă și valorile tastate pe
 // Proprietate DUPĂ încărcarea paginii. Hint-ul se afișează doar când chiar am precompletat.
 (function(){
   var GRILE=[
-    {dst:"g-supr",  src:"acd",            hint:"g-supr-hint"},
+    {dst:"g-supr",  src:"au",             hint:"g-supr-hint"},
     {dst:"gt-supr", src:"suprafata_teren",hint:"gt-supr-hint"},
     {dst:"gc-supr", src:"au",             hint:"gc-supr-hint"}
   ];
