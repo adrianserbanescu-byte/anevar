@@ -71,6 +71,22 @@
   .cand-row .cr-detalii .cand-radar-wrap{ display:inline-block; vertical-align:top; margin-top:6px; }
   .cr-paginare{ text-align:center; margin:12px 0; }
   .rez-actiuni{ margin:12px 0 0; }
+  /* «💾 Salvează» pe rândul de candidat — pune anunțul deoparte fără a-l importa încă (paritate dosar.html). */
+  .cand-row .cr-salv{ font-size:.8rem; white-space:nowrap; padding:2px 8px; }
+  .cand-row .cr-salv.salvat{ opacity:.6; }
+  /* Panou colapsabil «Candidați salvați» — aceeași estetică compactă cu rândurile live (.cand-row). */
+  #cand-salvati{ background:var(--paper-card); border:1px solid var(--line); border-radius:var(--radius);
+    padding:12px 16px; margin:14px 0; }
+  #cand-salvati > summary{ cursor:pointer; font-family:var(--sans); font-weight:600; color:var(--ink); }
+  #cand-salvati .cand-row{ padding:8px 0; border:none; border-bottom:1px solid var(--line);
+    border-radius:0; box-shadow:none; background:transparent; margin:0; }
+  #cand-salvati .cand-row:last-child{ border-bottom:none; }
+  #cand-salvati .cr-pret{ font-family:var(--serif); font-size:1rem; font-weight:600; color:var(--ink); white-space:nowrap; }
+  #cand-salvati .cr-fapt{ font-size:.85rem; color:var(--ink-faint); white-space:nowrap; }
+  #cand-salvati .cr-loc{ font-size:.85rem; color:var(--ink-2); white-space:nowrap; }
+  #cand-salvati .cr-loc::before{ content:"📍 "; }
+  #cand-salvati .cr-portal{ font-size:.78rem; color:var(--ink-faint); white-space:nowrap; }
+  #cand-salvati .cr-actiuni{ margin-left:auto; display:flex; gap:8px; white-space:nowrap; flex-wrap:wrap; }
   /* D1: ponderi editabile */
   .ponderi-box{ background:var(--paper-card); border:1px solid var(--line); border-radius:var(--radius);
     padding:12px 16px; margin:14px 0; }
@@ -176,6 +192,19 @@
     <button type="button" class="btn" onclick="document.getElementById('judet').focus()">Completează criteriile ↑</button>
   </div>
 </div>
+
+<!-- Candidați lăsați „în așteptare" (💾 Salvează) — per-dosar; apare doar cu un dosar activ (vezi script). -->
+<details id="cand-salvati" hidden>
+  <summary>{{ icon("grid") }} Candidați salvați (<span id="cs-nr">0</span>)</summary>
+  <p class="hint">Anunțuri puse deoparte cu «💾 Salvează» pe acest dosar. Trimite-le la grilă sau șterge-le.</p>
+  <div id="cs-lista"></div>
+  <span id="cs-status" class="hint" role="status" aria-live="polite"></span>
+</details>
+<!-- Notă afișată în locul panoului când NU există dosar activ (salvarea e per-dosar). -->
+<p id="cand-salvati-nota" class="hint" hidden>
+  {{ icon("warn","ico-gold") }} Salvarea comparabilelor se face pe un <b>dosar</b>. Deschide un dosar din
+  <a href="/incepe">Dosarele mele</a> ca să poți pune anunțuri deoparte de aici.
+</p>
 </main>
 
 <script>
@@ -185,6 +214,20 @@
 function escapeHtml(s){ return String(s==null?'':s).replace(/[&<>"']/g, c=>(
   {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
 function urlSafe(u){ try{ var x=new URL(u, location.origin); return (x.protocol==='http:'||x.protocol==='https:')?x.href:'#'; }catch(e){ return '#'; } }
+// ── Dosar activ (pt. «💾 Salvează») ───────────────────────────────────────────
+// /descoperire e standalone (fără dosar în URL). UID-ul vine din localStorage `anevar_dosar_activ`
+// (aceeași cheie ca grila.html / _nav_cross.html). Fără dosar activ -> feature-ul de salvare e
+// ascuns grațios (endpoint-urile candidat-salvat sunt per-dosar). Re-citit pe fiecare randare.
+function dosarActivUid(){
+  try{ var d = JSON.parse(localStorage.getItem('anevar_dosar_activ') || 'null');
+       return (d && d.uid) ? String(d.uid) : null; }catch(e){ return null; }
+}
+// Buton «💾 Salvează» pentru un candidat (HTML). Doar dacă există dosar activ; dict-ul întreg
+// merge ca JSON escapat în data-cand (anti-XSS, ca restul valorilor scrape-uite), trimis la POST.
+function butonSalvare(c){
+  if(!dosarActivUid()) return '';
+  return `<button type="button" class="ghost cr-salv d-salv" data-cand="${escapeHtml(JSON.stringify(c))}">💾 Salvează</button>`;
+}
 // ── Anunțuri importate din extensia de browser ───────────────────────────────
 async function incarcaImportate(){
   let res;
@@ -363,6 +406,7 @@ function randCandidat(c){
     ${celulaLoc(c)}${celulaKm(c)}
     ${avert}
     <a class="vezi cr-vezi" href="${urlSafe(c.url)}" target="_blank" rel="noopener"><span aria-hidden="true">▶</span> Vezi${c.titlu?': '+escapeHtml(c.titlu):''}</a>
+    ${butonSalvare(c)}
     <details class="cand-detalii cr-detalii"><summary>Calcul (formulă + atribute × ponderi)</summary>
       <div class="cand-body">
         <div class="cand-attr">${chipsAtribute(c)}</div>
@@ -386,6 +430,7 @@ function randCandidatTeren(c){          // rând simplu pt TEREN (răspuns mai m
     ${celulaLoc(c)}${celulaKm(c)}
     ${avert}
     <a class="vezi cr-vezi" href="${urlSafe(c.url)}" target="_blank" rel="noopener"><span aria-hidden="true">▶</span> Vezi${c.titlu?': '+escapeHtml(c.titlu):''}</a>
+    ${butonSalvare(c)}
   </div>`;
 }
 // ── P1.3 Hartă: pini colorați după relevanță; subiectul = pin negru ────────────
@@ -540,6 +585,26 @@ document.getElementById('f').addEventListener('submit', async (e)=>{
     + '<button type="button" id="laGrila"><span aria-hidden="true">➜</span> Trimite bifatele la grila casă</button></div><pre id="out" role="status" aria-live="polite"></pre>';
   const contLista = document.getElementById('lista-rezultate');
   const contPag = document.getElementById('cr-paginare');
+  // «💾 Salvează» — delegat (prinde și rândurile aduse la paginare). POST pe dosarul activ.
+  contLista.addEventListener('click', (ev)=>{
+    const b = ev.target.closest('.d-salv'); if(!b) return;
+    const uid = dosarActivUid();
+    if(!uid){ document.getElementById('desc-status').textContent =
+      'Deschide un dosar întâi — salvarea e per-dosar.'; return; }
+    let c; try{ c = JSON.parse(b.dataset.cand || '{}'); }catch(e){ c = null; }
+    if(!c){ document.getElementById('desc-status').textContent = 'Nu am putut salva candidatul.'; return; }
+    b.disabled = true;
+    fetch('/api/dosar/'+encodeURIComponent(uid)+'/candidat-salvat', {method:'POST',
+      headers:{'Content-Type':'application/json'}, body:JSON.stringify(c)})
+      .then(r => r.ok ? r.json() : Promise.reject())
+      .then(res => {
+        b.textContent = '✓ salvat'; b.classList.add('salvat');
+        actualizeazaContorSalvati(res.count!=null ? res.count : (res.candidati?res.candidati.length:null));
+        document.getElementById('desc-status').textContent = '✓ candidat salvat (în «Candidați salvați»).';
+      })
+      .catch(() => { b.disabled = false;
+        document.getElementById('desc-status').textContent = 'Salvarea candidatului a eșuat.'; });
+  });
   function maiMulte(){
     const lot = lista.slice(afisate, afisate + PAGINA);
     contLista.insertAdjacentHTML('beforeend', lot.map(randCandidat).join(''));
@@ -647,6 +712,90 @@ document.getElementById('f').addEventListener('submit', async (e)=>{
   if(btnR) btnR.addEventListener('click', function(){
     if(cfg){ popule(); document.getElementById('ponderi-status').textContent = 'Modificări anulate.'; }
   });
+})();
+
+// ── Candidați salvați (în așteptare) — paritate cu sub-tabul Comparabile din dosar.html ─────────
+// Per-dosar: apare DOAR cu un dosar activ (localStorage `anevar_dosar_activ`). Fără dosar => panoul
+// rămâne ascuns și se afișează o notă; butoanele «💾 Salvează» nici nu se randează (vezi butonSalvare).
+// Toate datele scrape-uite trec prin escapeHtml() înainte de inserare (anti-XSS, ca restul fișierului).
+function actualizeazaContorSalvati(n){
+  var el = document.getElementById('cs-nr'); if(!el) return;
+  if(n != null){ el.textContent = n; return; }
+  var uid = dosarActivUid(); if(!uid) return;
+  fetch('/api/dosar/'+encodeURIComponent(uid)+'/candidati-salvati')
+    .then(function(r){ return r.ok ? r.json() : {candidati:[]}; })
+    .then(function(d){ el.textContent = (d.candidati||[]).length; }).catch(function(){});
+}
+(function(){
+  var panou = document.getElementById('cand-salvati');
+  var nota = document.getElementById('cand-salvati-nota');
+  if(!panou) return;
+  // Fără dosar activ -> ascunde panoul + arată nota explicativă. Cu dosar -> arată panoul.
+  var uid = dosarActivUid();
+  if(!uid){ panou.hidden = true; if(nota) nota.hidden = false; return; }
+  panou.hidden = false; if(nota) nota.hidden = true;
+
+  function setStatus(t){ var s = document.getElementById('cs-status'); if(s) s.textContent = t; }
+  // Un rând COMPACT de candidat salvat (.cand-row). «Trimite la grilă» = ACELAȘI flux ca importul
+  // live din /descoperire (localStorage grila_prefill_casa/teren -> navighează la /grila).
+  function randCandSalvat(c){
+    var teren = (c.pret_mp != null && c.pret == null);
+    var pretTxt = teren
+      ? (c.pret_mp ? escapeHtml(String(c.pret_mp))+' EUR/mp' : 'preț/mp ?')
+      : (c.pret ? escapeHtml(String(c.pret))+' '+escapeHtml(c.moneda||'EUR') : 'preț ?');
+    return '<div class="cand-row" role="listitem">'
+      + '<span class="cr-pret">'+pretTxt+'</span>'
+      + '<span class="cr-fapt">'+escapeHtml(String(c.suprafata||'?'))+' mp</span>'
+      + (!teren && c.teren ? '<span class="cr-fapt">teren '+escapeHtml(String(c.teren))+' mp</span>' : '')
+      + (c.localitate ? '<span class="cr-loc">'+escapeHtml(String(c.localitate))+'</span>' : '')
+      + (c._portal ? '<span class="cr-portal">'+escapeHtml(String(c._portal))+'</span>' : '')
+      + '<span class="cr-actiuni">'
+      +   (c.url ? '<a class="vezi cr-vezi" href="'+urlSafe(c.url)+'" target="_blank" rel="noopener">vezi ↗</a>' : '')
+      +   '<button type="button" class="cs-grila" data-cand="'+escapeHtml(JSON.stringify(c))+'"><span aria-hidden="true">➜</span> Trimite la grilă</button>'
+      +   '<button type="button" class="ghost cs-sterge" data-url="'+escapeHtml(String(c.url||''))+'">🗑 Șterge</button>'
+      + '</span></div>';
+  }
+  function randLista(lista){
+    actualizeazaContorSalvati(lista.length);
+    var box = document.getElementById('cs-lista'); if(!box) return;
+    box.textContent = '';
+    if(!lista.length){ box.insertAdjacentHTML('beforeend',
+      '<p class="hint">Niciun candidat salvat încă. Folosește «💾 Salvează» pe un anunț din rezultate.</p>'); return; }
+    box.insertAdjacentHTML('beforeend',
+      '<div role="list" aria-label="Candidați salvați">'+lista.map(randCandSalvat).join('')+'</div>');
+    // «Trimite la grilă»: prefill + redirect la /grila (același mecanism ca butonul „Trimite bifatele la grilă").
+    box.querySelectorAll('.cs-grila').forEach(function(b){
+      b.addEventListener('click', function(){
+        var c; try{ c = JSON.parse(b.dataset.cand||'{}'); }catch(e){ c = null; }
+        if(!c){ setStatus('Trimiterea a eșuat.'); return; }
+        var teren = (c.pret_mp != null && c.pret == null);
+        var val = teren ? (c.pret_mp||'') : (c.pret||''), supr = c.suprafata||'';
+        if(!val || !supr){ setStatus('Candidatul nu are preț+suprafață — completează manual în grilă.'); return; }
+        localStorage.setItem(teren ? 'grila_prefill_teren' : 'grila_prefill_casa',
+          JSON.stringify([{pret:String(val), suprafata:String(supr)}]));
+        setStatus('Se deschide grila ('+(teren?'teren':'casă')+')…');
+        window.location.href = '/grila';
+      });
+    });
+    box.querySelectorAll('.cs-sterge').forEach(function(b){
+      b.addEventListener('click', function(){
+        b.disabled = true;
+        fetch('/api/dosar/'+encodeURIComponent(uid)+'/candidat-salvat/sterge', {method:'POST',
+          headers:{'Content-Type':'application/json'}, body:JSON.stringify({url:b.dataset.url||''})})
+          .then(function(r){ return r.ok ? r.json() : Promise.reject(); })
+          .then(function(d){ randLista(d.candidati||[]); setStatus('✓ șters.'); })
+          .catch(function(){ b.disabled = false; setStatus('Ștergerea a eșuat.'); });
+      });
+    });
+  }
+  function incarca(){
+    fetch('/api/dosar/'+encodeURIComponent(uid)+'/candidati-salvati')
+      .then(function(r){ return r.ok ? r.json() : {candidati:[]}; })
+      .then(function(d){ randLista(d.candidati||[]); }).catch(function(){ randLista([]); });
+  }
+  // Lazy: încarcă lista la prima deschidere a panoului; contorul (N) imediat, fără a deschide.
+  panou.addEventListener('toggle', function(){ if(this.open) incarca(); });
+  actualizeazaContorSalvati(null);
 })();
 </script>
 {% include "_footer.html" %}
