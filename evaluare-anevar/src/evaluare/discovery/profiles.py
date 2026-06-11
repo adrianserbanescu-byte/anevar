@@ -16,7 +16,7 @@ class SubjectProfile(BaseModel):
     incalzire: str | None = None         # categorie normalizata (ex. "centrala_gaz")
     teren: Decimal | None = None         # mp (suprafata teren)
     nr_camere: int | None = None         # numar de camere (driver major la apartament)
-    etaj: int | None = None              # etajul (apartament); 0 = parter. Extractie pending la apartament.
+    etaj: int | None = None              # etajul (apartament); 0 = parter. Extras din anunt (url_parser).
 
 
 class CandidateProfile(BaseModel):

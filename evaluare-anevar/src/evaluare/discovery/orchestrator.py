@@ -197,6 +197,11 @@ def descopera(
         if parsed.nr_camere is not None:
             extraction.profile.nr_camere = parsed.nr_camere
             extraction.profile.texte.setdefault("nr_camere", str(parsed.nr_camere))
+        # etajul apartamentului din anunt (structurat Floor_no sau regex „etaj 3"/„parter"/„3/5");
+        # driver major la apartament. 0 = parter -> compara cu None, nu cu falsy.
+        if parsed.etaj is not None:
+            extraction.profile.etaj = parsed.etaj
+            extraction.profile.texte.setdefault("etaj", str(parsed.etaj))
         # GAP #3 (audit comparabile): an + încălzire din datele STRUCTURATE (parser/JSON-LD) au
         # prioritate când există; altfel rămâne valoarea LLM. Înainte erau aruncate -> cu client=None
         # (config validă) veneau null deși existau în pagină -> atribute excluse tăcut din scor.

@@ -42,7 +42,8 @@ class ParsedListing(BaseModel):
     tip_cladire: str | None = None           # casa individuala / insiruita ...
     stare_text: str | None = None            # stare normalizata (din construction_status)
     nr_camere: int | None = None
-    etaje: str | None = None                 # ex. un nivel
+    etaje: str | None = None                 # ex. un nivel (NR. de niveluri ale casei)
+    etaj: int | None = None                  # etajul apartamentului (0 = parter/demisol); driver major
     poza: str | None = None                  # URL imagine reprezentativa (og:image) - pt carduri UI
     pagina_lista: bool = False               # pagina pare listă/căutare, nu un anunț individual
 
@@ -135,6 +136,10 @@ _TIP_CLADIRE = {"detached": "casa individuala", "semi_detached": "casa cuplata",
                 "terraced": "casa insiruita", "house": "casa"}
 _FLOORS = {"one_floor": "un nivel", "ground_floor": "parter", "two_floors": "doua niveluri",
            "three_floors": "trei niveluri"}
+# Floor_no (storia, etaj APARTAMENT): valori non-numerice -> nivel intreg (0 = parter/demisol).
+# Etajele numerice ("floor_3") sunt prinse de regex-ul din _etaj_din_floor_no.
+_FLOOR_NO_SPECIAL = {"ground_floor": 0, "cellar": 0, "souterrain": 0, "demisol": 0,
+                     "parter": 0, "basement": 0}
 _STARE = {"ready_to_use": "buna / locuibila", "to_completion": "in curs de finalizare",
           "to_renovation": "necesita renovare"}
 
@@ -200,6 +205,11 @@ def _caracteristici_storia(soup) -> dict:
                 f = primul(node.get("Floors_num"))
                 if f:
                     out["etaje"] = _FLOORS.get(str(f), str(f))
+            # Floor_no = etajul APARTAMENTULUI (storia); distinct de Floors_num (niveluri casa)
+            if "Floor_no" in node and "etaj" not in out:
+                e = _etaj_din_floor_no(primul(node.get("Floor_no")))
+                if e is not None:
+                    out["etaj"] = e
             stack.extend(node.values())
         elif isinstance(node, list):
             stack.extend(node)
@@ -240,6 +250,57 @@ def _caracteristici_imobiliare(body: str) -> dict:
     elif re.search(r"\bsobe\b", body, re.IGNORECASE):
         out["incalzire"] = "sobe"
     return out
+
+
+def _etaj_din_floor_no(valoare) -> int | None:
+    """Etajul apartamentului din cheia structurata storia `Floor_no`.
+
+    Acopera: 'ground_floor'/'cellar' -> 0 (parter/demisol), 'floor_3' -> 3, '3' -> 3.
+    Intoarce None pentru valori nerecunoscute (robust, fara exceptie).
+    """
+    if valoare is None:
+        return None
+    s = str(valoare).strip().lower()
+    if s in _FLOOR_NO_SPECIAL:
+        return _FLOOR_NO_SPECIAL[s]
+    m = re.search(r"(\d{1,2})", s)   # 'floor_3', 'higher_10', '3' -> numar
+    if m:
+        n = _to_int(m.group(1))
+        if n is not None and 0 <= n <= 60:   # interval plauzibil de etaje
+            return n
+    return None
+
+
+# Etajul apartamentului din TEXT liber (titlu/descriere/caracteristici). Acopera formele
+# romanesti uzuale: „etaj 3", „etajul 3", „et. 3", „etaj 3/5", „3/5" (etaj/total), „parter",
+# „demisol", „mansarda". Parterul/demisolul -> 0 (baza, conform conventiei profilului: 0 = parter).
+_RE_ETAJ_NUMERIC = re.compile(
+    r"(?:la\s+)?etaj(?:ul)?\.?\s*(\d{1,2})(?:\s*/\s*\d{1,2})?"   # „etaj 3", „etajul 3/5"
+    r"|\bet\.\s*(\d{1,2})(?:\s*/\s*\d{1,2})?"                     # „et. 3", „et.3/5"
+    r"|(?<![\d/])\b(\d{1,2})\s*/\s*\d{1,2}\b",                    # „3/5" (etaj/total niveluri)
+    re.IGNORECASE,
+)
+# Parter/demisol/mansarda -> nivel de baza 0 (apartamentul nu e pe un etaj propriu-zis).
+_RE_ETAJ_PARTER = re.compile(r"\b(?:parter|demisol|mansard[ăa]|subsol)\b", re.IGNORECASE)
+
+
+def _etaj_din_text(text: str) -> int | None:
+    """Etajul apartamentului dintr-un text liber. None daca nu apare (robust, fara exceptie).
+
+    „parter"/„demisol"/„mansardă" -> 0. „etaj 3", „et. 3", „3/5" -> numarul. Verbalul (etaj/et.)
+    are prioritate fata de forma „3/5", iar „parter" doar daca nu s-a gasit deja un etaj numeric.
+    """
+    if not text:
+        return None
+    m = _RE_ETAJ_NUMERIC.search(text)
+    if m:
+        brut = m.group(1) or m.group(2) or m.group(3)
+        n = _to_int(brut)
+        if n is not None and 0 <= n <= 60:
+            return n
+    if _RE_ETAJ_PARTER.search(text):
+        return 0
+    return None
 
 
 def _cauta_in_jsonld(data) -> tuple:
@@ -373,12 +434,20 @@ def parse_listing_html(html: str, sursa_url: str = "") -> ParsedListing:
     for cheie, val in _caracteristici_imobiliare(body).items():
         car.setdefault(cheie, val)
 
+    # 7) etajul apartamentului: structurat (Floor_no, deja in `car`) are prioritate; altfel din
+    #    titlu/descriere/corp („etaj 3", „parter", „3/5"). Aditiv: None daca nu apare nicaieri.
+    etaj = car.get("etaj")
+    if etaj is None:
+        etaj = _etaj_din_text(text_cautare)        # 0 (parter) e valid -> compara cu None, nu falsy
+    if etaj is None:
+        etaj = _etaj_din_text(body)
+
     return ParsedListing(pret=pret, moneda=moneda, suprafata=suprafata,
                          suprafata_teren=suprafata_teren, titlu=titlu, sursa_url=sursa_url,
                          an=car.get("an"), incalzire=car.get("incalzire"),
                          material=car.get("material"), tip_cladire=car.get("tip_cladire"),
                          stare_text=car.get("stare_text"), nr_camere=car.get("nr_camere"),
-                         etaje=car.get("etaje"), poza=poza,
+                         etaje=car.get("etaje"), etaj=etaj, poza=poza,
                          pagina_lista=_pare_pagina_lista(text_cautare))
 
 
