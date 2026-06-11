@@ -30,6 +30,15 @@ _UNU = Decimal("1")
 RATA_CAP_MIN = Decimal("0.02")
 RATA_CAP_MAX = Decimal("0.15")
 
+# I-19 / SEV 103 A20.31–A20.34 — interval de plauzibilitate pentru rata de ACTUALIZARE DCF (fracție).
+# Simetric cu rata de capitalizare: NU blochează (rămâne raționamentul evaluatorului), doar ridică o
+# ALERTĂ. Rata de actualizare e nominală (include creșterea/inflația așteptată), deci banda e mai largă
+# decât cea a ratei de capitalizare (care e o rată „all-risks" pe NOI stabilizat). 5–25% nominal acoperă
+# imobiliarul RO realist; sub 5% subactualizează (supraevaluare), peste 25% e improbabil / posibilă
+# confuzie de unitate (ex. 20 în loc de 0,20).
+RATA_ACT_MIN = Decimal("0.05")
+RATA_ACT_MAX = Decimal("0.25")
+
 
 class DateVenit(BaseModel):
     """Intrările pentru capitalizarea directă (sume anuale; procente ca fracție [0,1])."""
@@ -55,6 +64,10 @@ class DateDCF(BaseModel):
     fluxuri: list[Decimal] = Field(max_length=200)
     rata_actualizare: Decimal
     valoare_reziduala: Decimal = Decimal("0")
+    # I-19 / SEV 103 A20.34 — documentarea sursei/metodei ratei de actualizare (WACC, build-up,
+    # randament cerut investitori, comparabile etc.). Opțional, backward-compatible — simetric cu
+    # `DateVenit.sursa_rata` pentru rata de capitalizare. Input-ul liber al ratei rămâne fallback.
+    sursa_rata_actualizare: str = ""
 
 
 # --------------------------------------------------------------------------- #
@@ -162,6 +175,26 @@ def valideaza_rata_capitalizare(
     return None
 
 
+def valideaza_rata_actualizare(
+    rata: Decimal, minim: Decimal = RATA_ACT_MIN, maxim: Decimal = RATA_ACT_MAX,
+) -> str | None:
+    """Verifică plauzibilitatea ratei de ACTUALIZARE DCF. Întoarce un mesaj de ALERTĂ dacă e în afara
+    intervalului, altfel `None`. Simetric cu `valideaza_rata_capitalizare`: NU blochează (rămâne
+    raționamentul evaluatorului), doar semnalează riscul de deformare a valorii — o rată prea mică
+    subactualizează (supraevaluare), o rată prea mare / cu unitatea greșită deformează în jos.
+    Sursa cerinței: SEV 103 A20.31–A20.34 (rata de actualizare cu dovezi documentate).
+    """
+    if rata <= 0:
+        return "Rata de actualizare trebuie să fie > 0."
+    if rata < minim:
+        return (f"Rata de actualizare {rata} este sub pragul de plauzibilitate {minim} "
+                f"(verificați sursa; o rată prea mică subactualizează și supraevaluează proprietatea).")
+    if rata > maxim:
+        return (f"Rata de actualizare {rata} este peste pragul de plauzibilitate {maxim} "
+                f"(verificați sursa; posibil input procent în loc de fracție, ex. 20 în loc de 0,20).")
+    return None
+
+
 def evalueaza_venit(d: DateVenit) -> RezultatVenit:
     """Valoare = (VBP − pierderi neocupare − cheltuieli) ÷ rată de capitalizare."""
     if d.rata_capitalizare <= 0:
@@ -244,3 +277,18 @@ def evalueaza_dcf(fluxuri: list[Decimal], rata_actualizare: Decimal,
     n = len(fluxuri)
     total += Decimal(valoare_reziduala) / (factor ** n)
     return total.quantize(_BANI, rounding=ROUND_HALF_UP)
+
+
+def abordare_dcf(d: DateDCF) -> RezultatAbordare:
+    """Wrapper DCF care expune, ca `abordare_venit`, alerta de plauzibilitate a ratei de actualizare
+    și documentarea sursei ei în `detalii` (non-blocant; rata liberă rămâne fallback). Adițional —
+    `evalueaza_dcf` rămâne neschimbat pentru apelurile pozitionale existente (assembler, teste).
+    """
+    valoare = evalueaza_dcf(d.fluxuri, d.rata_actualizare, d.valoare_reziduala)
+    detalii: dict = {}
+    alerta = valideaza_rata_actualizare(d.rata_actualizare)
+    if alerta:
+        detalii["alerta_rata_actualizare"] = alerta
+    if d.sursa_rata_actualizare:
+        detalii["sursa_rata_actualizare"] = d.sursa_rata_actualizare
+    return RezultatAbordare(abordare="venit", valoare=valoare, detalii=detalii)
