@@ -1,8 +1,13 @@
+# NOTA: fisierul sta la RADACINA repo-ului (.github/) — evaluare-anevar/.github/ NU e citit de GitHub.
 name: CI
 
 on:
   push:
   pull_request:
+
+defaults:
+  run:
+    working-directory: evaluare-anevar
 
 jobs:
   test:
