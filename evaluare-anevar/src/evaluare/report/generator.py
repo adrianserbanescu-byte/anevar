@@ -244,30 +244,85 @@ def _valoare_teren(ctx: ReportContext):
 # analiza CMBU pe cele 4 teste clasice. NU inlocuiesc textul AI; il incadreaza intr-o structura
 # pe care evaluatorul o bifeaza/completeaza, ca raportul sa nu ramana narativ liber/placeholder.
 # --------------------------------------------------------------------------- #
-def _adauga_structura_piata(doc: DocxDocument, ctx: ReportContext) -> None:
-    """I-12 — schelet structurat al analizei de piata (faza de ciclu, segment de pret, tendinta).
+def _analiza_piata_structurata(ctx: ReportContext) -> dict:
+    """G8 — extrage (fail-soft) campurile structurate ale analizei de piata, daca exista in context.
 
-    Apare DUPA narativul de piata (AI sau placeholder), ca grila de completat de evaluator. Sustine
-    direct factorii GEV 520 A5(a) (activitatea curenta si tendintele pietei relevante)."""
+    Aditiv si backward-compatible: NU exista un camp obligatoriu in modele. Cautam, prin getattr, un
+    atribut `analiza_piata` (sau `analiza_piata_structurata`) pe `ctx.meta` apoi pe `ctx`. Acceptam fie
+    un obiect cu atribute (`arie`/`faza_ciclu`/`segment_pret`/`tendinta`), fie un dict cu aceste chei.
+    Intoarcem un dict normalizat cu doar cheile prezente (valori ne-goale). Fara sursa -> dict gol, iar
+    `_adauga_structura_piata` cade gratios pe scheletul de completat (back-stop determinist)."""
+    chei = ("arie", "faza_ciclu", "segment_pret", "tendinta")
+    for sursa in (getattr(ctx, "meta", None), ctx):
+        for nume in ("analiza_piata", "analiza_piata_structurata"):
+            raw = getattr(sursa, nume, None)
+            if raw is None:
+                continue
+            rez: dict[str, str] = {}
+            for k in chei:
+                val = raw.get(k) if isinstance(raw, dict) else getattr(raw, k, None)
+                if val is not None and str(val).strip():
+                    rez[k] = str(val).strip()
+            if rez:
+                return rez
+    return {}
+
+
+def _adauga_structura_piata(doc: DocxDocument, ctx: ReportContext) -> None:
+    """I-12 / G8 — schelet structurat al analizei de piata (arie, faza de ciclu, segment de pret, tendinta).
+
+    Apare DUPA narativul de piata (AI sau placeholder). Daca exista campuri structurate in context
+    (`_analiza_piata_structurata`), liniile respective se redau COMPLETATE; altfel raman ca grila de
+    completat de evaluator (back-stop determinist). Sustine direct factorii GEV 520 A5(a) (activitatea
+    curenta si tendintele pietei relevante)."""
+    s = _analiza_piata_structurata(ctx)
     p = doc.add_paragraph()
     p.add_run("Analiza structurata a pietei (de confirmat de evaluator):").bold = True
-    doc.add_paragraph(
-        "Faza de ciclu a cartierului (dezvoltare / stabilitate / declin / revitalizare): "
-        "________ — argumentati pe baza ritmului de constructie, a tranzactiilor recente si a "
-        "tendintei populatiei/cererii.",
-        style="List Bullet",
-    )
-    doc.add_paragraph(
-        "Segmentul de pret al subiectului in cartier (cel mai ieftin / mediu / cel mai scump): "
-        "________ — relevant pentru principiile de progresie (subiectul ieftin castiga din vecini "
-        "scumpi) si regresie (subiectul scump pierde din vecini ieftini).",
-        style="List Bullet",
-    )
-    doc.add_paragraph(
-        "Tendinta preturilor pe sub-piata relevanta (crestere / stabil / scadere): ________ — cu "
-        "orizont si sursa (oferte, tranzactii, indici de piata).",
-        style="List Bullet",
-    )
+    # Aria sub-pietei relevante: din context daca exista; altfel back-stop determinist pe localizarea
+    # subiectului (adresa), ca aria sa nu ramana necompletata. NU se inventeaza date — doar se citeaza
+    # localizarea deja cunoscuta a proprietatii.
+    arie = s.get("arie") or (getattr(ctx.meta, "adresa", "") or "").strip()
+    if arie:
+        doc.add_paragraph(f"Aria (sub-piata) relevanta analizata: {arie}.", style="List Bullet")
+    if "faza_ciclu" in s:
+        doc.add_paragraph(
+            f"Faza de ciclu a cartierului: {s['faza_ciclu']} (dezvoltare / stabilitate / declin / "
+            "revitalizare) — apreciata pe ritmul de constructie, tranzactiile recente si tendinta "
+            "cererii.",
+            style="List Bullet",
+        )
+    else:
+        doc.add_paragraph(
+            "Faza de ciclu a cartierului (dezvoltare / stabilitate / declin / revitalizare): "
+            "________ — argumentati pe baza ritmului de constructie, a tranzactiilor recente si a "
+            "tendintei populatiei/cererii.",
+            style="List Bullet",
+        )
+    if "segment_pret" in s:
+        doc.add_paragraph(
+            f"Segmentul de pret al subiectului in cartier: {s['segment_pret']} (cel mai ieftin / "
+            "mediu / cel mai scump) — relevant pentru principiile de progresie si regresie.",
+            style="List Bullet",
+        )
+    else:
+        doc.add_paragraph(
+            "Segmentul de pret al subiectului in cartier (cel mai ieftin / mediu / cel mai scump): "
+            "________ — relevant pentru principiile de progresie (subiectul ieftin castiga din vecini "
+            "scumpi) si regresie (subiectul scump pierde din vecini ieftini).",
+            style="List Bullet",
+        )
+    if "tendinta" in s:
+        doc.add_paragraph(
+            f"Tendinta preturilor pe sub-piata relevanta: {s['tendinta']} (crestere / stabil / "
+            "scadere) — cu orizont si sursa (oferte, tranzactii, indici de piata).",
+            style="List Bullet",
+        )
+    else:
+        doc.add_paragraph(
+            "Tendinta preturilor pe sub-piata relevanta (crestere / stabil / scadere): ________ — cu "
+            "orizont si sursa (oferte, tranzactii, indici de piata).",
+            style="List Bullet",
+        )
 
 
 def _adauga_structura_cmbu(doc: DocxDocument, ctx: ReportContext) -> None:
@@ -869,6 +924,65 @@ def _decode_foto(data_url: str) -> BytesIO | None:
     return BytesIO(raw)
 
 
+# F-10 — „Desfasuratorul ajustarilor": tabel cu ajustarile aplicate fiecarui comparabil pe criterii.
+# Uzanta ferma la verificarea bancara (transparenta grilei de comparatie). Citeste ajustarile direct
+# din comparabilele din context (`Comparable.adjustments` / `LandComparable.adjustments`). Fail-soft:
+# fara nicio ajustare in context -> anexa OMISA elegant (raportul ramane neschimbat).
+def _fmt_ajustare(a) -> str:
+    """Valoarea unei ajustari, formatata in functie de tip (procentuala -> %, valorica -> suma)."""
+    if a.tip == "procentuala":
+        return _pct(a.valoare)
+    return _fmt(a.valoare)
+
+
+def _adauga_tabel_desfasurator(doc: DocxDocument, eticheta: str, comparabile) -> bool:
+    """Emite un sub-tabel al desfasuratorului pentru un set de comparabile (piata sau teren).
+
+    Randeaza doar comparabilele care AU ajustari; intoarce True daca a scris ceva (pentru ca apelantul
+    sa stie daca anexa are continut). Fara ajustari -> nu scrie nimic, intoarce False."""
+    cu_ajustari = [(i, c) for i, c in enumerate(comparabile) if getattr(c, "adjustments", None)]
+    if not cu_ajustari:
+        return False
+    p = doc.add_paragraph()
+    p.add_run(f"{eticheta}:").bold = True
+    table = doc.add_table(rows=1, cols=5)
+    table.style = "Table Grid"
+    hdr = table.rows[0].cells
+    hdr[0].text = "Comparabil"
+    hdr[1].text = "Element de comparatie"
+    hdr[2].text = "Etapa"
+    hdr[3].text = "Ajustare"
+    hdr[4].text = "Justificare"
+    for i, c in cu_ajustari:
+        for a in c.adjustments:
+            row = table.add_row().cells
+            row[0].text = f"{i + 1}"
+            row[1].text = a.element
+            row[2].text = a.etapa
+            row[3].text = _fmt_ajustare(a)
+            row[4].text = a.justificare or "—"
+    return True
+
+
+def _adauga_desfasurator_ajustari(doc: DocxDocument, ctx: ReportContext, adnotari: bool = False) -> None:
+    """Anexa „Desfasuratorul ajustarilor" — ajustarile aplicate fiecarui comparabil pe criterii.
+
+    Aditiva: apare DOAR daca exista ajustari pe comparabilele de piata sau de teren din context; in lipsa
+    lor (ex. comparabile fara grila / introduse direct) se OMITE elegant, raportul ramane neschimbat."""
+    are_piata = any(getattr(c, "adjustments", None) for c in ctx.comparables)
+    are_teren = any(getattr(c, "adjustments", None) for c in ctx.land_comparables)
+    if not are_piata and not are_teren:
+        return   # omisa elegant: fara date de grila, nu adaugam anexa
+    doc.add_heading("ANEXĂ — DESFĂȘURĂTORUL AJUSTĂRILOR", level=1)
+    doc.add_paragraph(
+        "Detalierea ajustarilor aplicate fiecarui comparabil pe elemente de comparatie (etapa de "
+        "tranzactie aplicata compus; etapa de proprietate aplicata aditiv). Ajustarile procentuale sunt "
+        "exprimate in procente, cele valorice in moneda raportarii."
+    )
+    _adauga_tabel_desfasurator(doc, "Comparabile de piata (proprietate intreaga)", ctx.comparables)
+    _adauga_tabel_desfasurator(doc, "Comparabile de teren", ctx.land_comparables)
+
+
 def _adauga_anexe(doc: DocxDocument, ctx: ReportContext, adnotari: bool = False) -> None:
     doc.add_heading("ANEXE", level=1)
     _nota(doc, "anexe", adnotari)
@@ -990,6 +1104,10 @@ def genereaza_raport(
     if ctx.land.categorie_folosinta is not None:
         clasa = f", clasa de calitate {ctx.land.clasa_calitate}" if ctx.land.clasa_calitate is not None else ""
         doc.add_paragraph(f"Teren agricol: categorie de folosinta {ctx.land.categorie_folosinta}{clasa}.")
+    # F-08 — deschiderea la strada (front stradal), factor de valoare al terenului (GEV 630 §28).
+    # Camp existent pe LandData, neredat pana acum; daca lipseste -> linia se omite.
+    if ctx.land.deschidere is not None:
+        doc.add_paragraph(f"Deschidere la strada (front stradal): {ctx.land.deschidere} m.")
     if ctx.land.acces:                                  # GEV 630 §28 — calea de acces (afecteaza valoarea)
         doc.add_paragraph(f"Acces: {ctx.land.acces}.")
     if ctx.land.utilitati:                              # GEV 630 §28 — utilitati in descriere
@@ -1002,6 +1120,12 @@ def genereaza_raport(
             f"Constructie: Au {ctx.building.au} mp, Acd {ctx.building.acd} mp, "
             f"an referinta {ctx.building.an_referinta}."
         )
+        # F-08 — sistemul constructiv si finisajele, campuri existente pe BuildingData neredate pana
+        # acum (elemente fizice descriptive, GEV 630 §28). Daca un camp lipseste -> linia se omite.
+        if ctx.building.structura:
+            doc.add_paragraph(f"Structura / sistem constructiv: {ctx.building.structura}.")
+        if ctx.building.finisaje:
+            doc.add_paragraph(f"Finisaje: {ctx.building.finisaje}.")
     if ctx.building.etaj is not None or ctx.building.an_bloc is not None:
         parti = []
         if ctx.building.etaj is not None:
@@ -1122,6 +1246,9 @@ def genereaza_raport(
     if ctx.profil.ghid == "SEV_450":   # clauza de subasigurare e specifica evaluarii pentru asigurare
         _adauga_clauza_subasigurare(doc, ctx, adnotari)
     _adauga_anexe(doc, ctx, adnotari)
+    # F-10 — anexa „Desfasuratorul ajustarilor" la finalul raportului (inaintea semnaturii). Aditiva:
+    # apare doar daca exista ajustari pe comparabile (grila); fara date de grila -> omisa elegant.
+    _adauga_desfasurator_ajustari(doc, ctx, adnotari)
     _adauga_semnatura(doc, ctx, adnotari)
 
     output_path = Path(output_path)

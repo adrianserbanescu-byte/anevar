@@ -702,3 +702,125 @@ def test_valoare_prudenta_doar_pe_profil_garantare(tmp_path):
     out = tmp_path / "asig_prud.docx"
     genereaza_raport(ctx, out)
     assert "VALOAREA PRUDENTA" not in _all_text(out)
+
+
+# ── F-08: campuri fizice existente (structura / finisaje / deschidere) redate in cap. 4 ──────────────
+def test_f08_cap4_reda_structura_finisaje_deschidere_cand_exista(tmp_path):
+    # F-08: campurile existente structura/finisaje (BuildingData) + deschidere (LandData), neredate
+    # pana acum, apar in descrierea fizica (cap. 4) cand sunt completate.
+    ctx = _ctx()
+    ctx.building.structura = "cadre din beton armat, zidarie de caramida"
+    ctx.building.finisaje = "tencuieli, gresie/faianta, tamplarie PVC"
+    ctx.land.deschidere = Decimal("18")
+    out = tmp_path / "f08.docx"
+    genereaza_raport(ctx, out)
+    text = _all_text(out)
+    assert "Structura / sistem constructiv" in text and "beton armat" in text
+    assert "Finisaje:" in text and "tamplarie PVC" in text
+    assert "Deschidere la strada" in text and "18 m" in text
+
+
+def test_f08_cap4_omite_liniile_cand_campurile_lipsesc(tmp_path):
+    # Backward-compatible: fara structura/finisaje/deschidere, liniile respective NU apar (se omit).
+    out = tmp_path / "f08_gol.docx"
+    genereaza_raport(_ctx(), out)               # structura/finisaje/deschidere = None implicit
+    text = _all_text(out)
+    assert "Structura / sistem constructiv" not in text
+    assert "Finisaje:" not in text
+    assert "Deschidere la strada" not in text
+
+
+# ── F-10: anexa „Desfasuratorul ajustarilor" — tabel cu ajustarile pe criterii ──────────────────────
+def test_f10_anexa_desfasurator_apare_cu_grila(tmp_path):
+    # F-10: cu ajustari pe comparabilele de teren (grila), raportul capata anexa desfasuratorului.
+    out = tmp_path / "f10.docx"
+    genereaza_raport(_ctx_cu_teren(), out)       # land_comparables au Adjustment(element="A", ...)
+    text = _all_text(out)
+    assert "DESFĂȘURĂTORUL AJUSTĂRILOR" in text
+    assert "Element de comparatie" in text and "Justificare" in text
+    assert "Comparabile de teren" in text
+
+
+def test_f10_anexa_desfasurator_piata_cu_element_si_procent(tmp_path):
+    # F-10: ajustarile de piata (proprietate intreaga) apar cu elementul, etapa si valoarea formatata.
+    from evaluare.models.comparable import Adjustment, Comparable
+    from evaluare.models.results import MarketResult
+    ctx = _ctx()
+    ctx.comparables = [
+        Comparable(pret=Decimal("300000"), suprafata=Decimal("320"),
+                   adjustments=[Adjustment(element="Suprafata", tip="procentuala",
+                                           valoare=Decimal("0.05"), etapa="proprietate",
+                                           justificare="suprafata mai mare")]),
+        Comparable(pret=Decimal("310000"), suprafata=Decimal("330")),  # fara ajustari -> sarit
+    ]
+    ctx.market_result = MarketResult(
+        preturi_unitare_corectate=[Decimal("305000"), Decimal("308000")],
+        ajustari_brute=[Decimal("0.05"), Decimal("0.0")],
+        ajustari_nete=[Decimal("0.05"), Decimal("0.0")],
+        index_selectat=0, valoare_piata=Decimal("306500"))
+    out = tmp_path / "f10_piata.docx"
+    genereaza_raport(ctx, out)
+    text = _all_text(out)
+    assert "DESFĂȘURĂTORUL AJUSTĂRILOR" in text
+    assert "Comparabile de piata" in text
+    assert "Suprafata" in text and "proprietate" in text
+    assert "5.00%" in text and "suprafata mai mare" in text
+
+
+def test_f10_anexa_desfasurator_omisa_fara_grila(tmp_path):
+    # Aditiv / backward-compatible: fara ajustari pe comparabile, anexa NU apare, raport neschimbat.
+    out = tmp_path / "f10_gol.docx"
+    genereaza_raport(_ctx(), out)               # fara comparabile cu ajustari
+    assert "DESFĂȘURĂTORUL AJUSTĂRILOR" not in _all_text(out)
+
+
+# ── G8: analiza de piata structurata completata din context (arie / faza / segment / tendinta) ──────
+def _seteaza_analiza_piata(ctx, valoare):
+    """Injecteaza pe meta campul optional `analiza_piata` (citit prin getattr de generator). Modelele
+    pydantic interzic atribuirea de campuri nedefinite -> folosim object.__setattr__ (echivalent cu un
+    apelant care ataseaza structura analizei de piata la context, fara a modifica schema modelelor)."""
+    object.__setattr__(ctx.meta, "analiza_piata", valoare)
+
+
+def test_g8_structura_piata_completata_din_context(tmp_path):
+    # G8: cu o analiza de piata structurata pe meta, liniile (faza/segment/tendinta) se redau COMPLETATE,
+    # iar aria relevanta apare explicit. Nu se mai vad placeholder-ele „________" pe acele linii.
+    ctx = _ctx()
+    _seteaza_analiza_piata(ctx, {
+        "arie": "cartierul Drumul Taberei, Bucuresti",
+        "faza_ciclu": "stabilitate",
+        "segment_pret": "mediu",
+        "tendinta": "crestere usoara",
+    })
+    out = tmp_path / "g8.docx"
+    genereaza_raport(ctx, out)
+    text = _all_text(out)
+    assert "Aria (sub-piata) relevanta analizata" in text and "Drumul Taberei" in text
+    assert "Faza de ciclu a cartierului: stabilitate" in text
+    assert "Segmentul de pret al subiectului in cartier: mediu" in text
+    assert "Tendinta preturilor pe sub-piata relevanta: crestere usoara" in text
+
+
+def test_g8_structura_piata_accepta_dict_partial(tmp_path):
+    # G8: sursa poate fi un dict partial — doar cheile prezente se completeaza; restul raman ca grila.
+    ctx = _ctx()
+    _seteaza_analiza_piata(ctx, {"tendinta": "stabil"})
+    out = tmp_path / "g8_partial.docx"
+    genereaza_raport(ctx, out)
+    text = _all_text(out)
+    assert "Tendinta preturilor pe sub-piata relevanta: stabil" in text
+    # faza/segment neprecizate -> raman ca linii de completat (back-stop determinist)
+    assert "Faza de ciclu a cartierului (dezvoltare / stabilitate" in text
+    assert "Segmentul de pret al subiectului in cartier (cel mai ieftin" in text
+
+
+def test_g8_structura_piata_backstop_fara_context(tmp_path):
+    # G8 back-stop: fara analiza structurata, scheletul existent (placeholder de completat) ramane,
+    # iar aria se completeaza determinist din adresa subiectului (fara a inventa date noi).
+    out = tmp_path / "g8_backstop.docx"
+    genereaza_raport(_ctx(), out)               # fara analiza_piata pe meta
+    text = _all_text(out)
+    assert "Faza de ciclu a cartierului (dezvoltare / stabilitate" in text   # placeholder pastrat
+    assert "Tendinta preturilor pe sub-piata relevanta (crestere" in text
+    # aria = back-stop determinist pe adresa subiectului
+    assert "Aria (sub-piata) relevanta analizata" in text and "Str. Exemplu 1" in text
