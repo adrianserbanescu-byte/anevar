@@ -13,7 +13,9 @@ ajustare bruta minima. Valoarea terenului = pret/mp corectat ales * suprafata su
 """
 from __future__ import annotations
 
-from decimal import Decimal
+from decimal import ROUND_HALF_UP, Decimal
+
+from pydantic import BaseModel, Field
 
 from evaluare.engine.metodologie import IMPLICIT, MetodologieConfig
 from evaluare.models.comparable import LandComparable
@@ -21,6 +23,7 @@ from evaluare.models.results import LandResult
 
 _UNU = Decimal("1")
 _ZERO = Decimal("0")
+_BANI = Decimal("0.01")
 
 
 def _pret_baza_tranzactie(comp: LandComparable) -> Decimal:
@@ -113,4 +116,80 @@ def evaluate_land(
         preturi_mp_corectate=preturi, ajustari_brute=brute, ajustari_nete=nete,
         index_selectat=index, indici_mediati=sorted(ordine[:n]),   # comparabilele mediate (M2)
         pret_mp_ales=pret_ales, valoare_teren=valoare,
+    )
+
+
+# --------------------------------------------------------------------------- #
+# I-11 — metoda REZIDUALĂ / a parcelării terenului (abordare opțională, ADITIVĂ).
+# Sursa: articol „Rolul pretului in tranzactiile cu terenuri" (perspectiva dezvoltatorului) +
+# SEV 233 / GEV 630 (terenuri dezvoltabile). Pentru un teren construibil, valoarea „pe lot"
+# derivă din ce produce terenul: valoarea dezvoltării − costuri − profit dezvoltator.
+# NU înlocuiește comparația EUR/mp; este o a doua metodă recunoscută, pe care evaluatorul o aplică
+# când terenul e dezvoltabil. Funcția de comparație de mai sus rămâne neschimbată.
+# --------------------------------------------------------------------------- #
+class DateTerenRezidual(BaseModel):
+    """Intrările metodei reziduale a terenului (toate sumele în aceeași monedă).
+
+    Cele 5 întrebări ale dezvoltatorului din articol: ce/câte pot construi, la ce preț le vând,
+    cât durează, care sunt costurile. Modelul le condensează în:
+      - `nr_loturi` × `pret_lot` = valoarea brută a dezvoltării (GDV), SAU `valoare_dezvoltare`
+        direct (când dezvoltarea nu e o simplă parcelare în loturi identice);
+      - `costuri_dezvoltare` = costuri de construire/infrastructură/vânzare/finanțare;
+      - `profit_dezvoltator` = marja cerută de dezvoltator (fracție din GDV SAU sumă fixă).
+    Valoarea terenului = GDV − costuri − profit. Rezultat negativ → teren nefezabil pentru
+    dezvoltarea propusă (semnalat ca eroare, nu valoare negativă falsă).
+    """
+
+    # Varianta „parcelare": nr. loturi × preț/lot. Lăsați 0 dacă dați `valoare_dezvoltare` direct.
+    nr_loturi: int = Field(default=0, ge=0)
+    pret_lot: Decimal = Field(default=_ZERO, ge=0)
+    # Varianta directă: valoarea brută a dezvoltării (GDV). Ignorat dacă nr_loturi > 0.
+    valoare_dezvoltare: Decimal = Field(default=_ZERO, ge=0)
+    costuri_dezvoltare: Decimal = Field(default=_ZERO, ge=0)
+    # Profitul dezvoltatorului: ca FRACȚIE din GDV (ex. 0.20 = 20%) SAU ca sumă fixă.
+    profit_procent: Decimal = Field(default=_ZERO, ge=0)
+    profit_suma: Decimal = Field(default=_ZERO, ge=0)
+
+    def valoare_bruta_dezvoltare(self) -> Decimal:
+        """GDV: nr_loturi × pret_lot dacă nr_loturi > 0, altfel `valoare_dezvoltare`."""
+        if self.nr_loturi > 0:
+            return Decimal(self.nr_loturi) * self.pret_lot
+        return self.valoare_dezvoltare
+
+
+class RezultatTerenRezidual(BaseModel):
+    """Rezultatul metodei reziduale a terenului."""
+
+    valoare_dezvoltare: Decimal      # GDV (valoarea brută a dezvoltării)
+    costuri_dezvoltare: Decimal
+    profit_dezvoltator: Decimal
+    valoare_teren: Decimal
+
+
+def teren_rezidual(d: DateTerenRezidual) -> RezultatTerenRezidual:
+    """Valoare teren = GDV − costuri de dezvoltare − profit dezvoltator (metoda reziduală).
+
+    Profitul dezvoltatorului = `profit_suma` + `profit_procent` × GDV (se pot combina sau folosi
+    doar una). Ridică `ValueError` dacă GDV ≤ 0 (fără dezvoltare nu există reziduu) sau dacă
+    valoarea terenului rezultată e ≤ 0 (dezvoltarea propusă nu lasă valoare reziduală terenului).
+    """
+    gdv = d.valoare_bruta_dezvoltare()
+    if gdv <= 0:
+        raise ValueError(
+            "Valoarea brută a dezvoltării (GDV) trebuie să fie > 0; "
+            "specificați nr_loturi × pret_lot sau valoare_dezvoltare."
+        )
+    profit = (d.profit_suma + d.profit_procent * gdv).quantize(_BANI, rounding=ROUND_HALF_UP)
+    valoare = (gdv - d.costuri_dezvoltare - profit).quantize(_BANI, rounding=ROUND_HALF_UP)
+    if valoare <= 0:
+        raise ValueError(
+            f"Valoarea reziduală a terenului rezultată este <= 0 ({valoare}); "
+            "dezvoltarea propusă nu lasă valoare reziduală terenului "
+            "(verificați GDV, costurile și profitul dezvoltatorului)."
+        )
+    return RezultatTerenRezidual(
+        valoare_dezvoltare=gdv.quantize(_BANI, rounding=ROUND_HALF_UP),
+        costuri_dezvoltare=d.costuri_dezvoltare.quantize(_BANI, rounding=ROUND_HALF_UP),
+        profit_dezvoltator=profit,
+        valoare_teren=valoare,
     )

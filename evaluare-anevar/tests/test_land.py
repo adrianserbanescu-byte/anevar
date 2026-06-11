@@ -2,7 +2,12 @@ from decimal import Decimal
 
 import pytest
 
-from evaluare.engine.land import evaluate_land, pret_mp_corectat
+from evaluare.engine.land import (
+    DateTerenRezidual,
+    evaluate_land,
+    pret_mp_corectat,
+    teren_rezidual,
+)
 from evaluare.engine.metodologie import MetodologieConfig
 from evaluare.models.comparable import Adjustment, LandComparable
 
@@ -119,3 +124,66 @@ def test_regresie_grila_reala(nume):
     # valoarea rotunjita la mia cea mai apropiata = valoarea raportata GBF
     val_rot = round(r.valoare_teren / 1000) * 1000
     assert val_rot == d["valoare"], f"{nume}: valoare {r.valoare_teren} -> {val_rot} != {d['valoare']}"
+
+
+# --------------------------------------------------------------------------- #
+# I-11 — metoda REZIDUALA / a parcelarii terenului (abordare optionala, aditiva).
+# --------------------------------------------------------------------------- #
+def test_teren_rezidual_parcelare_loturi():
+    # 10 loturi x 50.000 = GDV 500.000 ; costuri 200.000 ; profit 20% din GDV = 100.000
+    # teren = 500.000 - 200.000 - 100.000 = 200.000
+    d = DateTerenRezidual(nr_loturi=10, pret_lot=Decimal("50000"),
+                          costuri_dezvoltare=Decimal("200000"), profit_procent=Decimal("0.20"))
+    r = teren_rezidual(d)
+    assert r.valoare_dezvoltare == Decimal("500000.00")
+    assert r.profit_dezvoltator == Decimal("100000.00")
+    assert r.valoare_teren == Decimal("200000.00")
+
+
+def test_teren_rezidual_gdv_direct_si_profit_suma():
+    # GDV direct 800.000 ; costuri 500.000 ; profit suma fixa 120.000 -> teren 180.000
+    d = DateTerenRezidual(valoare_dezvoltare=Decimal("800000"),
+                          costuri_dezvoltare=Decimal("500000"), profit_suma=Decimal("120000"))
+    r = teren_rezidual(d)
+    assert r.valoare_dezvoltare == Decimal("800000.00")
+    assert r.profit_dezvoltator == Decimal("120000.00")
+    assert r.valoare_teren == Decimal("180000.00")
+
+
+def test_teren_rezidual_profit_combinat_procent_si_suma():
+    # GDV 1.000.000 ; profit 10% (100.000) + suma 50.000 = 150.000 ; costuri 400.000 -> teren 450.000
+    d = DateTerenRezidual(valoare_dezvoltare=Decimal("1000000"),
+                          costuri_dezvoltare=Decimal("400000"),
+                          profit_procent=Decimal("0.10"), profit_suma=Decimal("50000"))
+    r = teren_rezidual(d)
+    assert r.profit_dezvoltator == Decimal("150000.00")
+    assert r.valoare_teren == Decimal("450000.00")
+
+
+def test_teren_rezidual_loturi_au_prioritate_fata_de_gdv_direct():
+    # nr_loturi > 0 -> se foloseste nr_loturi x pret_lot, valoare_dezvoltare e ignorata.
+    d = DateTerenRezidual(nr_loturi=4, pret_lot=Decimal("100000"),
+                          valoare_dezvoltare=Decimal("999999"),
+                          costuri_dezvoltare=Decimal("100000"))
+    r = teren_rezidual(d)
+    assert r.valoare_dezvoltare == Decimal("400000.00")
+
+
+def test_teren_rezidual_fara_dezvoltare_ridica():
+    with pytest.raises(ValueError):
+        teren_rezidual(DateTerenRezidual(costuri_dezvoltare=Decimal("100000")))
+
+
+def test_teren_rezidual_negativ_ridica():
+    # costuri + profit > GDV -> dezvoltarea nu lasa valoare reziduala terenului.
+    d = DateTerenRezidual(valoare_dezvoltare=Decimal("300000"),
+                          costuri_dezvoltare=Decimal("280000"), profit_suma=Decimal("50000"))
+    with pytest.raises(ValueError):
+        teren_rezidual(d)
+
+
+def test_teren_rezidual_nu_afecteaza_comparatia_directa():
+    # Sanity: metoda reziduala e separata; comparatia EUR/mp ramane neschimbata.
+    c = LandComparable(pret_mp=Decimal("100"), suprafata=Decimal("500"),
+                       adjustments=[_adj("Deschidere", 0.10)])
+    assert pret_mp_corectat(c) == Decimal("110.00")
