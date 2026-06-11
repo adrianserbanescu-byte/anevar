@@ -41,6 +41,16 @@ def test_building_data_holds_elements_and_areas():
     assert b.functional_depreciation == Decimal("0")
     assert b.external_depreciation == Decimal("0")
     assert len(b.elements) == 1
+    # an_pif la nivel de cladire e optional si implicit None (backward-compat).
+    assert b.an_pif is None
+
+
+def test_building_data_an_pif_optional_field():
+    # Campul an_pif la nivel de cladire poate fi setat si pastreaza valoarea.
+    b = BuildingData(
+        au=Decimal("100"), acd=Decimal("100"), an_referinta=2025, an_pif=1995,
+    )
+    assert b.an_pif == 1995
 
 
 def test_land_data_basic():

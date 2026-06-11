@@ -165,7 +165,15 @@ def evaluate_cost(
 ) -> CostResult:
     """Ruleaza abordarea prin cost completa pentru o constructie."""
     cib = compute_cib(building.elements)
-    vcp = compute_vcp(building.elements, building.an_referinta)
+    # Varsta care alimenteaza deprecierea fizica:
+    #  - daca an_pif e dat la nivel de CLADIRE -> varsta = an_referinta - an_pif (o singura
+    #    varsta pentru intreaga cladire, suprascrie ponderarea pe elemente);
+    #  - altfel -> varsta cronologica PONDERATA pe elementele de cost (compute_vcp),
+    #    adica comportamentul existent (an_pif per-element). Backward-compatible.
+    if building.an_pif is not None:
+        vcp = Decimal(building.an_referinta - building.an_pif)
+    else:
+        vcp = compute_vcp(building.elements, building.an_referinta)
     # Politica unica de rotunjire: interpolam deprecierea pe varsta EXACTA. Rotunjirea lui vcp la 0.01
     # INAINTE de interpolare introducea un mic efect de PRAG pe Dfn (vcp sare in trepte de 0.01 an).
     # vcp se rotunjeste DOAR pentru afisarea/raportarea valorii (CostResult.vcp), nu pentru calcul.

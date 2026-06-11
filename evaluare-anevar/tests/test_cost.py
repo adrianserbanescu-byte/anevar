@@ -235,6 +235,71 @@ def test_cele_trei_forme_se_combina_in_cin():
     assert cin == Decimal("607500.00") or abs(cin - Decimal("607500")) < Decimal("1")
 
 
+# ---------------------------------------------------------------------------
+# An PIF la nivel de CLADIRE (Building.an_pif) — varsta = an_referinta - an_pif
+# ---------------------------------------------------------------------------
+
+
+def test_building_an_pif_seteaza_varsta_la_nivel_de_cladire():
+    # Cu an_pif pe cladire, varsta folosita la depreciere = an_referinta - an_pif
+    # (2025 - 1995 = 30), NU varsta cronologica ponderata pe elemente (~34 din GBF).
+    points = [DepreciationPoint(varsta=30, depreciere=Decimal("0.30")),
+              DepreciationPoint(varsta=40, depreciere=Decimal("0.50"))]
+    building = BuildingData(
+        au=Decimal("322.75"), acd=Decimal("351.46"), an_referinta=2025,
+        an_pif=1995, elements=gbf_elements(), depreciation_points=points,
+    )
+    result = evaluate_cost(building)
+    # Varsta = 30 -> primul nod al tabelului -> Dfn = 0.30 exact.
+    assert result.depreciere_fizica == Decimal("0.30")
+    assert result.vcp == Decimal("30.00")
+
+
+def test_building_an_pif_suprascrie_varsta_ponderata_pe_elemente():
+    # Elementele au an_pif diferiti (1945 si 2015 -> Vcp ponderat ~34), dar an_pif
+    # pe cladire (2010) forteaza varsta = 2025 - 2010 = 15 pentru TOATA cladirea.
+    building = BuildingData(
+        au=Decimal("322.75"), acd=Decimal("351.46"), an_referinta=2025,
+        an_pif=2010, elements=gbf_elements(),
+        durata_viata_totala=Decimal("60"),
+    )
+    result = evaluate_cost(building)
+    # Metoda liniara pe varsta de cladire: 15 / 60 = 0.25, NU varsta ponderata (~34/60).
+    dfn_asteptat = depreciere_fizica_liniara(Decimal("15"), Decimal("60"))
+    assert result.depreciere_fizica == dfn_asteptat
+    assert result.vcp == Decimal("15.00")
+    # Diferit fata de varsta ponderata pe elemente (sanity check).
+    vcp_ponderat = compute_vcp(gbf_elements(), an_referinta=2025)
+    assert result.vcp != vcp_ponderat.quantize(Decimal("0.01"))
+
+
+def test_fara_building_an_pif_comportament_neschimbat():
+    # Fara an_pif pe cladire -> varsta = compute_vcp (an_pif per-element), exact ca azi.
+    points = [DepreciationPoint(varsta=30, depreciere=Decimal("0.31")),
+              DepreciationPoint(varsta=35, depreciere=Decimal("0.36"))]
+    building_fara = BuildingData(
+        au=Decimal("322.75"), acd=Decimal("351.46"), an_referinta=2025,
+        elements=gbf_elements(), depreciation_points=points,
+    )
+    assert building_fara.an_pif is None  # default backward-compat
+    result = evaluate_cost(building_fara)
+    vcp_ponderat = compute_vcp(gbf_elements(), an_referinta=2025)
+    assert result.depreciere_fizica == interpolate_depreciation(vcp_ponderat, points)
+    assert result.vcp == vcp_ponderat.quantize(Decimal("0.01"))
+
+
+def test_building_an_pif_egal_cu_an_referinta_da_varsta_zero():
+    # Cladire pusa in functiune chiar in anul de referinta -> varsta 0 -> Dfn liniar 0.
+    building = BuildingData(
+        au=Decimal("100"), acd=Decimal("100"), an_referinta=2025,
+        an_pif=2025, elements=gbf_elements(),
+        durata_viata_totala=Decimal("60"),
+    )
+    result = evaluate_cost(building)
+    assert result.vcp == Decimal("0.00")
+    assert result.depreciere_fizica == Decimal("0")
+
+
 def test_cost_dfn_interpoleaza_pe_vcp_exact_nu_rotunjit():
     # Politica unica de rotunjire (#3): Dfn se interpoleaza pe vcp EXACT, nu pe vcp rotunjit la 0.01
     # (rotunjirea inainte de interpolare introducea un mic efect de prag). vcp RAPORTAT ramane rotunjit.

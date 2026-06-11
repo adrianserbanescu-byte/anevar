@@ -39,6 +39,11 @@ class BuildingData(BaseModel):
     au: Decimal                         # arie utila
     acd: Decimal                        # arie construita desfasurata
     an_referinta: int                   # anul datei de referinta a evaluarii
+    # An de punere in functiune al CLADIRII (intregi). Optional, backward-compat:
+    # daca e dat, varsta folosita la depreciere = an_referinta - an_pif la nivel de
+    # cladire (suprascrie varsta cronologica ponderata pe elementele de cost). Daca e
+    # None, se foloseste an_pif per-element (comportamentul existent prin compute_vcp).
+    an_pif: int | None = None
     elements: list[CostElement] = Field(default_factory=list)
     depreciation_points: list[DepreciationPoint] = Field(default_factory=list)
     # Metoda LINIARA de depreciere fizica (alternativa la tabelul de interpolare):
