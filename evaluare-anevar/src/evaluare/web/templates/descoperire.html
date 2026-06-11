@@ -147,7 +147,7 @@
      title="Numărul maxim de comparabile returnate (1–50)"><br>
   <label for="secundare">Atribute secundare (unul pe linie, „nume: valoare"):</label><br>
   <textarea id="secundare" name="secundare" rows="3" cols="40" placeholder="tamplarie: termopan"></textarea><br>
-  <button type="submit">Caută comparabile</button>
+  <button type="submit" id="cauta-btn">Caută comparabile</button>
   <span id="desc-status" class="hint" role="status" aria-live="polite"></span>
 </form>
 <p class="hint" style="max-width:62ch">
@@ -527,8 +527,13 @@ function constrangeTipDinDosar(){
 constrangeTipDinDosar();
 document.getElementById('tip').addEventListener('change', aplicaTip); aplicaTip();
 
+// H1: o singură căutare în zbor — flag anti dublu-submit (în plus față de butonul dezactivat).
+var cautareInZbor = false;
 document.getElementById('f').addEventListener('submit', async (e)=>{
   e.preventDefault();
+  if(cautareInZbor) return;                          // H1: ignoră submit-urile duplicate
+  const btn = document.getElementById('cauta-btn');
+  const stat = document.getElementById('desc-status');
   const d = Object.fromEntries(new FormData(e.target).entries());
   const tip = d.tip || 'casa';
   const maxc = Math.min(50, Math.max(1, parseInt(d.max_candidati,10) || 50));
@@ -545,17 +550,42 @@ document.getElementById('f').addEventListener('submit', async (e)=>{
         teren:d.teren||null, nr_camere:parseInt(d.nr_camere)||null},
       atribute_secundare:(d.secundare||'').split('\n').filter(Boolean), max_candidati: maxc};
   }
+  // H1: feedback de progres + blochează butonul cât durează scraping-ul (secunde).
+  // `desc-status` are deja role=status / aria-live=polite -> anunțat de cititoarele de ecran.
+  cautareInZbor = true;
+  btn.disabled = true; btn.setAttribute('aria-busy','true');
+  stat.textContent = 'Se caută… (poate dura câteva secunde)';
   let res;
   try {
     const r = await fetch(url,{method:'POST',
       headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
+    // H2: verifică r.ok ÎNAINTE de a accesa câmpuri din corp; la 4xx/5xx arată mesajul.
+    if(!r.ok){
+      let mesaj = 'Căutarea a eșuat (cod ' + r.status + ').';
+      try {
+        const erj = await r.json();
+        const det = erj && erj.detail;
+        if(typeof det === 'string' && det) mesaj = det;
+        else if(Array.isArray(det) && det.length && det[0] && det[0].msg) mesaj = det[0].msg;
+      } catch(_){ /* corp non-JSON -> păstrăm mesajul generic cu codul */ }
+      stat.textContent = mesaj;
+      return;
+    }
     res = await r.json();
   } catch(err) {
-    document.getElementById('desc-status').textContent =
-      'Căutarea a eșuat — verifică internetul și reîncearcă.';
+    stat.textContent = 'Căutarea a eșuat — verifică internetul și reîncearcă.';
+    return;
+  } finally {
+    // H1: reactivează butonul indiferent de rezultat (succes / 4xx-5xx / rețea).
+    cautareInZbor = false;
+    btn.disabled = false; btn.removeAttribute('aria-busy');
+  }
+  // H2: gardează accesul la `candidati` (poate lipsi dintr-un 200 atipic).
+  if(!res || !Array.isArray(res.candidati)){
+    stat.textContent = 'Răspuns neașteptat de la server — reîncearcă.';
     return;
   }
-  document.getElementById('desc-status').textContent = res.candidati.length + ' comparabile găsite';
+  stat.textContent = res.candidati.length + ' comparabile găsite';
   document.getElementById('metodologie').innerHTML = randMetodologie(res.metodologie);
   if(res.candidati.length === 0){
     document.getElementById('rezultate').innerHTML =
